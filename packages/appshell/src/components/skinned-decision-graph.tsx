@@ -6,7 +6,7 @@ import {
   GraphSimulator,
   type Simulation,
   type ToolbarItem,
-} from '@republicroad/jdm-editor';
+} from '@republicroad/seal-editor';
 import { PanelRightIcon } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 

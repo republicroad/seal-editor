@@ -1,4 +1,4 @@
-import { ThemeContextProvider, ThemePreference, useTheme } from '@republicroad/jdm-appshell';
+import { ThemeContextProvider, ThemePreference, useTheme } from '@republicroad/seal-appshell';
 import React from 'react';
 
 /** 主题三态循环：auto → dark → light → auto（持久化在 ThemeContextProvider，跨实例共享键） */

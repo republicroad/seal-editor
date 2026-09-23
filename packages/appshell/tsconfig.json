@@ -14,7 +14,6 @@
     "isolatedModules": true,
     "types": ["vite/client", "bun"],
     "paths": {
-      "@republicroad/jdm-editor": ["../jdm-editor/src/index.ts"],
       "react": [
         "./node_modules/@types/react",
         "../../node_modules/@types/react",
@@ -27,7 +26,8 @@
         "../jdm-editor/node_modules/@lezer/common"
       ],
       "@lezer/lr": ["./node_modules/@lezer/lr", "../../node_modules/@lezer/lr", "../jdm-editor/node_modules/@lezer/lr"],
-      "#reui/*": ["../jdm-editor/src/reui/*"]
+      "#reui/*": ["../jdm-editor/src/reui/*"],
+      "@republicroad/seal-editor": ["../jdm-editor/src/index.ts"]
     }
   },
   "include": ["src", "../jdm-editor/src/**/*.d.ts"]

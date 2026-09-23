@@ -6,7 +6,7 @@ import {
   createExecuteSimulate,
   createIndexedDbAdapter,
   useEditorShell,
-} from '@republicroad/jdm-appshell';
+} from '@republicroad/seal-appshell';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { InstanceShell } from './shared/instance-shell';

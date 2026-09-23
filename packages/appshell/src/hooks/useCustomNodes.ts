@@ -1,4 +1,4 @@
-import type { CustomNodeSpecification } from '@republicroad/jdm-editor';
+import type { CustomNodeSpecification } from '@republicroad/seal-editor';
 import { useEffect, useMemo, useState } from 'react';
 
 import { cryptoNode } from '../components/custom-node/crypto-node';

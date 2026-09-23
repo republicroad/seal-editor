@@ -9,8 +9,8 @@ import {
   createIndexedDbAdapter,
   restoreVersion,
   useTheme,
-} from '@republicroad/jdm-appshell';
-import { type GraphDiff, computeGraphDiff } from '@republicroad/jdm-editor';
+} from '@republicroad/seal-appshell';
+import { type GraphDiff, computeGraphDiff } from '@republicroad/seal-editor';
 import React, { useCallback, useState } from 'react';
 
 import { GRAPH_ID } from './shared/fixtures';

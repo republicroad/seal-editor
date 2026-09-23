@@ -1,4 +1,4 @@
-import type { DecisionGraphRef, DecisionGraphType } from '@republicroad/jdm-editor';
+import type { DecisionGraphRef, DecisionGraphType } from '@republicroad/seal-editor';
 import type { ReactNode } from 'react';
 
 import type { CustomNodeSpec } from '../lib/custom-node-registry';

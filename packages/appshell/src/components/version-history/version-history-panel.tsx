@@ -1,4 +1,4 @@
-import { type GraphDiff, useT } from '@republicroad/jdm-editor';
+import { type GraphDiff, useT } from '@republicroad/seal-editor';
 import { ChevronDownIcon, ChevronRightIcon, PencilIcon, PinIcon, PinOffIcon } from 'lucide-react';
 import * as React from 'react';
 

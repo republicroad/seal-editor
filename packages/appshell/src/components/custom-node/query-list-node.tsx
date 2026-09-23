@@ -7,7 +7,7 @@ import {
   jsonSchemaToVariableType,
   useDecisionGraphActions,
   useDecisionGraphState,
-} from '@republicroad/jdm-editor';
+} from '@republicroad/seal-editor';
 import React, { useEffect, useState } from 'react';
 
 import { createSpecNode } from '../../lib/custom-node-registry';

@@ -1,4 +1,4 @@
-import type { ToolbarItem } from '@republicroad/jdm-editor';
+import type { ToolbarItem } from '@republicroad/seal-editor';
 
 import type { SkinSlotHostContext, SkinToolbarLayout } from './types';
 

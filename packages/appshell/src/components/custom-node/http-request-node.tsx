@@ -6,7 +6,7 @@ import {
   jsonSchemaToVariableType,
   useDecisionGraphActions,
   useDecisionGraphState,
-} from '@republicroad/jdm-editor';
+} from '@republicroad/seal-editor';
 import { GlobeIcon } from 'lucide-react';
 import React, { useState } from 'react';
 

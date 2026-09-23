@@ -1,4 +1,4 @@
-import { CodeEditor } from '@republicroad/jdm-editor';
+import { CodeEditor } from '@republicroad/seal-editor';
 import { CodeIcon, Rows3Icon } from 'lucide-react';
 import React, { useState } from 'react';
 

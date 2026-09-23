@@ -1,4 +1,4 @@
-import type { TabSnapshot } from '@republicroad/jdm-editor';
+import type { TabSnapshot } from '@republicroad/seal-editor';
 
 import { type GraphPersistenceAdapter, GraphPersistenceError } from './persistence';
 

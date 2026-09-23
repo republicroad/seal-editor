@@ -1,4 +1,4 @@
-import type { DecisionGraphType, SimulationTrace } from '@republicroad/jdm-editor';
+import type { DecisionGraphType, SimulationTrace } from '@republicroad/seal-editor';
 import axios from 'axios';
 
 import type { ShellSimulateResult, SimulateHandler } from './types';

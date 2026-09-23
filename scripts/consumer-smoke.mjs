@@ -149,7 +149,9 @@ try {
   // real versions before the consumer sees them.
   const kernelPkg = JSON.parse(readFileSync(path.join(LIB_DIR, 'package.json'), 'utf8'));
   runPnpm(['pack'], LIB_DIR);
-  const kernelTarball = path.join(LIB_DIR, `republicroad-jdm-editor-${kernelPkg.version}.tgz`);
+  // tgz 文件名从包名动态派生（scope/@ 剥离、/ 换 -）——包改名不会破坏冒烟
+  const kernelSlug = kernelPkg.name.replace(/^@/, '').split('/').join('-');
+  const kernelTarball = path.join(LIB_DIR, `${kernelSlug}-${kernelPkg.version}.tgz`);
 
   for (const host of HOSTS) {
     const dir = path.join(workspace, host.label);

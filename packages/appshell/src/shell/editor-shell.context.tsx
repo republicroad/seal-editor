@@ -1,4 +1,4 @@
-import type { CustomNodeSpecification } from '@republicroad/jdm-editor';
+import type { CustomNodeSpecification } from '@republicroad/seal-editor';
 import React, { createContext, useContext, useMemo } from 'react';
 
 import { useCustomNodes } from '../hooks/useCustomNodes';

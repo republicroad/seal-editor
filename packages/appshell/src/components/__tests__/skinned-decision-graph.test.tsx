@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // DecisionGraph 内部走源码直通（workspace main → src），kernel 的 wasm 加载器
 // 经 helpers/wasm 依赖被 mock 的 @gorules/zen-engine-wasm，无需再 mock。
-import { DecisionGraph } from '@republicroad/jdm-editor';
+import { DecisionGraph } from '@republicroad/seal-editor';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';

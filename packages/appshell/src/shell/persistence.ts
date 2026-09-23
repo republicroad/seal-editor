@@ -1,4 +1,4 @@
-import type { TabSnapshot } from '@republicroad/jdm-editor';
+import type { TabSnapshot } from '@republicroad/seal-editor';
 
 export interface GraphRecordMeta {
   /** 宿主侧唯一标识(UUID/slug，由宿主生成) */

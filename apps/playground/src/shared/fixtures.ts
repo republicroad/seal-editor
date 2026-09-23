@@ -1,4 +1,4 @@
-import { type GraphPersistenceAdapter, createIndexedDbAdapter } from '@republicroad/jdm-appshell';
+import { type GraphPersistenceAdapter, createIndexedDbAdapter } from '@republicroad/seal-appshell';
 
 /**
  * MPA 各实例共享的持久化面：IndexedDB 按 origin 存储，graph 实例 Save 的产物

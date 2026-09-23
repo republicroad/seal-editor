@@ -1,4 +1,4 @@
-import { useDecisionGraphActions, useDecisionGraphState } from '@republicroad/jdm-editor';
+import { useDecisionGraphActions, useDecisionGraphState } from '@republicroad/seal-editor';
 import React from 'react';
 
 import { uid } from '../../lib/custom-node-plans';

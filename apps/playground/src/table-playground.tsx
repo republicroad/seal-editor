@@ -1,4 +1,4 @@
-import { DecisionTable } from '@republicroad/jdm-editor';
+import { DecisionTable } from '@republicroad/seal-editor';
 import React, { useState } from 'react';
 
 import { initialTable } from './shared/fixtures';

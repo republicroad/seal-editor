@@ -1,4 +1,4 @@
-import { ThemeContextProvider } from '@republicroad/jdm-appshell';
+import { ThemeContextProvider } from '@republicroad/seal-appshell';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 

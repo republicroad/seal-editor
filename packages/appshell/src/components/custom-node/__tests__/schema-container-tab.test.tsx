@@ -2,7 +2,7 @@
 // SchemaContainerTab 端到端回归：udf-lab 缺陷两则——
 // 1) key 文本框不可输入 2) 函数未用下拉展示（回落 legacy JSON 编辑器）。
 // 以真实 DecisionGraph 装载 schema 驱动容器节点，驱动交互断言契约。
-import { DecisionGraph } from '@republicroad/jdm-editor';
+import { DecisionGraph } from '@republicroad/seal-editor';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';

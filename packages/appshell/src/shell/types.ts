@@ -1,4 +1,4 @@
-import type { DecisionGraphType, Simulation } from '@republicroad/jdm-editor';
+import type { DecisionGraphType, Simulation } from '@republicroad/seal-editor';
 
 import type { AuthAdapter } from '../lib/auth/adapter';
 import type { CustomNodeSchemaSource } from '../lib/custom-node-schema-source';

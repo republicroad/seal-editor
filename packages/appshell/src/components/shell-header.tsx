@@ -1,4 +1,4 @@
-import type { DecisionGraphRef, DecisionGraphType } from '@republicroad/jdm-editor';
+import type { DecisionGraphRef, DecisionGraphType } from '@republicroad/seal-editor';
 import React from 'react';
 
 import { useTheme } from '../context/theme.provider';

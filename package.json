@@ -21,7 +21,7 @@
     "test:consumer": "node scripts/consumer-smoke.mjs",
     "test:npm-smoke": "node scripts/npm-smoke.mjs",
     "test:probes": "node scripts/run-probes.mjs",
-    "storybook": "pnpm --filter @republicroad/jdm-editor storybook",
+    "storybook": "pnpm --filter @republicroad/seal-editor storybook",
     "playground": "pnpm --filter @republicroad/playground dev",
     "docs:dev": "rspress dev docs",
     "docs:build": "rspress build docs",
@@ -58,7 +58,7 @@
     "prettier": "^3.5.3",
     "typescript": "^5.9.3",
     "@rspress/core": "^2.0.21",
-    "@republicroad/jdm-editor": "workspace:*"
+    "@republicroad/seal-editor": "workspace:*"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

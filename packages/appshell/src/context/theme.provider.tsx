@@ -1,4 +1,4 @@
-import { JdmConfigProvider } from '@republicroad/jdm-editor';
+import { JdmConfigProvider } from '@republicroad/seal-editor';
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { match } from 'ts-pattern';
 

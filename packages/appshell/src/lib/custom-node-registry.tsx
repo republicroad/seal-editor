@@ -1,4 +1,4 @@
-import { type CustomNodeSpecification, createJdmNode } from '@republicroad/jdm-editor';
+import { type CustomNodeSpecification, createJdmNode } from '@republicroad/seal-editor';
 
 import css from '../components/custom-node/custom-node.module.css';
 import { SchemaContainerTab } from '../components/custom-node/schema-container-tab';

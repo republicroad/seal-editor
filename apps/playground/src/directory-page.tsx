@@ -1,4 +1,4 @@
-import { ThemeContextProvider } from '@republicroad/jdm-appshell';
+import { ThemeContextProvider } from '@republicroad/seal-appshell';
 import { GitBranch, Grid3x3, Puzzle, ShieldCheck, Sparkles, Table as TableIcon, Workflow } from 'lucide-react';
 import React from 'react';
 

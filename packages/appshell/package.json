@@ -1,6 +1,6 @@
 {
-  "name": "@republicroad/jdm-appshell",
-  "version": "0.11.0",
+  "name": "@republicroad/seal-appshell",
+  "version": "1.0.0",
   "description": "Application shell for @republicroad/jdm-editor — custom node hosting, UI slot overrides and skinning",
   "type": "module",
   "license": "MIT",
@@ -48,7 +48,8 @@
     "sonner": "catalog:",
     "tailwind-merge": "catalog:",
     "ts-pattern": "catalog:",
-    "zustand": "catalog:"
+    "zustand": "catalog:",
+    "@republicroad/seal-editor": "^1.0.0"
   },
   "devDependencies": {
     "@lezer/common": "catalog:",
