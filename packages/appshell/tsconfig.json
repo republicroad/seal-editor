@@ -26,7 +26,8 @@
         "../../node_modules/@lezer/common",
         "../jdm-editor/node_modules/@lezer/common"
       ],
-      "@lezer/lr": ["./node_modules/@lezer/lr", "../../node_modules/@lezer/lr", "../jdm-editor/node_modules/@lezer/lr"]
+      "@lezer/lr": ["./node_modules/@lezer/lr", "../../node_modules/@lezer/lr", "../jdm-editor/node_modules/@lezer/lr"],
+      "#reui/*": ["../jdm-editor/src/reui/*"]
     }
   },
   "include": ["src", "../jdm-editor/src/**/*.d.ts"]
