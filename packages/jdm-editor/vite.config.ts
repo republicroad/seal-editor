@@ -41,7 +41,7 @@ export default defineConfig({
         index: path.resolve(import.meta.dirname, 'src', 'index.ts'),
         schema: path.resolve(import.meta.dirname, 'src', 'helpers', 'schema.ts'),
       },
-      name: 'JDM Editor',
+      name: 'Seal Editor',
       formats: ['es'],
       cssFileName: 'style',
     },
