@@ -7,7 +7,7 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       // kernel 走源码直通：测试 import 运行时符号时解析 dist 会连带要求
       // monaco 等 peer 真装在 appshell 测试环境（见 custom-node-button 测试）
-      '@republicroad/jdm-editor': fileURLToPath(new URL('../jdm-editor/src/index.ts', import.meta.url)),
+      '@republicroad/seal-editor': fileURLToPath(new URL('../jdm-editor/src/index.ts', import.meta.url)),
       'monaco-editor': fileURLToPath(new URL('../jdm-editor/src/test-stubs/monaco-editor-stub.ts', import.meta.url)),
     },
   },
