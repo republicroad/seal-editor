@@ -117,8 +117,8 @@ const INDEX_HTML = `<!doctype html><html><head><meta charset="utf-8"/></head>
 
 const MAIN_JS = `import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { DecisionGraph } from '@republicroad/jdm-editor';
-import '@republicroad/jdm-editor/dist/style.css';
+import { DecisionGraph } from '@republicroad/seal-editor';
+import '@republicroad/seal-editor/dist/style.css';
 
 createRoot(document.getElementById('app')).render(
   React.createElement(DecisionGraph, { value: { nodes: [], edges: [] }, onChange: () => {} }),
@@ -128,8 +128,8 @@ createRoot(document.getElementById('app')).render(
 // quantify the per-surface payload of the tree-shaken host bundle.
 const TABLE_MAIN_JS = `import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { DecisionTable } from '@republicroad/jdm-editor';
-import '@republicroad/jdm-editor/dist/style.css';
+import { DecisionTable } from '@republicroad/seal-editor';
+import '@republicroad/seal-editor/dist/style.css';
 
 createRoot(document.getElementById('app')).render(
   React.createElement(DecisionTable, {
@@ -196,8 +196,8 @@ try {
       );
       writeFileSync(
         path.join(dir, 'types-fixture.tsx'),
-        `import type { DecisionGraphProps } from '@republicroad/jdm-editor';
-import { DecisionGraph, DecisionTable } from '@republicroad/jdm-editor';
+        `import type { DecisionGraphProps } from '@republicroad/seal-editor';
+import { DecisionGraph, DecisionTable } from '@republicroad/seal-editor';
 
 const graphProps: DecisionGraphProps = {
   value: { nodes: [], edges: [] },
