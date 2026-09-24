@@ -21,6 +21,8 @@ export type DecisionNodeProps = {
   children?: React.ReactNode;
   actions?: React.ReactNode[];
   status?: 'error' | 'success' | 'warning';
+  /** WS1-R7：仿真单节点轨迹——渲染为节点底部 run strip（耗时等） */
+  trace?: { performance?: string | null; micros?: number; code?: string } | null;
   diffStatus?: 'removed' | 'added' | 'modified' | 'moved';
   noBodyPadding?: boolean;
   color?: 'primary' | 'secondary' | string;
@@ -47,6 +49,7 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
   onNameChange,
   menuItems = [],
   status,
+  trace,
   diffStatus,
   compactMode,
   listMode,
@@ -155,13 +158,22 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
         {actions.length > 0 && (
           <div
             className={clsx(
-              'nodrag bg-[var(--seal-color-primary-bg-fade)] overflow-hidden',
-              'rounded-b-[var(--node-border-radius)] border-t border-t-[var(--seal-color-border-fade)]',
+              'nodrag bg-[var(--grl-color-primary-bg-fade)] overflow-hidden',
+              'rounded-b-[var(--node-border-radius)] border-t border-t-[var(--grl-color-border-fade)]',
             )}
           >
             <div className='flex [&_button]:py-0.5 [&_button]:px-2 [&_button]:text-xs [&_button]:h-auto [&_button]:rounded-none [&_button]:text-[var(--muted-foreground)]'>
               {actions}
             </div>
+          </div>
+        )}
+        {trace && (
+          <div
+            data-slot='node-run-strip'
+            className='nodrag flex items-center justify-between gap-2 px-2 py-0.5 text-[10px] font-medium border-t border-t-[var(--grl-color-border-fade)] bg-[var(--grl-color-primary-bg-fade)] text-[var(--muted-foreground)]'
+          >
+            <span>TRACE</span>
+            {trace.performance != null && <span>{trace.performance}</span>}
           </div>
         )}
       </GraphCard>

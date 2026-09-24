@@ -211,6 +211,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
             .with([P._, P.not(P.nullish), P._], () => 'error' as const)
             .with([P.not(P.nullish), P._, P._], () => 'success' as const)
             .otherwise(() => undefined)}
+          trace={nodeTrace}
           diffStatus={match([diff])
             .with([{ status: 'added' }], () => 'added' as const)
             .with([{ status: 'modified' }], () => 'modified' as const)
