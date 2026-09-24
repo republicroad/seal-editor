@@ -59,6 +59,7 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
     targetPosition,
     style = {},
     markerEnd,
+    label,
   } = props;
   const { isHovered, disabled, decisionGraph, components } = useDecisionGraphState(
     ({ hoveredEdgeId, disabled, decisionGraph, components }) => ({
@@ -81,6 +82,19 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
     targetY,
     targetPosition,
   });
+
+  // WS1-R4：分支路径标签（flow-2 named branch paths 模式）——有 label 的边在路径上方渲染 chip
+  const labelChip =
+    label != null && String(label).trim() !== '' ? (
+      <div
+        className='nodrag nopan pointer-events-none absolute z-[999]'
+        style={{ transform: `translate(-50%, -50%) translate(${labelX}px,${labelY - 18}px)` }}
+      >
+        <span className='whitespace-nowrap rounded-sm border border-[var(--border)] bg-[var(--seal-color-bg-container)] px-1.5 py-0.5 text-[10px] text-[var(--muted-foreground)]'>
+          {label}
+        </span>
+      </div>
+    ) : null;
 
   const insertBetween = async (item: PickerItem) => {
     setPicking(false);
@@ -133,6 +147,7 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
 
   return (
     <>
+      {labelChip}
       <BaseEdge
         path={edgePath}
         markerEnd={markerEnd}
