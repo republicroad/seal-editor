@@ -38,6 +38,6 @@ export default defineConfig({
     // 两个 workspace 包必须源码直通且不预打包：预打包会把当时的 dist 冻结成
     // 副本（双实例：store/context 断裂 → 白屏），且 kernel dist 变化会触发整页
     // 强制 reload。exclude 后走 resolve.alias 的源码直通。
-    exclude: ['@republicroad/jdm-editor', '@republicroad/jdm-appshell', '@gorules/zen-engine-wasm'],
+    exclude: ['@republicroad/seal-editor', '@republicroad/seal-appshell', '@gorules/zen-engine-wasm'],
   },
 });
