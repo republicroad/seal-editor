@@ -1,5 +1,5 @@
 /**
- * Dual-host consumer smoke for @republicroad/jdm-editor.
+ * Dual-host consumer smoke for @republicroad/seal-editor.
  *
  * Proves the published artifact works when consumed the way real hosts do:
  *   pnpm add <tarball>   (+ its dependencies & peers)
@@ -28,7 +28,7 @@ import path from 'node:path';
 
 const KEEP = process.argv.includes('--keep');
 const REPO_ROOT = path.resolve(new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
-const LIB_DIR = path.join(REPO_ROOT, 'packages', 'jdm-editor');
+const LIB_DIR = path.join(REPO_ROOT, 'packages', 'seal-editor');
 const DIST_DIR = path.join(LIB_DIR, 'dist');
 
 if (!existsSync(path.join(DIST_DIR, 'index.js'))) {
