@@ -236,9 +236,6 @@ importers:
       '@base-ui/react':
         specifier: 'catalog:'
         version: 1.8.0(@types/react@18.3.31)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@republicroad/jdm-editor':
-        specifier: ^0.10.0
-        version: 0.10.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(@types/react-dom@19.1.2(@types/react@18.3.31))(@types/react@18.3.31)(ajv@8.20.0)(joi@18.2.9)(monaco-editor@0.52.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.7.0(react@19.2.8))(valibot@1.2.0(typescript@5.9.3))
       '@republicroad/seal-editor':
         specifier: workspace:^1.1.0
         version: link:../seal-editor
