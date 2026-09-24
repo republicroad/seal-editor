@@ -17,18 +17,22 @@
       "react": [
         "./node_modules/@types/react",
         "../../node_modules/@types/react",
-        "../jdm-editor/node_modules/@types/react"
+        "../seal-editor/node_modules/@types/react"
       ],
       "react/jsx-runtime": ["./node_modules/@types/react/jsx-runtime", "../../node_modules/@types/react/jsx-runtime"],
       "@lezer/common": [
         "./node_modules/@lezer/common",
         "../../node_modules/@lezer/common",
-        "../jdm-editor/node_modules/@lezer/common"
+        "../seal-editor/node_modules/@lezer/common"
       ],
-      "@lezer/lr": ["./node_modules/@lezer/lr", "../../node_modules/@lezer/lr", "../jdm-editor/node_modules/@lezer/lr"],
-      "#reui/*": ["../jdm-editor/src/reui/*"],
-      "@republicroad/seal-editor": ["../jdm-editor/src/index.ts"]
+      "@lezer/lr": [
+        "./node_modules/@lezer/lr",
+        "../../node_modules/@lezer/lr",
+        "../seal-editor/node_modules/@lezer/lr"
+      ],
+      "#reui/*": ["../seal-editor/src/reui/*"],
+      "@republicroad/seal-editor": ["../seal-editor/src/index.ts"]
     }
   },
-  "include": ["src", "../jdm-editor/src/**/*.d.ts"]
+  "include": ["src", "../seal-editor/src/**/*.d.ts"]
 }

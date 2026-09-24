@@ -10,8 +10,8 @@ export default [
   ...base,
   {
     plugins: { 'react-compiler': reactCompiler },
-    files: ['packages/jdm-editor/src/**/*.{ts,tsx}'],
-    ignores: ['packages/jdm-editor/src/**/__tests__/**'],
+    files: ['packages/seal-editor/src/**/*.{ts,tsx}'],
+    ignores: ['packages/seal-editor/src/**/__tests__/**'],
     rules: { 'react-compiler/react-compiler': 'error' },
   },
 ];

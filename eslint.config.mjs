@@ -26,7 +26,7 @@ export default defineConfig([
     '**/doc-out/',
     // ReUI blocks 保持上游原貌（见 .prettierignore 同款豁免），不做 lint/类型门禁
     'apps/playground/src/components/blocks/**',
-    'packages/jdm-editor/src/components/function/helpers/**.{d.ts,js}',
+    'packages/seal-editor/src/components/function/helpers/**.{d.ts,js}',
     '.prettierrc.cjs',
   ]),
   {
