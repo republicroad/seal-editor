@@ -11,7 +11,7 @@
 
 - 品牌：`grl-` → `seal-` 全前缀清扫完成（93 文件 ~574 处，含驼峰标识符）；npm 旧包 deprecated 已执行
 - 结构：monorepo 三包 —— `packages/seal-editor`（内核，包名 @republicroad/seal-editor，1.1.0 随下次发版）、
-  `packages/appshell`（seal-appshell 1.0.0，内核依赖 workspace:^1.1.0）、`packages/zen-udf`（0.6.0 机制包，五域参考实现）
+  `packages/appshell`（seal-appshell 1.1.0，内核依赖 workspace:^1.1.0）、`packages/zen-udf`（0.6.0 机制包，五域参考实现）
 - 编辑器能力：ReUI 节点卡（IconTile + 类型 Badge）、悬浮工具栏（R2）、连接线"+"插入（R3）、
   分支路径标签 chip（R4）、停靠检查器（R5）、仿真 run strip（R7）；三形态调用规范
   （数组默认 / $call 命名 / ;; legacy）；Base UI 全栈
@@ -25,7 +25,7 @@
 | --- | --- | --- |
 | 1.0.1 hotfix 通道 | consumer 反馈走 patch；CI publish 正常（NPM_TOKEN 已配） | 常备 |
 | R7 增强 | run strip 增加 error code 徽章（当前仅成功态耗时；错误节点沿用 error 底色+徽章） | 小切片 |
-| storybook Pages 修复 | Deploy Storybook + Docs to Pages 工作流失败（#reui 改名后的部署路径/配置） | 小修 |
+| storybook Pages 修复 | ✅ 2026-09-24 已修复上线（Pages 启用 + rspress 路径 + 站点落地页，436d5ce/5b19bc1） | 完成 |
 | R6 体积评估 | @dagrejs/dagre 引入的体积影响实测（index.js 余量 ~17kB，大概率需 dynamic import 或挪 appshell） | 先评估后决策 |
 
 ## 2. 中期（1.2.0 特性窗口）
@@ -77,7 +77,7 @@
 ## WS1 · 规则图 ReUI 优化（当前焦点）
 
 目标：把 ReUI flow 块的节点卡设计语言落到决策图编辑器。参照物：playground 内的
-flow-1/flow-3/flow-2 试点件与 [reui-flow-pilot.md](./reui-flow-pilot.md)。
+flow-1/flow-3/flow-2 试点件与 [reui-flow-pilot.md](../archive/plans/reui-flow-pilot.md)。
 
 | # | 切片 | 模式来源 | 状态 |
 | --- | --- | --- | --- |
@@ -97,7 +97,7 @@ storybook 交互用例。
 
 ## WS2 · zen-udf 场景节点（P1 → P2 → P3）
 
-详见 [zen-udf-development-plan.md](./zen-udf-development-plan.md) 场景节点路线图节。
+详见 [zen-udf-development-plan.md](../archive/plans/zen-udf-development-plan.md) 场景节点路线图节。
 
 - **P1（进行中，4/6）**：
   - ✅ 已落地（zen-udf contrib）：`ab.bucket`（FNV-1a 分桶）、`geo.distance`/`geo.fence`

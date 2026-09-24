@@ -10,10 +10,10 @@
 | 包 | 版本 | npm | 说明 |
 | --- | --- | --- | --- |
 | `@republicroad/seal-editor` | **1.1.0** | ✅ 已发布 | 决策图编辑器内核（Base UI 全栈、三形态调用、节点卡/工具栏/停靠检查器） |
-| `@republicroad/seal-appshell` | 1.0.0 | ✅ 已发布 | 换肤编辑器壳（SkinnedDecisionGraph / 主题 Provider / 版本历史 / 持久化适配器） |
+| `@republicroad/seal-appshell` | 1.1.0 | ✅ 已发布 | 换肤编辑器壳（SkinnedDecisionGraph / 主题 Provider / 版本历史 / 持久化适配器） |
 | `@republicroad/zen-udf` | **0.6.0** | ✅ 已发布 | 执行内核：DecisionRuntime + 五域参考实现（ab/geo/validate/template/dt）+ 端口面 |
 
-注意：`@republicroad/seal-editor`（旧包名）已 deprecated，指向 seal-editor。
+注意：`@republicroad/jdm-editor`（旧包名）已 deprecated，指向 seal-editor。
 
 ## 1. verdict 侧需要实现的四件端口
 

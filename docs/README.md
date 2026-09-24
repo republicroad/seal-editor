@@ -1,61 +1,85 @@
-# JDM Editor — Internal Fork Documentation / 内部维护文档索引
+# Seal Editor — Internal Fork Documentation / 内部维护文档索引
+
 > **Live storybook (interactive demo) / 在线演示:** https://republicroad.github.io/seal-editor/storybook/
 > **Documentation site / 文档站:** https://republicroad.github.io/seal-editor/docs/
+> **Site landing / 站点入口:** https://republicroad.github.io/seal-editor/
 
 > **Fork notice / 分叉声明**
 > This repository is an internally maintained fork of [gorules/jdm-editor](https://github.com/gorules/jdm-editor).
 > Baseline: upstream `master` at commit `283bb11` (`chore(release): publish`). The fork intentionally diverges
-> from upstream (planned: ReactFlow 12, shadcn/ui + ReUI stack) and will not track upstream merges.
+> from upstream (ReactFlow 12, shadcn/ui + ReUI stack, Base UI) and will not track upstream merges.
 >
 > 本仓库是 [gorules/jdm-editor](https://github.com/gorules/jdm-editor) 的内部长期维护分叉。
-> 基线为上游 `master` 提交 `283bb11`。本分叉将按既定技术栈路线(ReactFlow 12、shadcn/ui + ReUI)演进,不同步上游。
+> 基线为上游 `master` 提交 `283bb11`。本分叉按既定技术栈路线演进,不同步上游。
 
-## Document map / 文档地图
+## 如何使用本索引 / How to read this index
 
-| Document / 文档 | Language | Contents / 内容 |
-|---|---|---|
-| [`architecture.md`](./architecture.md) | EN | System architecture: monorepo layout, package graph, state flow, editor infrastructure, theming, CI |
-| [`architecture.zh-CN.md`](./architecture.zh-CN.md) | 中文 | 架构文档(中文对照):仓库结构、包依赖、状态流、编辑器基础设施、主题系统、CI |
-| [`features.md`](./features.md) | EN | Feature reference: Decision Graph, Decision Table, editors, simulator, public API surface |
-| [`features.zh-CN.md`](./features.zh-CN.md) | 中文 | 功能文档(中文对照):决策图、决策表、编辑器、模拟器、公共 API |
-| [`nl-expression-builder.md`](./nl-expression-builder.md) | EN | Natural-language business view: fieldType schemas, dictionaries, operator→expression canonical forms, WASM runtime contract |
-| [`nl-expression-builder.zh-CN.md`](./nl-expression-builder.zh-CN.md) | 中文 | 自然语言业务视图(中文对照):fieldType schema、字典、操作符→表达式规范形态、WASM 运行时契约 |
-| [`migration/01-reactflow-v12.md`](./migration/01-reactflow-v12.md) | EN | ReactFlow 11 → `@xyflow/react` 12 migration plan (executed on this branch) |
-| [`migration/01-reactflow-v12.zh-CN.md`](./migration/01-reactflow-v12.zh-CN.md) | 中文 | ReactFlow 12 迁移方案(中文对照,已在本分支实施) |
-| [`migration/02-ui-stack-shadcn-reui.md`](./migration/02-ui-stack-shadcn-reui.md) | EN | Migration record: antd → Tailwind + shadcn/ui + ReUI (completed) |
-| [`migration/02-ui-stack-shadcn-reui.zh-CN.md`](./migration/02-ui-stack-shadcn-reui.zh-CN.md) | 中文 | UI 技术栈迁移记录(中文对照,已完成) |
-| [`migration/03-post-migration-fixes.md`](./migration/03-post-migration-fixes.md) | EN | Post-migration regression fixes: node color vars, fitView, ellipsis icon, Radix ref anchoring |
-| [`migration/03-post-migration-fixes.zh-CN.md`](./migration/03-post-migration-fixes.zh-CN.md) | 中文 | 迁移后回归修复(中文对照):节点色变量、fitView、竖向三点图标、Radix ref 锚点 |
-| [`migration/04-react-19.md`](./migration/04-react-19.md) | EN | React 18 → 19 upgrade record (+ zustand 5), peer policy kept `>=18`, dual-host verification |
-| [`migration/04-react-19.zh-CN.md`](./migration/04-react-19.zh-CN.md) | 中文 | React 19 升级记录(中文对照,含 zustand 5),peer 保持 `>=18`,双宿主验证 |
-| [`migration/05-dnd-kit.md`](./migration/05-dnd-kit.md) | EN | react-dnd → @dnd-kit/core rewrite across four drag scenarios; manager prop removed |
-| [`migration/05-dnd-kit.zh-CN.md`](./migration/05-dnd-kit.zh-CN.md) | 中文 | react-dnd → @dnd-kit 改写(中文对照,四个拖拽场景),移除 manager 属性 |
-| [`styling-scss-vs-tailwind.md`](./styling-scss-vs-tailwind.md) | EN | SCSS vs Tailwind comparison & decision guide: utility classes, build-time scanning, runtime data-driven coloring, plain-CSS boundary, SCSS applicable scenarios, migration target |
-| [`styling-scss-vs-tailwind.zh-CN.md`](./styling-scss-vs-tailwind.zh-CN.md) | 中文 | SCSS 与 Tailwind 对比与选型指南(中文对照):工具类、构建时扫描、运行时数据驱动着色、纯 CSS 边界、SCSS 适用场景、迁移目标 |
-| [`codemirror-theme-migration.md`](./archive/research/codemirror-theme-migration.md) | EN | CodeMirror skin cascade-layer debt: root cause of display↔edit cursor drift, the accepted CSS workaround, the EditorView.theme() migration (Batch D log + iteration trajectory), the Spike-A reject memo, and the archived pooled-revival path |
-| [`codemirror-theme-migration.zh-CN.md`](./archive/research/codemirror-theme-migration.zh-CN.md) | 中文 | CodeMirror 皮肤层叠债(中文对照):光标漂移根因、已接受 workaround、theme() 迁移实录与迭代轨迹、Spike-A 否决备忘、池化复活路径归档 |
-| [`shadcn-theming-roadmap.md`](./archive/research/shadcn-theming-roadmap.md) | EN | One-click retheming roadmap: acceptance criteria, token pipeline review, P0–P4 phases (seed derivation incl. OKLab dark, hardcoded closure, cascade cleanup incl. Spike-A verdict, scoped injection deferred, CI guards), double-layer decision record, style-debt registry |
-| [`shadcn-theming-roadmap.zh-CN.md`](./archive/research/shadcn-theming-roadmap.zh-CN.md) | 中文 | 一键换肤长期路线图(中文对照):验收标准、token 管道、P0–P4 阶段计划、双层结构决策记录、样式债务注册表(GRL-STYLE-HACK 索引) |
-| [`editor-engines.md`](./editor-engines.md) | EN | CodeMirror 6 vs Monaco: usage matrix (table cells / expressions / function body / simulator / JSON schema), the four decisive selection dimensions, and the shared token-theming contract |
-| [`editor-engines.zh-CN.md`](./editor-engines.zh-CN.md) | 中文 | 编辑器引擎选型说明(中文对照):CodeMirror 6 与 Monaco 的场景矩阵、四个决定性选型维度、共享 token 主题契约 |
-| [`storybook.md`](./storybook.md) | EN | Storybook guide: configuration (main.ts/preview.tsx), decorator setup (.grl-root scoped injection), story inventory (57 stories), interaction test pipeline (test:storybook), height chain, multi-island testing |
-| [`storybook.zh-CN.md`](./storybook.zh-CN.md) | 中文 | Storybook 指南(中文对照):配置(main.ts/preview.tsx)、装饰器设置(.grl-root 作用域注入)、story 清单(57 个)、交互测试流水线(test:storybook)、高度链、多岛测试 |
-| [`i18n.md`](./i18n.md) | EN | i18n guide: provider setup via JdmConfigProvider, useT/createT, en+zh-CN catalogs, fallback chain, interpolation, coverage and known limitation (renderNode specs) |
-| [`i18n.zh-CN.md`](./i18n.zh-CN.md) | 中文 | 国际化指南(中文对照):Provider 接入、useT/createT、en+zh-CN 词条表、回退链、插值、覆盖范围与已知限制(renderNode 规格回调) |
-| [`troubleshooting.md`](./troubleshooting.md) | EN | Debugging case log: symptom → investigation → root cause → fix → verification |
-| [`troubleshooting.zh-CN.md`](./troubleshooting.zh-CN.md) | 中文 | 排查案例记录(中文对照):压力测试冻结渲染进程的高度链问题、布尔下拉静默失效的 Radix 字符串强转问题、`asChild`+Tooltip 组合吞掉弹层事件与 Portal 逃逸作用域 preflight(Map Excel Data 按钮失效/弹窗溢出)、自定义节点按钮消失的三层叠加根因等 |
-| [`pnpm-workspace-linking.md`](./pnpm-workspace-linking.md) | EN | pnpm workspace linking: direct symlink vs peer-variant physical clone, hardlink freeze cycle, source-passthrough policy, forensics one-liners |
-| [`pnpm-workspace-linking.zh-CN.md`](./pnpm-workspace-linking.zh-CN.md) | 中文 | pnpm workspace 链接机制(中文对照):直连 symlink 与 peer-variant 物理克隆、硬链接冻结循环、源码直通策略与取证单行命令 |
-| [`host-migration-guide.md`](./host-migration-guide.md) | EN | Host migration guide: @gorules → @republicroad quick switch, breaking changes, --grl-* contract, 0.2.x additions (new exports, DecisionGraph props, custom node authoring, i18n increments), 0.3.0 heads-up |
-| [`host-migration-guide.zh-CN.md`](./host-migration-guide.zh-CN.md) | 中文 | 宿主迁移指南(中文对照):快速切换、破坏性变更、--grl-* 契约、0.2.x 新增(导出、DecisionGraph 属性、自定义节点开发、i18n 增量)、0.3.0 预告 |
-| [`appshell.md`](./appshell.md) | EN | @republicroad/seal-appshell — the scheme D reference consumer shell: custom node hosting (six nodes), registry and protocols, skin system, GraphPersistenceAdapter persistence contract, host wiring |
-| [`appshell.zh-CN.md`](./appshell.zh-CN.md) | 中文 | appshell 参考消费者壳(中文对照):自定义节点托管(六节点)、registry 与协议、皮肤系统、持久化契约、宿主接线 |
-| [`roadmap-0.3.0.md`](./archive/roadmap-0.3.0.md) | EN | 0.3.0 draft roadmap: monaco peer move (staged), trigger-gated majors (pooled flag, L2 sweep, --grl-* deprecation), new candidates (code splitting, drag keyboard support) |
-| [`roadmap-0.3.0.zh-CN.md`](./archive/roadmap-0.3.0.zh-CN.md) | 中文 | 0.3.0 路线草案(中文对照):monaco peer 化(已就位)、触发门控 major 项(池化开关、L2 清扫、--grl-* 废弃)、新候选(代码分割、拖拽键盘支持) |
+文档按**受众**分四组,每组内标注状态:
+
+- ✅ **现行** —— 长期维护,与代码保持同步
+- ✅ **现行(历史注记)** —— 结论有效,但文中含已完结的历史叙述
+- 📦 **归档** —— 历史记录,只读,不再更新
+- ⚠️ **已取代** —— 被后续文档覆盖,仅作存档
 
 English files are canonical; `.zh-CN.md` files are translations kept in sync.
 英文文档为准,`.zh-CN.md` 为同步维护的译文。
 
+---
+
+## 一、使用指南 / Guide(面向使用者:怎么用)
+
+| Document / 文档 | 语言 | 状态 | Contents / 内容 |
+|---|---|---|---|
+| [`features.md`](./features.md) / [`.zh-CN`](./features.zh-CN.md) | EN + 中文 | ✅ | 内核公开功能:DecisionGraph 六种内置节点、DecisionTable、表达式/函数编辑器、公共 API 速查 |
+| [`nl-expression-builder.md`](./nl-expression-builder.md) / [`.zh-CN`](./nl-expression-builder.zh-CN.md) | EN + 中文 | ✅ | 决策表"业务视图":fieldType schemas、字典、操作符→表达式规范形态、WASM 运行时契约 |
+| [`i18n.md`](./i18n.md) / [`.zh-CN`](./i18n.zh-CN.md) | EN + 中文 | ✅ | 国际化:Provider 接入、useT/createT、en+zh-CN 词条表(键奇偶由测试锁定)、回退链、插值 |
+| [`storybook.md`](./storybook.md) / [`.zh-CN`](./storybook.zh-CN.md) | EN + 中文 | ✅ | Storybook 指南:配置、装饰器、story 清单(68 stories / 13 files)、交互测试流水线、高度链 |
+| [`appshell.md`](./appshell.md) / [`.zh-CN`](./appshell.zh-CN.md) | EN + 中文 | ✅ | seal-appshell 参考消费者壳:自定义节点(四个)、registry 与协议、皮肤系统、持久化契约 |
+| [`host-migration-guide.md`](./host-migration-guide.md) / [`.zh-CN`](./host-migration-guide.zh-CN.md) | EN + 中文 | ✅ 历史注记 | 宿主从 `@gorules/jdm-editor` 迁移:快速切换、破坏性变更表、`--grl-*` 契约(0.x 时代叙述为历史记录) |
+
+## 二、内部实现 / Internals(面向贡献者:怎么建的)
+
+| Document / 文档 | 语言 | 状态 | Contents / 内容 |
+|---|---|---|---|
+| [`architecture.md`](./architecture.md) / [`.zh-CN`](./architecture.zh-CN.md) | EN + 中文 | ✅ | 系统架构:monorepo 布局(三包两应用)、包依赖、状态流、编辑器基础设施、主题系统、CI |
+| [`editor-engines.md`](./editor-engines.md) / [`.zh-CN`](./editor-engines.zh-CN.md) | EN + 中文 | ✅ | CodeMirror 6 vs Monaco:场景矩阵、四个决定性选型维度、共享 token 主题契约 |
+| [`styling-scss-vs-tailwind.md`](./styling-scss-vs-tailwind.md) / [`.zh-CN`](./styling-scss-vs-tailwind.zh-CN.md) | EN + 中文 | ✅ 历史注记 | SCSS→Tailwind 迁移决策记录(迁移已完成,SCSS 层与 sass 依赖已移除) |
+| [`bundle-analysis.md`](./bundle-analysis.md) | EN | ✅ 历史注记 | index.js 产物构成、Monaco peer 化依赖模型、拆包决策(2026-09-08 快照,可重生成) |
+| [`pnpm-workspace-linking.md`](./pnpm-workspace-linking.md) / [`.zh-CN`](./pnpm-workspace-linking.zh-CN.md) | EN + 中文 | ✅ | pnpm workspace 链接机制:symlink 与 peer-variant 克隆、硬链接冻结循环、取证命令 |
+| [`troubleshooting.md`](./troubleshooting.md) / [`.zh-CN`](./troubleshooting.zh-CN.md) | EN + 中文 | ✅ | 排查案例档案(持续追加):高度链、Radix 值强转、sideEffects 摇树、pnpm 冻结、Base UI 陷阱 |
+
+## 三、流程与决策 / Process(怎么决策的)
+
+| 位置 | 状态 | Contents / 内容 |
+|---|---|---|
+| [`documentation-taxonomy.md`](./documentation-taxonomy.md) | ✅ | 文档分类法与目录规约(写文档前先读) |
+| [`glossary.md`](./glossary.md) | ✅ | 域术语对照表(JDM 模型 / zen-udf / 端口 / 工具链) |
+| [`adr/`](./adr/README.md) —— 6 条 | ✅ accepted | 架构决策归档:ESM-only、源码直通、zen-udf 租户隔离/缓存归属/源码发布、zustand 选择器 |
+| [`bp/`](./bp/README.md) —— 10 篇 | ✅ | 可复用最佳实践:哨兵测试、conformance 套件、缓存归属、跨仓源码桥等 |
+| [`rfc/`](./rfc/) —— 3 篇 | ✅ 待提交 | 上游 issue 草稿:zen 异步上下文、ReUI ToggleGroup 风格错配、rolldown-plugin-dts OOM |
+
+`design/` 只保留**活跃**文档(7 篇);执行完毕的计划一律移入 `archive/plans/`:
+
+| Document / 文档 | 状态 | Contents / 内容 |
+|---|---|---|
+| [`design/development-roadmap.md`](./design/development-roadmap.md) | ✅ | **主线路线图**(v1.1.0 基线):短/中/长期规划、verdict 联动、旧仓定位 |
+| [`design/handoff-verdict-integration.md`](./design/handoff-verdict-integration.md) | ✅ | verdict 接入交接:三包基线、四端口 conformance、model-execute 组装规范 |
+| [`design/zen-udf-multi-tenant.md`](./design/zen-udf-multi-tenant.md) | ✅ | zen-udf 多租户权威设计:L0–L3 分层、缓存键、失效广播契约 |
+| [`design/zen-udf-context-propagation.md`](./design/zen-udf-context-propagation.md) | ✅ | ExecContext 跨 TSFN 边界:已 shipped 现状 + 原生传播上游提案 |
+| [`design/zen-udf-sync-counting.md`](./design/zen-udf-sync-counting.md) | ✅ | 同步硬实时计数调研:一致性三档、HAProxy stick table、存储选型 |
+| [`design/code-block.md`](./design/code-block.md) | ✅ 待消费 | reui code-block(Shiki)设计:已安装未消费,首次集成留给 verdict dashboard |
+| [`design/upstream-contribution-plan.md`](./design/upstream-contribution-plan.md) | ✅ | 上游贡献治理裁决:贡献线由宿主手动执行,本仓不回馈上游 |
+
+## 四、历史归档 / History(📦 只读)
+
+| 位置 | Contents / 内容 |
+|---|---|
+| [`archive/plans/`](./archive/plans/) —— 18 篇 | 执行完毕的开发计划与执行记录:zen-udf U/V/W/X/Y/Z/AA/BB/CC/DD 十一轮系列、Base UI 迁移、皮肤布局槽位、ReUI flow 试点与融合、playground UDF Lab、verdict-weave 迁移(⚠️ 被"新建 seal-editor 仓"裁决取代)、verdict 接入旧指南(⚠️ 被 handoff 文档 0.6.0 基线覆盖) |
+| [`archive/migration/`](./archive/migration/) —— 5 组 | 迁移记录:ReactFlow 12、antd→Tailwind+shadcn/ReUI、迁移后回归修复、React 19、dnd-kit |
+| [`archive/research/`](./archive/research/) | 研究存档:CodeMirror 主题迁移、grl-var-flatten、React Compiler PoC、shadcn 换肤路线图、storybook 高度链 |
+| [`archive/hostapp/`](./archive/hostapp/) · [`archive/roadmap-0.3.0.md`](./archive/roadmap-0.3.0.md) | 早期 hostapp 规划与 0.3.0 路线草案 |
+
+---
 
 ## CI / Release / 快速命令
 
@@ -63,6 +87,7 @@ English files are canonical; `.zh-CN.md` files are translations kept in sync.
 |---|---|
 | 全量本地门禁 | `pnpm verify` |
 | 样式债务预算 | `pnpm lint:debt` |
+| 文档死链检查 | `node scripts/check-doc-links.mjs` |
 | Playwright 探针(UI 冒烟) | `pnpm test:probes` |
 | npm 安装冒烟 | `pnpm test:npm-smoke` |
 | Storybook 交互套件 | `pnpm --filter @republicroad/seal-editor test:storybook` |
@@ -80,6 +105,6 @@ English files are canonical; `.zh-CN.md` files are translations kept in sync.
 - Support packages (`@gorules/lezer-zen`, `@gorules/lezer-zen-template`, `@gorules/zen-engine-wasm`)
   are consumed **from npm**, not from this repository.
   支撑包(`@gorules/lezer-zen`、`@gorules/lezer-zen-template`、`@gorules/zen-engine-wasm`)直接取自 npm,不在本仓库内维护。
-- Stack / 技术栈:React 19 (peer `>=18`) · Tailwind CSS + shadcn/ui primitives · zustand 5 · reactflow → @xyflow/react · CodeMirror 6 · Monaco · TanStack Table · Vite 8 (Rolldown) · Storybook 10 · Rust/WASM engine bindings.
+- Stack / 技术栈:React 19 (peer `>=18`) · Tailwind CSS + shadcn/ui primitives (Base UI) · zustand 5 · @xyflow/react · CodeMirror 6 · Monaco · TanStack Table · Vite 8 (Rolldown) · Storybook 10 · Rust/WASM engine bindings.
 - Host integration / 宿主接入:Consumers wrap their app in a `.grl-root` container to opt in to the scoped mini-preflight (form controls, tables, headings, lists, images). The reset uses `:where()` (zero specificity) so component classes always win and never leak into the host document.
   消费方在最外层容器挂 `grl-root` 类以启用库作用域 mini-preflight(表单控件、表格、标题、列表、图片)。重置规则全部使用 `:where()`(零特异性),组件类天然胜出,不会泄漏到宿主文档。

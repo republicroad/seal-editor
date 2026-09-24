@@ -72,5 +72,5 @@
 ## 后记(2026-09)
 
 `zustand/traditional`(及其底层的 `use-sync-external-store` 垫片)已被本地深比较
-memoizer 取代——见 [ADR-006](../adr/006-zustand-selector-equality.md) 与
-[BP-08](../bp/zustand-selector-equality.md)。
+memoizer 取代——见 [ADR-006](../../adr/006-zustand-selector-equality.md) 与
+[BP-08](../../bp/zustand-selector-equality.md)。

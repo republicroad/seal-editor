@@ -2,7 +2,7 @@
 
 - 日期: 2026-09-15
 - 状态: 待提交上游（ReUI GitHub issue）；本文件为 issue 草稿 + 仓内背景备案
-- 发现于: flow-1 试点（见 [reui-flow-pilot.md](./reui-flow-pilot.md)）
+- 发现于: flow-1 试点（见 [reui-flow-pilot.md](../archive/plans/reui-flow-pilot.md)）
 - 影响面: flow-1 已复现；flow-2/3/4 同类打包结构，疑似同病
 
 ---

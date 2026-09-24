@@ -2,7 +2,7 @@
 
 - 日期: 2026-09-16
 - 状态: 草稿（待提交上游 rolldown-plugin-dts）
-- 关联: [verdict-weave 迁移计划](./verdict-weave-migration-plan.md) 追记节（发现场景）、
+- 关联: [verdict-weave 迁移计划](../archive/plans/verdict-weave-migration-plan.md) 追记节（发现场景）、
   [BP-06 ESM-only 源码发布](../bp/esm-source-publish.md)（被波及的发布模式）
 - 提交目标: https://github.com/rolldown/rolldown-plugin-dts/issues （`feat`/`bug` 标签待定）
 

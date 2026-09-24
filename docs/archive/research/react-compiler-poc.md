@@ -7,7 +7,7 @@
 
 `eslint-plugin-react-compiler@19.1.0-rc.2` run over all of
 `packages/jdm-editor/src/**/*.{ts,tsx}` via the dedicated config
-[`eslint.react-compiler.mjs`](../eslint.react-compiler.mjs):
+[`eslint.react-compiler.mjs`](../../../eslint.react-compiler.mjs):
 
 ```bash
 pnpm exec eslint -c eslint.react-compiler.mjs "packages/jdm-editor/src/**/*.tsx"

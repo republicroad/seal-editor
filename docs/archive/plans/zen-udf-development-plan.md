@@ -1,7 +1,7 @@
 # zen-udf 开发计划（U 系列）
 
 状态：shipped · U2–U9 全部完成（2026-09-13，测试 87/87；U10 verdict 侧待启动）
-上游设计：[zen-udf-multi-tenant.md](./zen-udf-multi-tenant.md)（M1 已完成：包名、缓存语义哨兵、设计稿）
+上游设计：[zen-udf-multi-tenant.md](../../design/zen-udf-multi-tenant.md)（M1 已完成：包名、缓存语义哨兵、设计稿）
 
 ## 总览
 

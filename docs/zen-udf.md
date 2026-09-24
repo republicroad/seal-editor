@@ -84,8 +84,8 @@ await runWithExecContext({ tenantId: 't-1', userId: 'u-1' }, async () => {
 
 - [多租户最佳实践设计](/seal-editor/docs/design/zen-udf-multi-tenant)
 - [上下文跨 TSFN 边界传播（现状 + 原生绑定层提案）](/seal-editor/docs/design/zen-udf-context-propagation)
-- [U 系列开发计划（机制与租户契约，已 shipped）](/seal-editor/docs/design/zen-udf-development-plan)
-- [V 系列开发计划（发布/规范收尾/消费方验证，已 shipped）](/seal-editor/docs/design/zen-udf-plan-v)
-- [verdict U10 接入指南](/seal-editor/docs/design/verdict-zen-udf-integration)
+- [U 系列开发计划（机制与租户契约，已 shipped）](/seal-editor/docs/archive/plans/zen-udf-development-plan)
+- [V 系列开发计划（发布/规范收尾/消费方验证，已 shipped）](/seal-editor/docs/archive/plans/zen-udf-plan-v)
+- [verdict U10 接入指南](/seal-editor/docs/archive/plans/verdict-zen-udf-integration)
 - [上游 issue 草稿（gorules/zen async context）](/seal-editor/docs/rfc/gorules-zen-async-context)
 - 包内命名规范：`packages/zen-udf/docs/naming.md`

@@ -6,7 +6,7 @@
 
 以 `eslint-plugin-react-compiler@19.1.0-rc.2` 扫描全部
 `packages/jdm-editor/src/**/*.{ts,tsx}`,专用配置见
-[`eslint.react-compiler.mjs`](../eslint.react-compiler.mjs):
+[`eslint.react-compiler.mjs`](../../../eslint.react-compiler.mjs):
 
 ```bash
 pnpm exec eslint -c eslint.react-compiler.mjs "packages/jdm-editor/src/**/*.tsx"

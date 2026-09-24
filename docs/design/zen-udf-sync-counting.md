@@ -1,7 +1,7 @@
 # zen-udf 同步硬实时计数：read-my-own-write 调研与业界实践
 
 状态：design · 调研结论文档（ha_proxy stick table 方案的正统性论证 + 端口分层依据）
-关联：[zen-udf-plan-y.md](./zen-udf-plan-y.md)（observe 语义声明 / 审计 journal / replay）· [zen-udf-multi-tenant.md](./zen-udf-multi-tenant.md)
+关联：[zen-udf-plan-y.md](../archive/plans/zen-udf-plan-y.md)（observe 语义声明 / 审计 journal / replay）· [zen-udf-multi-tenant.md](./zen-udf-multi-tenant.md)
 
 ## 1. 问题定义：一致性档位
 

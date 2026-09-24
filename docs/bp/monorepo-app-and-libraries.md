@@ -144,5 +144,5 @@ JS 字节数。本仓实测 2.8 MB（react 19，minified）——单面板负载
   两种链接形态与硬链接冻结的机制详解
 - [`troubleshooting.zh-CN.md`](../troubleshooting.zh-CN.md) 案例 8——
   双副本分歧的完整排查记录
-- [`roadmap-0.3.0.md`](./roadmap-0.3.0.md) §3.1——代码分割评估与测量数据
+- [`roadmap-0.3.0.md`](../archive/roadmap-0.3.0.md) §3.1——代码分割评估与测量数据
 - `docs/bundle-analysis.md`——包体组成基线

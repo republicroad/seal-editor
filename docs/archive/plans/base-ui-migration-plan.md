@@ -11,7 +11,7 @@
   `@base-ui/react` peer）；shadcn 官方迁移 skill（`pnpm dlx skills add shadcn/ui`）
   作为批 1–3 的对照知识源试点，验证后调整估时
 - 目标: kernel / appshell / playground 的 UI 原语从 radix 全量迁至 Base UI（`@base-ui/react`）
-- 动机: 对齐 ReUI base-nova 主线；根治 flow 块风格错配（[issue 草稿](./reui-flow-toggle-group-style-mismatch.md)）；收敛依赖为单一引擎
+- 动机: 对齐 ReUI base-nova 主线；根治 flow 块风格错配（[issue 草稿](../../rfc/reui-flow-toggle-group-style-mismatch.md)）；收敛依赖为单一引擎
 
 ## 1. 迁移面盘点（2026-09-17 实测）
 

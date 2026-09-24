@@ -1,7 +1,7 @@
 # zen-udf 执行上下文跨边界传播：现状与绑定层原生传播提案
 
 状态：design · 现状方案已 shipped（输入保留键通道，回归测试钉死）；绑定层原生传播为提案（upstream 路线）
-关联：[zen-udf-multi-tenant.md](./zen-udf-multi-tenant.md) §4 · [zen-udf-development-plan.md](./zen-udf-development-plan.md) U5
+关联：[zen-udf-multi-tenant.md](./zen-udf-multi-tenant.md) §4 · [zen-udf-development-plan.md](../archive/plans/zen-udf-development-plan.md) U5
 
 ## 1. 问题定义：ALS 为何在 TSFN 边界丢失
 

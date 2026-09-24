@@ -78,5 +78,5 @@ Note: `@types/react-dom` was already `^19.x` before this migration (pre-existing
 ## Postscript (2026-09)
 
 `zustand/traditional` (and its `use-sync-external-store` shim) has since been retired in favor
-of a local deep-equality memoizer — see [ADR-006](../adr/006-zustand-selector-equality.md)
-and [BP-08](../bp/zustand-selector-equality.md).
+of a local deep-equality memoizer — see [ADR-006](../../adr/006-zustand-selector-equality.md)
+and [BP-08](../../bp/zustand-selector-equality.md).

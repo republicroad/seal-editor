@@ -28,7 +28,7 @@
 
 - 块是纯源码文件，与 playground 其余部分同等待遇，无 dist 介入。
 - `@xyflow/react` 与 kernel 同版本线，无双实例风险。
-- **坑**：ReUI 块按 **Base UI 风格**书写（数组 value / multiple / spacing 的 ToggleGroup），但块的普通名依赖（toggle-group 等）由 shadcn new-york 路径解析出 **radix 系**组件——运行时 `Missing prop type` 崩溃。修补：canvas-toolbar 的 ToggleGroup 用法按 radix API 就地翻译（`type="single"` + 单值）。flow-1 未发布到 `/r/base/` 路径（404），故无法靠切注册风格根治；这是 ReUI 该块的打包瑕疵，升级块时需重打此补丁。完整问题描述与上游 issue 草稿见 [reui-flow-toggle-group-style-mismatch.md](./reui-flow-toggle-group-style-mismatch.md)。
+- **坑**：ReUI 块按 **Base UI 风格**书写（数组 value / multiple / spacing 的 ToggleGroup），但块的普通名依赖（toggle-group 等）由 shadcn new-york 路径解析出 **radix 系**组件——运行时 `Missing prop type` 崩溃。修补：canvas-toolbar 的 ToggleGroup 用法按 radix API 就地翻译（`type="single"` + 单值）。flow-1 未发布到 `/r/base/` 路径（404），故无法靠切注册风格根治；这是 ReUI 该块的打包瑕疵，升级块时需重打此补丁。完整问题描述与上游 issue 草稿见 [reui-flow-toggle-group-style-mismatch.md](../../rfc/reui-flow-toggle-group-style-mismatch.md)。
 - 附带发现：playground 此前缺 `lucide-react` 直接依赖（pnpm 严格布局），已按 catalog 惯例补齐。
 
 ## 问题 3：flow-3 式「决策运行监控」可行性
