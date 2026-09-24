@@ -38,6 +38,9 @@
 
 ## 3. verdict 侧联动（跨仓，由 verdict 会话承接）
 
+> 交接清单已固化：[handoff-verdict-integration.md](./handoff-verdict-integration.md)——
+> 四端口 conformance、UDF Pack 契约、model-execute 组装规范、失效广播契约、核对清单。
+
 - velocity（RateStore 接口对齐 + conformance 套件复用）
 - ip2region xdb 接入（v4/v6 数据管道，上游 Action 自动更新；链接已实测于路线图 N5）
 - seal-demo ↔ model-execute 端到端风控 demo
