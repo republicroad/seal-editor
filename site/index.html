@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Seal Editor — docs &amp; interactive demo</title>
+    <meta
+      name="description"
+      content="Seal Editor: React component library for JDM (JSON Decision Model) editing. Documentation and Storybook."
+    />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f8fafc;
+        --fg: #0f172a;
+        --card-bg: #ffffff;
+        --card-border: #e2e8f0;
+        --accent: #2563eb;
+        --accent-soft: #60a5fa;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0b0f14;
+          --fg: #e2e8f0;
+          --card-bg: #111820;
+          --card-border: #1e293b;
+        }
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          'Helvetica Neue',
+          Arial,
+          'PingFang SC',
+          'Microsoft YaHei',
+          sans-serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2.5rem;
+        padding: 3rem 1.5rem;
+        background: var(--bg);
+        color: var(--fg);
+      }
+      header {
+        text-align: center;
+      }
+      h1 {
+        font-size: 2rem;
+        letter-spacing: -0.02em;
+      }
+      .tagline {
+        margin-top: 0.6rem;
+        opacity: 0.75;
+        max-width: 34rem;
+      }
+      .fork {
+        margin-top: 0.35rem;
+        font-size: 0.85rem;
+        opacity: 0.55;
+      }
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+      }
+      a.card {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 17rem;
+        padding: 1.4rem 1.5rem;
+        border: 1px solid var(--card-border);
+        border-radius: 0.9rem;
+        background: var(--card-bg);
+        text-decoration: none;
+        color: inherit;
+        transition:
+          transform 0.15s ease,
+          border-color 0.15s ease;
+      }
+      a.card:hover {
+        transform: translateY(-2px);
+        border-color: var(--accent);
+      }
+      .card .k {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--accent-soft);
+      }
+      .card .t {
+        font-size: 1.15rem;
+        font-weight: 600;
+      }
+      .card .d {
+        font-size: 0.9rem;
+        opacity: 0.7;
+      }
+      footer {
+        font-size: 0.85rem;
+        opacity: 0.6;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      footer a {
+        color: inherit;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Seal Editor</h1>
+      <p class="tagline">
+        React component library for building and editing
+        <strong>JDM (JSON Decision Model)</strong> documents — decision graphs, decision tables, expression and function
+        editors, simulator.
+      </p>
+      <p class="fork">Internal fork of gorules/jdm-editor &middot; @republicroad/seal-editor</p>
+    </header>
+    <nav>
+      <a class="card" href="./docs/">
+        <span class="k">Docs</span>
+        <span class="t">Documentation</span>
+        <span class="d">Architecture, features, host migration guide, ADRs and best practices (EN + 中文).</span>
+      </a>
+      <a class="card" href="./storybook/">
+        <span class="k">Demo</span>
+        <span class="t">Storybook</span>
+        <span class="d">Interactive component playground — 68 stories across the kernel and appshell.</span>
+      </a>
+    </nav>
+    <footer>
+      <a href="https://github.com/republicroad/seal-editor">GitHub</a>
+      <a href="https://www.npmjs.com/package/@republicroad/seal-editor">npm</a>
+      <a href="https://github.com/gorules/jdm-editor">upstream: gorules/jdm-editor</a>
+    </footer>
+  </body>
+</html>

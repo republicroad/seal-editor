@@ -9,7 +9,7 @@ end-to-end with shadcn/ReUI + Tailwind.
 > significant divergence (ReactFlow 12, shadcn/ReUI stack, seed-derived
 > theming, i18n, pooled editors). Will not track upstream merges.
 >
-> **Live storybook:** https://republicroad.github.io/seal-editor/
+> **Live storybook:** https://republicroad.github.io/seal-editor/storybook/
 
 ## Installation
 

@@ -1,5 +1,5 @@
 # JDM Editor — Internal Fork Documentation / 内部维护文档索引
-> **Live storybook (interactive demo) / 在线演示:** https://republicroad.github.io/seal-editor/
+> **Live storybook (interactive demo) / 在线演示:** https://republicroad.github.io/seal-editor/storybook/
 > **Documentation site / 文档站:** https://republicroad.github.io/seal-editor/docs/
 
 > **Fork notice / 分叉声明**

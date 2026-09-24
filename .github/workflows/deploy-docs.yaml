@@ -11,6 +11,7 @@ on:
       - 'packages/seal-editor/package.json'
       - 'packages/appshell/src/**'
       - 'docs/**'
+      - 'site/**'
       - 'rspress.config.ts'
       - 'pnpm-lock.yaml'
       - '.github/workflows/deploy-docs.yaml'
@@ -48,12 +49,14 @@ jobs:
         run: pnpm --filter @republicroad/seal-editor build:storybook
       - name: Build Rspress docs
         run: pnpm exec rspress build
-      - name: Merge artifacts (Storybook root + Rspress docs/)
+      - name: Merge artifacts (landing at root + Storybook /storybook + Rspress /docs)
         run: |
           SITE=$(mktemp -d)
-          cp -r packages/seal-editor/docs/* "$SITE/"
+          mkdir -p "$SITE/storybook"
+          cp -r packages/seal-editor/docs/* "$SITE/storybook/"
           mkdir -p "$SITE/docs"
           cp -r doc-out/* "$SITE/docs/"
+          cp site/index.html "$SITE/index.html"
           # wasm for expression evaluation in the docs-site live demo
           mkdir -p "$SITE/docs/zen-engine-wasm"
           cp packages/seal-editor/node_modules/@gorules/zen-engine-wasm/dist/zen_engine_wasm_bg.wasm "$SITE/docs/zen-engine-wasm/"
