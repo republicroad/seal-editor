@@ -7,7 +7,7 @@ const dist = path.join(root, 'packages', 'jdm-editor', 'dist');
 const budgetsPath = path.join(root, 'scripts', 'size-budgets.json');
 
 if (!existsSync(dist)) {
-  console.error('[size] packages/jdm-editor/dist not found — run `pnpm build` first.');
+  console.error('[size] packages/seal-editor/dist not found — run `pnpm build` first.');
   process.exit(1);
 }
 

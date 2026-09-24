@@ -4,7 +4,7 @@
  * alongside the rolled-up entry files. Keeps all JS/CSS output (including
  * code-split chunks) so the published dist is self-contained.
  *
- * Usage: node clean-dist.mjs [distDir]   (defaults to <repo>/packages/jdm-editor/dist)
+ * Usage: node clean-dist.mjs [distDir]   (defaults to <repo>/packages/seal-editor/dist)
  */
 import { existsSync, readdirSync, rmSync } from 'node:fs';
 import path from 'node:path';
