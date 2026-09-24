@@ -1,7 +1,7 @@
 /*
  * Style-debt budget guard (roadmap §P4 / shadcn-theming-roadmap.zh-CN.md).
  *
- * Counts two families of styling debt inside @gorule/jdm-editor sources:
+ * Counts two families of styling debt inside @republicroad/seal-editor sources:
  *   1. `!important` declarations           — cascade-warfare artifacts
  *   2. raw hex colors OUTSIDE the token whitelist — palette leaks
  *
@@ -14,7 +14,7 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-const SRC = new URL('../packages/jdm-editor/src', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
+const SRC = new URL('../packages/seal-editor/src', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
 
 /** Baselines recorded 2026-08 after Batch D phase-1 of the theming roadmap
  * (CM skin migrated to EditorView.theme; !important count nearly halved).
