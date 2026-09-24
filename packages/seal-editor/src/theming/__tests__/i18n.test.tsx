@@ -5,6 +5,20 @@ import { describe, expect, it } from 'vitest';
 import { JdmConfigProvider } from '../../theme';
 import { createT, useT } from '../i18n';
 import { interpolate } from '../i18n-types';
+import { en } from '../messages/en';
+import { zhCN } from '../messages/zh-CN';
+
+describe('catalog key parity', () => {
+  it('every en key exists in zh-CN (no silent English fallback)', () => {
+    const missing = Object.keys(en).filter((key) => !(key in zhCN));
+    expect(missing).toEqual([]);
+  });
+
+  it('zh-CN declares no keys unknown to en', () => {
+    const extra = Object.keys(zhCN).filter((key) => !(key in en));
+    expect(extra).toEqual([]);
+  });
+});
 
 describe('i18n interpolate', () => {
   it('replaces {{param}} placeholders', () => {

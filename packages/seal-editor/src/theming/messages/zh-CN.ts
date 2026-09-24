@@ -203,5 +203,6 @@ export const zhCN: Record<string, string> = {
   'simulator.readyHint': '运行一次请求即可查看节点执行轨迹。',
   'simulator.learnMore': '了解更多',
 
+  'common.clear': '清空',
   'misc.delete': '删除',
 };
