@@ -12,7 +12,7 @@ import path from 'node:path';
 const repoRoot = path.resolve(new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
 const dist = process.argv[2]
   ? path.resolve(process.cwd(), process.argv[2])
-  : path.join(repoRoot, 'packages', 'jdm-editor', 'dist');
+  : path.join(repoRoot, 'packages', 'seal-editor', 'dist');
 
 if (!existsSync(dist)) {
   console.error('[clean-dist] dist not found:', dist);

@@ -50,7 +50,7 @@ jobs:
         run: |
           ver="$(node -p "require('./packages/seal-editor/package.json').version")"
           for i in $(seq 1 30); do
-            if npm view "@republicroad/jdm-editor@$ver" version > /dev/null 2>&1; then
+            if npm view "@republicroad/seal-editor@$ver" version > /dev/null 2>&1; then
               echo "registry visible: $ver (attempt $i)"
               exit 0
             fi

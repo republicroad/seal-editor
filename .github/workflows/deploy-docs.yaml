@@ -43,9 +43,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build kernel dist
-        run: pnpm --filter @republicroad/jdm-editor build
+        run: pnpm --filter @republicroad/seal-editor build
       - name: Build Storybook
-        run: pnpm --filter @republicroad/jdm-editor build:storybook
+        run: pnpm --filter @republicroad/seal-editor build:storybook
       - name: Build Rspress docs
         run: pnpm exec rspress build
       - name: Merge artifacts (Storybook root + Rspress docs/)
