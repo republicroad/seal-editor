@@ -66,10 +66,10 @@ export const SwitchHandle: React.FC<{
   return (
     <div
       className={clsx(
-        isActive && 'bg-[var(--grl-color-success-bg)]',
-        diff?.status === 'added' && 'bg-[var(--grl-color-success-bg)]',
-        diff?.status === 'modified' && 'bg-[var(--grl-color-warning-bg)]',
-        diff?.status === 'removed' && 'bg-[var(--grl-color-error-bg)]',
+        isActive && 'bg-[var(--seal-color-success-bg)]',
+        diff?.status === 'added' && 'bg-[var(--seal-color-success-bg)]',
+        diff?.status === 'modified' && 'bg-[var(--seal-color-warning-bg)]',
+        diff?.status === 'removed' && 'bg-[var(--seal-color-error-bg)]',
       )}
     >
       <div className={clsx('relative flex flex-row px-(--node-horizontal-padding) py-1')}>
@@ -80,7 +80,7 @@ export const SwitchHandle: React.FC<{
         )}
         {hitPolicy !== 'collect' && index > 0 && (
           <Button
-            className={clsx('text-xs font-medium', isElse && 'text-[var(--grl-color-text-disabled)]')}
+            className={clsx('text-xs font-medium', isElse && 'text-[var(--seal-color-text-disabled)]')}
             size={'small'}
             type={'text'}
             disabled={disabled}
@@ -95,7 +95,7 @@ export const SwitchHandle: React.FC<{
         )}
         {hitPolicy !== 'collect' && index > 0 && isLastIndex && (
           <Button
-            className={clsx('text-xs font-medium', !isElse && 'text-[var(--grl-color-text-disabled)]')}
+            className={clsx('text-xs font-medium', !isElse && 'text-[var(--seal-color-text-disabled)]')}
             size={'small'}
             type={'text'}
             disabled={disabled}
@@ -120,7 +120,7 @@ export const SwitchHandle: React.FC<{
             onConfirm={() => onDelete?.()}
           >
             <Button
-              className='text-[var(--grl-color-text-disabled)]'
+              className='text-[var(--seal-color-text-disabled)]'
               size='small'
               type='text'
               icon={<DeleteOutlined />}
@@ -131,7 +131,7 @@ export const SwitchHandle: React.FC<{
           id={id}
           type='source'
           position={Position.Right}
-          className={clsx(isActive && 'border-[var(--grl-color-success)]! bg-[var(--grl-color-success-bg)]!')}
+          className={clsx(isActive && 'border-[var(--seal-color-success)]! bg-[var(--seal-color-success-bg)]!')}
         />
       </div>
       {!isElse && (
@@ -182,10 +182,10 @@ export const SwitchHandleCompact: React.FC<{
   return (
     <div
       className={clsx(
-        isActive && 'bg-[var(--grl-color-success-bg)]',
-        diff?.status === 'added' && 'bg-[var(--grl-color-success-bg)]',
-        diff?.status === 'modified' && 'bg-[var(--grl-color-warning-bg)]',
-        diff?.status === 'removed' && 'bg-[var(--grl-color-error-bg)]',
+        isActive && 'bg-[var(--seal-color-success-bg)]',
+        diff?.status === 'added' && 'bg-[var(--seal-color-success-bg)]',
+        diff?.status === 'modified' && 'bg-[var(--seal-color-warning-bg)]',
+        diff?.status === 'removed' && 'bg-[var(--seal-color-error-bg)]',
       )}
     >
       <div className={clsx('flex p-[8px_10px] [&_.cm-editor]:pr-3.5')}>
@@ -212,7 +212,7 @@ export const SwitchHandleCompact: React.FC<{
             onConfirm={() => onDelete?.()}
           >
             <Button
-              className='text-[var(--grl-color-text-disabled)]'
+              className='text-[var(--seal-color-text-disabled)]'
               size='small'
               type='text'
               icon={<DeleteOutlined />}
@@ -224,7 +224,7 @@ export const SwitchHandleCompact: React.FC<{
         id={id}
         type='source'
         position={Position.Right}
-        className={clsx(isActive && 'border-[var(--grl-color-success)]! bg-[var(--grl-color-success-bg)]!')}
+        className={clsx(isActive && 'border-[var(--seal-color-success)]! bg-[var(--seal-color-success-bg)]!')}
       />
     </div>
   );
