@@ -509,7 +509,8 @@ function CascaderSubmenuTrigger({
 }
 
 export interface CascaderSubmenuContentProps
-  extends PopoverPrimitive.Popup.Props,
+  extends
+    PopoverPrimitive.Popup.Props,
     Pick<PopoverPrimitive.Positioner.Props, 'side' | 'align' | 'sideOffset' | 'alignOffset'> {}
 
 /** Carries Base UI's handler-veto hook, so a plain React event will not do. */

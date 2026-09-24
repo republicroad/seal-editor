@@ -104,8 +104,10 @@ const INDICATOR_MARK_CLASS = 'text-foreground! **:text-foreground!';
 // column on its way elsewhere opens nothing, short enough to read as immediate.
 const CASCADER_HOVER_EXPAND_DELAY = 150;
 
-export interface CascaderItemProps
-  extends Omit<ComboboxPrimitive.Item.Props, 'value' | 'children' | 'className' | 'style' | 'onClick' | 'onMouseUp'> {
+export interface CascaderItemProps extends Omit<
+  ComboboxPrimitive.Item.Props,
+  'value' | 'children' | 'className' | 'style' | 'onClick' | 'onMouseUp'
+> {
   /** No state callback: the row merges `className` and `style` itself. */
   className?: string;
   style?: React.CSSProperties;

@@ -1238,8 +1238,9 @@ declare class ZodObject<
 }
 declare type AnyZodObject = ZodObject<any, any, any>;
 declare type ZodUnionOptions = Readonly<[ZodTypeAny, ...ZodTypeAny[]]>;
-interface ZodUnionDef<T extends ZodUnionOptions = Readonly<[ZodTypeAny, ZodTypeAny, ...ZodTypeAny[]]>>
-  extends ZodTypeDef {
+interface ZodUnionDef<
+  T extends ZodUnionOptions = Readonly<[ZodTypeAny, ZodTypeAny, ...ZodTypeAny[]]>,
+> extends ZodTypeDef {
   options: T;
   typeName: ZodFirstPartyTypeKind.ZodUnion;
 }
@@ -1329,8 +1330,10 @@ declare type InputTypeOfTupleWithRest<
   T extends ZodTupleItems | [],
   Rest extends ZodTypeAny | null = null,
 > = Rest extends ZodTypeAny ? [...InputTypeOfTuple<T>, ...Rest['_input'][]] : InputTypeOfTuple<T>;
-interface ZodTupleDef<T extends ZodTupleItems | [] = ZodTupleItems, Rest extends ZodTypeAny | null = null>
-  extends ZodTypeDef {
+interface ZodTupleDef<
+  T extends ZodTupleItems | [] = ZodTupleItems,
+  Rest extends ZodTypeAny | null = null,
+> extends ZodTypeDef {
   items: T;
   rest: Rest;
   typeName: ZodFirstPartyTypeKind.ZodTuple;
@@ -1425,8 +1428,10 @@ declare class ZodSet<Value extends ZodTypeAny = ZodTypeAny> extends ZodType<
     params?: RawCreateParams,
   ) => ZodSet<Value_1>;
 }
-interface ZodFunctionDef<Args extends ZodTuple<any, any> = ZodTuple<any, any>, Returns extends ZodTypeAny = ZodTypeAny>
-  extends ZodTypeDef {
+interface ZodFunctionDef<
+  Args extends ZodTuple<any, any> = ZodTuple<any, any>,
+  Returns extends ZodTypeAny = ZodTypeAny,
+> extends ZodTypeDef {
   args: Args;
   returns: Returns;
   typeName: ZodFirstPartyTypeKind.ZodFunction;

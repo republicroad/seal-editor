@@ -123,8 +123,10 @@ export interface SortableCommitMeta<T> {
   previousValue: T[];
 }
 
-export interface SortableRootProps<T>
-  extends Omit<useRender.ComponentProps<'div'>, 'onDragStart' | 'onDragEnd' | 'children'> {
+export interface SortableRootProps<T> extends Omit<
+  useRender.ComponentProps<'div'>,
+  'onDragStart' | 'onDragEnd' | 'children'
+> {
   value: T[];
   onValueChange: (value: T[]) => void;
   getItemValue: (item: T) => string;

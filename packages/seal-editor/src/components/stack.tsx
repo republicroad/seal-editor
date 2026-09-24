@@ -1,14 +1,7 @@
 import React, { useMemo } from 'react';
 
 export type StackAlignment =
-  | 'start'
-  | 'end'
-  | 'center'
-  | 'space-between'
-  | 'space-around'
-  | 'space-evenly'
-  | 'baseline'
-  | 'stretch';
+  'start' | 'end' | 'center' | 'space-between' | 'space-around' | 'space-evenly' | 'baseline' | 'stretch';
 
 export type StackProps = {
   horizontal?: boolean;

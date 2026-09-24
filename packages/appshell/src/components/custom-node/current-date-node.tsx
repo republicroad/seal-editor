@@ -45,8 +45,7 @@ export const CurrentDateTab: React.FC<CurrentDateTabProps> = ({ id }) => {
   };
   const key = outputKeyOf(config);
   const output = useDecisionGraphState(({ simulate }) => simulate?.result?.trace?.[id]?.output) as
-    | Record<string, unknown>
-    | undefined;
+    Record<string, unknown> | undefined;
 
   const value = output?.[key];
 
@@ -91,8 +90,7 @@ const CurrentDateNode: React.FC<CurrentDateNodeProps> = ({ id, data, selected, s
   const config = useNodeConfig(id);
   const key = outputKeyOf(config);
   const output = useDecisionGraphState(({ simulate }) => simulate?.result?.trace?.[id]?.output) as
-    | Record<string, unknown>
-    | undefined;
+    Record<string, unknown> | undefined;
 
   const value = output?.[key];
 

@@ -329,8 +329,7 @@ const QueryListNode: React.FC<MinimalNodeProps & { specification: MinimalNodeSpe
 
   const { config, output } = useDecisionGraphState(({ decisionGraph, simulate }) => ({
     config: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content?.config as
-      | CustomNodeConfig
-      | undefined,
+      CustomNodeConfig | undefined,
     output: simulate?.result?.trace?.[id]?.output,
   }));
 

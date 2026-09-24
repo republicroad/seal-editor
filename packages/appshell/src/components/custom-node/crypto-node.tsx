@@ -400,8 +400,7 @@ const CryptoNode: React.FC<MinimalNodeProps & { specification: MinimalNodeSpecif
   const config = useDecisionGraphState(({ decisionGraph, simulate }) => {
     return {
       config: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content?.config as
-        | CustomNodeConfig
-        | undefined,
+        CustomNodeConfig | undefined,
       output: simulate?.result?.trace?.[id]?.output as Record<string, unknown> | undefined,
     };
   });

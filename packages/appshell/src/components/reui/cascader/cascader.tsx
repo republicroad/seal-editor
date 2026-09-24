@@ -203,8 +203,7 @@ function useShallowStable<V>(value: V, equal: (a: V & object, b: V & object) => 
 
 /** The pre-split shape, merged, so `useCascader()` returns what it always did. */
 export interface CascaderContextValue<T = unknown>
-  extends CascaderActionsContextValue<T>,
-    CascaderStateContextValue<T> {}
+  extends CascaderActionsContextValue<T>, CascaderStateContextValue<T> {}
 
 /**
  * The cascader's internals, typed for the caller's own item payload.
@@ -729,8 +728,7 @@ function Cascader<T>({
 
   // Public props are discriminated, internals are not: one assertion.
   const onValueChange = onValueChangeProp as
-    | ((value: string | string[], details: CascaderChangeDetails<T>) => void)
-    | undefined;
+    ((value: string | string[], details: CascaderChangeDetails<T>) => void) | undefined;
 
   // No `onChange`: `onValueChange` takes a second argument, so `emitSelection`
   // invokes it rather than the state hook, which only knows the value.
@@ -2008,8 +2006,7 @@ function Cascader<T>({
  * shadcn combobox wrapper also does: a form library needs a ref here, and
  * `onBlur`, the "touched" signal, lands here too. */
 export interface CascaderTriggerProps
-  extends ComboboxPrimitive.Trigger.Props,
-    Pick<React.ComponentPropsWithRef<'button'>, 'ref'> {
+  extends ComboboxPrimitive.Trigger.Props, Pick<React.ComponentPropsWithRef<'button'>, 'ref'> {
   /** Hides the trailing chevron, for a trigger that supplies its own. */
   showIcon?: boolean;
 }
@@ -2106,8 +2103,7 @@ export function useCascaderAnchor() {
 }
 
 export interface CascaderChipsProps
-  extends Omit<ComboboxPrimitive.Chips.Props, 'children'>,
-    Pick<React.ComponentPropsWithRef<'div'>, 'ref'> {
+  extends Omit<ComboboxPrimitive.Chips.Props, 'children'>, Pick<React.ComponentPropsWithRef<'div'>, 'ref'> {
   /** Shown in place of the chips when nothing is selected. */
   placeholder?: React.ReactNode;
   /**
@@ -2298,7 +2294,8 @@ function CascaderChip({
 /* -------------------------------------------------------------------------- */
 
 export interface CascaderContentProps
-  extends ComboboxPrimitive.Popup.Props,
+  extends
+    ComboboxPrimitive.Popup.Props,
     /** Positioner surface forwarded as-is, so an unusual anchor does not force
      * a rebuild of the content stack. No `trackAnchor`: Base UI 1.5.0 has
      * none. */
