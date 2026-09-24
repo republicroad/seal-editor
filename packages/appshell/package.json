@@ -49,7 +49,7 @@
     "tailwind-merge": "catalog:",
     "ts-pattern": "catalog:",
     "zustand": "catalog:",
-    "@republicroad/seal-editor": "^1.1.0"
+    "@republicroad/seal-editor": "workspace:^1.1.0"
   },
   "devDependencies": {
     "@lezer/common": "catalog:",
