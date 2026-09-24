@@ -75,7 +75,7 @@ export const ToolbarAnchor: React.FC<{ items?: ToolbarItem[] }> = ({ items }) =>
               <SafeBoundary
                 key={item.id}
                 fallback={null}
-                onError={(error) => console.error(`[jdm-editor] toolbar item "${item.id}" crashed:`, error)}
+                onError={(error) => console.error(`[seal-editor] toolbar item "${item.id}" crashed:`, error)}
               >
                 <SlotRenderer item={item} disabled={disabled} />
               </SafeBoundary>

@@ -22,7 +22,7 @@ import { pathToFileURL } from 'node:url';
 const registryVersion = process.argv[2] && /^\d+\.\d+\.\d+/.test(process.argv[2]) ? process.argv[2] : null;
 
 const root = path.resolve(new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
-const pkgDir = path.join(root, 'packages', 'jdm-editor');
+const pkgDir = path.join(root, 'packages', 'seal-editor');
 const dist = path.join(pkgDir, 'dist');
 
 if (!registryVersion && !existsSync(path.join(dist, 'index.js'))) {
@@ -37,12 +37,12 @@ const check = (name, ok, detail = '') => {
   results.push(`${ok ? 'PASS' : 'FAIL'} ${name}${detail ? '  -- ' + detail : ''}`);
 };
 
-const scratch = path.join(os.tmpdir(), `jdm-npm-smoke-${Date.now()}`);
+const scratch = path.join(os.tmpdir(), `seal-npm-smoke-${Date.now()}`);
 mkdirSync(scratch, { recursive: true });
 
 try {
   let tarball = null;
-  let installSpec = `@republicroad/jdm-editor@${registryVersion}`;
+  let installSpec = `@republicroad/seal-editor@${registryVersion}`;
 
   if (registryVersion) {
     check(`registry version ${registryVersion} requested`, true, 'installing from registry');
@@ -93,11 +93,11 @@ try {
     `${install.stdout.split('\n').find((l) => l.includes('added')) ?? ''} (spec: ${installSpec})`,
   );
 
-  const installedDir = path.join(scratch, 'node_modules', '@republicroad', 'jdm-editor');
+  const installedDir = path.join(scratch, 'node_modules', '@republicroad', 'seal-editor');
   const installedPkg = JSON.parse(readFileSync(path.join(installedDir, 'package.json'), 'utf8'));
 
   // 3. published contract assertions
-  check('name matches @republicroad/jdm-editor', installedPkg.name === '@republicroad/jdm-editor', installedPkg.name);
+  check('name matches @republicroad/seal-editor', installedPkg.name === '@republicroad/seal-editor', installedPkg.name);
   check(
     'installed version matches expectation',
     !registryVersion || installedPkg.version === registryVersion,

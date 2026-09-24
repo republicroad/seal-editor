@@ -1,21 +1,22 @@
-# 宿主迁移指南 — `@gorules/jdm-editor` → `@republicroad/jdm-editor`
+# 宿主迁移指南 — `@gorules/jdm-editor` → `@republicroad/seal-editor`
 
 > 本分支已与上游显著分叉(`ReactFlow 12`、`shadcn/ui + ReUI`、种子派生主题、
 > 作用域注入、池化编辑器),不会跟随上游合并。自 `0.1.0` 起以
-> `@republicroad/jdm-editor` 发布(1.0 之前,API 可能变化——semver 0.x 约定)。
+> `@republicroad/seal-editor` 发布,版本线已达 1.x(1.1.0)——下文 0.x 时代的
+> 破坏性变更属历史记录,1.x 变更见 changelog。
 
 ## 快速切换
 
 ```diff
 - npm i @gorules/jdm-editor
-+ npm i @republicroad/jdm-editor
++ npm i @republicroad/seal-editor
 ```
 
 ```diff
 - import '@gorules/jdm-editor/dist/style.css';
 - import { DecisionGraph, JdmConfigProvider } from '@gorules/jdm-editor';
-+ import '@republicroad/jdm-editor/dist/style.css';
-+ import { DecisionGraph, JdmConfigProvider } from '@republicroad/jdm-editor';
++ import '@republicroad/seal-editor/dist/style.css';
++ import { DecisionGraph, JdmConfigProvider } from '@republicroad/seal-editor';
 ```
 
 ## 变更(破坏性)
@@ -44,7 +45,7 @@
 
 原先仅面向宿主的键(`--grl-primary-color(-bg)`、`--grl-color-primary-text-hover`、
 `--grl-color-info-text`、`--grl-color-bg-mask`)已在 1.0.0 移除——迁移清单见
-[`grl-var-flatten.md`](./grl-var-flatten.md)。
+[`grl-var-flatten.md`](./archive/research/grl-var-flatten.md)。
 
 ## Antd 类型别名
 
@@ -72,7 +73,7 @@ import {
   CustomFunctionTable, type TabCustomFunctionProps,
   // JSON Schema 助手
   jsonSchemaToVariableType,
-} from '@republicroad/jdm-editor';
+} from '@republicroad/seal-editor';
 ```
 
 ### `DecisionGraph` 新属性
@@ -113,11 +114,11 @@ import {
 
 - `monaco-editor` 移入 `peerDependencies` —— 宿主需显式安装
   (`npm i monaco-editor`),安装体积减少约 5 MB。
-- 草案见 [`roadmap-0.3.0.md`](./roadmap-0.3.0.md)。
+- 草案见 [`roadmap-0.3.0.md`](./archive/roadmap-0.3.0.md)。
 
 ## 命名版本(appshell 0.2.0)
 
-`@republicroad/jdm-appshell` 的持久化适配器现在支持**命名版本**:
+`@republicroad/seal-appshell` 的持久化适配器现在支持**命名版本**:
 
 - `GraphRecordMeta.versionName?: string` —— `save()` 时携带即为该次保存产生的
   版本命名。归档条目保留名称;`load(id, { revision })` 与 `list()` 会返回,

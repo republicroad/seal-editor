@@ -1,6 +1,6 @@
 # zen-udf：zen-engine 的 customNode UDF 运行时
 
-`@republicroad/zen-udf`（0.2.0）基于 [@gorules/zen-engine](https://www.npmjs.com/package/@gorules/zen-engine) 2.0.2，补齐其在服务端执行自定义节点的完整能力：**多函数实例执行规范 + UdfPack 注册表 + L1 决策缓存 + 多租户上下文与数据面端口**。
+`@republicroad/zen-udf`（0.6.0）基于 [@gorules/zen-engine](https://www.npmjs.com/package/@gorules/zen-engine) 2.0.2，补齐其在服务端执行自定义节点的完整能力：**多函数实例执行规范 + UdfPack 注册表 + L1 决策缓存 + 多租户上下文与数据面端口**。
 
 源码：`packages/zen-udf`（源码发布，消费方经 bundler/tsx/Bun 直跑）。
 
@@ -71,16 +71,21 @@ await runWithExecContext({ tenantId: 't-1', userId: 'u-1' }, async () => {
 - **批量评估**：`evaluateMany` —— 同模型多输入并发，逐条错误隔离
 - **统一观测 sink**：metrics 回调统一 UDF/熔断/并发闸事件流，verdict 聚合为 Prometheus
 - **L1 缓存空闲 TTL**：`idleTtlMs` 惰性过期，与容量上限叠加
-- **影子评估**：`evaluateShadow` —— 新旧 rev 并行执行 + 字段级 diff（act 影子侧 intent 占位）
-- **批量评估与输入守卫**：`evaluateMany` 并发批量；NaN/Infinity 执行前 fail fast
 - **性能基线**：`bench/perf.ts` —— 重建 vs 缓存 vs 审计 vs 并发闸（µs/op）
+
+## CC/DD 系列增量（至 0.6.0）
+
+- **影子评估端点**：demo-server `POST /v1/shadow` —— 新旧 rev 影子对比的独立入口
+- **影子 e2e 哨兵**：影子路径回归纳入探针门禁
+- **metrics 命名约定**：UDF/熔断/并发闸事件统一命名表，verdict 聚合 Prometheus
+- **Trust Chain 工作台**：playground Trust Chain 页签 ——"执行→审计→回放"三步工作流 + 影子对比面板
 
 ## 深入阅读
 
-- [多租户最佳实践设计](/jdm-editor/docs/design/zen-udf-multi-tenant)
-- [上下文跨 TSFN 边界传播（现状 + 原生绑定层提案）](/jdm-editor/docs/design/zen-udf-context-propagation)
-- [U 系列开发计划（机制与租户契约，已 shipped）](/jdm-editor/docs/design/zen-udf-development-plan)
-- [V 系列开发计划（发布/规范收尾/消费方验证，已 shipped）](/jdm-editor/docs/design/zen-udf-plan-v)
-- [verdict U10 接入指南](/jdm-editor/docs/design/verdict-zen-udf-integration)
-- [上游 issue 草稿（gorules/zen async context）](/jdm-editor/docs/rfc/gorules-zen-async-context)
+- [多租户最佳实践设计](/seal-editor/docs/design/zen-udf-multi-tenant)
+- [上下文跨 TSFN 边界传播（现状 + 原生绑定层提案）](/seal-editor/docs/design/zen-udf-context-propagation)
+- [U 系列开发计划（机制与租户契约，已 shipped）](/seal-editor/docs/design/zen-udf-development-plan)
+- [V 系列开发计划（发布/规范收尾/消费方验证，已 shipped）](/seal-editor/docs/design/zen-udf-plan-v)
+- [verdict U10 接入指南](/seal-editor/docs/design/verdict-zen-udf-integration)
+- [上游 issue 草稿（gorules/zen async context）](/seal-editor/docs/rfc/gorules-zen-async-context)
 - 包内命名规范：`packages/zen-udf/docs/naming.md`

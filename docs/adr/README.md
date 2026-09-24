@@ -1,6 +1,6 @@
 # 架构决策记录（Architecture Decision Record）
 
-> 本目录归拢 jdm-editor 仓库的架构决策。每条 ADR 记录一个**不可轻易撤回**的技术选型：
+> 本目录归拢 seal-editor 仓库的架构决策。每条 ADR 记录一个**不可轻易撤回**的技术选型：
 > 背景、备选方案、决策结论、后续条件。格式参考 [MADR](https://adr.github.io/madr/)（简化版）。
 
 ## 索引

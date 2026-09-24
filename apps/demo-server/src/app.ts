@@ -98,7 +98,7 @@ registerRoster(
  *   POST /v1/replay       确定性回放 { model, input, audit } → { result, consistent }
  *                         （observe/act 读审计 journal，不重执行；输入哈希校验）
  * 无鉴权、无存储；显式 demo 头随每个响应返回。
- * 注意：刻意不依赖 @republicroad/jdm-editor——kernel 是 UI 库（浏览器全局），
+ * 注意：刻意不依赖 @republicroad/seal-editor——kernel 是 UI 库（浏览器全局），
  * 服务端的模型契约以 zen 引擎校验为准，类型层契约由 verdict 仓以 type-only 引入。
  */
 export const createApp = () => {

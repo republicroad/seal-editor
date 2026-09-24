@@ -1,14 +1,14 @@
-# @republicroad/jdm-appshell
+# @republicroad/seal-appshell
 
-`@republicroad/jdm-editor`（内核）的参考消费者层：自定义节点托管、UI 槽位
+`@republicroad/seal-editor`（内核）的参考消费者层：自定义节点托管、UI 槽位
 出现与换肤、持久化契约与认证适配。
 
 ## 定位
 
 ```
 宿主应用 (apps/*)
-  ├── @republicroad/jdm-appshell   → 观点性 shell Provider / 自定义节点 / UI kit / 持久化
-        └── @republicroad/jdm-editor   → 编辑器内核（peer）
+  ├── @republicroad/seal-appshell   → 观点性 shell Provider / 自定义节点 / UI kit / 持久化
+        └── @republicroad/seal-editor   → 编辑器内核（peer）
               └── react >= 18 (peer)
 ```
 
@@ -26,7 +26,7 @@
 | **Skin 皮肤系统**    | `skin/`、`context/theme.provider`                      | `applyNodeOverrides` 按 kind 覆盖 renderTab/renderNode                                                                 |
 | **持久化契约**       | `shell/persistence.ts`、`shell/graphs-http-adapter.ts` | `GraphPersistenceAdapter`：宿主实现，乐观锁 + 404 语义 + 版本历史                                                      |
 
-在线文档：https://republicroad.github.io/jdm-editor/docs/
+在线文档：https://republicroad.github.io/seal-editor/docs/
 
 完整说明见仓库文档 [`docs/appshell.md`](../../docs/appshell.md)（在线站点
 Docs 区同文）。
@@ -34,8 +34,8 @@ Docs 区同文）。
 ## 宿主接线
 
 ```tsx
-import { DecisionGraph } from '@republicroad/jdm-editor';
-import { useCustomNodes } from '@republicroad/jdm-appshell';
+import { DecisionGraph } from '@republicroad/seal-editor';
+import { useCustomNodes } from '@republicroad/seal-appshell';
 
 // 六个自定义节点开箱即用；schema 拉取失败时自动回退内置定义
 const { customNodes, ready } = useCustomNodes();
@@ -48,22 +48,22 @@ const { customNodes, ready } = useCustomNodes();
 
 - **monorepo 内部**：源码直连——`main`/`types` 直指 `src/index.ts`，
   vite/bun 直接吃源码；路径别名见根 `tsconfig.json`
-  （`@republicroad/jdm-appshell` / `@republicroad/jdm-appshell/*`）。
+  （`@republicroad/seal-appshell` / `@republicroad/seal-appshell/*`）。
 - **外部（npm）**：`publishConfig` 于发布时切换到 `dist/`
   （`bun run build` 产出 `index.js` + `index.d.ts` + `style.css`）。
 
 ## 开发
 
 ```bash
-pnpm --filter @republicroad/jdm-appshell typecheck   # tsc --noEmit
-pnpm --filter @republicroad/jdm-appshell test        # vitest（8 套件 / 67 用例）
-pnpm --filter @republicroad/jdm-appshell build       # dist + style.css
-pnpm --filter @republicroad/jdm-appshell test:npm-smoke
+pnpm --filter @republicroad/seal-appshell typecheck   # tsc --noEmit
+pnpm --filter @republicroad/seal-appshell test        # vitest（8 套件 / 67 用例）
+pnpm --filter @republicroad/seal-appshell build       # dist + style.css
+pnpm --filter @republicroad/seal-appshell test:npm-smoke
 ```
 
 ## 运行要求
 
-- React >= 18；`@republicroad/jdm-editor` >= 0.3；monaco-editor 需显式安装
+- React >= 18；`@republicroad/seal-editor` >= 0.3；monaco-editor 需显式安装
 - Tailwind v4 + shadcn 语义 token（`--background`/`--foreground`/... 参考
   `src/main.css`）；内核侧 `--grl-*` 变量由 `JdmConfigProvider` 自动注入
 

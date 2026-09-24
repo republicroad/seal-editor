@@ -8,18 +8,19 @@
 
 ## 1. Context
 
-The fork vendors **two parallel styling systems**:
+> **Status (2026-09): the migration described here is complete.** The SCSS layer and the `sass`
+> devDependency are fully removed from `packages/seal-editor` (src no longer contains any `.scss`);
+> component styling is Tailwind utilities plus the thin plain-CSS layer. The doc is kept as the
+> decision record for that migration and as guidance for new surfaces.
+
+The fork historically vendored **two parallel styling systems**:
 
 - A global `src/styles/tailwind.css` (Tailwind v4 via `@tailwindcss/vite`), plus `tokens.css` which
-  bridges the live antd-derived runtime tokens (`--grl-*`) to generic names (`--border`, `--primary`,
+  bridges the live seed-derived runtime tokens (`--grl-*`) to generic names (`--border`, `--primary`,
   …). All shadcn/ui and ReUI components are styled with Tailwind utilities.
 - ~2 700 lines of hand-written SCSS (`dg.scss`, `dt.scss`, `ce.scss`, `expression.scss`,
   `function.scss`, `_builder-base.scss` + builders, `decision-node.scss`, `styles.scss`), compiled by
-  the `sass` devDependency.
-
-Both are imported in `src/index.ts` and ship in `dist/style.css`. The goal is to collapse the SCSS
-layer into **Tailwind utilities where possible + a thin plain-CSS layer where not**, and eventually
-drop the `sass` dependency without losing styling capability.
+  the `sass` devDependency — since collapsed into Tailwind utilities + the plain-CSS layer and removed.
 
 > **Editor chrome surfaces.** Colors for third-party editor DOM that have no antd counterpart —
 > CodeMirror tooltips (`--tooltip-bg`), diagnostic chips (`--diagnostic-chip-bg`) and the Monaco

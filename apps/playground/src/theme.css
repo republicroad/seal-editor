@@ -5,8 +5,8 @@
 
 /* 显式声明扫描范围（本包 + 两个 workspace 包源码） */
 @source "./";
-@source "../../appshell/src";
-@source "../../jdm-editor/src";
+@source "../../packages/appshell/src";
+@source "../../packages/seal-editor/src";
 
 @custom-variant dark (&:is(.dark *, [data-theme='dark'] *));
 

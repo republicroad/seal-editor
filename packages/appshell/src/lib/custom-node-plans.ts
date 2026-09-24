@@ -21,7 +21,7 @@ const firstLine = (text?: string): string | undefined => {
   return clean || undefined;
 };
 
-/** 纯数据节点计划：kind 约定与播种逻辑在此(可测)，React/jdm-editor 组装在 registry */
+/** 纯数据节点计划：kind 约定与播种逻辑在此(可测)，React/seal-editor 组装在 registry */
 export type CustomNodePlan = {
   kind: string;
   displayName: string;

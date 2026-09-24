@@ -2,11 +2,14 @@
 
 > 中文对照版,英文原版:[`architecture.md`](./architecture.md)。
 >
-> 本文档描述分叉调整后的仓库形态:支撑包改为从 npm 引入,本仓库仅保留 本仓库包含两个 workspace 包:`packages/jdm-editor`(kernel)与`packages/appshell`(shell)。(见 docs/appshell.zh-CN.md)
+> 本文档描述分叉调整后的仓库形态:支撑包改为从 npm 引入。本仓库包含三个 workspace 包 ——
+> `packages/seal-editor`(kernel)、`packages/appshell`(shell,见 docs/appshell.zh-CN.md)、
+> `packages/zen-udf`(zen-engine 服务端 UDF 运行时)—— 以及两个应用:`apps/playground`(MPA 演示壳)
+> 与 `apps/demo-server`(Bun + Hono 演示后端)。
 
 ## 1. 总览
 
-JDM Editor 是一个 React 组件库,用于构建与编辑 **JDM(JSON Decision Model)** 文档:以决策图组织节点
+Seal Editor 是一个 React 组件库,用于构建与编辑 **JDM(JSON Decision Model)** 文档:以决策图组织节点
 (决策表、函数、表达式、开关、输入/输出),每个节点配备专属编辑器。库以编译后的 ESM(`dist/`)加单一
 样式表(`dist/style.css`)发布,并通过 WebAssembly 内嵌自己的表达式语言工具链。
 
@@ -16,17 +19,22 @@ JDM Editor 是一个 React 组件库,用于构建与编辑 **JDM(JSON Decision M
 - **Store 优先的状态管理**:zustand(配合 immer)持有编辑器状态;视图库(reactflow、TanStack Table)
   严格作为视图层使用。
 - **语言智能在 WASM**:表达式校验、AST、补全、类型推断均来自编译为 WASM 的 Rust `zen-expression` crate。
-- **样式自包含**:SCSS + CSS 自定义属性(`--grl-*`),运行时切换亮/暗主题。
+- **样式自包含**:Tailwind 工具类 + CSS 自定义属性(`--grl-*` 种子 token,承载 shadcn/ui token),运行时切换亮/暗主题。
 
 ## 2. 仓库结构
 
 ```
-jdm-editor/                  # gorules/jdm-editor 的内部分叉
+seal-editor/                 # gorules/jdm-editor 的内部分叉
 ├── packages/
-│   └── jdm-editor/          # 唯一的本地包 —— React 组件库(@republicroad/jdm-editor)
-├── .github/workflows/       # CI:validate、publish、version、version-beta、pages
+│   ├── seal-editor/         # kernel —— React 组件库(@republicroad/seal-editor)
+│   ├── appshell/            # 参考消费者壳(@republicroad/seal-appshell)
+│   └── zen-udf/             # zen-engine customNode UDF 运行时(@republicroad/zen-udf)
+├── apps/
+│   ├── playground/          # MPA 演示壳(graph/table/reui/trust/udf 实例)
+│   └── demo-server/         # Bun + Hono 演示后端(:8787)
+├── .github/workflows/       # CI:validate、publish、version、version-beta、deploy-docs
 ├── docs/                    # 本文档集
-├── pnpm-workspace.yaml      # workspace = packages/*
+├── pnpm-workspace.yaml      # workspace = packages/* + apps/*
 ├── lerna.json               # independent 版本模式,conventional commits
 └── eslint/prettier/tsconfig # 共享工具配置
 ```
@@ -42,7 +50,7 @@ jdm-editor/                  # gorules/jdm-editor 的内部分叉
 
 分叉时三者版本与上游源码完全一致,行为无变化。
 
-## 3. 包内结构(`packages/jdm-editor`)
+## 3. 包内结构(`packages/seal-editor`)
 
 构建:Vite 8 (Rolldown) + SWC(`vite.config.ts`),类型由 `vite-plugin-dts` 生成,样式编译为单一
 `dist/style.css`。Storybook 10 提供组件演示环境(`*.stories.tsx`)。
@@ -145,8 +153,8 @@ store/规格中的类型推断。
    提供命令式 `modal.confirm`;`mode: 'light' | 'dark'` 选择内置亮/暗两套静态 token 调色板。
 2. 将用户 token 覆写合并进调色板,注入 `:root` `<style>` 块,暴露约 40 个
    **`--grl-*` CSS 自定义属性**(颜色、字体、圆角、决策表专属色)。
-3. 全部组件 SCSS(`src/` 下 10 个文件)只消费这些变量——即主题层早已与具体 UI 库实现解耦,
-   收敛于 `--grl-*` 契约,该契约同时承载 Tailwind 类消费的 shadcn/ui token。
+3. 组件样式只消费这些变量——经 Tailwind 工具类与 shadcn/ui token 层——即主题层与具体 UI 库实现解耦,
+   收敛于 `--grl-*` 契约。
 4. 同文件还托管 `DictionaryProvider`/`useDictionaries`,为下拉框提供枚举 label/value 字典。
 
 ## 7. 构建、测试与发布
@@ -154,8 +162,8 @@ store/规格中的类型推断。
 脚本(根目录):`pnpm build|test|typecheck` 经 Lerna 分发;`lint`(ESLint 9 flat+legacy 混合)、
 `prettier`、`format`/`format:fix`。
 
-自动化测试(本分叉新增):`packages/jdm-editor` 使用 **Vitest**(jsdom + Testing Library)执行单元/组件测试
-——`pnpm --filter @republicroad/jdm-editor test`(监听模式:`test:watch`);另通过 `test:storybook` 运行无头
+自动化测试(本分叉新增):`packages/seal-editor` 使用 **Vitest**(jsdom + Testing Library)执行单元/组件测试
+——`pnpm --filter @republicroad/seal-editor test`(监听模式:`test:watch`);另通过 `test:storybook` 运行无头
 Storybook 冒烟套件(静态构建 → `http-server` → `@storybook/test-runner` 于 Chromium 中逐 story 渲染;
 一次性前置 `npx playwright install chromium`)。`package.json` 中 CRA 时代遗留的 jest 配置块已移除。
 首批覆盖:zod schema、dg-util 映射器、图遍历 walker、决策图 store 动作,以及 DecisionGraph /
@@ -166,18 +174,16 @@ GitHub 工作流(`.github/workflows/`):
 
 | 工作流 | 触发条件 | 内容 |
 |---|---|---|
-| `validate.yaml` | push(master/reui)/PR | lint+build+test+typecheck、体积预算、双 React 消费者冒烟 |
-| `publish.yaml` | push 且提交信息以 `chore(release)` 开头 | build 后执行 `lerna publish from-package` |
-| `version.yaml` / `version-beta.yaml` | 手动 dispatch | `lerna version`(patch/minor/major;beta 标识) |
-| `pages.yaml` | push master / 手动 | Storybook 构建并部署到 gh-pages 演示站 |
-
-本分叉记录的已知缺口:发布流水线假设具备 npm 凭据,内部分叉可能不需要(待裁剪/改造)。
+| `validate.yaml` | push/PR 到 `main` | format(eslint+prettier)→ React Compiler lint → 样式债务预算 → build → test → typecheck(+ appshell typecheck/test/build)→ 体积预算 → Storybook 交互套件 → 双 React 消费者冒烟(18/19) |
+| `publish.yaml` | push 且提交信息以 `chore(release)` 开头 | `lerna publish from-package` |
+| `version.yaml` / `version-beta.yaml` | 手动 dispatch | `lerna version`(patch/minor/major;prerelease 标识) |
+| `deploy-docs.yaml` | push 到 `main`(路径过滤)/ 手动 | Storybook + Rspress 文档构建 → GitHub Pages 站点 |
 
 ## 8. 公共分发模型
 
 - 编译包:`main/module/types → dist/`,导出 `.`、`./dist/schema`、`./dist/style.css`。
 - 运行时:基于 React 19 开发与验证;Peer 依赖保持 `react >= 18`、`react-dom >= 18`(由消费者冒烟脚本在 React 18/19 双版本下验证)。
-- 宿主接入约定:消费方在最外层容器挂 `grl-root` 类以启用库作用域 mini-preflight(表单控件、表格、标题、列表、图片)。重置规则全部使用 `:where()`(零特异性),组件类与 Tailwind 工具类天然胜出,不会泄漏到宿主文档。`ui/button.tsx` 另带基类归一化作为兜底,覆盖 portal 到 body 的弹层按钮(Radix Dialog/Alert/Toaster 等逃逸出 `.grl-root` 作用域的元素)。
+- 宿主接入约定:消费方在最外层容器挂 `grl-root` 类以启用库作用域 mini-preflight(表单控件、表格、标题、列表、图片)。重置规则全部使用 `:where()`(零特异性),组件类与 Tailwind 工具类天然胜出,不会泄漏到宿主文档。`ui/button.tsx` 另带基类归一化作为兜底,覆盖 portal 到 body 的弹层按钮(Base UI Dialog/Alert/Toaster 等逃逸出 `.grl-root` 作用域的元素)。
 - 消费方接入说明(Monaco worker 自托管)见根 README。
 
 ### 8.1 导入契约(方案 D)
@@ -200,7 +206,7 @@ GitHub 工作流(`.github/workflows/`):
 迁移于 `246a0586`(81 文件)。
 
 方案 D 的消费者已实化为第二个 workspace 包:
-[`@republicroad/jdm-appshell`](../packages/appshell/README.md) —— 自定义节点
-托管(六节点 + 组合 Hook)、皮肤覆盖、`GraphPersistenceAdapter` 持久化契约
+[`@republicroad/seal-appshell`](../packages/appshell/README.md) —— 自定义节点
+托管(四节点 + 组合 Hook)、皮肤覆盖、`GraphPersistenceAdapter` 持久化契约
 及其 HTTP 实现,以及壳侧 UI 套件。完整职责域与宿主接线见
 [`docs/appshell.zh-CN.md`](./appshell.zh-CN.md)。

@@ -1,4 +1,4 @@
-# `@republicroad/jdm-editor`
+# `@republicroad/seal-editor`
 
 React components for authoring [JDM](https://gorules.io/docs) (JSON Decision
 Model) documents: a decision graph canvas, decision tables, expression and
@@ -9,12 +9,12 @@ end-to-end with shadcn/ReUI + Tailwind.
 > significant divergence (ReactFlow 12, shadcn/ReUI stack, seed-derived
 > theming, i18n, pooled editors). Will not track upstream merges.
 >
-> **Live storybook:** https://republicroad.github.io/jdm-editor/
+> **Live storybook:** https://republicroad.github.io/seal-editor/
 
 ## Installation
 
 ```bash
-npm i @republicroad/jdm-editor
+npm i @republicroad/seal-editor
 ```
 
 **Heads-up (0.3.0+):** `monaco-editor` is a peer dependency — install it
@@ -23,8 +23,8 @@ explicitly: `npm i monaco-editor`.
 ## Quick start
 
 ```tsx
-import { DecisionGraph, JdmConfigProvider } from '@republicroad/jdm-editor';
-import '@republicroad/jdm-editor/dist/style.css';
+import { DecisionGraph, JdmConfigProvider } from '@republicroad/seal-editor';
+import '@republicroad/seal-editor/dist/style.css';
 
 <JdmConfigProvider
   seeds={{ primary: '#6366f1' }} // one seed → full light + dark palettes

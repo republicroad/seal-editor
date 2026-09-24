@@ -1,6 +1,6 @@
 # 术语表
 
-> jdm-editor 仓库与 zen-udf 的域术语对照表。跨仓消费者（verdict / editor）和
+> seal-editor 仓库与 zen-udf 的域术语对照表。跨仓消费者（verdict / editor）和
 > 新团队成员的查词入口。按主题分组。
 
 ## 决策图模型（JDM）
@@ -12,7 +12,7 @@
 | outputNode | 决策图出口节点（必须有至少一个） |
 | decisionTableNode | 决策表节点：按行匹配（hitPolicy）→ 输出列 |
 | expressionNode | 表达式节点：ZEN 表达式语言计算 |
-| functionNode | 函数节点：JMESPath 表达式 |
+| functionNode | 函数节点：JavaScript 函数(Monaco 编辑) |
 | customNode | 自定义节点：执行宿主注册的 UDF（本仓核心扩展点） |
 | switchNode | 条件路由节点 |
 | sourceId / targetId | 边的起止节点 id（zen 2.0 schema） |

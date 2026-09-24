@@ -1,22 +1,23 @@
-# Host Migration Guide — `@gorules/jdm-editor` → `@republicroad/jdm-editor`
+# Host Migration Guide — `@gorules/jdm-editor` → `@republicroad/seal-editor`
 
 > This fork has diverged significantly from upstream (`ReactFlow 12`, `shadcn/ui
 > + ReUI`, seed-derived theming, scoped injection, pooled editors) and will not
-> track upstream merges. Publish as `@republicroad/jdm-editor` starting at `0.1.0`
-> (pre-1.0, API may change — semver 0.x convention).
+> track upstream merges. Published as `@republicroad/seal-editor` since `0.1.0`;
+> the line has since reached 1.x (1.1.0) — the 0.x-era breaking changes below are
+> historical, see the changelog for 1.x changes.
 
 ## Quick Switch
 
 ```diff
 - npm i @gorules/jdm-editor
-+ npm i @republicroad/jdm-editor
++ npm i @republicroad/seal-editor
 ```
 
 ```diff
 - import '@gorules/jdm-editor/dist/style.css';
 - import { DecisionGraph, JdmConfigProvider } from '@gorules/jdm-editor';
-+ import '@republicroad/jdm-editor/dist/style.css';
-+ import { DecisionGraph, JdmConfigProvider } from '@republicroad/jdm-editor';
++ import '@republicroad/seal-editor/dist/style.css';
++ import { DecisionGraph, JdmConfigProvider } from '@republicroad/seal-editor';
 ```
 
 ## What Changed (breaking)
@@ -45,7 +46,7 @@ All `--grl-color-*` palette tokens, `--grl-font-family`, `--grl-line-height`,
 
 Previously-host-facing-only keys (`--grl-primary-color(-bg)`,
 `--grl-color-primary-text-hover`, `--grl-color-info-text`, `--grl-color-bg-mask`)
-are removed in 1.0.0 — see [`grl-var-flatten.md`](./grl-var-flatten.md) for the
+are removed in 1.0.0 — see [`grl-var-flatten.md`](./archive/research/grl-var-flatten.md) for the
 migration checklist.
 
 ## Antd Type Aliases
@@ -75,7 +76,7 @@ import {
   CustomFunctionTable, type TabCustomFunctionProps,
   // json schema helper
   jsonSchemaToVariableType,
-} from '@republicroad/jdm-editor';
+} from '@republicroad/seal-editor';
 ```
 
 ### New `DecisionGraph` props
@@ -118,11 +119,11 @@ for the full catalog.
 
 - `monaco-editor` moves to `peerDependencies` — hosts add it explicitly
   (`npm i monaco-editor`), installs slim down by ~5 MB.
-- See [`roadmap-0.3.0.md`](./roadmap-0.3.0.md) for the draft plan.
+- See [`roadmap-0.3.0.md`](./archive/roadmap-0.3.0.md) for the draft plan.
 
 ## Named versions (appshell 0.2.0)
 
-`@republicroad/jdm-appshell` persistence adapters now carry **named versions**:
+`@republicroad/seal-appshell` persistence adapters now carry **named versions**:
 
 - `GraphRecordMeta.versionName?: string` — pass it on `save()` to name the
   version created by that save. The archive entry keeps its name;

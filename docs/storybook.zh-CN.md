@@ -7,14 +7,14 @@
 
 ```bash
 # Dev server(前台运行,Ctrl+C 停止)
-corepack pnpm@10 --filter @republicroad/jdm-editor storybook
+corepack pnpm@10 --filter @republicroad/seal-editor storybook
 # → http://localhost:9009
 
 # 构建静态站点
-corepack pnpm@10 --filter @republicroad/jdm-editor build:storybook
+corepack pnpm@10 --filter @republicroad/seal-editor build:storybook
 
 # 构建 + 静态服务 + 运行全部交互测试(CI 级)
-corepack pnpm@10 --filter @republicroad/jdm-editor test:storybook
+corepack pnpm@10 --filter @republicroad/seal-editor test:storybook
 ```
 
 ## 配置
@@ -27,7 +27,7 @@ corepack pnpm@10 --filter @republicroad/jdm-editor test:storybook
 | addons | links, dark-mode, docs, mcp | 暂无 a11y 插件 |
 | `staticDirs` | `zen-engine-wasm/dist → /zen-engine-wasm` | WASM 二进制以稳定路径服务,供 `preview.tsx` 加载 |
 | framework | `@storybook/react-vite` (strictMode) | Vite 打包 |
-| `viteFinal` | Tailwind CSS v4 插件 + `@/` 别名 | 确保 Tailwind 在 Storybook 中的编译方式与库构建一致 |
+| `viteFinal` | Tailwind CSS v4 插件(`#` 子路径导入原生解析,无 `@` 别名) | 确保 Tailwind 在 Storybook 中的编译方式与库构建一致 |
 
 ### `.storybook/preview.tsx`
 
@@ -36,7 +36,7 @@ corepack pnpm@10 --filter @republicroad/jdm-editor test:storybook
 - 每个 story 走的是**作用域注入路径**(P3)——变量以内联属性设置在岛容器上,`data-mode` 也挂在那里。
 - 所有 Radix portal 挂载在岛**内部**(经 `GrlContainerProvider`)。
 - `storybook-dark-mode` 插件的暗色切换会翻转 Provider 的 `mode`,沿 `--grl-*` → 语义变量链级联生效。
-- 装饰器注入 `<style>` 设置 `html` 背景色(随模式切换)并将 `body`/`#storybook-root` 固定为 `height: 100vh/100%`——虚拟化表格与全高代码编辑器必需(见 [`storybook-height-chain.md`](./storybook-height-chain.md))。
+- 装饰器注入 `<style>` 设置 `html` 背景色(随模式切换)并将 `body`/`#storybook-root` 固定为 `height: 100vh/100%`——虚拟化表格与全高代码编辑器必需(见 [`storybook-height-chain.md`](./archive/research/storybook-height-chain.md))。
 
 ### `.storybook/preview-head.html`
 
@@ -46,7 +46,7 @@ corepack pnpm@10 --filter @republicroad/jdm-editor test:storybook
 
 设置管理界面标签页标题为 "JDM Editor" 并挂 favicon。
 
-## Story 清单(57 stories / 9 文件)
+## Story 清单(68 stories / 13 文件)
 
 | 文件 | Stories | 要点 |
 |---|---|---|
@@ -79,7 +79,7 @@ Story ID 由文件路径和导出名派生(kebab-case):
 ## 交互测试(`test:storybook`)
 
 ```bash
-pnpm --filter @republicroad/jdm-editor test:storybook
+pnpm --filter @republicroad/seal-editor test:storybook
 ```
 
 这是一个三段流水线,经 `concurrently` 并行运行:
@@ -104,7 +104,7 @@ pnpm --filter @republicroad/jdm-editor test:storybook
 
 ## 高度链
 
-百分比高度链(`height: 100%`)在 Storybook iframe 内部会静默失效,除非每个祖先都有显式高度。装饰器固定了 `#storybook-root { height: 100% }`,StressTest story 使用 `90vh`。完整调查:[`storybook-height-chain.md`](./storybook-height-chain.md)。
+百分比高度链(`height: 100%`)在 Storybook iframe 内部会静默失效,除非每个祖先都有显式高度。装饰器固定了 `#storybook-root { height: 100% }`,StressTest story 使用 `90vh`。完整调查:[`storybook-height-chain.md`](./archive/research/storybook-height-chain.md)。
 
 ## 作用域注入(.grl-root)在 Stories 中的表现
 

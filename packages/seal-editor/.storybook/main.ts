@@ -38,14 +38,12 @@ const config: StorybookConfig = {
     // `#` subpath imports resolve natively via package.json imports (vite 5.1+);
     // no `@` alias — the kernel migrated to `#` (scheme D).
     // Kernel source passthrough: the appshell stories import
-    // `@republicroad/jdm-editor`, which without this alias resolves through
+    // `@republicroad/seal-editor`, which without this alias resolves through
     // appshell's node_modules link to a pnpm peer-variant instance whose dist
     // goes STALE after every `vite build` (hardlink break) — stories then run
     // outdated node code (missing buttons, empty i18n) while tests stay green.
     config.resolve.alias ??= {};
-    config.resolve.alias['@republicroad/jdm-editor'] = fileURLToPath(
-      new URL('../../jdm-editor/src/index.ts', import.meta.url),
-    );
+    config.resolve.alias['@republicroad/seal-editor'] = fileURLToPath(new URL('../src/index.ts', import.meta.url));
     config.optimizeDeps ??= {};
     config.optimizeDeps.exclude = [...(config.optimizeDeps.exclude ?? []), '@gorules/zen-engine-wasm'];
     // GitHub Pages serves the static build from a project sub-path — asset

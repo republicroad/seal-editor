@@ -51,7 +51,7 @@ const ResolveUserEffect: React.FC<{ userResolver?: UserResolver }> = ({ userReso
           stateStore.setState({ user: result.user ?? '' });
         }
       } catch (err) {
-        console.warn('[jdm-editor] userResolver failed:', err);
+        console.warn('[seal-editor] userResolver failed:', err);
         if (!cancelled) {
           stateStore.setState({ user: '' });
         }

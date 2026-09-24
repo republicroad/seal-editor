@@ -55,11 +55,11 @@ jobs:
         run: pnpm typecheck
 
       - name: Appshell typecheck
-        run: pnpm --filter @republicroad/jdm-appshell typecheck
+        run: pnpm --filter @republicroad/seal-appshell typecheck
       - name: Appshell tests
-        run: pnpm --filter @republicroad/jdm-appshell test
+        run: pnpm --filter @republicroad/seal-appshell test
       - name: Appshell build
-        run: pnpm --filter @republicroad/jdm-appshell build
+        run: pnpm --filter @republicroad/seal-appshell build
 
       - name: Bundle size budget
         run: pnpm size

@@ -6,16 +6,22 @@
 
 ## 1. 背景
 
-本分叉目前维护**两套并存**的样式系统:
+> **状态(2026-09):本文所述迁移已完成。** SCSS 层与 `sass` devDependency 已从
+> `packages/seal-editor` 完全移除(src 已不含任何 `.scss`);组件样式由 Tailwind 工具类
+> 加少量纯 CSS 层构成。本文保留作为该迁移的决策记录与新表面的编写指引。
 
-- 全局 `src/styles/tailwind.css`(Tailwind v4,经 `@tailwindcss/vite`),以及把 antd 派生运行时
+本分叉历史上曾维护**两套并存**的样式系统:
+
+- 全局 `src/styles/tailwind.css`(Tailwind v4,经 `@tailwindcss/vite`),以及把种子派生运行时
   token(`--grl-*`)桥接为通用名称(`--border`、`--primary`…)的 `tokens.css`。所有
   shadcn/ui 与 ReUI 组件均由 Tailwind 工具类驱动。
 - 约 2 700 行手写 SCSS(`dg.scss`、`dt.scss`、`ce.scss`、`expression.scss`、`function.scss`、
-  `_builder-base.scss` + 各构建器、`decision-node.scss`、`styles.scss`),由 `sass` devDependency 编译。
+  `_builder-base.scss` + 各构建器、`decision-node.scss`、`styles.scss`),由 `sass` devDependency
+  编译——现已收敛为 Tailwind 工具类 + 纯 CSS 层并移除。
 
-两者都在 `src/index.ts` 导入并随 `dist/style.css` 产出。目标是把 SCSS 层收敛为
-"**尽可能用 Tailwind 工具类 + 少量纯 CSS 层**",并在不损失样式能力的前提下最终移除 `sass` 依赖。
+两套系统曾同时随 `dist/style.css` 产出;目标是把 SCSS 层收敛为
+"**尽可能用 Tailwind 工具类 + 少量纯 CSS 层**",并在不损失样式能力的前提下移除 `sass`
+依赖——该目标已达成。
 
 > **编辑器表面色。** 没有对应 antd token 的第三方编辑器 DOM 颜色——CodeMirror 提示框
 > (`--tooltip-bg`)、诊断角标 (`--diagnostic-chip-bg`)、Monaco 错误行底色

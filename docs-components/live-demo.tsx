@@ -1,4 +1,4 @@
-import { DecisionGraph, JdmConfigProvider } from '@republicroad/jdm-editor';
+import { DecisionGraph, JdmConfigProvider } from '@republicroad/seal-editor';
 import React from 'react';
 
 /**

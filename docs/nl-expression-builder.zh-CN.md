@@ -13,12 +13,12 @@
 ## 二、快速上手
 
 ```bash
-npm i @republicroad/jdm-editor
+npm i @republicroad/seal-editor
 ```
 
 ```tsx
-import '@republicroad/jdm-editor/dist/style.css';
-import { DecisionTable, JdmConfigProvider } from '@republicroad/jdm-editor';
+import '@republicroad/seal-editor/dist/style.css';
+import { DecisionTable, JdmConfigProvider } from '@republicroad/seal-editor';
 
 <JdmConfigProvider
   dictionaries={{ tierDict: [{ label: '金牌会员', value: 'GOLD' }] }}
@@ -97,7 +97,7 @@ complex/custom 表达式处理。
 - 加载：`initWasm({ module_or_path })`，URL 相对 `document.baseURI` 解析为
   `zen-engine-wasm/zen_engine_wasm_bg.wasm`。宿主需在该路径提供包内
   `dist/*.wasm`（显式 baseURI 解析使根路径与子路径部署均可用）。文档站/storybook
-  构建在 `packages/jdm-editor/docs/zen-engine-wasm/` vendored 了该产物。
+  构建在 `packages/seal-editor/docs/zen-engine-wasm/` vendored 了该产物。
 - 就绪门控：`useWasmReady()` / `isWasmAvailable()` 控制 business 模式；WASM 就绪前
   单元格以 dev 形态渲染（不白屏、不半水合）。
 - 测试：`src/helpers/wasm-roundtrip.test.ts` 用 `initSync` 直接加载 node_modules 里

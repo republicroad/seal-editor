@@ -19,7 +19,7 @@ React `useSyncExternalStore` 要求 **getSnapshot 引用稳定**：同一 state 
 嵌套派生结构（每拍新深层引用）        useStore(store, useMemoEquality(selector, equal))
 ```
 
-`useMemoEquality` 是仓内 helper（`packages/jdm-editor/src/helpers/use-memoized-selector.ts`）：
+`useMemoEquality` 是仓内 helper（`packages/seal-editor/src/helpers/use-memoized-selector.ts`）：
 ref + useMemo 复刻 `useSyncExternalStoreWithSelector` 的全部语义——
 **hasMemo 守卫**（首拍不调比较器）+ 可插拔比较器 + 快照稳定化。
 
@@ -38,7 +38,7 @@ ref + useMemo 复刻 `useSyncExternalStoreWithSelector` 的全部语义——
 
 ## 仓内实例
 
-- `packages/jdm-editor/src/helpers/use-memoized-selector.ts`：memoizer 本体
+- `packages/seal-editor/src/helpers/use-memoized-selector.ts`：memoizer 本体
 - `dg-store.context.tsx` / `dt-store.context.tsx` / 两处 `expression-store.context.tsx`：
   wrapper 恢复可选 `equals` 参数，内部走 `useStore(store, useMemoEquality(selector, equals))`
 - 决策记录：`docs/adr/006-zustand-selector-equality.md`（含 13 个失败测试的证伪过程）

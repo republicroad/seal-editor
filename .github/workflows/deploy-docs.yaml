@@ -11,7 +11,7 @@ on:
       - 'packages/seal-editor/package.json'
       - 'packages/appshell/src/**'
       - 'docs/**'
-      - '.rspress/config.ts'
+      - 'rspress.config.ts'
       - 'pnpm-lock.yaml'
       - '.github/workflows/deploy-docs.yaml'
   workflow_dispatch:

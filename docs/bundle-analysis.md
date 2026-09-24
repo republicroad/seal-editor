@@ -1,6 +1,6 @@
 # Bundle Analysis — index.js composition
 
-> Method: `BUILD_ANALYZE=1 pnpm --filter @republicroad/jdm-editor build` emits
+> Method: `BUILD_ANALYZE=1 pnpm --filter @republicroad/seal-editor build` emits
 > `bundle-stats.json` (rollup-plugin-visualizer raw-data). The table below is
 > derived from the rendered (pre-minification) sizes across all emitted
 > chunks. Regenerate after significant feature work; do not commit
@@ -106,6 +106,6 @@ path for a future major if single-surface demand materializes; not scheduled.
 
 ```powershell
 $env:BUILD_ANALYZE = '1'
-corepack pnpm@10 --filter @republicroad/jdm-editor build
+corepack pnpm@10 --filter @republicroad/seal-editor build
 node -e "..."   # see commit history for the analyzer snippet
 ```

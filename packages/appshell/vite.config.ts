@@ -8,7 +8,7 @@ export default defineConfig({
     dts({
       entryRoot: 'src',
       outDir: 'dist',
-      // 发布契约：保留源码里的包名导入（@republicroad/jdm-editor / react 等），
+      // 发布契约：保留源码里的包名导入（@republicroad/seal-editor / react 等），
       // 不把 tsconfig paths 转写为构建机相对路径——npm 消费方拿到的 d.ts 必须
       // 只含可解析的包名 specifier（0.9.0 泄漏 ../../../../seal-editor/src/* 的修复）。
       pathsToAliases: false,
@@ -40,7 +40,7 @@ export default defineConfig({
         'react/jsx-runtime',
         'zustand',
         /^use-sync-external-store(\/.*)?$/,
-        /^@republicroad\/jdm-editor(\/.*)?$/,
+        /^@republicroad\/seal-editor(\/.*)?$/,
       ],
       output: {
         // css 统一命名 style.css，与 publishConfig exports("./dist/style.css") 对齐

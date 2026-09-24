@@ -1,7 +1,7 @@
 # JDM Playground
 
-仓内集成验证与演示壳：以**源码直通**方式装配 `@republicroad/jdm-editor`
-（DecisionGraph / DecisionTable / 内置模拟器）与 `@republicroad/jdm-appshell`
+仓内集成验证与演示壳：以**源码直通**方式装配 `@republicroad/seal-editor`
+（DecisionGraph / DecisionTable / 内置模拟器）与 `@republicroad/seal-appshell`
 （IndexedDB 持久化 / VersionHistoryPanel / restoreVersion）。
 
 价值（见 `docs/archive/hostapp/appshell-plan.md` §6）：

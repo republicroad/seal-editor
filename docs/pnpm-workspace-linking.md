@@ -10,12 +10,12 @@
 ## 1. The two linking modes observed in this repo
 
 ```
-packages/playground/node_modules/@republicroad/jdm-editor
-    │ symlink → packages/jdm-editor                  (DIRECT, live source)
+apps/playground/node_modules/@republicroad/seal-editor
+    │ symlink → packages/seal-editor                  (DIRECT, live source)
 
-packages/appshell/node_modules/@republicroad/jdm-editor
-    │ symlink → node_modules/.pnpm/@republicroad+jdm-editor@0._<peer-hash>/
-    │           node_modules/@republicroad/jdm-editor
+packages/appshell/node_modules/@republicroad/seal-editor
+    │ symlink → node_modules/.pnpm/@republicroad+seal-editor@1._<peer-hash>/
+    │           node_modules/@republicroad/seal-editor
     ▼           (PHYSICAL CLONE, publish-shaped, frozen at install time)
     package.json + dist/ + node_modules/   — NO src/
 ```
@@ -63,7 +63,7 @@ Measured on 2026-09-09: workspace `dist/index.js` inode
 Consumers resolve the kernel differently:
 
 - **vitest** (appshell config) and **storybook `viteFinal`** alias
-  `@republicroad/jdm-editor` to **source** → always current.
+  `@republicroad/seal-editor` to **source** → always current.
 - Anything resolving through appshell's node_modules link executes the
   **frozen clone** → days-old code (missing restored buttons, shaken i18n
   catalogs, …).
@@ -76,7 +76,7 @@ probe used to prove which code was actually executing.
 
 - **Every in-repo consumer of a workspace package must source-alias it.**
   Current alias sites: `.storybook/main.ts` `viteFinal`
-  (`@republicroad/jdm-editor` → kernel `src/index.ts`),
+  (`@republicroad/seal-editor` → kernel `src/index.ts`),
   `packages/appshell/vitest.config.ts` (+ monaco stub), and the playground
   vite config (both packages).
 - The `.pnpm` clone is irrelevant to development once aliased; it only
@@ -90,11 +90,11 @@ probe used to prove which code was actually executing.
 ## 6. Forensic one-liners
 
 ```bash
-readlink -f packages/appshell/node_modules/@republicroad/jdm-editor
+readlink -f packages/appshell/node_modules/@republicroad/seal-editor
 stat -c 'inode=%i mtime=%y' \
-  packages/jdm-editor/dist/index.js \
-  node_modules/.pnpm/*/node_modules/@republicroad/jdm-editor/dist/index.js
+  packages/seal-editor/dist/index.js \
+  node_modules/.pnpm/*/node_modules/@republicroad/seal-editor/dist/index.js
 # content probes (i18n catalog canary + fix markers):
 grep -c "Upload JSON\|编辑表达式\|default-render-node-marker" \
-  packages/jdm-editor/dist/index.js
+  packages/seal-editor/dist/index.js
 ```

@@ -1,13 +1,13 @@
-# `@republicroad/jdm-appshell` — the reference consumer shell
+# `@republicroad/seal-appshell` — the reference consumer shell
 
-> Package: `@republicroad/jdm-appshell` (0.1.0) · Peer deps:
-> `@republicroad/jdm-editor >= 0.3.0`, `react >= 18`, `react-dom >= 18` ·
+> Package: `@republicroad/seal-appshell` (1.1.0) · Peer deps:
+> `@republicroad/seal-editor ^1.1.0`, `react >= 18`, `react-dom >= 18` ·
 > Exports: `.` and `./dist/style.css`
 
 ## Positioning
 
 This package is the **scheme D reference consumer** — the realization of the
-kernel/shell split. The kernel (`@republicroad/jdm-editor`) stays
+kernel/shell split. The kernel (`@republicroad/seal-editor`) stays
 host-agnostic: it ships the editor surfaces, theming and the import contract
 (architecture §8.1) but holds no opinions about which custom nodes exist, how
 users authenticate, or where graphs are persisted. All of that "opinionated"
@@ -33,7 +33,7 @@ layer.
 ## Kernel / shell boundary rules
 
 1. The kernel never imports the shell (enforced direction: shell peer-depends
-   on kernel `>= 0.3.0`).
+   on kernel `^1.1.0`).
 2. Kernel-internal imports use node subpath imports (`#…`); hosts cannot
    resolve them — anything a host needs must come from the kernel `exports`.
 3. Shell-owned concerns (custom nodes, auth/user, persistence, skins) live
@@ -45,18 +45,18 @@ layer.
 ## Host wiring
 
 ```tsx
-import { DecisionGraph } from '@republicroad/jdm-editor';
+import { DecisionGraph } from '@republicroad/seal-editor';
 import {
   HttpRequestTab, httpRequestNode,
   QueryListTab, queryListNode,
   CurrentDateTab, currentDateNode,
-} from '@republicroad/jdm-appshell';
+} from '@republicroad/seal-appshell';
 
 // Option A — explicit node list:
 <DecisionGraph customNodes={[httpRequestNode, queryListNode, currentDateNode]} />
 
 // Option B — the composition hook (schema-aware, skin-aware):
-import { useCustomNodes } from '@republicroad/jdm-appshell';
+import { useCustomNodes } from '@republicroad/seal-appshell';
 const { customNodes, ready } = useCustomNodes({ schemaSource: '/api/custom-nodes/schema' });
 // ready ? <DecisionGraph customNodes={customNodes} … /> : <spinner/>
 ```
@@ -64,7 +64,7 @@ const { customNodes, ready } = useCustomNodes({ schemaSource: '/api/custom-nodes
 With user resolution and persistence (full shell):
 
 ```tsx
-import { createUserResolver, createBetterAuthAdapter } from '@republicroad/jdm-appshell';
+import { createUserResolver, createBetterAuthAdapter } from '@republicroad/seal-appshell';
 
 <DecisionGraph
   customNodes={customNodes}
@@ -83,7 +83,7 @@ sidebar simulator panel for you (kernel `GraphSimulator`: request JSON →
 Run → per-node hit highlighting + Output/Input/Trace editors):
 
 ```tsx
-import { createExecuteSimulate, SkinnedDecisionGraph } from '@republicroad/jdm-appshell';
+import { createExecuteSimulate, SkinnedDecisionGraph } from '@republicroad/seal-appshell';
 
 <SkinnedDecisionGraph ... simulateHandler={createExecuteSimulate("http://localhost:8787")} />
 ```
@@ -105,8 +105,8 @@ published to the live storybook under **Integration/Kernel + Appshell**.
 ## Development
 
 ```bash
-pnpm --filter @republicroad/jdm-appshell typecheck   # tsc --noEmit
-pnpm --filter @republicroad/jdm-appshell test        # vitest (node env, 8 suites / 67 tests)
-pnpm --filter @republicroad/jdm-appshell build       # dist + style.css
-pnpm --filter @republicroad/jdm-appshell test:npm-smoke
+pnpm --filter @republicroad/seal-appshell typecheck   # tsc --noEmit
+pnpm --filter @republicroad/seal-appshell test        # vitest (node env, 8 suites / 67 tests)
+pnpm --filter @republicroad/seal-appshell build       # dist + style.css
+pnpm --filter @republicroad/seal-appshell test:npm-smoke
 ```

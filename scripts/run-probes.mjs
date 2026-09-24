@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 /**
  * Serves the built storybook (docs/) on :9010 and runs every probe against
- * it. Requires `pnpm --filter @republicroad/jdm-editor build:storybook` (or a
+ * it. Requires `pnpm --filter @republicroad/seal-editor build:storybook` (or a
  * previous test:storybook run) to have produced docs/index.html.
  *
  * Usage: pnpm test:probes [probeName ...]
@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
  */
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const docsDir = path.join(root, 'packages', 'jdm-editor', 'docs');
+const docsDir = path.join(root, 'packages', 'seal-editor', 'docs');
 const PORT = process.env.PROBES_PORT ?? '9010';
 const BASE = `http://127.0.0.1:${PORT}`;
 
@@ -21,7 +21,7 @@ const filterArgs = process.argv.slice(2);
 
 if (!existsSync(path.join(docsDir, 'index.html'))) {
   console.error(
-    '[probes] docs/index.html not found — run `pnpm --filter @republicroad/jdm-editor build:storybook` first.',
+    '[probes] docs/index.html not found — run `pnpm --filter @republicroad/seal-editor build:storybook` first.',
   );
   process.exit(1);
 }
@@ -31,7 +31,7 @@ mkdirSync(path.join(root, 'node_modules', '.cache'), { recursive: true });
 const httpServerBin = path.join(
   root,
   'packages',
-  'jdm-editor',
+  'seal-editor',
   'node_modules',
   '.bin',
   process.platform === 'win32' ? 'http-server.cmd' : 'http-server',

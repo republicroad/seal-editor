@@ -9,7 +9,7 @@ node_modules
 *.log*
 *.tgz
 # storybook static build output
-packages/jdm-editor/docs
+packages/seal-editor/docs
 
 # secrets
 .env.local

@@ -5,7 +5,7 @@ accepted（2025-01）
 
 ## 背景
 
-jdm-editor 与 jdm-appshell 均为 React UI 库，消费方全部为现代打包器（vite/webpack5+）或 ESM 运行时。历史上部分宿主仍在 CJS 代码中，需要 `require()` 兼容。
+seal-editor 与 seal-appshell 均为 React UI 库，消费方全部为现代打包器（vite/webpack5+）或 ESM 运行时。历史上部分宿主仍在 CJS 代码中，需要 `require()` 兼容。
 
 ## 备选方案
 

@@ -1,7 +1,7 @@
 # reui 组件本地化模式（跨仓最佳实践）
 
 - 日期: 2026-09-11
-- 适用范围: jdm-editor / editor / verdict（所有消费 reui.io 组件的仓）
+- 适用范围: seal-editor / editor / verdict（所有消费 reui.io 组件的仓）
 
 ## 模式：复制式引入 + 适配层
 
@@ -16,15 +16,15 @@ reui.io 组件是"复制源码到项目"型（非 npm 依赖）。接入时：
 
 | 仓 | 路径 | 组件 | 寻址 |
 |---|---|---|---|
-| jdm-editor (appshell) | `src/components/reui/` | alert / autocomplete / badge / cascader | `../../lib/utils` |
-| jdm-editor (playground) | `src/components/reui/` | timeline / sortable / tree / code-block | `#lib/utils`（vite alias `#` → src/） |
+| seal-editor (appshell) | `src/components/reui/` | alert / autocomplete / badge / cascader | `../../lib/utils` |
+| seal-editor (playground) | `src/components/reui/` | timeline / sortable / tree / code-block | `#lib/utils`（vite alias `#` → src/） |
 | verdict (未来) | `apps/dashboard/src/components/reui/` | 按需 | `@/components/reui/...` |
 
 ## 两个仓的 components.json 配置
 
-| 字段 | jdm-editor (appshell) | jdm-editor (playground) |
+| 字段 | seal-editor (appshell) | seal-editor (playground) |
 |---|---|---|
-| 位置 | 仓根 | packages/playground/ |
+| 位置 | 仓根 | apps/playground/ |
 | aliases | `#components` / `#lib/utils` | `#components` / `#lib/utils` |
 | css | `src/styles/tailwind.css` | `src/styles.css` |
 | registry | `@reui`（需 REUI_LICENSE_KEY） | 同左 |

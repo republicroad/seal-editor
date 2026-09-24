@@ -8,14 +8,14 @@
 
 ```bash
 # Dev server (foreground, Ctrl+C to stop)
-corepack pnpm@10 --filter @republicroad/jdm-editor storybook
+corepack pnpm@10 --filter @republicroad/seal-editor storybook
 # → http://localhost:9009
 
 # Build static site
-corepack pnpm@10 --filter @republicroad/jdm-editor build:storybook
+corepack pnpm@10 --filter @republicroad/seal-editor build:storybook
 
 # Build + serve + run all interaction tests (CI-grade)
-corepack pnpm@10 --filter @republicroad/jdm-editor test:storybook
+corepack pnpm@10 --filter @republicroad/seal-editor test:storybook
 ```
 
 ## Configuration
@@ -28,7 +28,7 @@ corepack pnpm@10 --filter @republicroad/jdm-editor test:storybook
 | addons | links, dark-mode, docs, mcp | No a11y addon currently |
 | `staticDirs` | `zen-engine-wasm/dist → /zen-engine-wasm` | WASM binary served at a stable path for `preview.tsx` |
 | framework | `@storybook/react-vite` (strictMode) | Vite bundler |
-| `viteFinal` | Tailwind CSS v4 plugin + `@/` alias | Ensures Tailwind compiles for Storybook the same way as the library build |
+| `viteFinal` | Tailwind CSS v4 plugin (`#` subpath imports resolve natively; no `@` alias) | Ensures Tailwind compiles for Storybook the same way as the library build |
 
 ### `.storybook/preview.tsx`
 
@@ -43,7 +43,7 @@ The global decorator implements the **canonical host shape**: `.grl-root` wraps
 - The decorator injects a `<style>` to set `html` background color (matching
   mode) and pin `body`/`#storybook-root` to `height: 100vh/100%` — required by
   the virtualized table and full-height code editors (see
-  [`storybook-height-chain.md`](./storybook-height-chain.md)).
+  [`storybook-height-chain.md`](./archive/research/storybook-height-chain.md)).
 
 ### `.storybook/preview-head.html`
 
@@ -53,7 +53,7 @@ Sets `#root { padding: 20px }` for visual breathing room.
 
 Sets the manager tab title to "JDM Editor" and a favicon.
 
-## Story Inventory (57 stories / 9 files)
+## Story Inventory (68 stories / 13 files)
 
 | File | Stories | Notable |
 |---|---|---|
@@ -86,7 +86,7 @@ Story IDs are derived from the file path and export name (kebab-cased):
 ## Interaction Tests (`test:storybook`)
 
 ```bash
-pnpm --filter @republicroad/jdm-editor test:storybook
+pnpm --filter @republicroad/seal-editor test:storybook
 ```
 
 This is a three-stage pipeline run via `concurrently`:
@@ -119,7 +119,7 @@ Every story with a `play()` function is executed in headless Chromium.
 Percentage-height chains (`height: 100%`) silently fail inside the Storybook
 iframe unless every ancestor has an explicit height. The decorator pins
 `#storybook-root { height: 100% }` and the StressTest story uses `90vh`.
-Full investigation: [`storybook-height-chain.md`](./storybook-height-chain.md).
+Full investigation: [`storybook-height-chain.md`](./archive/research/storybook-height-chain.md).
 
 ## Scoped Injection (.grl-root) in Stories
 

@@ -4,11 +4,13 @@
 >
 > This document describes the repository **after** the fork adjustments: support packages are consumed from npm
 
-> The repo hosts two workspace packages: `packages/jdm-editor` (kernel) and `packages/appshell` (shell — see `docs/appshell.md`).
+> The repo hosts three workspace packages — `packages/seal-editor` (kernel), `packages/appshell`
+> (shell — see `docs/appshell.md`), `packages/zen-udf` (server-side UDF runtime for zen-engine) —
+> plus two apps: `apps/playground` (MPA demo shell) and `apps/demo-server` (Bun + Hono demo backend).
 
 ## 1. Overview
 
-JDM Editor is a React component library for building and editing **JDM (JSON Decision Model)** documents:
+Seal Editor is a React component library for building and editing **JDM (JSON Decision Model)** documents:
 a decision graph of nodes (decision tables, functions, expressions, switches, I/O), each backed by
 specialized editors. The library ships as compiled ESM (`dist/`) plus a single stylesheet (`dist/style.css`)
 and embeds its own expression language toolchain via WebAssembly.
@@ -20,17 +22,23 @@ Key architectural properties:
   TanStack Table) are treated strictly as view layers.
 - **Language intelligence in WASM**: expression validation, AST, completions, and type inference come from
   the Rust `zen-expression` crate compiled to WebAssembly.
-- **Self-contained styling**: SCSS + CSS custom properties (`--grl-*`), themed light/dark at runtime.
+- **Self-contained styling**: Tailwind utilities + CSS custom properties (`--grl-*` seed tokens over
+  shadcn/ui), themed light/dark at runtime.
 
 ## 2. Repository layout
 
 ```
-jdm-editor/                  # internal fork of gorules/jdm-editor
+seal-editor/                 # internal fork of gorules/jdm-editor
 ├── packages/
-│   └── jdm-editor/          # the only local package — React component library (@republicroad/jdm-editor)
-├── .github/workflows/       # CI: validate, publish, version, version-beta, pages
+│   ├── seal-editor/         # kernel — React component library (@republicroad/seal-editor)
+│   ├── appshell/            # reference consumer shell (@republicroad/seal-appshell)
+│   └── zen-udf/             # zen-engine customNode UDF runtime (@republicroad/zen-udf)
+├── apps/
+│   ├── playground/          # MPA demo shell (graph/table/reui/trust/udf instances)
+│   └── demo-server/         # Bun + Hono demo backend (:8787)
+├── .github/workflows/       # CI: validate, publish, version, version-beta, deploy-docs
 ├── docs/                    # this documentation set
-├── pnpm-workspace.yaml      # workspace = packages/*
+├── pnpm-workspace.yaml      # workspace = packages/* + apps/*
 ├── lerna.json               # independent versioning, conventional commits
 └── eslint/prettier/tsconfig # shared tooling config
 ```
@@ -46,7 +54,7 @@ this fork removed them from the workspace and pins their **published npm artifac
 
 Versions were identical to the upstream sources at fork time, so behavior is unchanged.
 
-## 3. Package internals (`packages/jdm-editor`)
+## 3. Package internals (`packages/seal-editor`)
 
 Build: Vite 8 (Rolldown) + SWC (`vite.config.ts`), types via `vite-plugin-dts`, styles compiled to a single
 `dist/style.css`. Storybook 10 provides component playgrounds (`*.stories.tsx`).
@@ -146,11 +154,13 @@ Consumers of the binding (~30 call sites): linting, completions, `VariableType` 
 
 `theme.tsx → JdmConfigProvider`:
 
-PLACEHOLDER-NOPE
-2. Merges user token overrides into the static palette and injects a `:root` `<style>` block exposing ~40
+1. Wraps children in a local `App` primitive (`components/primitives.tsx`, based on the shadcn/ui
+   `AlertDialog`) providing the imperative `modal.confirm`; `mode: 'light' | 'dark'` selects the
+   built-in light/dark static token palettes.
+2. Merges user token overrides into the palette and injects a `:root` `<style>` block exposing ~40
    **`--grl-*` CSS custom properties** (colors, fonts, radii, table-specific colors).
-3. All component SCSS (10 files under `src/`) consumes only these variables — i.e., theming is already
-   decoupled behind the `--grl-*` contract, which also carries the shadcn/ui tokens consumed by Tailwind classes.
+3. Component styling consumes only these variables — through Tailwind utilities and the shadcn/ui
+   token layer — i.e., theming is decoupled behind the `--grl-*` contract.
 4. Also hosts `DictionaryProvider`/`useDictionaries` for enum label/value dictionaries used by selects.
 
 ## 7. Build, test & release
@@ -158,8 +168,8 @@ PLACEHOLDER-NOPE
 Scripts (root): `pnpm build|test|typecheck` fan out through Lerna; `lint` (ESLint 9 flat+legacy hybrid),
 `prettier`, `format`/`format:fix`.
 
-Automated tests (added by this fork): `packages/jdm-editor` runs **Vitest** (jsdom + Testing Library)
-for unit/component tests — `pnpm --filter @republicroad/jdm-editor test` (watch: `test:watch`) — and a
+Automated tests (added by this fork): `packages/seal-editor` runs **Vitest** (jsdom + Testing Library)
+for unit/component tests — `pnpm --filter @republicroad/seal-editor test` (watch: `test:watch`) — and a
 headless Storybook smoke suite via `test:storybook` (static storybook build → `http-server` →
 `@storybook/test-runner` in Chromium; one-time prerequisite `npx playwright install chromium`). The
 vestigial CRA-era jest block was removed from `package.json`. First-batch coverage: zod schemas,
@@ -171,15 +181,10 @@ GitHub workflows (`.github/workflows/`):
 
 | Workflow | Trigger | What it does |
 |---|---|---|
-| `validate.yaml` | push/PR to master | format check (eslint+prettier) → build → typecheck (**no test job**) |
-| `publish.yaml` | push with `chore(release)` message | build then `lerna publish from-package` |
-| `version.yaml` / `version-beta.yaml` | manual dispatch | `lerna version` (patch/minor/major; beta ids) |
-| `pages.yaml` | push master / manual | Storybook build → gh-pages demo site |
-
-Known gaps recorded for this fork: publishing pipeline assumes npm credentials that an
-internal fork may not need (candidate for removal/adaptation). The CI `validate.yaml` workflow
-runs lint, build, tests, typecheck, a bundle-size budget check and the dual-react consumer smoke
-(React 18 & 19) on every push to `main` and on PRs.
+| `validate.yaml` | push/PR to `main` | format (eslint+prettier) → React Compiler lint → style-debt budget → build → test → typecheck (+ appshell typecheck/test/build) → bundle-size budget → Storybook interaction suite → dual-React consumer smoke (React 18 & 19) |
+| `publish.yaml` | push with `chore(release)` message | `lerna publish from-package` |
+| `version.yaml` / `version-beta.yaml` | manual dispatch | `lerna version` (patch/minor/major; prerelease ids) |
+| `deploy-docs.yaml` | push to `main` (path-filtered) / manual | Storybook + Rspress docs build → GitHub Pages site |
 
 ## 8. Public distribution model
 
@@ -210,8 +215,8 @@ Rules:
 Migrated in `246a0586` (81 files).
 
 The scheme D consumer is realized as a second workspace package:
-[`@republicroad/jdm-appshell`](../packages/appshell/README.md) — custom node
-hosting (six nodes + composition hook), skin overrides, the
+[`@republicroad/seal-appshell`](../packages/appshell/README.md) — custom node
+hosting (four nodes + composition hook), skin overrides, the
 `GraphPersistenceAdapter` persistence contract and its HTTP implementation,
 and the shell UI kit. See [`docs/appshell.md`](./appshell.md) for the full
 responsibility map and host wiring.
@@ -219,6 +224,6 @@ responsibility map and host wiring.
   scoped mini-preflight (form controls, tables, headings, lists, images). The reset uses
   `:where()` (zero specificity) so component classes and Tailwind utilities always win, and it
   never leaks into the host document. `ui/button.tsx` also carries its own base normalization as
-  a fallback for portal-rendered buttons (Radix dialogs/alerts/toasters) which escape the
+  a fallback for portal-rendered buttons (Base UI dialogs/alerts/toasters) which escape the
   `.grl-root` wrapper.
 - Consumer setup notes (Monaco workers self-hosting) live in the root README.

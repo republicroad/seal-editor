@@ -27,8 +27,8 @@ export default defineConfig({
     },
   },
   resolve: {
-    // '#' 子路径走 playground/package.json 的 imports 字段（对齐 jdm-editor 的
-    // 包级解析方式，作用域限定在本包内，不会劫持 jdm-editor 源码的 #icons 等）
+    // '#' 子路径走 playground/package.json 的 imports 字段（对齐 seal-editor 的
+    // 包级解析方式，作用域限定在本包内，不会劫持 seal-editor 源码的 #icons 等）
     alias: {
       '@republicroad/seal-editor': fileURLToPath(new URL('../../packages/seal-editor/src/index.ts', import.meta.url)),
       '@republicroad/seal-appshell': fileURLToPath(new URL('../../packages/appshell/src/index.ts', import.meta.url)),

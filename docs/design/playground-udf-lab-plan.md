@@ -1,7 +1,7 @@
 # playground UDF Lab 计划：udf.html Custom Nodes 节点工作台
 
 - 日期: 2026-09-15
-- 状态: 规划（待执行）
+- 状态: 已执行(2026-09-16 建成,见 reui-flow-integration-plan 执行记录)
 - 定位: editor 项目 `decision-simple` 页的缩小复刻；playground 第七个 MPA 实例
 - 目标: 编排（自定义节点面板）→ 仿真（simulator 全链路）→ Trust Chain（审计/回放/影子）单页闭环
 

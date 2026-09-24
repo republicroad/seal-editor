@@ -15,12 +15,12 @@ Business and dev (CodeMirror) views edit one source of truth and cannot drift.
 ## 2. Quick start
 
 ```bash
-npm i @republicroad/jdm-editor
+npm i @republicroad/seal-editor
 ```
 
 ```tsx
-import '@republicroad/jdm-editor/dist/style.css';
-import { DecisionTable, JdmConfigProvider } from '@republicroad/jdm-editor';
+import '@republicroad/seal-editor/dist/style.css';
+import { DecisionTable, JdmConfigProvider } from '@republicroad/seal-editor';
 
 <JdmConfigProvider
   dictionaries={{ tierDict: [{ label: '金牌会员', value: 'GOLD' }] }}
@@ -101,7 +101,7 @@ canonical and will be treated as a complex/custom expression.
   `document.baseURI` as `zen-engine-wasm/zen_engine_wasm_bg.wasm`. Hosts must serve the
   package's `dist/*.wasm` at that path (root or sub-path both work because of the
   explicit baseURI resolution). The docs/storybook build vendors the artifact under
-  `packages/jdm-editor/docs/zen-engine-wasm/`.
+  `packages/seal-editor/docs/zen-engine-wasm/`.
 - Readiness: `useWasmReady()` / `isWasmAvailable()` gate business mode; cells render in
   dev form until WASM is ready (no blank cells, no partial hydration).
 - Tests: `src/helpers/wasm-roundtrip.test.ts` loads the exact installed binary via

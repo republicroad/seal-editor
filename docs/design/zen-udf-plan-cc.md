@@ -1,6 +1,6 @@
 # zen-udf 开发计划 CC 系列（信任链产品化收口）
 
-状态：plan · 按推荐落地（D15 影子 act 不执行原则沿用；两处细节按推荐缺省，见文末）
+状态：shipped —— U–CC 全部落地(见 DD 系列上游标注)
 上游：U–BB 系列已 shipped；0.4.0 在架；W4 挂起（等 contextvars 总结）；verdict U10 跨仓执行中
 
 ## 现状盘点

@@ -17,8 +17,8 @@
 
 | 接法 | 写法（消费者 package.json） | 语义 | 适用 |
 | --- | --- | --- | --- |
-| **link:**（链产物） | `"@republicroad/jdm-editor": "link:../../jdm-editor/packages/jdm-editor"` | 符号链接到库目录，消费走其 `exports`/`main` → **dist** | 消费者只想看效果，库侧开 watch build（`pnpm --filter @republicroad/jdm-editor dev`） |
-| **portal:**（链源码就地安装） | `"@republicroad/jdm-editor": "portal:../../jdm-editor/packages/jdm-editor"` | 同为符号链接，但库自身的依赖装回**库目录内**，改库源码即所见即所得 | 需要调试库源码本身（TS 直通），消费者打包器能编译 TS/CSS |
+| **link:**（链产物） | `"@republicroad/seal-editor": "link:../../seal-editor/packages/seal-editor"` | 符号链接到库目录，消费走其 `exports`/`main` → **dist** | 消费者只想看效果，库侧开 watch build（`pnpm --filter @republicroad/seal-editor dev`） |
+| **portal:**（链源码就地安装） | `"@republicroad/seal-editor": "portal:../../seal-editor/packages/seal-editor"` | 同为符号链接，但库自身的依赖装回**库目录内**，改库源码即所见即所得 | 需要调试库源码本身（TS 直通），消费者打包器能编译 TS/CSS |
 
 三工具对照：pnpm 原生支持 `link:` / `portal:` / `file:`（file: 是安装时快照
 副本，不随改随动，**不适合**本场景）；npm 只有两步式 `npm link`（等价 link:）；
@@ -34,7 +34,7 @@ bun 的 `link:` 语义接近 pnpm 的 `portal:`（依赖装回库目录）。跨
    - `optimizeDeps.exclude`：排除被链的包（预打包会把当时的源码冻结成副本，
      库的改动不生效，甚至因双实例断裂白屏——playground 注释即此案例）；
    - `resolve.alias`：portal: 调试源码时把包名显式指向 `src/index.ts`；
-     同仓多包连链时（jdm-editor → appshell）每个包各一条；另加
+     同仓多包连链时（seal-editor → appshell）每个包各一条；另加
      `dedupe: ['react', 'react-dom']` 防宿主/库两份 React。
    - 库源码含未编译 CSS 时（本仓 kernel 的 tailwind.css），消费者还需
      `@tailwindcss/vite` 一并处理——参照 playground 配置照抄即可。
@@ -48,7 +48,7 @@ bun 的 `link:` 语义接近 pnpm 的 `portal:`（依赖装回库目录）。跨
 2. **桥不验证发布面。** alias 到 src 的桥跳过了 dist/exports/类型声明——
    它回答"改动好不好"，不回答"包发出去能不能用"。后者永远走
    `test:consumer` / `test:npm-smoke` + 消费者升 semver 版本号的正式验收。
-3. **一次只桥一条链。** 需要同时桥 jdm-editor 与 appshell 时，两条 alias
+3. **一次只桥一条链。** 需要同时桥 seal-editor 与 appshell 时，两条 alias
    一起写、一起拆；只桥其一会出现"一半源码一半 dist"的混合态，类型面与
    运行时面漂移被掩盖。
 4. **用完即拆。** 桥是脚手架不是模式——固化成常驻就是 editor 仓四层直通

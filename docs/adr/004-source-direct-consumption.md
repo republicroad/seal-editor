@@ -5,7 +5,7 @@ accepted（2025-01）
 
 ## 背景
 
-pnpm workspace 内的包（jdm-editor / jdm-appshell / zen-udf）被 playground、demo-server 等消费方引用时，如果走 `main = dist/index.js`，会因 pnpm 硬链接副本陈旧导致：
+pnpm workspace 内的包（seal-editor / seal-appshell / zen-udf）被 playground、demo-server 等消费方引用时，如果走 `main = dist/index.js`，会因 pnpm 硬链接副本陈旧导致：
 1. 源码改了但消费方仍用旧 dist（双实例：store/context 断裂 → 白屏）
 2. kernel dist 变化触发整页 reload（开发体验差）
 

@@ -6,7 +6,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 /**
- * npm-install smoke for the published artifact shape of @republicroad/jdm-appshell.
+ * npm-install smoke for the published artifact shape of @republicroad/seal-appshell.
  *
  * Packs the local package (npm pack applies publishConfig, swapping the dev
  * src entries for dist), installs the tarball into a scratch directory and
@@ -35,11 +35,11 @@ const check = (name, ok, detail = '') => {
   results.push(`${ok ? 'PASS' : 'FAIL'} ${name}${detail ? '  -- ' + detail : ''}`);
 };
 
-const scratch = path.join(os.tmpdir(), `jdm-appshell-npm-smoke-${Date.now()}`);
+const scratch = path.join(os.tmpdir(), `seal-appshell-npm-smoke-${Date.now()}`);
 mkdirSync(scratch, { recursive: true });
 
 try {
-  let installSpec = `@republicroad/jdm-appshell@${registryVersion}`;
+  let installSpec = `@republicroad/seal-appshell@${registryVersion}`;
 
   if (registryVersion) {
     check(`registry version ${registryVersion} requested`, true, 'installing from registry');
@@ -71,7 +71,7 @@ try {
     [
       'install',
       installSpec,
-      '@republicroad/jdm-editor@^0.3.0',
+      '@republicroad/seal-editor@^0.3.0',
       'react@^18.3.1',
       'react-dom@^18.3.1',
       'monaco-editor@^0.52.2',
@@ -92,13 +92,13 @@ try {
     `${install.stdout.split('\n').find((l) => l.includes('added')) ?? ''} (spec: ${installSpec})`,
   );
 
-  const installedDir = path.join(scratch, 'node_modules', '@republicroad', 'jdm-appshell');
+  const installedDir = path.join(scratch, 'node_modules', '@republicroad', 'seal-appshell');
   const installedPkg = JSON.parse(readFileSync(path.join(installedDir, 'package.json'), 'utf8'));
 
   // 3. published contract assertions
   check(
-    'name matches @republicroad/jdm-appshell',
-    installedPkg.name === '@republicroad/jdm-appshell',
+    'name matches @republicroad/seal-appshell',
+    installedPkg.name === '@republicroad/seal-appshell',
     installedPkg.name,
   );
   check(
@@ -116,8 +116,8 @@ try {
   );
   check(
     'kernel peer declared >= 0.3.0',
-    /^>=0\.3/.test(installedPkg.peerDependencies?.['@republicroad/jdm-editor'] ?? ''),
-    installedPkg.peerDependencies?.['@republicroad/jdm-editor'] ?? 'absent',
+    /^>=0\.3/.test(installedPkg.peerDependencies?.['@republicroad/seal-editor'] ?? ''),
+    installedPkg.peerDependencies?.['@republicroad/seal-editor'] ?? 'absent',
   );
 
   for (const file of ['dist/index.js', 'dist/index.d.ts', 'dist/style.css', 'README.md', 'LICENSE']) {
@@ -170,11 +170,11 @@ try {
   // 4. entry resolves under plain Node ESM (contract = resolvable artifact;
   //    full-barrel evaluation is browser-targeted and checked as bonus only)
   const req = createRequire(path.join(scratch, 'package.json'));
-  const entryPath = req.resolve('@republicroad/jdm-appshell');
+  const entryPath = req.resolve('@republicroad/seal-appshell');
   const normalized = entryPath.split(path.sep).join('/');
   check(
     'entry resolves from scratch require context',
-    normalized.includes('node_modules/@republicroad/jdm-appshell/dist/'),
+    normalized.includes('node_modules/@republicroad/seal-appshell/dist/'),
     entryPath,
   );
 

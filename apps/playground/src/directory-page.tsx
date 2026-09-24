@@ -89,7 +89,7 @@ export const DirectoryPage: React.FC = () => (
     <div className='pg-root'>
       <header className='pg-header'>
         <strong>JDM Playground</strong>
-        <span className='pg-subtitle'>jdm-editor / jdm-appshell 实例目录 —— 每个卡片是独立页面（Vite MPA）</span>
+        <span className='pg-subtitle'>seal-editor / seal-appshell 实例目录 —— 每个卡片是独立页面（Vite MPA）</span>
         <div className='pg-actions'>
           <ThemeToggle />
         </div>

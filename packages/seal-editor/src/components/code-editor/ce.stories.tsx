@@ -106,7 +106,7 @@ export const NoStyle: Story = {
  *   2. Display (CodeHighlighter) ↔ edit (CodeMirror) must be pixel-aligned;
  *      drift was caused by CM runtime-injected unlayered styles beating the
  *      layered skin (see docs/codemirror-theme-migration.md).
- * Runs under `pnpm --filter @gorules/jdm-editor test:storybook`.
+ * Runs under `pnpm --filter @republicroad/seal-editor test:storybook`.
  */
 export const LazyParity: Story = {
   args: {

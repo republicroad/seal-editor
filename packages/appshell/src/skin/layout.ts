@@ -17,7 +17,7 @@ export const orderSlotEntries = <T>(entries: [string, T][], order: string[] | un
 /** 裸名槽位 id dev-warn 并补 host: 前缀（规格稿 §6-2 命名空间） */
 export const ensureHostPrefix = (id: string): string => {
   if (import.meta.env?.DEV && !id.startsWith('host:')) {
-    console.warn(`[jdm-appshell] skin slot "${id}" lacks host: prefix — auto-prefixed`);
+    console.warn(`[seal-appshell] skin slot "${id}" lacks host: prefix — auto-prefixed`);
   }
   return id.startsWith('host:') ? id : `host:${id}`;
 };
@@ -42,7 +42,7 @@ export function mapToolbarSlots(
   if (import.meta.env?.DEV) {
     for (const [id] of entries) {
       if (!id.startsWith('host:')) {
-        console.warn(`[jdm-appshell] skin toolbar slot "${id}" lacks host: prefix — auto-prefixed`);
+        console.warn(`[seal-appshell] skin toolbar slot "${id}" lacks host: prefix — auto-prefixed`);
       }
     }
   }
@@ -72,7 +72,7 @@ export function mapPanelSlotIds(layout: SkinToolbarLayout | undefined): string[]
   if (import.meta.env?.DEV) {
     for (const [id] of entries) {
       if (!id.startsWith('host:')) {
-        console.warn(`[jdm-appshell] skin panel slot "${id}" lacks host: prefix — auto-prefixed`);
+        console.warn(`[seal-appshell] skin panel slot "${id}" lacks host: prefix — auto-prefixed`);
       }
     }
   }

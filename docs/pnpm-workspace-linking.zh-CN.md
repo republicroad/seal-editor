@@ -8,12 +8,12 @@
 ## 一、本仓观测到的两种链接形态
 
 ```
-packages/playground/node_modules/@republicroad/jdm-editor
-    │ symlink → packages/jdm-editor                  (直连,活源码)
+apps/playground/node_modules/@republicroad/seal-editor
+    │ symlink → packages/seal-editor                  (直连,活源码)
 
-packages/appshell/node_modules/@republicroad/jdm-editor
-    │ symlink → node_modules/.pnpm/@republicroad+jdm-editor@0._<peer-hash>/
-    │           node_modules/@republicroad/jdm-editor
+packages/appshell/node_modules/@republicroad/seal-editor
+    │ symlink → node_modules/.pnpm/@republicroad+seal-editor@1._<peer-hash>/
+    │           node_modules/@republicroad/seal-editor
     ▼           (物理克隆,发布形态,安装时刻冻结)
     package.json + dist/ + node_modules/   — 无 src/
 ```
@@ -56,7 +56,7 @@ npm 产物行为一致,peer 解析确定性有保障。
 不同消费点解析 kernel 的方式不同:
 
 - **vitest**(appshell 配置)与 **storybook `viteFinal`** 把
-  `@republicroad/jdm-editor` 别名到**源码** → 永远最新。
+  `@republicroad/seal-editor` 别名到**源码** → 永远最新。
 - 经 appshell node_modules 链接解析的路径执行的是**冻结克隆** → 几天前
   的代码(丢失恢复的按钮、被摇掉的 i18n 目录等)。
 
@@ -66,7 +66,7 @@ npm 产物行为一致,peer 解析确定性有保障。
 ## 五、策略
 
 - **仓内所有 workspace 包消费者必须源码别名。** 现有别名点:
-  `.storybook/main.ts` `viteFinal`(`@republicroad/jdm-editor` → kernel
+  `.storybook/main.ts` `viteFinal`(`@republicroad/seal-editor` → kernel
   `src/index.ts`)、`packages/appshell/vitest.config.ts`(+ monaco stub)、
   playground vite 配置(两个包)。
 - 别名生效后 `.pnpm` 克隆与开发无关;它只在**发布语义**(npm 消费者拿到
@@ -78,11 +78,11 @@ npm 产物行为一致,peer 解析确定性有保障。
 ## 六、取证单行命令
 
 ```bash
-readlink -f packages/appshell/node_modules/@republicroad/jdm-editor
+readlink -f packages/appshell/node_modules/@republicroad/seal-editor
 stat -c 'inode=%i mtime=%y' \
-  packages/jdm-editor/dist/index.js \
-  node_modules/.pnpm/*/node_modules/@republicroad/jdm-editor/dist/index.js
+  packages/seal-editor/dist/index.js \
+  node_modules/.pnpm/*/node_modules/@republicroad/seal-editor/dist/index.js
 # 内容探针(i18n 目录金丝雀 + 修复 marker):
 grep -c "Upload JSON\|编辑表达式\|default-render-node-marker" \
-  packages/jdm-editor/dist/index.js
+  packages/seal-editor/dist/index.js
 ```

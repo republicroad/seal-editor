@@ -1,6 +1,6 @@
 import { chromium } from 'playwright';
 
-const BASE = process.env.PROBES_BASE || 'http://localhost:3003/jdm-editor/docs';
+const BASE = process.env.PROBES_BASE || 'http://localhost:3003/seal-editor/docs';
 
 (async () => {
   const browser = await chromium.launch();

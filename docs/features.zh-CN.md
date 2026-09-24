@@ -2,8 +2,8 @@
 
 > 中文对照版,英文原版:[`features.md`](./features.md)。
 
-公共包:`@republicroad/jdm-editor`(`packages/jdm-editor`)。所有组件从包根导出;样式通过
-`import '@republicroad/jdm-editor/dist/style.css'` 引入。
+公共包:`@republicroad/seal-editor`(`packages/seal-editor`)。所有组件从包根导出;样式通过
+`import '@republicroad/seal-editor/dist/style.css'` 引入。
 
 ## 1. 决策图 DecisionGraph(`components/decision-graph`)
 
@@ -69,7 +69,7 @@ schema 示例(`use-request-example-persistence`)。节点执行轨迹列表位�
 `helpers/request-schema/*`(规范化、示例/定义合并、冲突检测)与 `helpers/json-path-extractor.ts`。
 
 自定义节点生态本体以独立 workspace 包交付:
-[`@republicroad/jdm-appshell`](../packages/appshell/README.md) —— 方案 D 的参考
+[`@republicroad/seal-appshell`](../packages/appshell/README.md) —— 方案 D 的参考
 消费者壳(节点托管、皮肤覆盖、持久化契约、用户解析)。
 
 ### 1.4b 自定义函数表格(`custom-function-table/`、`graph/tab-custom-function-table.tsx`)

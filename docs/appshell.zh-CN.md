@@ -1,13 +1,13 @@
-# `@republicroad/jdm-appshell` — 参考消费者壳
+# `@republicroad/seal-appshell` — 参考消费者壳
 
-> 包:`@republicroad/jdm-appshell`(0.1.0)· Peer 依赖:
-> `@republicroad/jdm-editor >= 0.3.0`、`react >= 18`、`react-dom >= 18` ·
+> 包:`@republicroad/seal-appshell`(1.1.0)· Peer 依赖:
+> `@republicroad/seal-editor ^1.1.0`、`react >= 18`、`react-dom >= 18` ·
 > 导出:`.` 与 `./dist/style.css`
 
 ## 定位
 
 本包是**方案 D 的参考消费者**——kernel/shell 拆分的实化形态。内核
-(`@republicroad/jdm-editor`)保持宿主无感知:只提供编辑器界面、主题系统与
+(`@republicroad/seal-editor`)保持宿主无感知:只提供编辑器界面、主题系统与
 导入契约(architecture §8.1),不对"有哪些自定义节点、用户如何认证、图存到
 哪里"表达任何观点。所有这类**观点性能力**都在壳(appshell)里。
 
@@ -28,7 +28,7 @@ UI 套件副本(`components/ui/*`、`reui/*`),不回触内核的 UI 层。
 
 ## kernel / shell 边界规则
 
-1. 内核绝不导入壳(强制方向:壳对内核 peer 依赖 `>= 0.3.0`)。
+1. 内核绝不导入壳(强制方向:壳对内核 peer 依赖 `^1.1.0`)。
 2. 内核内部导入使用 node subpath imports(`#…`);宿主按设计无法解析——
    宿主需要的一切必须出自内核 `exports`。
 3. 壳侧关注点(自定义节点、认证/用户、持久化、皮肤)放在这里,不进内核。
@@ -38,18 +38,18 @@ UI 套件副本(`components/ui/*`、`reui/*`),不回触内核的 UI 层。
 ## 宿主接线
 
 ```tsx
-import { DecisionGraph } from '@republicroad/jdm-editor';
+import { DecisionGraph } from '@republicroad/seal-editor';
 import {
   HttpRequestTab, httpRequestNode,
   QueryListTab, queryListNode,
   CurrentDateTab, currentDateNode,
-} from '@republicroad/jdm-appshell';
+} from '@republicroad/seal-appshell';
 
 // 方式 A —— 显式节点列表:
 <DecisionGraph customNodes={[httpRequestNode, queryListNode, currentDateNode]} />
 
 // 方式 B —— 组合 Hook(schema 感知、皮肤感知):
-import { useCustomNodes } from '@republicroad/jdm-appshell';
+import { useCustomNodes } from '@republicroad/seal-appshell';
 const { customNodes, ready } = useCustomNodes({ schemaSource: '/api/custom-nodes/schema' });
 // ready ? <DecisionGraph customNodes={customNodes} … /> : <spinner/>
 ```
@@ -57,7 +57,7 @@ const { customNodes, ready } = useCustomNodes({ schemaSource: '/api/custom-nodes
 接上用户解析与持久化(完整壳):
 
 ```tsx
-import { createUserResolver, createBetterAuthAdapter } from '@republicroad/jdm-appshell';
+import { createUserResolver, createBetterAuthAdapter } from '@republicroad/seal-appshell';
 
 <DecisionGraph
   customNodes={customNodes}
@@ -74,7 +74,7 @@ import { createUserResolver, createBetterAuthAdapter } from '@republicroad/jdm-a
 （kernel `GraphSimulator`：输入 JSON → Run → 逐节点命中高亮 + Output/Input/Trace 编辑器）：
 
 ```tsx
-import { createExecuteSimulate, SkinnedDecisionGraph } from '@republicroad/jdm-appshell';
+import { createExecuteSimulate, SkinnedDecisionGraph } from '@republicroad/seal-appshell';
 
 <SkinnedDecisionGraph ... simulateHandler={createExecuteSimulate("http://localhost:8787")} />
 ```
@@ -94,8 +94,8 @@ storybook 的 **Integration/Kernel + Appshell** 下。
 ## 开发
 
 ```bash
-pnpm --filter @republicroad/jdm-appshell typecheck   # tsc --noEmit
-pnpm --filter @republicroad/jdm-appshell test        # vitest(node 环境,8 套件 / 67 用例)
-pnpm --filter @republicroad/jdm-appshell build       # dist + style.css
-pnpm --filter @republicroad/jdm-appshell test:npm-smoke
+pnpm --filter @republicroad/seal-appshell typecheck   # tsc --noEmit
+pnpm --filter @republicroad/seal-appshell test        # vitest(node 环境,8 套件 / 67 用例)
+pnpm --filter @republicroad/seal-appshell build       # dist + style.css
+pnpm --filter @republicroad/seal-appshell test:npm-smoke
 ```

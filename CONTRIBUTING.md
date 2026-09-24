@@ -51,7 +51,7 @@ Run the whole battery — lint, types, React-compiler rules, style-debt budget
 Requires `pnpm` on your PATH (`corepack enable` once covers it). Treat any
 failure as blocking. New `!important` or raw hex literals need an explicit
 `GRL-STYLE-HACK` marker + a registry row in
-`docs/shadcn-theming-roadmap.zh-CN.md` Appendix A, or they will fail
+`docs/archive/research/shadcn-theming-roadmap.zh-CN.md` Appendix A, or they will fail
 `lint:debt`.
 
 Palette work? Open Storybook → **Theming → Seeds Playground** to see seed
@@ -82,24 +82,24 @@ CI is defined in `.github/workflows/`. All workflows run on the `main` branch.
 Triggers on **every push** and **pull request** to `main`. Runs the
 full battery:
 
-| Step                        | What it does                                                                                                    |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Lint and prettier           | `pnpm format` (eslint + prettier --check)                                                                       |
-| React Compiler readiness    | `pnpm lint:compiler`                                                                                            |
-| **Style-debt budget**       | `pnpm lint:debt` — fails on `!important`/raw-hex budget growth                                                  |
-| Build                       | `pnpm build`                                                                                                    |
-| Test                        | `pnpm test` (vitest, 227 tests)                                                                                 |
-| Type check                  | `pnpm typecheck`                                                                                                |
-| Bundle size budget          | `pnpm size`                                                                                                     |
-| Playwright chromium         | `pnpm exec playwright install --with-deps chromium`                                                             |
-| Storybook interaction suite | `pnpm --filter @republicroad/jdm-editor test:storybook` (8 suites / 57 stories incl. LazyParity geometry guard) |
-| Consumer smoke              | `pnpm test:consumer` (dual-host React 18 & 19 Vite build)                                                       |
+| Step                        | What it does                                                                                                     |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Lint and prettier           | `pnpm format` (eslint + prettier --check)                                                                        |
+| React Compiler readiness    | `pnpm lint:compiler`                                                                                             |
+| **Style-debt budget**       | `pnpm lint:debt` — fails on `!important`/raw-hex budget growth                                                   |
+| Build                       | `pnpm build`                                                                                                     |
+| Test                        | `pnpm test` (vitest, 227 tests)                                                                                  |
+| Type check                  | `pnpm typecheck`                                                                                                 |
+| Bundle size budget          | `pnpm size`                                                                                                      |
+| Playwright chromium         | `pnpm exec playwright install --with-deps chromium`                                                              |
+| Storybook interaction suite | `pnpm --filter @republicroad/seal-editor test:storybook` (8 suites / 57 stories incl. LazyParity geometry guard) |
+| Consumer smoke              | `pnpm test:consumer` (dual-host React 18 & 19 Vite build)                                                        |
 
 ### Publish (`publish.yaml`)
 
 Triggers on every push but the job **only executes** when the HEAD commit
 message starts with `chore(release)`. Runs `pnpm build` → `lerna publish
-from-package --yes` → publishes `@republicroad/jdm-editor` to npm using the
+from-package --yes` → publishes `@republicroad/seal-editor` to npm using the
 `NPM_TOKEN` secret.
 
 **To release a version:**
@@ -109,7 +109,7 @@ from-package --yes` → publishes `@republicroad/jdm-editor` to npm using the
 # 2. Create the release trigger (empty commit)
 git commit --allow-empty -m "chore(release)"
 git push
-# 3. CI builds and publishes @republicroad/jdm-editor@<current version>
+# 3. CI builds and publishes @republicroad/seal-editor@<current version>
 ```
 
 ### Version (`version.yaml`)
@@ -131,7 +131,7 @@ release commit. Requires the `PAT` secret for cross-repo push permissions.
 ## Storybook Test Suite
 
 ```bash
-pnpm --filter @republicroad/jdm-editor test:storybook
+pnpm --filter @republicroad/seal-editor test:storybook
 ```
 
 Builds Storybook, serves it on port 9009, and runs the test-runner (8 suites /
