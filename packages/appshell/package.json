@@ -27,7 +27,7 @@
     "test": "vitest run"
   },
   "peerDependencies": {
-    "@republicroad/jdm-editor": "^0.10.0",
+    "@republicroad/seal-editor": "^1.1.0",
     "monaco-editor": "^0.52.2",
     "react": ">=18",
     "react-dom": ">=18"
@@ -49,7 +49,8 @@
     "tailwind-merge": "catalog:",
     "ts-pattern": "catalog:",
     "zustand": "catalog:",
-    "@republicroad/seal-editor": "workspace:^1.1.0"
+    "@republicroad/seal-editor": "workspace:^1.1.0",
+    "@republicroad/jdm-editor": "^1.1.0"
   },
   "devDependencies": {
     "@lezer/common": "catalog:",
