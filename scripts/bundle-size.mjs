@@ -3,7 +3,7 @@ import path from 'node:path';
 import { gzipSync } from 'node:zlib';
 
 const root = path.resolve(new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
-const dist = path.join(root, 'packages', 'jdm-editor', 'dist');
+const dist = path.join(root, 'packages', 'seal-editor', 'dist');
 const budgetsPath = path.join(root, 'scripts', 'size-budgets.json');
 
 if (!existsSync(dist)) {
