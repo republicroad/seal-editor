@@ -44,19 +44,37 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # The registry CDN can lag the write by a minute — poll until the new
-      # kernel version is visible before smoking it (0.3.3 failed here).
+      # npm's staged-publish pipeline can hold freshly accepted tarballs for
+      # 15+ minutes (observed 2026-09-25 on 1.2.0/1.3.0) before the exact
+      # -version endpoint answers; the old 5-minute kernel-only wait produced
+      # spurious red runs. Poll ALL published package versions with a 20-min
+      # global budget before smoking.
       - name: Wait for registry propagation
         run: |
-          ver="$(node -p "require('./packages/seal-editor/package.json').version")"
-          for i in $(seq 1 30); do
-            if npm view "@republicroad/seal-editor@$ver" version > /dev/null 2>&1; then
-              echo "registry visible: $ver (attempt $i)"
+          specs=()
+          for pkg in packages/*; do
+            name=$(node -p "require('./$pkg/package.json').name")
+            ver=$(node -p "require('./$pkg/package.json').version")
+            specs+=("$name@$ver")
+          done
+          remaining=("${specs[@]}")
+          for i in $(seq 1 120); do
+            left=()
+            for spec in "${remaining[@]}"; do
+              if npm view "$spec" version > /dev/null 2>&1; then
+                echo "registry visible: $spec (attempt $i)"
+              else
+                left+=("$spec")
+              fi
+            done
+            if [ ${#left[@]} -eq 0 ]; then
+              echo "all published versions visible"
               exit 0
             fi
+            remaining=("${left[@]}")
             sleep 10
           done
-          echo "version $ver not visible after 5min"
+          echo "still not visible after 20min: ${remaining[*]}"
           exit 1
 
       - name: Registry smoke (published artifact shape)
