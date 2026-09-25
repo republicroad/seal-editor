@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# 1.2.0 (2026-09-25)
+
+### Bug Fixes
+
+- finish jdm-editor -> seal-editor rename across docs, CI, scripts and lockfile ([436d5ce](https://github.com/republicroad/seal-editor/commit/436d5ce06f617ec699b4c7a62286a7abb0762e60))
+- **i18n:** add missing zh-CN common.clear and a real key-parity test ([4b57102](https://github.com/republicroad/seal-editor/commit/4b571029b6237c935820ce2ee0bbb177bc9beee1))
+- **kernel:** guard-style randomUUID polyfill for non-secure contexts (ADR-007) ([655f0bc](https://github.com/republicroad/seal-editor/commit/655f0bcea35b1bc6aba97139328ea831c1eddf09))
+- **kernel:** type the randomUUID polyfill against the DOM template-literal return ([f91ceac](https://github.com/republicroad/seal-editor/commit/f91ceac717d909d432face7299fb6e89335151af))
+
+### Features
+
+- **simulator:** run-strip error-code badge for failed nodes (WS1-R7) ([a75927d](https://github.com/republicroad/seal-editor/commit/a75927d3aecde4f0b1aee2a81f89e883404f9e38))
+- **site:** landing page for the Pages root — hub for docs and storybook ([5b19bc1](https://github.com/republicroad/seal-editor/commit/5b19bc1f80586b0713b99cef9e31e64d5492cc79))
+
+# 1.1.0 (2026-09-24)
+
+### Features
+
+- **kernel:** WS1-R4 — branch path label chips on edges ([59227fd](https://github.com/republicroad/seal-editor/commit/59227fd4f026ccf1f06b39cff9bf412b4cfab888))
+
 # [1.52.0](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.51.5...@gorules/jdm-editor@1.52.0) (2026-05-13)
 
 ### Features

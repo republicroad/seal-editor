@@ -1,6 +1,6 @@
 {
   "name": "@republicroad/demo-server",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "description": "Self-host demo: stateless JDM model validate/execute over zen-engine. No auth, no storage, no business logic — not the SaaS backend.",
   "type": "module",
@@ -11,8 +11,8 @@
     "test": "bun test"
   },
   "dependencies": {
-    "hono": "^4.6.0",
-    "@republicroad/zen-udf": "workspace:*"
+    "@republicroad/zen-udf": "workspace:*",
+    "hono": "^4.6.0"
   },
   "devDependencies": {
     "@types/bun": "^1.2.0",

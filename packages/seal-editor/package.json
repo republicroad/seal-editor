@@ -1,6 +1,6 @@
 {
   "name": "@republicroad/seal-editor",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "",
   "author": "GoRules <hi@gorules.io> (https://gorules.io)",
   "homepage": "https://github.com/republicroad/seal-editor",
@@ -48,6 +48,7 @@
     "prepublishOnly": "vite build"
   },
   "dependencies": {
+    "@base-ui/react": "catalog:",
     "@codemirror/autocomplete": "^6.20.3",
     "@codemirror/commands": "^6.11.0",
     "@codemirror/language": "^6.12.4",
@@ -77,7 +78,6 @@
     "json5": "^2.2.3",
     "lodash": "^4.17.21",
     "lucide-react": "catalog:",
-    "@base-ui/react": "catalog:",
     "next-themes": "^0.4.6",
     "re-resizable": "^6.11.2",
     "react-hook-form": "^7.86.0",
@@ -122,8 +122,8 @@
     "storybook": "10.6.0",
     "storybook-dark-mode": "5.0.0",
     "tailwindcss": "^4.3.3",
-    "vite": "catalog:",
     "unplugin-dts": "catalog:",
+    "vite": "catalog:",
     "vite-plugin-wasm": "^3.6.0",
     "vitest": "catalog:",
     "wait-on": "^9.1.0"
