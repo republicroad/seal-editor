@@ -237,7 +237,7 @@ importers:
         specifier: 'catalog:'
         version: 1.8.0(@types/react@18.3.31)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@republicroad/seal-editor':
-        specifier: workspace:^1.3.0
+        specifier: workspace:^1.4.0
         version: link:../seal-editor
       '@tanstack/react-virtual':
         specifier: 'catalog:'

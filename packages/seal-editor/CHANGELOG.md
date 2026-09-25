@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.4.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.3.0...@republicroad/seal-editor@1.4.0) (2026-09-25)
+
+### Features
+
+- **graph:** switch case-name field mirrors onto branch edge label (WS1-R4) ([fb7b930](https://github.com/republicroad/seal-editor/commit/fb7b9308740b413569e0ae3de1121222d6e99d3b))
+
 # [1.3.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.2.0...@republicroad/seal-editor@1.3.0) (2026-09-25)
 
 ### Features
