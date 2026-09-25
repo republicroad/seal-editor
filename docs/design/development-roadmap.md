@@ -24,7 +24,7 @@
 | 项 | 说明 | 备注 |
 | --- | --- | --- |
 | 1.0.1 hotfix 通道 | consumer 反馈走 patch；CI publish 正常（NPM_TOKEN 已配） | 常备 |
-| R7 增强 | run strip 增加 error code 徽章（当前仅成功态耗时；错误节点沿用 error 底色+徽章） | 小切片 |
+| R7 增强 | ✅ 2026-09-25 已落地：run strip 错误码徽章——`SimulationError` 契约新增 `code` 字段，无 code 时退化为紧凑 title + 原生 tooltip（title/message）；两个 storybook 用例（code 徽章 / title 回退） | 完成 |
 | storybook Pages 修复 | ✅ 2026-09-24 已修复上线（Pages 启用 + rspress 路径 + 站点落地页，436d5ce/5b19bc1） | 完成 |
 | R6 体积评估 | @dagrejs/dagre 引入的体积影响实测（index.js 余量 ~17kB，大概率需 dynamic import 或挪 appshell） | 先评估后决策 |
 

@@ -23,6 +23,8 @@ export type DecisionNodeProps = {
   status?: 'error' | 'success' | 'warning';
   /** WS1-R7：仿真单节点轨迹——渲染为节点底部 run strip（耗时等） */
   trace?: { performance?: string | null; micros?: number; code?: string } | null;
+  /** WS1-R7 增强：仿真失败节点的错误信息——code 优先，无 code 退化为紧凑 title，渲染为 strip 内错误码徽章 */
+  traceError?: { code?: string | null; title?: string | null; message?: string | null } | null;
   diffStatus?: 'removed' | 'added' | 'modified' | 'moved';
   noBodyPadding?: boolean;
   color?: 'primary' | 'secondary' | string;
@@ -50,6 +52,7 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
   menuItems = [],
   status,
   trace,
+  traceError,
   diffStatus,
   compactMode,
   listMode,
@@ -167,13 +170,24 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
             </div>
           </div>
         )}
-        {trace && (
+        {(trace || traceError) && (
           <div
             data-slot='node-run-strip'
             className='nodrag flex items-center justify-between gap-2 px-2 py-0.5 text-[10px] font-medium border-t border-t-[var(--grl-color-border-fade)] bg-[var(--grl-color-primary-bg-fade)] text-[var(--muted-foreground)]'
           >
             <span>TRACE</span>
-            {trace.performance != null && <span>{trace.performance}</span>}
+            <span className='flex min-w-0 items-center gap-1.5'>
+              {traceError && (
+                <span
+                  data-slot='node-run-strip-error'
+                  className='max-w-36 truncate rounded-sm bg-[var(--seal-color-error)] px-1 py-px font-semibold text-white'
+                  title={[traceError.title, traceError.message].filter(Boolean).join('\n') || undefined}
+                >
+                  {traceError.code || traceError.title}
+                </span>
+              )}
+              {trace?.performance != null && <span>{trace.performance}</span>}
+            </span>
           </div>
         )}
       </GraphCard>
