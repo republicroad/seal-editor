@@ -35,15 +35,21 @@
   （建议 raw ≤ 60kB / gzip ≤ 20kB，含 CI Linux ~2.5% 膨胀）保持诚实。
 - 否决下沉 appshell：自动布局是内核编辑器的核心可供性，自定义壳的宿主不该失去它；
   且 appshell 无体积门禁，移动债务不加约束。
-- 实施要点（R6 落地时）：vite 默认代码分割即可（dist 已有 schema chunk 先例，
-  npm files 白名单按 dist 目录整体收录）；交互切片按 WS1 惯例补 storybook 用例。
+- **实施修正（2026-09-25 落地时）**：chunk 预算条目实际不需要——dagre 作为常规
+  dependency 本就被 vite `external` 规则排除（依赖全部外置的既定哲学），
+  `dist/index.js` 保留裸的 `import('@dagrejs/dagre')`，内核产物零 dagre 代码、
+  零新 chunk（index.js 仅 +2kB：helper/工具栏/i18n），lazy chunk 由宿主导包器
+  自行拆分。落地件：`helpers/auto-layout.ts`（LR 布局 + 实测尺寸回退 + 悬挂边容错）
+  + store `autoLayout` action（pushUndo 可撤销 + fitView）+ 侧边工具栏按钮
+  （`dg.toolbar.autoLayout` en/zh）+ 4 项单测 + AutoLayout storybook 交互用例
+  （打乱布局输入，防 dagre 恒等重排误判）。
 
 | 项 | 说明 | 备注 |
 | --- | --- | --- |
 | 1.0.1 hotfix 通道 | consumer 反馈走 patch；CI publish 正常（NPM_TOKEN 已配） | 常备 |
 | R7 增强 | ✅ 2026-09-25 已落地：run strip 错误码徽章——`SimulationError` 契约新增 `code` 字段，无 code 时退化为紧凑 title + 原生 tooltip（title/message）；两个 storybook 用例（code 徽章 / title 回退） | 完成 |
 | storybook Pages 修复 | ✅ 2026-09-24 已修复上线（Pages 启用 + rspress 路径 + 站点落地页，436d5ce/5b19bc1） | 完成 |
-| R6 体积评估 | ✅ 2026-09-25 已完成评估（见 §1.1 结论） | 评估完毕，待实施 |
+| R6 体积评估 | ✅ 2026-09-25 评估完成并落地（结论见 §1.1；dynamic import + 工具栏一键整理已交付，test:storybook 73/73） | 完成 |
 
 ## 2. 中期（1.2.0 特性窗口）
 
