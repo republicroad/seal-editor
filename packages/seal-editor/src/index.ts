@@ -1,3 +1,7 @@
+// ADR-007: entry-first guard polyfill (randomUUID in non-secure contexts)
+// — must stay ahead of every component module so ID generation can never
+// throw before the editor mounts.
+import './polyfills';
 import './styles/tailwind.css';
 import './styles/tokens.css';
 
