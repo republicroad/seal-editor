@@ -53,7 +53,10 @@
 
 ## 2. 中期（1.2.0 特性窗口）
 
-- **R4 增强**：分支路径标签与 switch/if 节点编辑面板联动（改 case 名即改边 label）
+- **R4 增强**：✅ 2026-09-25 已落地——`SwitchStatement` 新增 `name` 字段（case 名），switch 节点
+  case 行内联输入（compact/list 两变体齐备），输入即镜像到出边 `edge.name`
+  （`applyStatementNameToEdges` 纯函数 + store setEdges），分支路径标签芯片即时更新；
+  单测 3 项 + SwitchStatementNameLinkage storybook 交互用例（真实浏览器断言芯片文本）
 - **R6 dagre 自动布局落地**（按 §1 评估结论）
 - **seal-demo 打通**：基于 editor 仓 fork 的验证应用，跑通
   `@republicroad/seal-editor@^1.x` + `@republicroad/seal-appshell` + zen-udf 五域全链路

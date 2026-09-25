@@ -387,6 +387,62 @@ const DecisionGraphWithSimulator: React.FC = () => {
   );
 };
 
+/**
+ * WS1-R4 增强：switch case 名 ↔ 分支路径标签联动——在 case 行输入名字，
+ * 出边上的标签芯片即时出现/更新（edge.name 镜像）。
+ * Runs under `pnpm --filter @republicroad/seal-editor test:storybook`.
+ */
+export const SwitchStatementNameLinkage: Story = {
+  render: () => {
+    const switchGraph = useMemo(
+      () => ({
+        contentType: 'application/vnd.gorules.decision',
+        nodes: [
+          { id: 'in-1', name: 'Request', type: 'inputNode', position: { x: 0, y: 150 } },
+          {
+            id: 'sw-1',
+            name: 'switch1',
+            type: 'switchNode',
+            position: { x: 320, y: 100 },
+            content: {
+              hitPolicy: 'first',
+              statements: [{ id: 'stmt-1', condition: 'customer.age >= 18', isDefault: false }],
+            },
+          },
+          { id: 'out-1', name: 'Response', type: 'outputNode', position: { x: 700, y: 150 } },
+        ],
+        edges: [
+          { id: 'e-in-sw', sourceId: 'in-1', targetId: 'sw-1', type: 'edge' },
+          { id: 'e-sw-out', sourceId: 'sw-1', sourceHandle: 'stmt-1', targetId: 'out-1', type: 'edge' },
+        ],
+      }),
+      [],
+    );
+    const [value, setValue] = useState<any>(switchGraph);
+
+    return (
+      <div style={{ height: '100%' }}>
+        <DecisionGraph value={value} onChange={(val) => setValue?.(val)} />
+      </div>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const nameInput = canvasElement.querySelector<HTMLInputElement>("input[aria-label='Path name']");
+    expect(nameInput).not.toBeNull();
+    expect(canvasElement.querySelector("[data-slot='edge-label-chip']")).toBeNull();
+
+    await fireEvent.change(nameInput!, { target: { value: 'highRisk' } });
+
+    await waitFor(
+      () => {
+        const chip = canvasElement.querySelector("[data-slot='edge-label-chip']");
+        expect(chip?.textContent).toBe('highRisk');
+      },
+      { timeout: 5_000 },
+    );
+  },
+};
+
 /** WS1-R7 增强：仿真失败节点的 run strip 错误码徽章（code 优先，无 code 退化为 title） */
 export const SimulatorErrorBadge: Story = {
   render: () => {

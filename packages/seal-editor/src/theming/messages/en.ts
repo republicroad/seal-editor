@@ -113,6 +113,7 @@ export const en = {
   'dg.excel.wrapQuotes': 'Wrap value in quotes',
   'dg.excel.enterFieldName': 'Enter field name',
   'dg.condition.removeConfirm': 'Remove condition?',
+  'dg.condition.namePlaceholder': 'Path name',
 
   // ── expression ──
   'expression.placeholder': 'Expression',

@@ -103,6 +103,7 @@ export const zhCN: Record<string, string> = {
   'dg.excel.wrapQuotes': '值包裹引号',
   'dg.excel.enterFieldName': '输入字段名',
   'dg.condition.removeConfirm': '移除此条件？',
+  'dg.condition.namePlaceholder': '路径名',
 
   'expression.placeholder': '表达式',
   'expression.key': '键名',

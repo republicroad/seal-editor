@@ -10,6 +10,7 @@ import { useDecisionGraphActions, useDecisionGraphState } from '../../../context
 import type { SimulationTrace, SimulationTraceDataSwitch } from '../../../simulator/simulation.types';
 import { GraphNode } from '../../graph-node';
 import type { MinimalNodeProps, NodeSpecification } from '../specification-types';
+import { applyStatementNameToEdges } from './edge-linkage';
 import { SwitchHandle, SwitchHandleCompact } from './switch-handle';
 import type { NodeSwitchData, SwitchStatement } from './types';
 
@@ -20,7 +21,7 @@ export const SwitchNode: React.FC<
 > = ({ id, data, selected, specification }) => {
   const graphActions = useDecisionGraphActions();
   const { ref: inViewRef, inView } = useInView({ delay: 1_000 });
-  const { content, disabled, nodeTrace, compactMode, isGraphActive } = useDecisionGraphState(
+  const { content, disabled, nodeTrace, compactMode, isGraphActive, edges } = useDecisionGraphState(
     ({ decisionGraph, disabled, simulate, compactMode, activeTab }) => ({
       nodeTrace: match(simulate)
         .with({ result: P._ }, ({ result }) => result?.trace?.[id] as SimulationTrace<SimulationTraceDataSwitch>)
@@ -29,6 +30,7 @@ export const SwitchNode: React.FC<
       disabled,
       compactMode,
       isGraphActive: activeTab === 'graph',
+      edges: decisionGraph?.edges,
     }),
   );
 
@@ -41,6 +43,18 @@ export const SwitchNode: React.FC<
       node.content.hitPolicy = hitPolicy;
       return node;
     });
+  };
+
+  /** WS1-R4 增强：case 名既写入 statement，也镜像到出边 edge.name（分支路径标签芯片的数据源） */
+  const changeStatementName = (statementId: string, name: string) => {
+    graphActions.updateNode(id, (draft) => {
+      const draftStatement = draft.content.statements.find((s: SwitchStatement) => s.id === statementId);
+      if (draftStatement) {
+        draftStatement.name = name;
+      }
+      return draft;
+    });
+    graphActions.setEdges(applyStatementNameToEdges(edges ?? [], id, statementId, name));
   };
 
   const Handle = useMemo(() => (compactMode ? SwitchHandleCompact : SwitchHandle), [compactMode]);
@@ -141,6 +155,7 @@ export const SwitchNode: React.FC<
               key={statement.id}
               index={index}
               value={statement.condition}
+              name={statement.name}
               diff={statement?._diff}
               id={statement.id}
               isDefault={statement.isDefault}
@@ -148,6 +163,7 @@ export const SwitchNode: React.FC<
               disabled={disabled}
               hitPolicy={hitPolicy}
               variableType={nodeType}
+              onNameChange={(name) => changeStatementName(statement.id, name)}
               onSetIsDefault={(val) => {
                 graphActions.updateNode(id, (draft) => {
                   const draftStatement = draft.content.statements.find((s: SwitchStatement) => {

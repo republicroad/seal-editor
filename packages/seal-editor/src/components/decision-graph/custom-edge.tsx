@@ -87,6 +87,7 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
   const labelChip =
     label != null && String(label).trim() !== '' ? (
       <div
+        data-slot='edge-label-chip'
         className='nodrag nopan pointer-events-none absolute z-[999]'
         style={{ transform: `translate(-50%, -50%) translate(${labelX}px,${labelY - 18}px)` }}
       >

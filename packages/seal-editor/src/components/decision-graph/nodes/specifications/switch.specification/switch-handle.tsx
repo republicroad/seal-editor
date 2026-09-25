@@ -23,9 +23,11 @@ const useSyncedValue = (value: string | undefined): [string | undefined, (val: s
 export const SwitchHandle: React.FC<{
   id?: string;
   value?: string;
+  name?: string;
   isDefault?: boolean;
   diff?: DiffMetadata;
   onChange?: (value: string) => void;
+  onNameChange?: (name: string) => void;
   onSetIsDefault?: (isDefault: boolean) => void;
   onDelete?: () => void;
   disabled?: boolean;
@@ -38,8 +40,10 @@ export const SwitchHandle: React.FC<{
 }> = ({
   id,
   value,
+  name,
   diff,
   onChange,
+  onNameChange,
   disabled,
   configurable = true,
   onDelete,
@@ -53,6 +57,7 @@ export const SwitchHandle: React.FC<{
 }) => {
   const t = useT();
   const [inner, setInner] = useSyncedValue(value);
+  const [nameInner, setNameInner] = useSyncedValue(name);
   const handleChange = (val: string) => {
     setInner(val);
     onChange?.(val);
@@ -113,6 +118,21 @@ export const SwitchHandle: React.FC<{
             flexGrow: 1,
           }}
         />
+        {/* WS1-R4 增强：case 名输入——联动出边 edge.name（分支路径标签芯片） */}
+        {!disabled && (
+          <input
+            aria-label={t('dg.condition.namePlaceholder')}
+            data-slot='switch-statement-name'
+            className='mr-1 h-5 w-24 rounded-sm border border-transparent bg-transparent px-1 text-right text-xs outline-none placeholder:text-[var(--seal-color-text-disabled)] focus:border-[var(--border)]'
+            placeholder={t('dg.condition.namePlaceholder')}
+            value={nameInner ?? ''}
+            disabled={disabled}
+            onChange={(e) => {
+              setNameInner(e.target.value);
+              onNameChange?.(e.target.value);
+            }}
+          />
+        )}
         {!disabled && configurable && (
           <Popconfirm
             title={t('dg.condition.removeConfirm')}
@@ -159,9 +179,11 @@ export const SwitchHandle: React.FC<{
 export const SwitchHandleCompact: React.FC<{
   id?: string;
   value?: string;
+  name?: string;
   isDefault?: boolean;
   diff?: DiffMetadata;
   onChange?: (value: string) => void;
+  onNameChange?: (name: string) => void;
   onSetIsDefault?: (isDefault: boolean) => void;
   onDelete?: () => void;
   disabled?: boolean;
@@ -171,9 +193,22 @@ export const SwitchHandleCompact: React.FC<{
   totalStatements: number;
   index: number;
   variableType?: VariableType;
-}> = ({ id, value, diff, onChange, disabled, configurable = true, onDelete, isActive, variableType }) => {
+}> = ({
+  id,
+  value,
+  name,
+  diff,
+  onChange,
+  onNameChange,
+  disabled,
+  configurable = true,
+  onDelete,
+  isActive,
+  variableType,
+}) => {
   const t = useT();
   const [inner, setInner] = useSyncedValue(value);
+  const [nameInner, setNameInner] = useSyncedValue(name);
   const handleChange = (val: string) => {
     setInner(val);
     onChange?.(val);
@@ -204,6 +239,21 @@ export const SwitchHandleCompact: React.FC<{
           variableType={variableType}
         />
       </div>
+      {/* WS1-R4 增强：case 名输入——联动出边 edge.name（分支路径标签芯片） */}
+      {!disabled && (
+        <input
+          aria-label={t('dg.condition.namePlaceholder')}
+          data-slot='switch-statement-name'
+          className='mx-[10px] mb-1 h-5 w-24 rounded-sm border border-transparent bg-transparent px-1 text-xs outline-none placeholder:text-[var(--seal-color-text-disabled)] focus:border-[var(--border)]'
+          placeholder={t('dg.condition.namePlaceholder')}
+          value={nameInner ?? ''}
+          disabled={disabled}
+          onChange={(e) => {
+            setNameInner(e.target.value);
+            onNameChange?.(e.target.value);
+          }}
+        />
+      )}
       {!disabled && configurable && (
         <div className='absolute right-3.5 top-2.5'>
           <Popconfirm
