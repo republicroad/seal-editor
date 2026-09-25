@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.3.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.2.0...@republicroad/seal-editor@1.3.0) (2026-09-25)
+
+### Features
+
+- **graph:** dagre auto-layout via side-toolbar button (WS1-R6) ([d50d354](https://github.com/republicroad/seal-editor/commit/d50d35471c10f97bd5082f631297e634e90516ba))
+
 # 1.2.0 (2026-09-25)
 
 ### Bug Fixes
