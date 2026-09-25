@@ -16,13 +16,13 @@ export const installRandomUUIDPolyfill = (): void => {
   if (!c || typeof c.randomUUID === 'function' || typeof c.getRandomValues !== 'function') {
     return;
   }
-  (c as Crypto & { randomUUID?: unknown }).randomUUID = () =>
+  c.randomUUID = (): `${string}-${string}-${string}-${string}-${string}` =>
     // MDN compat snippet: the [018] positions of 10000000-1000-4000-8000-
     // 100000000000 are randomized via XOR — full v4 semantics (version and
     // variant bits included).
     '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (ch) =>
       (Number(ch) ^ (c.getRandomValues(new Uint8Array(1))[0] & (15 >> (Number(ch) / 4)))).toString(16),
-    );
+    ) as `${string}-${string}-${string}-${string}-${string}`;
 };
 
 installRandomUUIDPolyfill();
