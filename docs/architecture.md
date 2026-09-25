@@ -220,10 +220,10 @@ hosting (four nodes + composition hook), skin overrides, the
 `GraphPersistenceAdapter` persistence contract and its HTTP implementation,
 and the shell UI kit. See [`docs/appshell.md`](./appshell.md) for the full
 responsibility map and host wiring.
-- Host integration: consumers wrap their app in an element with class `grl-root` to opt in to the
+- Host integration: consumers wrap their app in an element with class `seal-root` to opt in to the
   scoped mini-preflight (form controls, tables, headings, lists, images). The reset uses
   `:where()` (zero specificity) so component classes and Tailwind utilities always win, and it
   never leaks into the host document. `ui/button.tsx` also carries its own base normalization as
   a fallback for portal-rendered buttons (Base UI dialogs/alerts/toasters) which escape the
-  `.grl-root` wrapper.
+  `.seal-root` wrapper.
 - Consumer setup notes (Monaco workers self-hosting) live in the root README.

@@ -315,7 +315,7 @@ expression 列(CodeMirror)不受影响。
 | 缺陷 | 机制 |
 | --- | --- |
 | 触发器死亡 | Radix `asChild`(Slot) 只把 props/处理器克隆到**直接子元素**。两处按钮都以 `<TooltipTrigger asChild><Button/></Tooltip>` 组合再塞进 `<PopoverTrigger asChild>` / `<AlertDialogTrigger asChild>`。`Tooltip.Root` 是纯 Context 提供者——不渲染 DOM、不转发事件——外层 Slot 克隆的处理器落在了无法接收事件的载体上。 |
-| 弹窗溢出 | Radix DialogContent 固定居中且没有高度契约,内容超高时同时溢出上下两端、内部无滚动。此外修复中先加的 `maxHeight` 一度**不生效**:Radix Portal 把节点挂在 `<body>` 直下、位于 `.grl-root` 之外,库的作用域 mini-preflight(`:where(*) { box-sizing: border-box }`)够不到它,shadcn 模板回落到 UA 默认 `content-box`——maxHeight 被自身 padding 吃掉(+48px)。 |
+| 弹窗溢出 | Radix DialogContent 固定居中且没有高度契约,内容超高时同时溢出上下两端、内部无滚动。此外修复中先加的 `maxHeight` 一度**不生效**:Radix Portal 把节点挂在 `<body>` 直下、位于 `.seal-root` 之外,库的作用域 mini-preflight(`:where(*) { box-sizing: border-box }`)够不到它,shadcn 模板回落到 UA 默认 `content-box`——maxHeight 被自身 padding 吃掉(+48px)。 |
 
 ### 修复
 
@@ -344,9 +344,9 @@ expression 列(CodeMirror)不受影响。
 - **`asChild` 要求直接子元素是真实 DOM。** 在 Slot 与 Button 之间夹任何
   纯 Context 组件(Tooltip.Root 等)都会静默吞掉处理器。库 shim 应自行
   保证存在 DOM 元素(F1/F2 正是如此),不要依赖调用方书写方式。
-- **Portal 节点活在 `.grl-root` 之外。** 作用域 preflight 通常提供的库样式
+- **Portal 节点活在 `.seal-root` 之外。** 作用域 preflight 通常提供的库样式
   (首当其冲 box-sizing)必须在 portaled 原语里显式重申——或者让 Portal
-  挂到带 `.grl-root` 的容器(roadmap §P3 将此系统性解决)。
+  挂到带 `.seal-root` 的容器(roadmap §P3 将此系统性解决)。
 - **弹窗需要高度契约而不是页面滚动。** 固定居中 overlay 会两端同时裁切;
   应封顶并滚动 body。
 - **隔离阶梯省时间:** 默认触发器可用而组合触发器失效→组合问题;

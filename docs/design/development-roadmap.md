@@ -58,8 +58,15 @@
   （`applyStatementNameToEdges` 纯函数 + store setEdges），分支路径标签芯片即时更新；
   单测 3 项 + SwitchStatementNameLinkage storybook 交互用例（真实浏览器断言芯片文本）
 - **R6 dagre 自动布局落地**（按 §1 评估结论）
-- **seal-demo 打通**：基于 editor 仓 fork 的验证应用，跑通
-  `@republicroad/seal-editor@^1.x` + `@republicroad/seal-appshell` + zen-udf 五域全链路
+- **seal-demo 打通**：✅ S1–S3 已完成（2026-09-25）——`apps/seal-demo` 以**精确版本
+  从 npm registry 安装**两包（`.npmrc` link-workspace-packages=false 隔离 workspace
+  链接，解析锚点验证过 `.pnpm/@republicroad+seal-editor@1.4.0`），双 tab 验证
+  kernel（DecisionGraph + 公开 GraphSimulator 组装模拟器）与 appshell
+  （SkinnedDecisionGraph + createExecuteSimulate 直连 demo-server）；R4/R6/R7 全部
+  在消费形态下可见可用；执行链实测：simulator Run → demo-server /v1/execute →
+  zen-udf → 4 节点 run strip 回灌。**消费验证首日即抓到集成漂移**：容器类已品牌化
+  为 `.seal-root` 而全部消费文档仍写 `.grl-root`——demo 修复 + 10 篇文档 +
+  storybook 装饰器一并纠正。S4（HTTP+裸 IP 部署形态的 ADR-007 回归）待部署窗口。
 - **theme token 收尾**：`--seal-color-*` 非 bridged 键（bg-container/field tokens/chrome statics）文档化
 
 ## 3. verdict 侧联动（跨仓，由 verdict 会话承接）

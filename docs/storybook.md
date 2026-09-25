@@ -32,7 +32,7 @@ corepack pnpm@10 --filter @republicroad/seal-editor test:storybook
 
 ### `.storybook/preview.tsx`
 
-The global decorator implements the **canonical host shape**: `.grl-root` wraps
+The global decorator implements the **canonical host shape**: `.seal-root` wraps
 `JdmConfigProvider`, which wraps the story. This means:
 
 - Every story exercises the **scoped injection path** (P3) — variables are set
@@ -121,17 +121,17 @@ iframe unless every ancestor has an explicit height. The decorator pins
 `#storybook-root { height: 100% }` and the StressTest story uses `90vh`.
 Full investigation: [`storybook-height-chain.md`](./archive/research/storybook-height-chain.md).
 
-## Scoped Injection (.grl-root) in Stories
+## Scoped Injection (.seal-root) in Stories
 
-The decorator's `.grl-root` wrapper makes every story exercise the **scoped
+The decorator's `.seal-root` wrapper makes every story exercise the **scoped
 injection path** (P3): `--grl-*` variables are set as inline properties on the
 island container, `data-mode` lives there, and Radix portals target the island
 via `GrlContainerProvider`.
 
 **Multi-island testing**: to verify island isolation, render your own
-`.grl-root` + `JdmConfigProvider` inside a story (as `Isolation` does). The
-innermost `.grl-root` wins for scope resolution. Do NOT nest providers without
-their own `.grl-root` wrapper — that would cause the inner provider to resolve
+`.seal-root` + `JdmConfigProvider` inside a story (as `Isolation` does). The
+innermost `.seal-root` wins for scope resolution. Do NOT nest providers without
+their own `.seal-root` wrapper — that would cause the inner provider to resolve
 the outer island as its container.
 
 ## Dark Mode

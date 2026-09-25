@@ -357,7 +357,7 @@ Two independent migration-era defects:
 | Defect | Mechanism |
 | --- | --- |
 | Dead triggers | Radix `asChild` (`Slot`) clones its props/handlers onto its **direct child only**. Both rows wrapped their Buttons as `<TooltipTrigger asChild><Button/></Tooltip>` inside `<PopoverTrigger asChild>` / `<AlertDialogTrigger asChild>`. `Tooltip.Root` is a context provider — no DOM node, no event forwarding — so the outer Slot's cloned handler landed on nothing that could receive events. |
-| Dialog overflow | Radix DialogContent is fixed-centered with no height contract. Tall content overflowed both viewport edges with no scrolling. On top of that: the fix's `maxHeight` initially *didn't bind*, because **Radix portals mount under `<body>`, outside `.grl-root`**, so the library's scoped mini-preflight (`:where(*) { box-sizing: border-box }`) never reaches portaled nodes and the shadcn template defaults back to UA `content-box` — `maxHeight` excluded the dialog's own padding (+48px). |
+| Dialog overflow | Radix DialogContent is fixed-centered with no height contract. Tall content overflowed both viewport edges with no scrolling. On top of that: the fix's `maxHeight` initially *didn't bind*, because **Radix portals mount under `<body>`, outside `.seal-root`**, so the library's scoped mini-preflight (`:where(*) { box-sizing: border-box }`) never reaches portaled nodes and the shadcn template defaults back to UA `content-box` — `maxHeight` excluded the dialog's own padding (+48px). |
 
 ### Fix
 
@@ -391,10 +391,10 @@ Two independent migration-era defects:
   (Tooltip.Root, etc.) between the Slot and the Button silently eats
   handlers. Library shims should guarantee a DOM element themselves
   (that's what F1/F2 do) instead of trusting call sites.
-- **Portaled nodes live outside `.grl-root`.** All library styling that the
+- **Portaled nodes live outside `.seal-root`.** All library styling that the
   scoped preflight normally provides (box-sizing first) must be re-declared
   explicitly inside portaled primitives — or portals must target a
-  container carrying `.grl-root` (roadmap §P3 makes this systemic).
+  container carrying `.seal-root` (roadmap §P3 makes this systemic).
 - **Dialog needs a height contract, not page scroll.** Fixed-centered
   overlays clip both ends simultaneously; cap them and scroll the body.
 - **Isolation ladder saves hours:** default-trigger works vs custom-trigger

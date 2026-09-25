@@ -31,7 +31,7 @@ corepack pnpm@10 --filter @republicroad/seal-editor test:storybook
 
 ### `.storybook/preview.tsx`
 
-全局装饰器实现了**规范宿主形态**:`.grl-root` 包裹 `JdmConfigProvider`,再包裹 story。这意味着:
+全局装饰器实现了**规范宿主形态**:`.seal-root` 包裹 `JdmConfigProvider`,再包裹 story。这意味着:
 
 - 每个 story 走的是**作用域注入路径**(P3)——变量以内联属性设置在岛容器上,`data-mode` 也挂在那里。
 - 所有 Radix portal 挂载在岛**内部**(经 `GrlContainerProvider`)。
@@ -106,11 +106,11 @@ pnpm --filter @republicroad/seal-editor test:storybook
 
 百分比高度链(`height: 100%`)在 Storybook iframe 内部会静默失效,除非每个祖先都有显式高度。装饰器固定了 `#storybook-root { height: 100% }`,StressTest story 使用 `90vh`。完整调查:[`storybook-height-chain.md`](./archive/research/storybook-height-chain.md)。
 
-## 作用域注入(.grl-root)在 Stories 中的表现
+## 作用域注入(.seal-root)在 Stories 中的表现
 
-装饰器的 `.grl-root` 包裹使每个 story 走**作用域注入路径**(P3):`--grl-*` 变量以内联属性设置在岛容器上,`data-mode` 挂在那里,Radix portal 经 `GrlContainerProvider` 定位到岛内。
+装饰器的 `.seal-root` 包裹使每个 story 走**作用域注入路径**(P3):`--grl-*` 变量以内联属性设置在岛容器上,`data-mode` 挂在那里,Radix portal 经 `GrlContainerProvider` 定位到岛内。
 
-**多岛测试**:要验证岛隔离,在 story 内渲染自己的 `.grl-root` + `JdmConfigProvider`(`Isolation` story 即是)。最内层 `.grl-root` 在作用域解析中获胜。**不要在没有自己的 `.grl-root` 包裹的情况下嵌套 Provider**——那样内层 Provider 会把外层岛解析为容器。
+**多岛测试**:要验证岛隔离,在 story 内渲染自己的 `.seal-root` + `JdmConfigProvider`(`Isolation` story 即是)。最内层 `.seal-root` 在作用域解析中获胜。**不要在没有自己的 `.seal-root` 包裹的情况下嵌套 Provider**——那样内层 Provider 会把外层岛解析为容器。
 
 ## 暗色模式
 

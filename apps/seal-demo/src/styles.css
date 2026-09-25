@@ -1,0 +1,56 @@
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+.seal-demo {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    'PingFang SC',
+    'Microsoft YaHei',
+    sans-serif;
+}
+
+.seal-demo__bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--seal-color-border, #e2e8f0);
+  background: var(--seal-color-bg-container, #ffffff);
+  font-size: 12px;
+  flex: none;
+}
+
+.seal-demo__tab {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: inherit;
+  border-radius: 6px;
+  padding: 3px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.seal-demo__tab[data-active='true'] {
+  border-color: var(--seal-color-primary);
+  color: var(--seal-color-primary);
+}
+
+.seal-demo__hint {
+  color: var(--muted-foreground);
+  margin-left: auto;
+}
+
+.seal-demo__stage {
+  flex: 1;
+  min-height: 0;
+}

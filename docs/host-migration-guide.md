@@ -24,21 +24,21 @@
 
 | Change | Impact | Migration |
 |---|---|---|
-| Scoped injection (P3) | Variables resolve from the island, not `:root` | Ensure your app wraps content in `.grl-root` (already required for preflight). If you consume `var(--background)` etc. **outside** the island, see below |
-| Semantic bridge scoped | `var(--background)` etc. only resolve inside `.grl-root` | Wrap consumer content in `.grl-root`, or copy the bridge variables to your own `:root` |
+| Scoped injection (P3) | Variables resolve from the island, not `:root` | Ensure your app wraps content in `.seal-root` (already required for preflight). If you consume `var(--background)` etc. **outside** the island, see below |
+| Semantic bridge scoped | `var(--background)` etc. only resolve inside `.seal-root` | Wrap consumer content in `.seal-root`, or copy the bridge variables to your own `:root` |
 | Pooled display path (A2) | Lazy code editors use a read-only EditorView pool by default | Opt-out: `localStorage.gru-hl-view = '0'` (grayscale escape hatch) |
 | `--grl-primary-color(-bg)` removed | Duplicates of `--grl-color-primary(-bg)` | Use `--grl-color-primary(-bg)` |
 
 ## What's New
 
 - **One-click retheming**: `<JdmConfigProvider seeds={{ primary: '#7c3aed' }}>` derives both light and dark palettes
-- **Multi-island**: multiple `.grl-root` islands on one page, each independently themed
+- **Multi-island**: multiple `.seal-root` islands on one page, each independently themed
 - **Dark custom-variant isolation**: a light island won't be affected by a host page's dark scope
 - **Seeds Playground**: Storybook story for interactive palette visualisation
 
 ## `--grl-*` Variable Contract
 
-All `--grl-*` variables are injected inline on the `.grl-root` container. The
+All `--grl-*` variables are injected inline on the `.seal-root` container. The
 following are **contract-stable** (not changing in the 1.x lifecycle):
 
 All `--grl-color-*` palette tokens, `--grl-font-family`, `--grl-line-height`,
