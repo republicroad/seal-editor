@@ -33,7 +33,7 @@ English files are canonical; `.zh-CN.md` files are translations kept in sync.
 | [`features.md`](./features.md) / [`.zh-CN`](./features.zh-CN.md) | EN + 中文 | ✅ | 内核公开功能:DecisionGraph 六种内置节点、DecisionTable、表达式/函数编辑器、公共 API 速查 |
 | [`nl-expression-builder.md`](./nl-expression-builder.md) / [`.zh-CN`](./nl-expression-builder.zh-CN.md) | EN + 中文 | ✅ | 决策表"业务视图":fieldType schemas、字典、操作符→表达式规范形态、WASM 运行时契约 |
 | [`i18n.md`](./i18n.md) / [`.zh-CN`](./i18n.zh-CN.md) | EN + 中文 | ✅ | 国际化:Provider 接入、useT/createT、en+zh-CN 词条表(键奇偶由测试锁定)、回退链、插值 |
-| [`storybook.md`](./storybook.md) / [`.zh-CN`](./storybook.zh-CN.md) | EN + 中文 | ✅ | Storybook 指南:配置、装饰器、story 清单(68 stories / 13 files)、交互测试流水线、高度链 |
+| [`storybook.md`](./storybook.md) / [`.zh-CN`](./storybook.zh-CN.md) | EN + 中文 | ✅ | Storybook 指南:配置、装饰器、story 清单(72 stories / 14 files)、交互测试流水线、高度链 |
 | [`appshell.md`](./appshell.md) / [`.zh-CN`](./appshell.zh-CN.md) | EN + 中文 | ✅ | seal-appshell 参考消费者壳:自定义节点(四个)、registry 与协议、皮肤系统、持久化契约 |
 | [`host-migration-guide.md`](./host-migration-guide.md) / [`.zh-CN`](./host-migration-guide.zh-CN.md) | EN + 中文 | ✅ 历史注记 | 宿主从 `@gorules/jdm-editor` 迁移:快速切换、破坏性变更表、`--grl-*` 契约(0.x 时代叙述为历史记录) |
 
