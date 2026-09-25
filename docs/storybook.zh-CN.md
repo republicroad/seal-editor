@@ -46,7 +46,7 @@ corepack pnpm@10 --filter @republicroad/seal-editor test:storybook
 
 设置管理界面标签页标题为 "JDM Editor" 并挂 favicon。
 
-## Story 清单(72 stories / 14 文件)
+## Story 清单(73 stories / 14 文件(计数随特性滚动,以实际 Storybook 为准))
 
 | 文件 | Stories | 要点 |
 |---|---|---|

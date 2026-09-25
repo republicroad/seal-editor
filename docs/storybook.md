@@ -53,7 +53,7 @@ Sets `#root { padding: 20px }` for visual breathing room.
 
 Sets the manager tab title to "JDM Editor" and a favicon.
 
-## Story Inventory (72 stories / 14 files)
+## Story Inventory (73 stories / 14 files (counts drift with features — the live Storybook is authoritative))
 
 | File | Stories | Notable |
 |---|---|---|
