@@ -435,7 +435,11 @@ export const SwitchStatementNameLinkage: Story = {
 
     await waitFor(
       () => {
-        const chip = canvasElement.querySelector("[data-slot='edge-label-chip']");
+        const chip = canvasElement.querySelector<HTMLElement>("[data-slot='edge-label-chip']");
+        // textContent alone passes even when the chip sits unrendered in the SVG
+        // namespace (59227fd regression) — offsetParent !== null proves painting
+        expect(chip).not.toBeNull();
+        expect(chip!.offsetParent).not.toBeNull();
         expect(chip?.textContent).toBe('highRisk');
       },
       { timeout: 5_000 },
