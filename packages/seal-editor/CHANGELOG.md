@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.4.1](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.4.0...@republicroad/seal-editor@1.4.1) (2026-09-26)
+
+### Bug Fixes
+
+- **graph:** render branch label chip inside EdgeLabelRenderer (59227fd) ([eceaa56](https://github.com/republicroad/seal-editor/commit/eceaa56c0d438710af451c3c94bbc9823c92b817))
+- **schema:** declare switch statements[].name — zod was silently dropping case names ([72c83e7](https://github.com/republicroad/seal-editor/commit/72c83e73352dd508b68cec34c7116c5cc9e062da))
+- **theme:** decision-node --grl-color-* residue -> --seal-color-* (33d04be) ([7376cac](https://github.com/republicroad/seal-editor/commit/7376caccca5857aa7e22c2e41e4ad87c9685fe6c))
+
+### Features
+
+- **seal-demo:** npm-consumption validation app (S1-S3) ([de28219](https://github.com/republicroad/seal-editor/commit/de2821944efb532cc8dc2660e507f6541146c0cd))
+
 # [1.4.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.3.0...@republicroad/seal-editor@1.4.0) (2026-09-25)
 
 ### Features
