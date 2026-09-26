@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.4.2](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.4.1...@republicroad/seal-editor@1.4.2) (2026-09-26)
+
+### Bug Fixes
+
+- **schema:** declare edge name + parse-fidelity round-trip test ([290183a](https://github.com/republicroad/seal-editor/commit/290183a6ba14389966493667dc4df64554b61f35))
+
 ## [1.4.1](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.4.0...@republicroad/seal-editor@1.4.1) (2026-09-26)
 
 ### Bug Fixes
