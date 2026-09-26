@@ -66,8 +66,11 @@
   在消费形态下可见可用；执行链实测：simulator Run → demo-server /v1/execute →
   zen-udf → 4 节点 run strip 回灌。**消费验证首日即抓到集成漂移**：容器类已品牌化
   为 `.seal-root` 而全部消费文档仍写 `.grl-root`——demo 修复 + 10 篇文档 +
-  storybook 装饰器一并纠正。S4（HTTP+裸 IP 部署形态的 ADR-007 回归）待部署窗口。
-- **theme token 收尾**：`--seal-color-*` 非 bridged 键（bg-container/field tokens/chrome statics）文档化
+  storybook 装饰器一并纠正。✅ **S4 亦已完成（2026-09-25，就地执行）**：LAN IP 的
+  HTTP 即非安全上下文（Chromium 仅豁免 localhost）——ADR-007 第 4 项以硬证据闭环
+  （详见 ADR-007 实施清单）。
+- **theme token 收尾**：✅ 2026-09-25 已交付——[`docs/theme-tokens.md`](../theme-tokens.md)
+  （bridged 10 / 非 bridged 32 键分组 + 注入链路）
 
 ## 3. verdict 侧联动（跨仓，由 verdict 会话承接）
 
@@ -81,9 +84,15 @@
 
 ## 4. 长期（远期裁决已定，届时展开设计）
 
+> **北极星（宿主 2026-09-25）**：编辑器核心当前服务于决策流；**长期目标是 seal-editor
+> 同时支持决策流与工作流**（工作流 = 节点暂停并继续执行——zen-engine 现不支持图中
+> 暂停/恢复，届时需引擎层扩展或绑定层方案）。P2/P3 是该愿景的组成部分；
+> 目前以决策流为核心，细节规划冻结。
+
 - P2 durable 任务：act 类异步副作用的 journal 待执行队列投影（地基：act 语义 + decisionId 幂等已备）
-  ——✅ 设计稿已展开（2026-09-25）：[p2-durable-act-queue.md](./p2-durable-act-queue.md)（intent/effect
-  两阶段 + 端口 + 故障矩阵 + 决策点 D21–D25 待宿主裁决；裁决后按切片 P2.1–P2.5 实施）
+  ——🧜 规划冻结（2026-09-25）：durable 的可行形态 = 自定义节点自行维持全局状态用于判断
+  （引擎无暂停/恢复）；候选队列方案稿见 [p2-durable-act-queue.md](./p2-durable-act-queue.md) §2–§7，
+  工作流模式启动时重估
 - P3 双模式：LLM 审批流（同内核，自定义节点目录与画布按模式隔离；
   前置约束 = 引擎无中途暂停，两路径决策点见 jdm-editor 路线图）
 

@@ -68,7 +68,7 @@ English files are canonical; `.zh-CN.md` files are translations kept in sync.
 | [`design/zen-udf-multi-tenant.md`](./design/zen-udf-multi-tenant.md) | ✅ | zen-udf 多租户权威设计:L0–L3 分层、缓存键、失效广播契约 |
 | [`design/zen-udf-context-propagation.md`](./design/zen-udf-context-propagation.md) | ✅ | ExecContext 跨 TSFN 边界:已 shipped 现状 + 原生传播上游提案 |
 | [`design/zen-udf-sync-counting.md`](./design/zen-udf-sync-counting.md) | ✅ | 同步硬实时计数调研:一致性三档、HAProxy stick table、存储选型 |
-| [`design/p2-durable-act-queue.md`](./design/p2-durable-act-queue.md) | 🔵 设计中 | P2 durable act 队列:intent/effect 两阶段、DurableActQueue 端口、故障矩阵与对账、开放决策点 D21–D25 |
+| [`design/p2-durable-act-queue.md`](./design/p2-durable-act-queue.md) | 🧜 冻结 | P2 durable 愿景记录:引擎无暂停/恢复约束下 durable=自定义节点全局状态;决策流+工作流双模式北极星;候选队列方案 §2–§7 冻结待工作流时代重估 |
 | [`design/code-block.md`](./design/code-block.md) | ✅ 待消费 | reui code-block(Shiki)设计:已安装未消费,首次集成留给 verdict dashboard |
 | [`design/upstream-contribution-plan.md`](./design/upstream-contribution-plan.md) | ✅ | 上游贡献治理裁决:贡献线由宿主手动执行,本仓不回馈上游 |
 
