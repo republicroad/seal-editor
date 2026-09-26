@@ -161,8 +161,8 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
         {actions.length > 0 && (
           <div
             className={clsx(
-              'nodrag bg-[var(--grl-color-primary-bg-fade)] overflow-hidden',
-              'rounded-b-[var(--node-border-radius)] border-t border-t-[var(--grl-color-border-fade)]',
+              'nodrag bg-[var(--seal-color-primary-bg-fade)] overflow-hidden',
+              'rounded-b-[var(--node-border-radius)] border-t border-t-[var(--seal-color-border-fade)]',
             )}
           >
             <div className='flex [&_button]:py-0.5 [&_button]:px-2 [&_button]:text-xs [&_button]:h-auto [&_button]:rounded-none [&_button]:text-[var(--muted-foreground)]'>
@@ -173,7 +173,7 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
         {(trace || traceError) && (
           <div
             data-slot='node-run-strip'
-            className='nodrag flex items-center justify-between gap-2 px-2 py-0.5 text-[10px] font-medium border-t border-t-[var(--grl-color-border-fade)] bg-[var(--grl-color-primary-bg-fade)] text-[var(--muted-foreground)]'
+            className='nodrag flex items-center justify-between gap-2 px-2 py-0.5 text-[10px] font-medium border-t border-t-[var(--seal-color-border-fade)] bg-[var(--seal-color-primary-bg-fade)] text-[var(--muted-foreground)]'
           >
             <span>TRACE</span>
             <span className='flex min-w-0 items-center gap-1.5'>
