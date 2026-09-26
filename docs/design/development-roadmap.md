@@ -203,7 +203,8 @@ Alibaba Cloud 兼容成熟度与排障资料密度是决定因素）。服务拆
 | N4：ReUI `/r/base/` 发布跟踪（flow 块重装 + 撤翻译层） | 上游发布即触发；当前以本地试点件规避 |
 | **N5：ip2region xdb 接入 → 转移到 verdict 实现**（宿主裁决 2026-09-17：实现需要持续更新 IP 库文件，不适合作为 zen-udf 的依赖——机制/数据分界同 D1/velocity 裁决）。实测链接：`raw.githubusercontent.com/lionsoul2014/ip2region/master/data/ip2region_v4.xdb` 与 `_v6.xdb`（上游 Action 自动更新；旧 `ip2region.xdb` 路径已 404）。verdict 侧实现要点：xdb 文件管道 + 全量缓存（~15MB 换微秒查询）+ 查询 API；海外可叠 geoip-lite。zen-udf 侧 ip-location 域保持现状或仅暴露注入式查询口 | verdict 侧窗口 |
 | xyflow handle 样式（5 处 !important） | xyflow 升级窗口 |
-| HK-09 Excel wizard | 组件重构窗口 |
+| HK-09 Excel wizard | ✅ 2026-09-26 已完成（WS2-B1/B2/B3 自 jdm-editor reui 线移植）：v9 统一 + data-grid 13 文件 vendored + Excel 对话框改造 + 只读预览 |
+| dt 核心 data-grid 换装 | ✅ 2026-09-26 已完成（f9a1b19e..0ebc46b3 四提交移植，[决策记录](./dt-datagrid-retrofit-plan.md)）：dt 表实例喂 vendored grid 渲染（全量 dataGridFeatures + getRowClassName/getCellClassName 扩展）、字段级 diff tint/精确滚动/表头吸顶、行拖拽走 grid 原生 DndRows；Phase 3 退役手搓 chrome（table-row/table-head-row 删除、dt.tsx DndContext 退役），index.js -4.9kB；cursor/commitData 编辑契约与 localStorage 列宽键不动
 
 ## 排序建议
 
