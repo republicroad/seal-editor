@@ -6,6 +6,19 @@
 > chunks. Regenerate after significant feature work; do not commit
 > `bundle-stats.json`.
 
+> **Snapshot addendum (2026-09-25, post-R6/R7/R4):** current minified entry is
+> `index.js` **663.7 kB raw / 162.6 kB gzip** (budget 679/168) — the jump from
+> the 2026-09-08 table below reflects the WS1 slices landing in the entry
+> (ReUI node cards, hover toolbar, edge "+" insert, branch chips, docked
+> inspector, R7 run strip, R4 statement names, i18n growth). Key composition
+> facts unchanged or new: Monaco and react stay external; **dagre is NOT in
+> the bundle** — it remains a regular dependency kept external, and
+> `dist/index.js` preserves the bare `import("@dagrejs/dagre")` so host
+> bundlers emit their own lazy chunk (roadmap §1.1); the lazy `function-*.js`
+> split still applies; the 44 `crypto.randomUUID` call sites ride in the
+> entry behind the ADR-007 head guard. The composition table below is the
+> 2026-09-08 snapshot and stays as the historical baseline.
+
 ## Composition (measured 2026-09-08, Vite 8 / Rolldown)
 
 Rendered total: **827.6 kB** across chunks → minified on disk: `index.js`

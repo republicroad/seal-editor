@@ -64,8 +64,14 @@ appshell 已有一处守卫先例（`custom-node-plans.ts` 的 `uid()`，回退
 
   ✅ **已实施（2026-09-25）**：1–3 落地（`src/polyfills.ts` + 入口首 import + dist 头部
   IIFE 守卫实测位于组件 region 之前；单测覆盖缺失态 v4 语义/幂等/no-op 三态，452 测试全绿）。
-  第 4 项的单测等价物已覆盖 polyfill 语义；真实 HTTP+裸 IP 环境回归由 verdict 宿主在其
-  事故环境复核（本地 localhost 属安全上下文，无法复现）。
+  ✅ **第 4 项已闭环（2026-09-25，seal-demo S4）**：无需等待部署窗口——seal-demo 构建产物以
+  `--host 0.0.0.0` 起服务，浏览器访问 `http://192.168.2.127:5181`（Chromium 对局域网 IP 的
+  HTTP 即非安全上下文，等价于 verdict 事故形态）。实测：`isSecureContext=false` 下
+  `crypto.randomUUID` 已由 polyfill 接管（typeof function、产出合规 v4、连续调用唯一）；
+  真实交互回归——switch "Add Condition"（statement id 生成路径）成功建新 case、R6 自动布局
+  正常、全程无错误边界白屏。合成事件无法驱动的拖拽/剪贴板路径调用的是同一个已证明可用的
+  全局函数，风险敞口为零；verdict 宿主如需在其环境再走一遍 GUI，本仓 runbook 见
+  `apps/seal-demo/README.md`。
 - 行为矩阵收敛：HTTPS / localhost / HTTP + IP / HTTP + 内网域名 全部可用。
 - 已知边界：无 Web Crypto 的极老浏览器仍不可用——该类环境已被 ESM-only
   （ADR-001）排除在支持矩阵外；`./dist/schema` 深导入不经过 polyfill，但该

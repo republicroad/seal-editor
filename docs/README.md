@@ -43,6 +43,7 @@ English files are canonical; `.zh-CN.md` files are translations kept in sync.
 |---|---|---|---|
 | [`architecture.md`](./architecture.md) / [`.zh-CN`](./architecture.zh-CN.md) | EN + 中文 | ✅ | 系统架构:monorepo 布局(三包两应用)、包依赖、状态流、编辑器基础设施、主题系统、CI |
 | [`editor-engines.md`](./editor-engines.md) / [`.zh-CN`](./editor-engines.zh-CN.md) | EN + 中文 | ✅ | CodeMirror 6 vs Monaco:场景矩阵、四个决定性选型维度、共享 token 主题契约 |
+| [`theme-tokens.md`](./theme-tokens.md) | EN | ✅ | `--seal-color-*` 全集参考:注入链路、bridged(10,shadcn 语义层消费)与非 bridged(32,kernel 内部可覆写)分组 |
 | [`styling-scss-vs-tailwind.md`](./styling-scss-vs-tailwind.md) / [`.zh-CN`](./styling-scss-vs-tailwind.zh-CN.md) | EN + 中文 | ✅ 历史注记 | SCSS→Tailwind 迁移决策记录(迁移已完成,SCSS 层与 sass 依赖已移除) |
 | [`bundle-analysis.md`](./bundle-analysis.md) | EN | ✅ 历史注记 | index.js 产物构成、Monaco peer 化依赖模型、拆包决策(2026-09-08 快照,可重生成) |
 | [`pnpm-workspace-linking.md`](./pnpm-workspace-linking.md) / [`.zh-CN`](./pnpm-workspace-linking.zh-CN.md) | EN + 中文 | ✅ | pnpm workspace 链接机制:symlink 与 peer-variant 克隆、硬链接冻结循环、取证命令 |
@@ -67,6 +68,7 @@ English files are canonical; `.zh-CN.md` files are translations kept in sync.
 | [`design/zen-udf-multi-tenant.md`](./design/zen-udf-multi-tenant.md) | ✅ | zen-udf 多租户权威设计:L0–L3 分层、缓存键、失效广播契约 |
 | [`design/zen-udf-context-propagation.md`](./design/zen-udf-context-propagation.md) | ✅ | ExecContext 跨 TSFN 边界:已 shipped 现状 + 原生传播上游提案 |
 | [`design/zen-udf-sync-counting.md`](./design/zen-udf-sync-counting.md) | ✅ | 同步硬实时计数调研:一致性三档、HAProxy stick table、存储选型 |
+| [`design/p2-durable-act-queue.md`](./design/p2-durable-act-queue.md) | 🔵 设计中 | P2 durable act 队列:intent/effect 两阶段、DurableActQueue 端口、故障矩阵与对账、开放决策点 D21–D25 |
 | [`design/code-block.md`](./design/code-block.md) | ✅ 待消费 | reui code-block(Shiki)设计:已安装未消费,首次集成留给 verdict dashboard |
 | [`design/upstream-contribution-plan.md`](./design/upstream-contribution-plan.md) | ✅ | 上游贡献治理裁决:贡献线由宿主手动执行,本仓不回馈上游 |
 

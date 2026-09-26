@@ -82,6 +82,8 @@
 ## 4. 长期（远期裁决已定，届时展开设计）
 
 - P2 durable 任务：act 类异步副作用的 journal 待执行队列投影（地基：act 语义 + decisionId 幂等已备）
+  ——✅ 设计稿已展开（2026-09-25）：[p2-durable-act-queue.md](./p2-durable-act-queue.md)（intent/effect
+  两阶段 + 端口 + 故障矩阵 + 决策点 D21–D25 待宿主裁决；裁决后按切片 P2.1–P2.5 实施）
 - P3 双模式：LLM 审批流（同内核，自定义节点目录与画布按模式隔离；
   前置约束 = 引擎无中途暂停，两路径决策点见 jdm-editor 路线图）
 
