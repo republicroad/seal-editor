@@ -48,6 +48,12 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # lerna scope is packages/* only (lerna.json) — the demo apps are
+      # registry-pinned consumers and must stay outside the version loop,
+      # but their builds still gate on CI explicitly
+      - name: Build demo apps
+        run: pnpm -r --filter "./apps/**" run build
+
       - name: Test
         run: pnpm test
 
