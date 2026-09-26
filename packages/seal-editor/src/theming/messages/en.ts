@@ -114,6 +114,7 @@ export const en = {
   'dg.excel.enterFieldName': 'Enter field name',
   'dg.condition.removeConfirm': 'Remove condition?',
   'dg.condition.namePlaceholder': 'Path name',
+  'dt.toolbar.rowRemoved': 'Row removed',
 
   // ── expression ──
   'expression.placeholder': 'Expression',
@@ -222,6 +223,7 @@ export const en = {
 
   // ── misc ──
   'common.clear': 'Clear',
+  'common.undo': 'Undo',
   'misc.delete': 'Delete',
 } as const;
 

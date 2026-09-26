@@ -104,6 +104,7 @@ export const zhCN: Record<string, string> = {
   'dg.excel.enterFieldName': '输入字段名',
   'dg.condition.removeConfirm': '移除此条件？',
   'dg.condition.namePlaceholder': '路径名',
+  'dt.toolbar.rowRemoved': '已删除该行',
 
   'expression.placeholder': '表达式',
   'expression.key': '键名',
@@ -206,5 +207,6 @@ export const zhCN: Record<string, string> = {
   'simulator.learnMore': '了解更多',
 
   'common.clear': '清空',
+  'common.undo': '撤销',
   'misc.delete': '删除',
 };
