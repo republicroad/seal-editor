@@ -50,8 +50,9 @@ appshell 已有一处守卫先例（`custom-node-plans.ts` 的 `uid()`，回退
    `randomUUID` 且可能早于库加载时才需要；接入文档以建议而非要求表述。
 5. appshell `uid()` 既有守卫**保留**（防御纵深无害），其 Math.random 回退
    不作为推荐模式对外推广。
-6. verdict 宿主已落地的 head 内联 polyfill **保留不动**：与库内 polyfill
-   幂等共存，构成纵深防御。
+6. verdict 宿主的 head 内联 polyfill 已在库内 polyfill 上线（1.4.0）后
+   **移除**（2026-09-26）：浏览器侧唯一调用方是库，双层注入徒增一份 MDN 片段
+   维护负担。恢复条件：宿主自身浏览器代码需调用 randomUUID 且可能早于库加载。
 
 ## 后果
 
