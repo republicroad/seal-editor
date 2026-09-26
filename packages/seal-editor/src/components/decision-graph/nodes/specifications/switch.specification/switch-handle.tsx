@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import React, { useLayoutEffect, useState } from 'react';
 
 import { useT } from '../../../../../theming/i18n';
-import { Button, Popconfirm } from '../../../../primitives';
+import { Button } from '../../../../primitives';
 import { DiffCodeEditor } from '../../../../shared/diff-ce';
 import type { DiffMetadata } from '../../../dg-types';
 
@@ -71,6 +71,7 @@ export const SwitchHandle: React.FC<{
   return (
     <div
       className={clsx(
+        'group/con',
         isActive && 'bg-[var(--seal-color-success-bg)]',
         diff?.status === 'added' && 'bg-[var(--seal-color-success-bg)]',
         diff?.status === 'modified' && 'bg-[var(--seal-color-warning-bg)]',
@@ -134,18 +135,13 @@ export const SwitchHandle: React.FC<{
           />
         )}
         {!disabled && configurable && (
-          <Popconfirm
-            title={t('dg.condition.removeConfirm')}
-            okText={t('common.remove')}
-            onConfirm={() => onDelete?.()}
-          >
-            <Button
-              className='text-[var(--seal-color-text-disabled)]'
-              size='small'
-              type='text'
-              icon={<DeleteOutlined />}
-            />
-          </Popconfirm>
+          <Button
+            className='text-[var(--seal-color-text-disabled)] opacity-0 transition-opacity group-hover/con:opacity-100'
+            size='small'
+            type='text'
+            icon={<DeleteOutlined />}
+            onClick={() => onDelete?.()}
+          />
         )}
         <Handle
           id={id}
@@ -217,6 +213,7 @@ export const SwitchHandleCompact: React.FC<{
   return (
     <div
       className={clsx(
+        'group/con',
         isActive && 'bg-[var(--seal-color-success-bg)]',
         diff?.status === 'added' && 'bg-[var(--seal-color-success-bg)]',
         diff?.status === 'modified' && 'bg-[var(--seal-color-warning-bg)]',
@@ -256,18 +253,13 @@ export const SwitchHandleCompact: React.FC<{
       )}
       {!disabled && configurable && (
         <div className='absolute right-3.5 top-2.5'>
-          <Popconfirm
-            title={t('dg.condition.removeConfirm')}
-            okText={t('common.remove')}
-            onConfirm={() => onDelete?.()}
-          >
-            <Button
-              className='text-[var(--seal-color-text-disabled)]'
-              size='small'
-              type='text'
-              icon={<DeleteOutlined />}
-            />
-          </Popconfirm>
+          <Button
+            className='text-[var(--seal-color-text-disabled)] opacity-0 transition-opacity group-hover/con:opacity-100'
+            size='small'
+            type='text'
+            icon={<DeleteOutlined />}
+            onClick={() => onDelete?.()}
+          />
         </div>
       )}
       <Handle

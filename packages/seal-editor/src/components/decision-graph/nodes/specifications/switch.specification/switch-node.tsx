@@ -27,10 +27,10 @@ export const SwitchNode: React.FC<
         .with({ result: P._ }, ({ result }) => result?.trace?.[id] as SimulationTrace<SimulationTraceDataSwitch>)
         .otherwise(() => null),
       content: (decisionGraph?.nodes || []).find((n) => n?.id === id)?.content as NodeSwitchData | undefined,
+      edges: decisionGraph?.edges,
       disabled,
       compactMode,
       isGraphActive: activeTab === 'graph',
-      edges: decisionGraph?.edges,
     }),
   );
 
@@ -163,7 +163,6 @@ export const SwitchNode: React.FC<
               disabled={disabled}
               hitPolicy={hitPolicy}
               variableType={nodeType}
-              onNameChange={(name) => changeStatementName(statement.id, name)}
               onSetIsDefault={(val) => {
                 graphActions.updateNode(id, (draft) => {
                   const draftStatement = draft.content.statements.find((s: SwitchStatement) => {
@@ -212,6 +211,7 @@ export const SwitchNode: React.FC<
                   return draft;
                 });
               }}
+              onNameChange={(name) => changeStatementName(statement.id, name)}
             />
           ))}
         </div>
