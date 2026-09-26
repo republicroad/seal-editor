@@ -205,7 +205,7 @@ Alibaba Cloud 兼容成熟度与排障资料密度是决定因素）。服务拆
 | 项 | 触发/窗口 |
 | --- | --- |
 | CM phase-2b（删 PARITY 块 + 旧高亮器，烧 ~6 处 !important，下调 style-debt 常量） | v1.0 发布后第一个清债窗口（池化默认态浸泡一周期） |
-| N4：ReUI flow 块重装（✅ 上游已发布 base-nova，runbook 见 WS1 上游阻塞节） | 待宿主本地执行一次认证安装 + 试点件对照 |
+| N4：ReUI flow 块重装 | ⚠️ 认证试装已执行（67 文件落地成功）但发现**栈级错配**：上游 flow 块已迁 radix-ui + 新 shadcn 原语栈（field/item/kbd/button-group），与 seal Base UI 底座产生 ~150 处类型错配（全部集中于块文件，其余页面零影响）。完整快照：[flow-blocks-base-nova.patch](./upstream/flow-blocks-base-nova.patch)。两案待宿主裁决：(a) radix 岛隔离（上游 verbatim + 第二原语栈）(b) Base UI 适配（~150 处机械翻译，随上游刷新反复） |
 | **N5：ip2region xdb 接入 → 转移到 verdict 实现**（宿主裁决 2026-09-17：实现需要持续更新 IP 库文件，不适合作为 zen-udf 的依赖——机制/数据分界同 D1/velocity 裁决）。实测链接：`raw.githubusercontent.com/lionsoul2014/ip2region/master/data/ip2region_v4.xdb` 与 `_v6.xdb`（上游 Action 自动更新；旧 `ip2region.xdb` 路径已 404）。verdict 侧实现要点：xdb 文件管道 + 全量缓存（~15MB 换微秒查询）+ 查询 API；海外可叠 geoip-lite。zen-udf 侧 ip-location 域保持现状或仅暴露注入式查询口 | verdict 侧窗口 |
 | xyflow handle 样式（5 处 !important） | xyflow 升级窗口 |
 | HK-09 Excel wizard | ✅ 2026-09-26 已完成（WS2-B1/B2/B3 自 jdm-editor reui 线移植）：v9 统一 + data-grid 13 文件 vendored + Excel 对话框改造 + 只读预览 |
