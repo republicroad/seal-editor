@@ -136,8 +136,13 @@ flow-1/flow-3/flow-2 试点件与 [reui-flow-pilot.md](../archive/plans/reui-flo
 门禁（每片通用）：kernel tsc + 447 测试 + build + size 预算；涉及画布交互的切片加
 storybook 交互用例。
 
-上游阻塞：`/r/base/` 注册路径整条 404（2026-09-17 实测，预览页存在但 registry 项未
-发布）——flow 块重装待上游发布（并入 N4 跟踪）；当前以本地试点件 + 模式移植规避。
+上游阻塞（已解除 2026-09-27）：`/r/base/` 404 → 上游迁 `/r/base-nova/` 且 flow-1/2/3 已
+发布（pro 计划，REUI_LICENSE_KEY 可装）；playground components.json 已指向 base-nova。
+**重装 runbook（待宿主执行，需本地导出 key）**：
+`REUI_LICENSE_KEY=<key> npx shadcn@latest add @reui/flow-1 @reui/flow-2 @reui/flow-3 --overwrite --cwd apps/playground`
+→ 覆盖/对照 `src/components/blocks/flow-*` 试点件 → 与 kernel WS1 实现做偏差报告。
+另见 [`upstream/reui-data-grid-extensions-upstream.md`](./upstream/reui-data-grid-extensions-upstream.md)
+（getRowClassName/getCellClassName 反哺包，随重装一并提交上游）。
 
 ## WS2 · zen-udf 场景节点（P1 → P2 → P3）
 
@@ -149,7 +154,7 @@ storybook 交互用例。
     测试）、**`template`**（mustache 子集栈式解析 + DoS 三上限，84b65e78）
   - ⬜ **velocity：转移到 saas 平台实现**（宿主裁决 2026-09-17）——对照本仓
     `contrib/rate-window.ts` 的 RateStore 接口细节在 saas/verdict 侧落地，
-    **稳定后再开源**回流；本仓不实现
+    **稳定后再开源**回流；本仓不实现（规划文档：[velocity-udf-plan.md](./velocity-udf-plan.md)）
   - P1 全部落地后发 `zen-udf@0.6.0`（本仓五域：ab/geo/validate/template/dt）
 - P2：durable 任务（act 类异步副作用；journal 待执行队列投影）。
 - P3：LLM 审批流双模式（同内核，节点目录与画布隔离；前置约束 = 引擎无中途暂停，
@@ -200,7 +205,7 @@ Alibaba Cloud 兼容成熟度与排障资料密度是决定因素）。服务拆
 | 项 | 触发/窗口 |
 | --- | --- |
 | CM phase-2b（删 PARITY 块 + 旧高亮器，烧 ~6 处 !important，下调 style-debt 常量） | v1.0 发布后第一个清债窗口（池化默认态浸泡一周期） |
-| N4：ReUI `/r/base/` 发布跟踪（flow 块重装 + 撤翻译层） | 上游发布即触发；当前以本地试点件规避 |
+| N4：ReUI flow 块重装（✅ 上游已发布 base-nova，runbook 见 WS1 上游阻塞节） | 待宿主本地执行一次认证安装 + 试点件对照 |
 | **N5：ip2region xdb 接入 → 转移到 verdict 实现**（宿主裁决 2026-09-17：实现需要持续更新 IP 库文件，不适合作为 zen-udf 的依赖——机制/数据分界同 D1/velocity 裁决）。实测链接：`raw.githubusercontent.com/lionsoul2014/ip2region/master/data/ip2region_v4.xdb` 与 `_v6.xdb`（上游 Action 自动更新；旧 `ip2region.xdb` 路径已 404）。verdict 侧实现要点：xdb 文件管道 + 全量缓存（~15MB 换微秒查询）+ 查询 API；海外可叠 geoip-lite。zen-udf 侧 ip-location 域保持现状或仅暴露注入式查询口 | verdict 侧窗口 |
 | xyflow handle 样式（5 处 !important） | xyflow 升级窗口 |
 | HK-09 Excel wizard | ✅ 2026-09-26 已完成（WS2-B1/B2/B3 自 jdm-editor reui 线移植）：v9 统一 + data-grid 13 文件 vendored + Excel 对话框改造 + 只读预览 |

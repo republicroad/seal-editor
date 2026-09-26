@@ -20,7 +20,7 @@
   "iconLibrary": "lucide",
   "registries": {
     "@reui": {
-      "url": "https://reui.io/r/{style}/{name}.json",
+      "url": "https://reui.io/r/base-nova/{name}.json",
       "headers": {
         "Authorization": "Bearer ${REUI_LICENSE_KEY}"
       }
