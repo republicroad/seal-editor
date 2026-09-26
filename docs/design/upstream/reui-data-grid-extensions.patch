@@ -1,0 +1,56 @@
+diff --git a/packages/jdm-editor/src/reui/data-grid/data-grid-table.tsx b/packages/jdm-editor/src/reui/data-grid/data-grid-table.tsx
+index bfc7d285..0ff93e4d 100644
+--- a/packages/jdm-editor/src/reui/data-grid/data-grid-table.tsx
++++ b/packages/jdm-editor/src/reui/data-grid/data-grid-table.tsx
+@@ -1351,6 +1351,7 @@ function DataGridTableBodyRow<TData extends object>({
+   const { props, table } = useDataGrid();
+   const isRowPinned = row.getIsPinned();
+   const rowStatus = props.getRowStatus?.(row.original);
++  const rowClassName = props.getRowClassName?.(row.original, dataIndex);
+ 
+   const bodyRowBottomBorderClasses = '[&:not(:last-child)>td]:border-b';
+ 
+@@ -1396,6 +1397,7 @@ function DataGridTableBodyRow<TData extends object>({
+         rowStatus === 'new' && props.tableClassNames?.rowNew,
+         rowStatus === 'dirty' && props.tableClassNames?.rowDirty,
+         rowStatus === 'deleted' && props.tableClassNames?.rowDeleted,
++        rowClassName,
+         !props.tableLayout?.stripped && props.tableLayout?.rowBorder && bodyRowBottomBorderClasses,
+         props.tableLayout?.cellBorder && `*:last:border-e-0 ${bodyRowBottomBorderClasses}`,
+         // Virtualized rows stripe by absolute row index (CSS :nth-child
+@@ -1555,6 +1557,7 @@ function DataGridTableBodyRowCell<TData extends object>({
+         // The classic edited-cell corner mark, active only when
+         // getCellStatus is wired: amber for "dirty", destructive for
+         // "invalid".
++        props.getCellClassName?.(row.original, column.id, row.index),
+         props.getCellStatus &&
+           "data-[cell-status=invalid]:after:border-t-destructive data-[cell-status]:relative data-[cell-status]:after:absolute data-[cell-status]:after:end-0 data-[cell-status]:after:top-0 data-[cell-status]:after:size-0 data-[cell-status]:after:border-s-[5px] data-[cell-status]:after:border-t-[5px] data-[cell-status]:after:border-s-transparent data-[cell-status]:after:content-[''] data-[cell-status=dirty]:after:border-t-amber-500",
+         props.tableLayout?.cellBorder && 'border-e',
+diff --git a/packages/jdm-editor/src/reui/data-grid/data-grid.tsx b/packages/jdm-editor/src/reui/data-grid/data-grid.tsx
+index fa17acc7..1a58ee8d 100644
+--- a/packages/jdm-editor/src/reui/data-grid/data-grid.tsx
++++ b/packages/jdm-editor/src/reui/data-grid/data-grid.tsx
+@@ -709,11 +709,23 @@ export interface DataGridProps<TFeatures extends TableFeatures, TData extends ob
+    * omit the prop entirely to render none anywhere.
+    */
+   getRowStatus?: (row: TData) => DataGridRowStatus | undefined;
++  /**
++   * Optional per-row class names for stateful row tints the status slots do
++   * not cover (transient highlight, active simulation row, …). Concatenated
++   * into the body row's className on every render.
++   */
++  getRowClassName?: (row: TData, dataIndex: number | undefined) => string | undefined;
+   /**
+    * Optional CRUD indication per cell: the classic corner mark on cells the
+    * consumer tracks as edited or invalid.
+    */
+   getCellStatus?: (row: TData, columnId: string) => DataGridCellStatus | undefined;
++  /**
++   * Optional per-cell class names for stateful tints/outlines the status
++   * corner-mark slot does not cover (field-level diff coloring, transient
++   * cursor highlight, …). Concatenated into the body cell's className.
++   */
++  getCellClassName?: (row: TData, columnId: string, rowIndex: number | undefined) => string | undefined;
+   isLoading?: boolean;
+   /**
+    * Overrides for every built-in string: menu items, aria labels,
