@@ -10,8 +10,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@republicroad/seal-appshell": "1.4.1",
-    "@republicroad/seal-editor": "1.4.1",
+    "@republicroad/seal-appshell": "1.4.2",
+    "@republicroad/seal-editor": "1.4.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

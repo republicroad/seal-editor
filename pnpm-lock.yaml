@@ -234,11 +234,11 @@ importers:
   apps/seal-demo:
     dependencies:
       '@republicroad/seal-appshell':
-        specifier: 1.4.1
-        version: 1.4.1(@opentelemetry/api@1.9.1)(@republicroad/seal-editor@1.4.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(@types/react-dom@19.1.2(@types/react@19.3.0))(@types/react@19.3.0)(ajv@8.20.0)(joi@18.2.9)(monaco-editor@0.52.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.7.0(react@19.2.8))(valibot@1.2.0(typescript@5.9.3)))(@types/react@19.3.0)(immer@10.1.1)(monaco-editor@0.52.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.7.0(react@19.2.8))(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@22.20.4)(jsdom@30.1.1(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@22.20.4)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)))
+        specifier: 1.4.2
+        version: 1.4.2(@opentelemetry/api@1.9.1)(@republicroad/seal-editor@1.4.2(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(@types/react-dom@19.1.2(@types/react@19.3.0))(@types/react@19.3.0)(ajv@8.20.0)(joi@18.2.9)(monaco-editor@0.52.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.7.0(react@19.2.8))(valibot@1.2.0(typescript@5.9.3)))(@types/react@19.3.0)(immer@10.1.1)(monaco-editor@0.52.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.7.0(react@19.2.8))(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@22.20.4)(jsdom@30.1.1(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@22.20.4)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)))
       '@republicroad/seal-editor':
-        specifier: 1.4.1
-        version: 1.4.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(@types/react-dom@19.1.2(@types/react@19.3.0))(@types/react@19.3.0)(ajv@8.20.0)(joi@18.2.9)(monaco-editor@0.52.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.7.0(react@19.2.8))(valibot@1.2.0(typescript@5.9.3))
+        specifier: 1.4.2
+        version: 1.4.2(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(@types/react-dom@19.1.2(@types/react@19.3.0))(@types/react@19.3.0)(ajv@8.20.0)(joi@18.2.9)(monaco-editor@0.52.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.7.0(react@19.2.8))(valibot@1.2.0(typescript@5.9.3))
       react:
         specifier: ^19.0.0
         version: 19.2.8
@@ -2249,16 +2249,16 @@ packages:
   '@react-dnd/invariant@4.0.2':
     resolution: {integrity: sha512-xKCTqAK/FFauOM9Ta2pswIyT3D8AQlfrYdOi/toTPEhqCuAs1v5tcJ3Y08Izh1cJ5Jchwy9SeAXmMg6zrKs2iw==}
 
-  '@republicroad/seal-appshell@1.4.1':
-    resolution: {integrity: sha512-Z1v7RCSWLmDqeBitwaRVk+gZlEQJ/x6f2dHWt96A7ivsh3A2h2cWSB/5/H3Uu/Lp0R5xnFWi0UyQhQZ9h5CtJg==}
+  '@republicroad/seal-appshell@1.4.2':
+    resolution: {integrity: sha512-i9582ByljtqDUTL6+K1no5EvLssxhO4jbSIpR8RXio7t9IJvqzH47Z96BS03GB+HZTaYYggzG5YPgZiNVodPrg==}
     peerDependencies:
       '@republicroad/seal-editor': ^1.1.0
       monaco-editor: ^0.52.2
       react: '>=18'
       react-dom: '>=18'
 
-  '@republicroad/seal-editor@1.4.1':
-    resolution: {integrity: sha512-+nQLTzJPpC8RtjF5xyOfQkD2iVPT2mM6LWIiB84lV4k4j4ttKkvZwoSvxmMabml4xDrbujgWC5r2hiZAhuyRyg==}
+  '@republicroad/seal-editor@1.4.2':
+    resolution: {integrity: sha512-2hszcUvVCUWTnlpC6x1CRB/Ek4l28xZGoGVJJoFNgoJZNl64Umxtbei+Xh+5RLJ/RcvbeWgQwKk35V69DCrapQ==}
     peerDependencies:
       monaco-editor: ^0.52.2
       react: '>= 18'
@@ -10375,10 +10375,10 @@ snapshots:
 
   '@react-dnd/invariant@4.0.2': {}
 
-  '@republicroad/seal-appshell@1.4.1(@opentelemetry/api@1.9.1)(@republicroad/seal-editor@1.4.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(@types/react-dom@19.1.2(@types/react@19.3.0))(@types/react@19.3.0)(ajv@8.20.0)(joi@18.2.9)(monaco-editor@0.52.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.7.0(react@19.2.8))(valibot@1.2.0(typescript@5.9.3)))(@types/react@19.3.0)(immer@10.1.1)(monaco-editor@0.52.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.7.0(react@19.2.8))(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@22.20.4)(jsdom@30.1.1(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@22.20.4)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)))':
+  '@republicroad/seal-appshell@1.4.2(@opentelemetry/api@1.9.1)(@republicroad/seal-editor@1.4.2(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(@types/react-dom@19.1.2(@types/react@19.3.0))(@types/react@19.3.0)(ajv@8.20.0)(joi@18.2.9)(monaco-editor@0.52.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.7.0(react@19.2.8))(valibot@1.2.0(typescript@5.9.3)))(@types/react@19.3.0)(immer@10.1.1)(monaco-editor@0.52.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.7.0(react@19.2.8))(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@22.20.4)(jsdom@30.1.1(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@22.20.4)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)))':
     dependencies:
       '@base-ui/react': 1.8.0(@types/react@19.3.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@republicroad/seal-editor': 1.4.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(@types/react-dom@19.1.2(@types/react@19.3.0))(@types/react@19.3.0)(ajv@8.20.0)(joi@18.2.9)(monaco-editor@0.52.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.7.0(react@19.2.8))(valibot@1.2.0(typescript@5.9.3))
+      '@republicroad/seal-editor': 1.4.2(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(@types/react-dom@19.1.2(@types/react@19.3.0))(@types/react@19.3.0)(ajv@8.20.0)(joi@18.2.9)(monaco-editor@0.52.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.7.0(react@19.2.8))(valibot@1.2.0(typescript@5.9.3))
       '@tanstack/react-virtual': 3.14.13(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       axios: 1.20.0
       better-auth: 1.7.5(@opentelemetry/api@1.9.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@22.20.4)(jsdom@30.1.1(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@22.20.4)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)))
@@ -10418,7 +10418,7 @@ snapshots:
       - vitest
       - vue
 
-  '@republicroad/seal-editor@1.4.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(@types/react-dom@19.1.2(@types/react@19.3.0))(@types/react@19.3.0)(ajv@8.20.0)(joi@18.2.9)(monaco-editor@0.52.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.7.0(react@19.2.8))(valibot@1.2.0(typescript@5.9.3))':
+  '@republicroad/seal-editor@1.4.2(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(@types/react-dom@19.1.2(@types/react@19.3.0))(@types/react@19.3.0)(ajv@8.20.0)(joi@18.2.9)(monaco-editor@0.52.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.7.0(react@19.2.8))(valibot@1.2.0(typescript@5.9.3))':
     dependencies:
       '@base-ui/react': 1.8.0(@types/react@19.3.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@codemirror/autocomplete': 6.20.3
