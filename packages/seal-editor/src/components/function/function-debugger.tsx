@@ -33,6 +33,7 @@ export const FunctionDebugger: React.FC<FunctionDebuggerProps> = ({
 }) => {
   const traceLog = trace?.traceData?.log || [];
   const [activeTab, setActiveTab] = useState<TabKey>(TabKey.Console);
+  const [logFilter, setLogFilter] = useState('');
 
   const t = useT();
 
@@ -66,6 +67,15 @@ export const FunctionDebugger: React.FC<FunctionDebuggerProps> = ({
             .with(TabKey.Console, () => (
               <>
                 {trace && <IoInspector input={trace.input} output={trace.output} />}
+                <div className='border-b border-[var(--border)] px-4 py-2'>
+                  <input
+                    type='text'
+                    value={logFilter}
+                    onChange={(event) => setLogFilter(event.target.value)}
+                    placeholder={t('func.debugger.searchLogs')}
+                    className='h-7 w-full min-w-0 rounded-md border border-border bg-muted/40 px-2 text-xs outline-none focus:border-primary/50'
+                  />
+                </div>
                 {traceLog.length === 0 && (
                   <FunctionDebuggerLog
                     lines={['"Info: Use console.log and run simulation to debug your code."']}
@@ -74,7 +84,7 @@ export const FunctionDebugger: React.FC<FunctionDebuggerProps> = ({
                 )}
 
                 {traceLog.map((log, i) => (
-                  <FunctionDebuggerLog key={i} lines={log.lines} msSinceRun={log.msSinceRun} />
+                  <FunctionDebuggerLog key={i} lines={log.lines} msSinceRun={log.msSinceRun} filter={logFilter} />
                 ))}
               </>
             ))

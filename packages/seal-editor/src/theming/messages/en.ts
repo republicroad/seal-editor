@@ -24,6 +24,7 @@ export const en = {
   'dt.toolbar.addRowAbove': 'Add row above',
   'dt.toolbar.addRowBelow': 'Add row below',
   'dt.toolbar.removeRow': 'Remove row',
+  'dt.toolbar.toggleColumns': 'Toggle columns',
   'dt.toolbar.removeRowConfirm': 'Remove row?',
   'dt.table.column': 'Table column',
   'dt.table.excelColumn': 'Excel column',
@@ -124,6 +125,7 @@ export const en = {
 
   // ── function ──
   'func.debugger.copy': 'Copy to clipboard',
+  'func.debugger.searchLogs': 'Search logs',
   'func.debugger.copied': 'Copied to clipboard',
   'func.debugger.formatCode': 'Format code',
   'func.debugger.importLibrary': 'Import library',

@@ -18,6 +18,7 @@ export const zhCN: Record<string, string> = {
   'dt.toolbar.addRowAbove': '在上方添加行',
   'dt.toolbar.addRowBelow': '在下方添加行',
   'dt.toolbar.removeRow': '删除行',
+  'dt.toolbar.toggleColumns': '显示隐藏列',
   'dt.toolbar.removeRowConfirm': '确定删除该行？',
   'dt.table.column': '表格列',
   'dt.table.excelColumn': 'Excel 列',
@@ -112,6 +113,7 @@ export const zhCN: Record<string, string> = {
   'expression.addRowBelow': '在下方添加行',
 
   'func.debugger.copy': '复制到剪贴板',
+  'func.debugger.searchLogs': '搜索日志',
   'func.debugger.formatCode': '格式化代码',
   'func.debugger.importLibrary': '导入库',
   'func.debugger.goToDocs': '前往文档',

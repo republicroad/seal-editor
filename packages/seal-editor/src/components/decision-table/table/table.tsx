@@ -1,5 +1,6 @@
-import { PlusCircleOutlined } from '#icons';
+import { PlusCircleOutlined, TableColumnsOutlined } from '#icons';
 import { DataGrid, dataGridFeatures } from '#reui/data-grid/data-grid';
+import { DataGridColumnVisibility } from '#reui/data-grid/data-grid-column-visibility';
 import { DataGridTableDndRowHandle, DataGridTableDndRows } from '#reui/data-grid/data-grid-table-dnd-rows';
 import type { DragEndEvent, UniqueIdentifier } from '@dnd-kit/core';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -12,6 +13,7 @@ import { z } from 'zod';
 
 import { setRefValue } from '../../../helpers/compose-refs';
 import { useThemeMode } from '../../../theme';
+import { useT } from '../../../theming/i18n';
 import { Button, Typography } from '../../primitives';
 import { useDecisionTableActions, useDecisionTableListeners, useDecisionTableState } from '../context/dt-store.context';
 import { TableContextMenu } from './table-context-menu';
@@ -54,6 +56,23 @@ const loadColumnSizing = (id?: string) => {
   }
 };
 
+// WS1 填缝（backlog：dt 解锁候选——列显隐）：列显隐持久化，键沿用遗留 jdm-editor
+// 前缀（用户数据键不改名的既定纪律）。
+const columnVisibilityKey = (id: string) => `jdm-editor:decisionTable:columnVisibility:${id}`;
+
+const loadColumnVisibility = (id?: string): Record<string, boolean> => {
+  if (!id) {
+    return {};
+  }
+
+  try {
+    const data = localStorage.getItem(columnVisibilityKey(id));
+    return z.record(z.string(), z.boolean()).parse(JSON.parse(data ?? '{}'));
+  } catch {
+    return {};
+  }
+};
+
 // TanStack v9 feature bundle: the grid's render path needs the full
 // dataGridFeatures set (visibility gates getVisibleCells, pinning provides
 // getStartVisibleLeafColumns used by the viewport, sizing owns the persisted
@@ -90,6 +109,7 @@ const IndexCell: React.FC<{ row: { index: number; id: string } }> = ({ row }) =>
 export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef, scrollApiRef }) => {
   const mode = useThemeMode();
   const tableActions = useDecisionTableActions();
+  const t = useT();
 
   const { cellRenderer } = useDecisionTableListeners(({ cellRenderer }) => ({ cellRenderer }));
   const [columnSizing, setColumnSizing] = useState<ColumnSizing>(() => loadColumnSizing(id));
@@ -198,6 +218,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
     meta: {
       getCell: cellRenderer,
     },
+    initialState: { columnVisibility: loadColumnVisibility(id) },
     ...(!id
       ? {}
       : {
@@ -353,6 +374,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
       <DataGrid
         table={table}
         recordCount={rules.length}
+        i18n={{ labels: { toggleColumns: t('dt.toolbar.toggleColumns') } }}
         getRowStatus={getRowStatus}
         getRowClassName={getRowClassName}
         getCellClassName={getCellClassName}
@@ -371,7 +393,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
               （选项：a 非 Virtual 全量渲染 / b 去 Dnd 保留 Virtual / c vendored 增强）。 */}
           <DataGridTableDndRows handleDragEnd={handleDragEnd} dataIds={dataIds} />
         </TableContextMenu>
-        <div className='sticky bottom-0 bg-[var(--card)] p-2'>
+        <div className='sticky bottom-0 flex items-center gap-3 bg-[var(--card)] p-2'>
           <Button
             type='link'
             disabled={disabled}
@@ -380,6 +402,22 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
           >
             Add row
           </Button>
+          <DataGridColumnVisibility
+            table={table}
+            onColumnVisibilityChange={(visibility) => {
+              if (id) {
+                localStorage.setItem(columnVisibilityKey(id), JSON.stringify(visibility));
+              }
+            }}
+            trigger={
+              <Button
+                type='text'
+                disabled={disabled}
+                icon={<TableColumnsOutlined />}
+                aria-label={t('dt.toolbar.toggleColumns')}
+              />
+            }
+          />
         </div>
       </DataGrid>
     </div>

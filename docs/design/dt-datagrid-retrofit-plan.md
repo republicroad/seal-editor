@@ -56,6 +56,17 @@ DecisionTableDnd（DndContext + DragOverlay 行预览）退役；style-debt 复�
 （12/18 全部为 xyflow/monaco 关联，dt 侧无可烧项）；size 复核：index.js 累计
 **-7.5kB** vs 换装前基线（745.1 → 737.7kB）——删手搓代码超过新增 grid 组合。
 
+## 开放问题定案（seal-editor 侧走查后，2026-09-27）
+
+1. **DndRows/Virtual 三选一**：定案 (a) **维持全量渲染**——决策表以中小规则表为主（典型几十行），全量渲染 DOM 成本线性可控；行拖拽是编辑核心交互不可舍。(c) vendored 增强（1–2 天，可上游）作为大表真实场景出现后的候选，触发条件：>500 行决策表场景实测卡顿。
+2. **字段级 diff tint**：已实现（getCellClassName 扩展）。data-column-id 上游 1 行 patch 并入 grid 扩展反哺包随宿主提交。
+3. **scrollApiRef**：Phase 1 已精确化（按行几何），定案。
+4. **Add row 底栏**：grid 外 sticky div 已实现并走查确认；表头 sticky 同批确认。
+
+seal 侧浏览器走查（2026-09-27）：base-nova 原语 + 列显隐菜单（Toggle columns，i18n en/zh + localStorage 持久化按 id）+ Outputs 列隐藏切换全部通过；明暗主题渲染正确。
+
+## 明确不动
+
 ## 明确不动
 
 `TableProps` API、localStorage 列宽键、`TableDefaultCell`（contenteditable 行为）、

@@ -14,6 +14,7 @@ import TrashSquareIcon from './reui/icons/animated/outline/trash-square';
 
 export {
   AlignHorizontalDistributeCenter as AutoLayoutOutlined,
+  Columns3 as TableColumnsOutlined,
   Network as ApartmentOutlined,
   Plug as ApiOutlined,
   ArrowDown as ArrowDownOutlined,
