@@ -5,27 +5,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
- * zen-udf 发布物冒烟（W2）：npm pack → 临时目录安装 tarball → Bun 跑最小执行脚本。
- * 验证的是「发布出去的 artifact」而非工作区源码——发布前的最后一道闸。
+ * zen-udf 消费端冒烟（裁决 12：zen-udf 源在 jdm-editor，seal-editor 为 npm 消费者）：
+ * 直接安装 npm 已发布的 @republicroad/zen-udf，验证「消费方拿到的 artifact」——
+ * UdfPack 注册 → customNode 执行 → traceData 全链路。
  *
  * Usage: node scripts/probes/zen-udf-npm-smoke.mjs   （依赖 bun + npm 网络可达）
  */
-
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const pkgDir = path.join(root, 'packages', 'zen-udf');
-
-const pack = spawnSync('npm', ['pack', '--pack-destination', tmpdir()], {
-  cwd: pkgDir,
-  encoding: 'utf8',
-  shell: process.platform === 'win32',
-});
-if (pack.status !== 0) {
-  console.error('[zen-udf-smoke] npm pack failed:\n' + pack.stderr);
-  process.exit(1);
-}
-const tarballName = pack.stdout.trim().split(/\r?\n/).pop();
-const tarball = path.join(tmpdir(), tarballName);
-console.log('[zen-udf-smoke] packed:', tarballName);
 
 const workdir = mkdtempSync(path.join(tmpdir(), 'zen-udf-smoke-'));
 writeFileSync(
@@ -33,7 +18,7 @@ writeFileSync(
   JSON.stringify({ name: 'zen-udf-smoke', private: true, type: 'module' }, null, 2),
 );
 
-const install = spawnSync('bun', ['add', tarball], {
+const install = spawnSync('bun', ['add', '@republicroad/zen-udf@^0.6.0'], {
   cwd: workdir,
   encoding: 'utf8',
   shell: process.platform === 'win32',
@@ -92,10 +77,9 @@ writeFileSync(path.join(workdir, 'smoke.ts'), consumerScript);
 const run = spawnSync('bun', ['smoke.ts'], { cwd: workdir, encoding: 'utf8', shell: process.platform === 'win32' });
 const output = run.stdout + run.stderr;
 rmSync(workdir, { recursive: true, force: true });
-rmSync(tarball, { force: true });
 
 if (run.status === 0 && output.includes('SMOKE_OK doubled=42')) {
-  console.log('[zen-udf-smoke] ✓ 发布物执行链路通过（UdfPack 注册 → customNode 执行 → traceData）');
+  console.log('[zen-udf-smoke] ✓ 消费端执行链路通过（npm 构件 → UdfPack 注册 → customNode 执行 → traceData）');
   process.exit(0);
 }
 console.error('[zen-udf-smoke] ✗ smoke failed:\n' + output.slice(-2000));
