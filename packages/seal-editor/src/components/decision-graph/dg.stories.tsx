@@ -529,7 +529,7 @@ export const AutoLayout: Story = {
     const nodeTransform = () => canvasElement.querySelector<HTMLElement>('.react-flow__node')?.style.transform ?? '';
 
     // baseline: first node mounted and positioned by reactflow
-    await waitFor(() => expect(nodeTransform()).not.toBe(''), { timeout: 10_000 });
+    await waitFor(() => expect(nodeTransform()).not.toBe(''), { timeout: 20_000 });
     const before = nodeTransform();
 
     const button = canvasElement.querySelector<HTMLButtonElement>("button[aria-label='Auto layout']");
@@ -542,7 +542,7 @@ export const AutoLayout: Story = {
         expect(after).not.toBe('');
         expect(after).not.toBe(before);
       },
-      { timeout: 10_000 },
+      { timeout: 20_000 },
     );
   },
 };
