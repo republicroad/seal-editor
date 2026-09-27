@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.5.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.4.0...@republicroad/seal-editor@1.5.0) (2026-09-27)
+
+### Bug Fixes
+
+- **graph:** render branch label chip inside EdgeLabelRenderer (59227fd) ([b749c95](https://github.com/republicroad/seal-editor/commit/b749c9592056a40bcc7afa9b02d17f483766e6ef))
+- **lint:** opaque module boundary for body drag-style writes (react-compiler gate) ([a07b95d](https://github.com/republicroad/seal-editor/commit/a07b95d00d8e2d399f2d05fd471752881f648c09))
+- **schema:** declare edge name + parse-fidelity round-trip test ([7cb6dc0](https://github.com/republicroad/seal-editor/commit/7cb6dc0f1490e130bf77ea384c6e459681189967))
+- **schema:** declare switch statements[].name — zod was silently dropping case names ([0432676](https://github.com/republicroad/seal-editor/commit/0432676d7774e8b784efc00bf5b73c30cc77eedd))
+- **theme:** decision-node --grl-color-* residue -> --seal-color-* (33d04be) ([2400106](https://github.com/republicroad/seal-editor/commit/240010691536e772dc7cdafdf82faa2135c86256))
+
+### Features
+
+- **dt:** decision-table core editor rendered through the ReUI data-grid (Phase 0+1 port) ([ed09b34](https://github.com/republicroad/seal-editor/commit/ed09b343e44d3fe2a4a6e8119598b2fd893f40d4))
+- **dt:** removal semantics unify on removeRowWithUndo + simulator panel polish ([de81c1c](https://github.com/republicroad/seal-editor/commit/de81c1ce96bf3213e6d0a2d6614bc7057cb019b1))
+- **function:** IoInspector — collapsible Input/Output panel in the debugger ([4d651f7](https://github.com/republicroad/seal-editor/commit/4d651f7e3dc0db1a34497ac55b7a08d920688462))
+- **graph:** switch condition rows — hover-revealed delete (WS2 batch B) ([464ad8b](https://github.com/republicroad/seal-editor/commit/464ad8b10e341feae18e48e4dcb0591bb4e298f9))
+- **seal-demo:** npm-consumption validation app (S1-S3) ([de28219](https://github.com/republicroad/seal-editor/commit/de2821944efb532cc8dc2660e507f6541146c0cd))
+- **table:** WS2-B1 port — ReUI data-grid foundation + TanStack v9 unification ([30f11b7](https://github.com/republicroad/seal-editor/commit/30f11b750afaed7b8917daa0d6477eb4cc716fc2))
+- **table:** WS2-B2/B3 port — Excel dialogs on the ReUI data-grid + read-only preview ([ae6d5ed](https://github.com/republicroad/seal-editor/commit/ae6d5ed27daafd5422e0c014f88960348dfc53a7))
+- **ui:** primitives Steps internals swapped to the vendored ReUI stepper (WS2-B2a port) ([e3bb2c2](https://github.com/republicroad/seal-editor/commit/e3bb2c2c5aa412c1338d60b28e33784ff72eea70))
+- **ui:** specification settings panels — ReUI frame as the shared shell ([dcbd68b](https://github.com/republicroad/seal-editor/commit/dcbd68ba3c86924289072449282b7200ed9aabfb)), closes [#4](https://github.com/republicroad/seal-editor/issues/4)
+
 ## [1.4.2](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.4.1...@republicroad/seal-editor@1.4.2) (2026-09-26)
 
 ### Bug Fixes
