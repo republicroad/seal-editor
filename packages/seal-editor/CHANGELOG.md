@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.6.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.5.0...@republicroad/seal-editor@1.6.0) (2026-09-28)
+
+### Bug Fixes
+
+- **dt:** cast DataGrid table prop (W1-C follow-up) ([761455b](https://github.com/republicroad/seal-editor/commit/761455b3900269142a67d015d467c3ba0242f209))
+
+### Features
+
+- **dt:** column visibility menu on the grid-rendered decision table ([0d5f2b0](https://github.com/republicroad/seal-editor/commit/0d5f2b0596934a234839595335b3cc7f75e00f06))
+
 # [1.5.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.4.0...@republicroad/seal-editor@1.5.0) (2026-09-27)
 
 ### Bug Fixes
