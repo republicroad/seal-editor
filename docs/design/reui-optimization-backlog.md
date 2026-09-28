@@ -4,7 +4,7 @@
 
 - 日期：2026-09-26
 - 状态：**活档 · 填缝模式**——不再单独立批次，各项随主线顺做；主线 = UDF 生态
-  （[playground-udf-lab-plan.md](./playground-udf-lab-plan.md)）
+  （[playground-udf-lab-plan.md](../archive/plans/playground-udf-lab-plan.md)）
 - 判据：**有对口的 ReUI 复合组件 + 交互真实升级**才算"适合优化"。primitives 本身是
   合法底座（Base UI 封装的 antd 风 API 层），用了 primitives 不构成优化理由；
   "堆叠"只有在多个面板重复手写同一种形态时才是漂移源。
@@ -55,5 +55,5 @@
 - **无场景/否决 10**：见上表
 - 另有 premium blocks（整页区块）与 Motion Icons 产品线，本仓未涉及
 
-相关：[reui-flow-integration-plan.md](./reui-flow-integration-plan.md) · [reui-flow-pilot.md](./reui-flow-pilot.md) ·
+相关：[reui-flow-integration-plan.md](../archive/plans/reui-flow-integration-plan.md) · [reui-flow-pilot.md](../archive/plans/reui-flow-pilot.md) ·
 [dt-datagrid-retrofit-plan.md](./dt-datagrid-retrofit-plan.md)
