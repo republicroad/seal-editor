@@ -93,7 +93,7 @@ const fraudPack: UdfPack = {
 1. **四端口 Redis/服务实现**（RateStore / ConcurrencyLimiter / EgressGuard / SecretResolver），每件过 conformance
 2. **seal-demo 验证应用**：基于 editor 仓 fork，装 `@republicroad/seal-editor@^1.1.0` + `@republicroad/seal-appshell@^1.0.0`，
    跑通「画图 → 保存 L0 → model-execute 执行」闭环
-3. **velocity**（对照 rate-window 的 RateStore 泛化）+ fraud/kyc 首批 UDF packs
+3. **velocity**（对照 rate-window 的 RateStore 泛化；规划已展开见 [velocity-udf-plan.md](./velocity-udf-plan.md)）+ fraud/kyc 首批 UDF packs
 4. **PostgreSQL L0** + 失效广播
 5. Prometheus metricsSink 接入，观察 `udf/circuit/limiter` 三类指标
 
