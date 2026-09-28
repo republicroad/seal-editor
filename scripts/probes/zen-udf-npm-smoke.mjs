@@ -2,7 +2,6 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 /**
  * zen-udf 消费端冒烟（裁决 12：zen-udf 源在 jdm-editor，seal-editor 为 npm 消费者）：
