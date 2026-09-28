@@ -30,7 +30,7 @@ header 内的导航元素宿主不可控，只能绕道页面级头部。
 没有文档化契约。
 
 提案：文档化（不强求代码）——dirty 状态的所有权、`onDirtyChange?` 回调、保存成功的
-反馈点约定；宿主据此实现关闭拦截与状态徽标（verdict 当前用自维护 dirtyRef 兜底）。
+反馈点约定；宿主据此实现关闭拦截与状态徽标（verdict 当前用自维护 dirtyRef 兜底，H1 已落地）。
 
 ### L3 · 仿真面板宿主回调
 
@@ -49,6 +49,23 @@ header 内的导航元素宿主不可控，只能绕道页面级头部。
 提案：例行重测并更新文档——验证 dagre/monaco 的动态导入边界在消费方实测仍成立
 （verdict 侧确认编辑器 chunk 不进控制台首屏）。
 
+### L5 · 函数目录文件协议（host-functions.json）——已实施
+
+现状：函数目录 schema 经 `useCustomNodes({ schemaSource })` 注入，默认同源
+`/api/custom-nodes/schema`；解析层只认裸数组，无版本要件，宿主端点缺失时静默
+回落内置 fallback（消费方拿不到真实 UDF 工具面）。
+
+提案与实施（2026-09-28 完成，verdict 提出、经宿主指示本仓直接实施）：
+
+- 解析层支持信封 `{ version, generatedAt, namespaces }`（推荐文件形态，供消费方
+  提示目录过期），裸数组保持兼容——已落地并带单测（custom-node-schema-source.ts）
+- 信封即跨语言契约：任何语言的后端产出同 schema 的 JSON 文件即可接入编辑器目录；
+  执行校验仍在服务端注册表（文件只是展示/创作契约，非安全边界）
+- verdict 侧已落地：导出 CLI（apps/api/scripts/export-udf-catalog.ts，调
+  `udfFunctionSchemaNamespaces()`）生成 apps/web/public/host-functions.json
+  （14 域 22 工具）并经 `schemaSource="/host-functions.json"` 接入
+- 动态端点（GET /v1/udf/catalog 实时下发）留作可选项，不阻塞文件协议闭环
+
 ## 备选方案
 
 | 方案 | 优势 | 劣势 |
@@ -58,8 +75,17 @@ header 内的导航元素宿主不可控，只能绕道页面级头部。
 
 ## 决策
 
-采用方案 A（本文档即四项合集）。建议实施顺序：L4（例行，零风险）→ L1（消费方
-需求最明确）→ L2（文档化即可先行动）→ L3（随 velocity §6 核对一起做）。
+采用方案 A（本文档即提案合集，L5 增补后为五项）。实施顺序修订：L5（已完成）→
+L4（例行，零风险）→ L1（消费方需求最明确）→ L2（文档化即可先行动）→ L3（随
+velocity §6 核对一起做）。
+
+## 实施记录（2026-09-28）
+
+| 项 | 状态 | 位置 |
+| --- | --- | --- |
+| L5 信封解析 | ✅ 已实施（303e95b，宿主指示直接实施） | packages/appshell/src/lib/custom-node-schema-source.ts |
+| L5 导出 CLI + 文件接入 | ✅ 已实施（verdict 仓） | verdict apps/api/scripts/export-udf-catalog.ts |
+| L1/L2/L3/L4 | proposed，待评审排期 | — |
 
 ## 后果
 
