@@ -29,8 +29,18 @@ header 内的导航元素宿主不可控，只能绕道页面级头部。
 未保存状态指示，其与宿主 adapter 的事件时序（何时算 dirty、保存中/成功的反馈点）
 没有文档化契约。
 
-提案：文档化（不强求代码）——dirty 状态的所有权、`onDirtyChange?` 回调、保存成功的
-反馈点约定；宿主据此实现关闭拦截与状态徽标（verdict 当前用自维护 dirtyRef 兜底，H1 已落地）。
+提案：文档化（不强求代码）——dirty 状态的所有权、保存反馈点约定；宿主据此实现
+关闭拦截与状态徽标（verdict 当前用自维护 dirtyRef 兜底，H1 已落地）。
+
+**方向裁决（宿主 2026-09-27，本仓评审确认）：weaveseal 目标态为模式 D（连续持久化，
+无 dirty）**——内核经核验无 dirty 概念、无保存按钮，onChange 是宿主唯一变更信号，
+GraphPersistenceAdapter（baseRevision 乐观锁 → CONFLICT）天然支持防抖连续保存；
+内核契约零改动。D 的成立前提是 weaveseal 的模型版本治理（保存即版本，"未保存"概念
+消失），代价集中于并发编辑的 CONFLICT 合并 UX（版本治理本要解的问题）。过渡态
+（verdict 现行 dirtyRef 自维护）按宿主自管模式文档化，两种模式在 adapter 契约下
+均可表达；onDirtyChange 回调明确不做。业界参照：Figma/Google Docs/Notion（D）、
+IBM ODM Decision Center（治理型决策平台同型终态）、VS Code（dirty 的 undo 集成
+参照，其撤销栈保存标记模式依赖单一变更通路，与宿主式存储不合）。
 
 ### L3 · 仿真面板宿主回调
 
