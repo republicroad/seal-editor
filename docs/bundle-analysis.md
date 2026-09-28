@@ -6,7 +6,17 @@
 > chunks. Regenerate after significant feature work; do not commit
 > `bundle-stats.json`.
 
-> **Snapshot addendum (2026-09-25, post-R6/R7/R4):** current minified entry is
+> **Snapshot addendum (2026-09-27, post-1.6.0 / ADR-008):** current minified entry is
+> `index.js` **750.4 kB raw / 184.1 kB gzip** (budget 790000/193000 bytes = 771 KiB/188 KiB).
+> History of this addendum line: 2026-09-25 recorded 663.7/162.6 (post-R6/R7/R4); the
+> 1.5.x line grew through the three-area retrofit (removal semantics unification,
+> switch hover delete, IoInspector), the dt core data-grid swap (hand-rolled chrome
+> retired, index.js net -4.9kB), the expression dedupe + stepper, and the W1
+> backlog items (column visibility menu, debugger log filter/hover copy).
+> Consumer confirmation (weaveseal/verdict): the editor chunk does not enter the
+> console first screen (their lazy /edit route prefetches it separately).
+> Key composition facts unchanged: Monaco and react stay external; dagre stays a
+> regular dependency kept external (dynamic-import boundary re-verified).
 > `index.js` **663.7 kB raw / 162.6 kB gzip** (budget 679/168) — the jump from
 > the 2026-09-08 table below reflects the WS1 slices landing in the entry
 > (ReUI node cards, hover toolbar, edge "+" insert, branch chips, docked
