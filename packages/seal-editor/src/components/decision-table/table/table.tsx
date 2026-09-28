@@ -372,7 +372,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
       onKeyDown={onKeyDown}
     >
       <DataGrid
-        table={table}
+        table={table as React.ComponentProps<typeof DataGrid>['table']}
         recordCount={rules.length}
         i18n={{ labels: { toggleColumns: t('dt.toolbar.toggleColumns') } }}
         getRowStatus={getRowStatus}
