@@ -6,10 +6,27 @@ export type CustomNodeSchemaSource = string | (() => Promise<CustomNodeNamespace
 
 export const DEFAULT_SCHEMA_URL = '/api/custom-nodes/schema';
 
-/** 校验并收窄 schema 载荷；非法结构抛错，由调用方决定回退策略 */
+/**
+ * 带版本目录信封（文件协议，见 docs/adr/008 补充）：静态 host-functions.json 的
+ * 推荐形态——version/generatedAt 供消费方提示目录过期；namespaces 为条目本体。
+ * 裸数组（CustomNodeNamespace[]）保持兼容。
+ */
+export interface CustomNodeSchemaEnvelope {
+  version: number | string;
+  generatedAt?: string;
+  namespaces: CustomNodeNamespace[];
+}
+
+const isEnvelope = (payload: unknown): payload is CustomNodeSchemaEnvelope =>
+  typeof payload === 'object' && payload !== null && Array.isArray((payload as { namespaces?: unknown }).namespaces);
+
+/** 校验并收窄 schema 载荷；支持信封（优先）与裸数组两种形态，非法结构抛错由调用方决定回退策略 */
 export function parseCustomNodeSchemaPayload(payload: unknown): CustomNodeNamespace[] {
+  if (isEnvelope(payload)) {
+    return payload.namespaces as CustomNodeNamespace[];
+  }
   if (!Array.isArray(payload)) {
-    throw new Error('schema response is not an array');
+    throw new Error('schema response is not an array or envelope');
   }
   return payload as CustomNodeNamespace[];
 }

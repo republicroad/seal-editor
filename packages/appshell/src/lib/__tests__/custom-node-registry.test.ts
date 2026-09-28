@@ -8,6 +8,23 @@ import type { CustomNodeNamespace } from '../custom-node-types';
 const FALLBACK_SCHEMA = fallbackSchema as CustomNodeNamespace[];
 
 describe('parseCustomNodeSchemaPayload', () => {
+  test('envelope {version, generatedAt, namespaces} unwraps to namespaces array', () => {
+    const namespaces = [
+      {
+        type: 'namespace' as const,
+        title: 'dt',
+        name: 'dt',
+        tools: [],
+      },
+    ];
+    const envelope = { version: 1, generatedAt: '2026-09-28T00:00:00Z', namespaces };
+    expect(parseCustomNodeSchemaPayload(envelope)).toEqual(namespaces);
+  });
+
+  test('envelope namespaces entries are validated the same as bare arrays', () => {
+    expect(() => parseCustomNodeSchemaPayload({ version: 1, namespaces: 'nope' })).toThrow();
+  });
+
   test('accepts namespace arrays', () => {
     const payload = [{ type: 'namespace' as const, name: 'contrib', title: 'Contrib', tools: [] }];
     expect(parseCustomNodeSchemaPayload(payload)).toEqual(payload);
