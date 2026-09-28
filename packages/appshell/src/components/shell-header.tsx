@@ -2,11 +2,14 @@ import type { DecisionGraphRef, DecisionGraphType } from '@republicroad/seal-edi
 import React from 'react';
 
 import { useTheme } from '../context/theme.provider';
+import { type SkinHeaderSlots } from '../skin/types';
 import type { SkinSlotContext } from '../skin/types';
 
 export type ShellHeaderProps = {
   /** 注入槽位的图文档（SkinnedDecisionGraph 自动传入；独立使用时由宿主提供） */
   graph?: DecisionGraphType;
+  /** ADR-008 L1：宿主头部槽位注入——与 activeSkin 槽位浅合并，宿主优先 */
+  slots?: SkinHeaderSlots;
   disabled?: boolean;
   /**
    * 决策图引用：ref 对象（`useRef` 产物，内部自动解包为当前句柄）或句柄本身；
@@ -31,9 +34,10 @@ const resolveGraphRef = (value: ShellHeaderProps['graphRef']): DecisionGraphRef 
  * kernel 保持无 header（页面骨架属宿主，规格稿 §10-3 宿主裁决）；
  * 无槽位时返回 null，宿主页面层头部不受影响。
  */
-export const ShellHeader: React.FC<ShellHeaderProps> = ({ graph, disabled, graphRef, className }) => {
+export const ShellHeader: React.FC<ShellHeaderProps> = ({ graph, disabled, graphRef, className, slots: hostSlots }) => {
   const { activeSkin } = useTheme();
-  const slots = activeSkin?.layout?.header?.slots;
+  // ADR-008 L1：宿主优先浅合并——宿主给定的侧覆盖皮肤槽位
+  const slots = { ...activeSkin?.layout?.header?.slots, ...hostSlots };
 
   if (!slots?.left && !slots?.right) {
     return null;

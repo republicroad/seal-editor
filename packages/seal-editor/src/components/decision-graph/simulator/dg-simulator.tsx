@@ -23,6 +23,8 @@ enum SimulationSegment {
 export type GraphSimulatorProps = {
   onClear?: () => void;
   loading?: boolean;
+  /** ADR-008 L3：仿真面板底部宿主插槽（动作条/宿主联动入口） */
+  simulationFooter?: React.ReactNode;
   defaultRequest?: SimulatorRequestPanelProps['defaultRequest'];
   onChange?: SimulatorRequestPanelProps['onChange'];
   onRun?: SimulatorRequestPanelProps['onRun'];
@@ -35,6 +37,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
   onRun,
   onClear,
   loading = false,
+  simulationFooter,
   leftPanel: LeftPanel = SimulatorRequestPanel,
 }) => {
   const t = useT();
@@ -61,83 +64,90 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
   const [selectedNode, setSelectedNode] = useState<string>('graph');
 
   return (
-    <PanelGroup
-      className='h-full w-full bg-[var(--seal-color-primary-bg-fade)]'
-      direction='horizontal'
-      autoSaveId='jdm-editor:simulator:layout'
-    >
-      <Panel minSize={20} defaultSize={38} className='flex w-[300px] flex-col'>
-        <LeftPanel
-          defaultRequest={defaultRequest}
-          loading={loading}
-          hasInputNode={hasInputNode}
-          onRun={onRun}
-          onChange={onChange}
-        />
-      </Panel>
-      <PanelResizeHandle />
-      <Panel minSize={20} maxSize={20} className={'flex w-[260px] flex-col'}>
-        <SimulatorNodesPanel
-          search={search}
-          onSearchChange={setSearch}
-          loading={loading}
-          simulate={simulate}
-          nodeTypes={nodeTypes}
-          viewConfig={viewConfig}
-          selectedNode={selectedNode}
-          onSelectNode={setSelectedNode}
-          onClear={() => {
-            onClear?.();
-            setSelectedNode('graph');
-            setSearch('');
-          }}
-          onGoToNode={(nodeId) => actions.goToNode(nodeId)}
-        />
-      </Panel>
-      <PanelResizeHandle />
-      <Panel minSize={30} defaultSize={42} className={'flex min-w-[300px] flex-1 flex-col'}>
-        <div className='flex h-9 select-none items-center justify-between gap-1 border-b border-b-[var(--border)] pl-0 pr-2'>
-          <Tabs
-            size='small'
-            style={{ width: '100%' }}
-            onChange={(tab) => setSegment(tab as SimulationSegment)}
-            items={Object.values(SimulationSegment).map((s) => ({
-              key: s,
-              label: s,
-            }))}
-            tabBarExtraContent={
-              <Tooltip title={t('dg.toolbar.closeClose')} placement='bottomRight'>
-                <Button
-                  type='text'
-                  icon={<CrossIcon className='size-3' />}
-                  onClick={() => actions.setActivePanel(undefined)}
-                />
-              </Tooltip>
-            }
+    <div className='flex h-full w-full flex-col'>
+      <PanelGroup
+        className='h-full w-full bg-[var(--seal-color-primary-bg-fade)]'
+        direction='horizontal'
+        autoSaveId='jdm-editor:simulator:layout'
+      >
+        <Panel minSize={20} defaultSize={38} className='flex w-[300px] flex-col'>
+          <LeftPanel
+            defaultRequest={defaultRequest}
+            loading={loading}
+            hasInputNode={hasInputNode}
+            onRun={onRun}
+            onChange={onChange}
           />
-        </div>
-        <div className={'min-h-0 flex-1 overflow-y-auto'}>
-          <SimulatorEditor
-            readOnly
-            value={match(simulate)
-              .with({ result: P._ }, ({ result }) =>
-                match(selectedNode)
-                  .with('graph', () =>
-                    displaySegment(
-                      {
-                        traceData: result?.trace,
-                        output: result?.result,
-                      },
-                      segment ?? SimulationSegment.Output,
-                    ),
-                  )
-                  .otherwise(() => displaySegment(result?.trace[selectedNode], segment ?? SimulationSegment.Output)),
-              )
-              .otherwise(() => '')}
+        </Panel>
+        <PanelResizeHandle />
+        <Panel minSize={20} maxSize={20} className={'flex w-[260px] flex-col'}>
+          <SimulatorNodesPanel
+            search={search}
+            onSearchChange={setSearch}
+            loading={loading}
+            simulate={simulate}
+            nodeTypes={nodeTypes}
+            viewConfig={viewConfig}
+            selectedNode={selectedNode}
+            onSelectNode={setSelectedNode}
+            onClear={() => {
+              onClear?.();
+              setSelectedNode('graph');
+              setSearch('');
+            }}
+            onGoToNode={(nodeId) => actions.goToNode(nodeId)}
           />
+        </Panel>
+        <PanelResizeHandle />
+        <Panel minSize={30} defaultSize={42} className={'flex min-w-[300px] flex-1 flex-col'}>
+          <div className='flex h-9 select-none items-center justify-between gap-1 border-b border-b-[var(--border)] pl-0 pr-2'>
+            <Tabs
+              size='small'
+              style={{ width: '100%' }}
+              onChange={(tab) => setSegment(tab as SimulationSegment)}
+              items={Object.values(SimulationSegment).map((s) => ({
+                key: s,
+                label: s,
+              }))}
+              tabBarExtraContent={
+                <Tooltip title={t('dg.toolbar.closeClose')} placement='bottomRight'>
+                  <Button
+                    type='text'
+                    icon={<CrossIcon className='size-3' />}
+                    onClick={() => actions.setActivePanel(undefined)}
+                  />
+                </Tooltip>
+              }
+            />
+          </div>
+          <div className={'min-h-0 flex-1 overflow-y-auto'}>
+            <SimulatorEditor
+              readOnly
+              value={match(simulate)
+                .with({ result: P._ }, ({ result }) =>
+                  match(selectedNode)
+                    .with('graph', () =>
+                      displaySegment(
+                        {
+                          traceData: result?.trace,
+                          output: result?.result,
+                        },
+                        segment ?? SimulationSegment.Output,
+                      ),
+                    )
+                    .otherwise(() => displaySegment(result?.trace[selectedNode], segment ?? SimulationSegment.Output)),
+                )
+                .otherwise(() => '')}
+            />
+          </div>
+        </Panel>
+      </PanelGroup>
+      {simulationFooter && (
+        <div className={'flex flex-none items-center gap-2 border-t border-t-[var(--border)] px-4 py-1.5'}>
+          {simulationFooter}
         </div>
-      </Panel>
-    </PanelGroup>
+      )}
+    </div>
   );
 };
 

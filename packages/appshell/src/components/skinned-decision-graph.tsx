@@ -14,7 +14,7 @@ import { useTheme } from '../context/theme.provider';
 import PlayCircleIcon from '../reui/icons/animated/outline/play-circle';
 import type { SimulateHandler } from '../shell/types';
 import { mapPanelSlotIds, mapToolbarSlots } from '../skin/layout';
-import type { SkinSlotHostContext } from '../skin/types';
+import type { SkinHeaderSlots, SkinSlotHostContext } from '../skin/types';
 import { ShellHeader } from './shell-header';
 import { ScrollArea } from './ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './ui/sheet';
@@ -28,6 +28,8 @@ export type SkinnedDecisionGraphProps = DecisionGraphProps & {
    * 不传则与直接渲染 `<DecisionGraph>` 行为完全一致。
    */
   simulateHandler?: SimulateHandler;
+  /** ADR-008 L1：宿主头部槽位注入——与 activeSkin 槽位浅合并（宿主优先） */
+  headerSlots?: SkinHeaderSlots;
 };
 
 /**
@@ -42,7 +44,7 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
   SkinnedDecisionGraphProps & React.RefAttributes<DecisionGraphRef>
 > = React.forwardRef<DecisionGraphRef, SkinnedDecisionGraphProps>((props, ref) => {
   const { activeSkin } = useTheme();
-  const { simulateHandler, ...restProps } = props;
+  const { simulateHandler, headerSlots, ...restProps } = props;
   const internalRef = useRef<DecisionGraphRef | null>(null);
   const [mounted, setMounted] = useState(false);
   const [simulation, setSimulation] = useState<Simulation | undefined>(undefined);
@@ -120,10 +122,16 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
   };
 
   // S005 P3：皮肤头部槽位（ShellHeader，kernel 无 header）
-  const headerSlots = activeSkin?.layout?.header?.slots;
-  const hasHeader = !!(headerSlots?.left || headerSlots?.right);
+  // ADR-008 L1：宿主优先浅合并——宿主给定的侧覆盖皮肤槽位
+  const mergedHeaderSlots = { ...activeSkin?.layout?.header?.slots, ...headerSlots };
+  const hasHeader = !!(mergedHeaderSlots?.left || mergedHeaderSlots?.right);
   const headerNode = hasHeader ? (
-    <ShellHeader graph={slotContext.graph} disabled={slotContext.disabled} graphRef={slotContext.graphRef} />
+    <ShellHeader
+      graph={slotContext.graph}
+      disabled={slotContext.disabled}
+      graphRef={slotContext.graphRef}
+      slots={mergedHeaderSlots}
+    />
   ) : null;
 
   const hasRail = !!rightSlots?.length;
