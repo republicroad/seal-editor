@@ -117,6 +117,14 @@ UDF Lab（jdm-editor 树内验证面）已通过浏览器端到端走查，以�
   **seal-editor 治理接入点**：租户/权限相关的目录过滤与业务夹具持久化按本设计 §0 归属，
   可直接消费 deprecated 字段做产品级弃用治理。
 
+## 2.8 批次 1/2 产品化已在本仓落地（2026-09-29，随 seal-editor 1.9.0 / seal-appshell 1.12.0）
+
+- **A1**：FunctionCatalog 组件移入 appshell（components/function-catalog，无状态；弃用卡 A4 内置 + catalogFilter 面）；playground UDF Lab 接线（目录按钮 + 插入画布，序列化契约与夹具一致）
+- **A2**：setUdfCompletions 移植内核 completion 模块并导出；产品化改进——接线收编进 useCustomNodes hook（schema 到达即全量注入），宿主零接线；补全不跟随 catalogFilter（ADR-010 裁定）
+- **A4**：CustomFunctionTool.deprecated 类型 + 目录卡（tint/徽章/note）+ 补全 ⚠️ 首行（画布角标原型亦无，维持）
+- **治理叠加**：catalogFilter 谓词（ADR-010 Phase 2）+ 专用函数注册表（tester+rank 去硬编码）+ migrateGraph 版本迁移器——见 [dedicated-node-registry-design.md](./dedicated-node-registry-design.md)
+- **余项**：A3 REPL 面板（demo-server 端点先行）；origin 徽标（zen-udf 0.9.0）
+
 ## 3. 实施批次建议
 
 | 批 | 内容 | 量级 | 仓 |

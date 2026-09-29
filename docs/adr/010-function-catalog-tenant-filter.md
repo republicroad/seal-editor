@@ -101,6 +101,12 @@ useCustomNodes({ schemaSource, catalogFilter?: CatalogFilter });
 【verdict ✅ 接受（2026-09-29）——生效面取默认提案：仅目录面板过滤，补全/REPL
 不跟随。理由：授权全集仍可用（安全已在服务端保证），补全跟随会造成「补全有、
 目录无」的口径分裂；等真实用户反馈再评估第二谓词。】
+
+【已实施（2026-09-29，随轨道 B——seal-editor 1.9.0 / seal-appshell 1.12.0）：
+useCustomNodes 增 catalogFilter（CatalogFilterRef {namespace, origin?, tool?}，
+origin 维度待 ADR-009 #1/#2 透传），过滤面 = 组件面板 customNodes 构建 +
+FunctionCatalog 目录视图；补全由 hook 内全量注入（setUdfCompletions），REPL
+不跟随——与裁定一致。filter 生效面核验见 function-catalog 测试用例。】
 - 与弃用标记（A4）正交：`deprecated` 是显示语义（角标/警示），entitlement
   才是过滤——**弃用工具不因弃用而被过滤**；
 - origin 徽标（ADR-009 实施清单 #3）是本提案的前置：`origin` 进 schema 载荷
