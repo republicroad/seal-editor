@@ -34,8 +34,8 @@
 | 候选 | 说明 | 量级 |
 | --- | --- | --- |
 | 列显隐菜单 | `data-grid-column-visibility` 已 vendored 未用，dt 开列显隐是现成能力 | ~半天 |
-| 大表虚拟化 | StressTest 场景：DndRows（行拖拽）与 Virtual（虚拟化）在 vendored 套件不共存，需 vendored 增强（三选一见 [dt-datagrid-retrofit-plan.md](./dt-datagrid-retrofit-plan.md) 开放问题 1） | 1–2 天 |
-| cellSelection single 模式（A'） | 方向键格间导航 + aria 焦点跟踪，桥接回 cursor；**Phase 2 已裁决**为推荐备选、维持现状 | ~1 天，按需 |
+| ~~大表虚拟化~~ | ✅ 2026-09-29 落地（jdm 9eb5aa7e 移植）：虚拟化下沉 DndRows 表体（virtual prop + 七纪律 + rAF 兜底重连），dt ≥100 行窗口化，scrollApiRef 双路径 | 已完成 |
+| ~~cellSelection single 模式（A'）~~ | ✅ 2026-09-29 落地（jdm 2c48f461 移植）：受控 cellSelection 对桥接 cursor，键盘三分约定（plain/Ctrl/Alt），输入控件让位；Alt-only 收敛（⌘ 变体与边缘跳转撞车） | 已完成 |
 
 ## 维持否决清单（附理由，防止重复评估）
 
