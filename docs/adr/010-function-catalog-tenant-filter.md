@@ -190,8 +190,7 @@ crypto / current-date / query-list，`composeBaseNodes` 硬编码）不经目录
 verdict 按租户关 http 域（本修正的真实场景）时，httpRequestNode 仍可见可拖而
 执行端注册已撤，画布节点运行期报未知函数。修复方向二选一：① `useCustomNodes`
 增 `disabledNamespaces?: string[]`，`composeBaseNodes` 按 namespace 排除内建
-节点（约半天，可作 Phase 0 一致性临时措施）；② 四节点去硬编码、改为 origin
-元数据驱动的 schema 化渲染（与 ADR-009 #3 徽标同批）。
+节点（约半天，可作 Phase 0 一致性临时措施）；② 四节点去硬编码、改为 schema 化渲染——设计已定稿：[dedicated-node-registry-design.md](../design/dedicated-node-registry-design.md)（tester 带 rank 校验 + 三级降级 + 部分接管；与 ADR-009 #3 徽标同批，zen-udf 核心零改动）。
 
 ## 备选方案
 
