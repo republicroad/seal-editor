@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.11.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.10.0...@republicroad/seal-appshell@1.11.0) (2026-09-29)
+
+### Features
+
+- **appshell:** kernel full re-export — single-entry surface for hosts ([59e4782](https://github.com/republicroad/seal-editor/commit/59e4782ad4306a0be2d9ebc568675fe6265e99d4))
+
 # [1.10.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.9.0...@republicroad/seal-appshell@1.10.0) (2026-09-29)
 
 ### Features
