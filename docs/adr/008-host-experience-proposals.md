@@ -52,6 +52,8 @@ IBM ODM Decision Center（治理型决策平台同型终态）、VS Code（dirty
 
 【本仓评审 ✅ 接受（2026-09-28）——落地形态取 simulationFooter 插槽（面板底部宿主条），SimulationWithActions 返回载荷形态保留为按需演进项】
 
+【实施补全（2026-09-29，seal-appshell 1.10.0）：内核 GraphSimulator.simulationFooter（1.7.0 d159ae1）之外，SkinnedDecisionGraph 增 simulationFooter 透传（直通面板底条，需与 simulateHandler 同传）——verdict 经此挂「在调试页打开」→ /debug?ws=&model= 联动入口；Integration/SimulatorFooterHostEntry story 为消费形态演示】
+
 提案：`simulateHandler` 返回值允许附带 `actions?: { label; onClick }[]`，面板在结果
 区渲染；或提供 `simulationFooter` 插槽。
 
