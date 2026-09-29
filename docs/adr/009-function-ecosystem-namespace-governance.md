@@ -85,9 +85,9 @@ interface UdfPackMeta {
 
 | # | 项 | 归属 | 触发 |
 | --- | --- | --- | --- |
-| 1 | `UdfPackMeta` + 注册撞名检测 | zen-udf | 0.9.0 候选 |
-| 2 | 文件协议信封/动态端点透传 meta | appshell + 宿主 | 随 1 |
-| 3 | 目录 origin 徽标 + 租户过滤挂点 | appshell | 随 1 |
+| 1 | `UdfPackMeta` + 注册撞名检测 | zen-udf | ✅ 已实施（2026-09-29，jdm-editor 仓 701ee190，0.9.0——保留前缀立法/跨包撞名报错列出冲突方/overwrite 接管/参考域 origin 标记；两条验收注记均落地） |
+| 2 | 文件协议信封/动态端点透传 meta | appshell + 宿主 | ✅ 已实施（jdm-editor 仓 106b8609，appshell 0.14.0——parse 守卫为形状检查天然透传；containerPlan→planToJdmNode 链路） |
+| 3 | 目录 origin 徽标 + 租户过滤挂点 | appshell | ✅ 已实施（同上——kernel GraphComponents REF/EXT/IND 徽标 + tenantFilter 挂点（治理线实现语义）；UDF Lab 实测 14/15 命名空间带标） |
 | 4 | verdict 升级（seal-editor 1.8.0 + zen-udf 0.8.0） | verdict | 8.2 收官后 |
 | 5 | `@verdict/pack-*` 行业包骨架（模板 + packChecks + 导出 CLI 纳管） | verdict | 首个真实行业包出现时 |
 
