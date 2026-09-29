@@ -73,7 +73,7 @@ English files are canonical; `.zh-CN.md` files are translations kept in sync.
 | [`design/appshell-auto-persist.md`](./design/appshell-auto-persist.md) | 🔵 设计中 | appshell 自动持久化与冲突版本化通用接口:AutoPersistController(防抖/单 inflight/CONFLICT 三选/状态面)+UX 契约(模式 D 编辑面);内核零改动 || [`design/dt-datagrid-retrofit-plan.md`](./design/dt-datagrid-retrofit-plan.md) | ✅ | dt 核心编辑器 data-grid 换装决策记录:同实例喂 vendored grid、全量特征集、diff tint/精确滚动/吸顶、Phase 2 编辑契约裁决、Phase 3 清债 |
 
 | [`design/save-persistence-contract.md`](./design/save-persistence-contract.md) | ✅ | 保存与持久化契约(宿主对接 v1):dirty=宿主对比 onChange 快照、adapter 两模式(S/D)、模式 D 并发三选、weaveseal 落地清单 || [`design/code-block.md`](./design/code-block.md) | ✅ 待消费 | reui code-block(Shiki)设计:已安装未消费,首次集成留给 verdict dashboard |
-| [`design/dedicated-node-registry-design.md`](./design/dedicated-node-registry-design.md) | 🔵 设计定稿待实施 | 专属节点 UI 注册表(去硬编码):tester 带 rank 校验/三级降级/部分接管——存在性归载荷,UI 只做增强;随轨道 B Phase 2,zen-udf 核心零改动 |
+| [`design/dedicated-node-registry-design.md`](./design/dedicated-node-registry-design.md) | 🔵 设计定稿待实施 | 专属节点 UI 注册表(去硬编码):tester 带 rank 校验/三级降级/部分接管/版本迁移器——存在性归载荷,UI 只做增强;随轨道 B Phase 2,zen-udf 核心零改动 |
 | [`design/upstream-contribution-plan.md`](./design/upstream-contribution-plan.md) | ✅ | 上游贡献治理裁决:贡献线由宿主手动执行,本仓不回馈上游 |
 
 ## 四、历史归档 / History(📦 只读)

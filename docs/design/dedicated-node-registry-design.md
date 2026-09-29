@@ -1,7 +1,7 @@
 # 专属节点 UI 注册表——schema 化渲染设计（节点去硬编码）
 
 - 日期：2026-09-29
-- 状态：**设计定稿待实施**（轨道 B Phase 2；上游缺口记录见 [ADR-010](../adr/010-function-catalog-tenant-filter.md) 确认段）
+- 状态：**设计定稿待实施**（轨道 B Phase 2；含版本迁移器 §5——实践 6 落地；上游缺口记录见 [ADR-010](../adr/010-function-catalog-tenant-filter.md) 确认段）
 - 归属：appshell（useCustomNodes 流程）；内核零改动；zen-udf 核心零改动（origin 依赖为可选增强，见 §6）
 
 ## 0. 背景与问题
@@ -55,11 +55,19 @@ export type DedicatedNodeRegistration = {
   /** 节点工厂：createSpecNode 组装（kind/displayName/group/renderTab 等），
    *  renderTab 内部对未覆盖区嵌通用容器（实践 4）。 */
   factory: (ns: CustomNodeNamespace) => CustomNodeSpec;
+  /** 实践 6：域形状破坏性演化的显式迁移链（按 from 版本升序执行，见 §5）。
+   *  迁移器与专属 UI 同人同文件——域作者在注册时一并声明。 */
+  migrations?: DedicatedNodeMigration[];
 };
 
-// 内建四域注册（现 composeBaseNodes 的四项迁移至此，形状校验取代按名匹配）：
-// http-request → HttpRequestTab；crypto → CryptoTab；
-// current-date → CurrentDateTab；query-list → QueryListTab
+export type DedicatedNodeMigration = {
+  /** 起始 pack 版本（UdfPackMeta.version）：节点 config.__meta__.packVersion
+   *  低于当前域版本时，按升序执行所有 from > 记录版本的迁移。 */
+  from: string;
+  /** 迁移说明（人读）：审计/设计时变更日志的天然数据源（治理窗批次）。 */
+  describe: string;
+  migrate: (config: CustomNodeConfig, ctx: { ns: CustomNodeNamespace }) => CustomNodeConfig;
+};
 ```
 
 `useCustomNodes` 新流程：
@@ -94,7 +102,50 @@ fetchCustomNodeSchema(schemaSource)          ← 服务端已按租户过滤（�
 域特有交互（http 的请求构造/认证区、crypto 的编解码预览）。通用容器能力升级
 （工具提示、弃用标记 A4）自动传导，消除四 Tab 的隐性维护税。
 
-## 5. 与 zen-udf 的关系（本设计零 zen-udf 改动）
+## 5. 版本迁移器（实践 6 落地）
+
+节点里存的是**历史时刻的域契约**（位置参数绑定、工具名），服务端注册表持有
+**当前契约**。域形状演化（工具加参/改名/拆分/删除）时，两者漂移——位置绑定的
+错配是**静默错数据**（不报错、绑定错位），比未知函数更危险。对策按漂移类别分两级：
+
+### 5.1 绑定漂移（非破坏性）——具名调用优先 + 通用 rebinder
+
+- **具名调用优先**：`{$call: fn, kwargs}` 形态自描述，天然抗插入/重排——新建
+  节点的 seed 默认产出具名形态（三形态调用规范已支持），从源头减少迁移需求
+  （resilience-by-design 先于 migration machinery）；
+- **通用 rebinder 兜底**：载入时对位置形态的节点，按当前 parametersSchema 做
+  **幸存参数名重映射**——能按名对上的迁移，对不上的标记为缺失并写入迁移报告，
+  **绝不猜测静默改写**；
+- 零注册成本：rebinder 是通用机制，不专属四域。
+
+### 5.2 破坏性演化——域作者显式迁移链（Grafana migrator 同型）
+
+- 域作者在注册表项声明 `migrations`（§2）：`from` 版本锚点 + 显式 transform；
+- **版本锚**：seed 时在节点 `config.__meta__.packVersion` 记录创建时的
+  `UdfPackMeta.version`（`__meta__` 槽位契约已存在，零变更）；载入时
+  记录版本 < 当前域版本 → 按升序执行迁移链 → 更新锚；
+- **缺 `__meta__` 的存量图 = validate-only**：只做绑定校验与报告，不自动
+  transform——无版本锚的猜测迁移违反实践 6 的"不静默错配"；
+- **无迁移器的破坏性变更 = 明确降级**：节点标错误态 + 迁移提示（哪些参数/
+  工具漂移），绝不静默。
+
+### 5.3 运行时点与产出
+
+- 载入时执行：纯函数 `migrateGraph(graph, registry) → { graph, report }`——
+  宿主在 value 注入前显式调用（不进内核、不做隐式拦截）；
+- `report`（迁移了什么/哪些漂移未解）即**设计时变更日志的天然数据源**——
+  直接对接治理窗批次 4（集中验证面板 + 变更日志共用同一事件流）；
+- 迁移只发生在编辑器文档域；执行端（zen-udf registry）契约不受影响。
+
+### 5.4 边界
+
+- **零 zen-udf 改动**：版本锚消费 `UdfPackMeta.version`（ADR-009 #1 已排定），
+  绑定校验消费现有 parametersSchema；zen-udf 不承载可执行迁移（迁移函数是
+  编辑器侧代码，JSON 载荷不可携带）；
+- **deprecated ≠ 迁移**：弃用（A4）是显示语义；工具被迁移移除后，旧引用走
+  明确降级（5.2 末条）。
+
+## 6. 与 zen-udf 的关系（本设计零 zen-udf 改动）
 
 - **核心机制零改动**：存在性跟随载荷 + tester 注册表 + 降级阶梯全部在 appshell；
   载荷的 namespace/tools 形状信息已足够 tester 校验；
@@ -105,17 +156,18 @@ fetchCustomNodeSchema(schemaSource)          ← 服务端已按租户过滤（�
 - **显示提示不进 UdfPackMeta**（实践 5 × ADR-009 最小化纪律）：图标/标题别名
   等渲染提示归客户端注册表携带。
 
-## 6. 实施归属与阶段
+## 7. 实施归属与阶段
 
 | 项 | 归属 | 量级 | 触发 |
 | --- | --- | --- | --- |
 | ① 临时一致性措施：`useCustomNodes` 增 `disabledNamespaces?: string[]`，composeBaseNodes 按 namespace 排除 | seal-editor（appshell） | ~半天 | verdict Phase 0 先于本设计启用 http 域关闭 |
 | ② 本设计（注册表 + tester + 三级降级 + 四 Tab 部分接管改造） | seal-editor（appshell，随轨道 B Phase 2） | 1–2 天 | 轨道 B 启动 |
+| ③ 版本迁移器（§5：具名 seed + rebinder + 显式迁移链 + migrateGraph 工具与报告） | seal-editor（appshell，随轨道 B Phase 2，与 ② 同批） | +0.5–1 天 | 轨道 B 启动 |
 | origin 徽标/透传 | zen-udf（jdm-editor）+ appshell | ADR-009 清单 #1/#2/#3 | 0.9.0 |
 
-② 落地后 ① 的排除项作废删除。
+② 落地后 ① 的排除项作废删除。迁移器与注册表同批实施（注册表是迁移器的挂载点）。
 
-## 7. 反模式
+## 8. 反模式
 
 | 反模式 | 后果 |
 | --- | --- |
@@ -124,3 +176,6 @@ fetchCustomNodeSchema(schemaSource)          ← 服务端已按租户过滤（�
 | 专属 Tab 整体自绘不嵌通用容器 | 通用能力升级需四处手动跟（实践 4） |
 | 显示提示塞进 UdfPackMeta | 违反元数据最小化纪律，兼容性 surface 膨胀（ADR-009 注记） |
 | 旧图节点随 namespace 关闭而消失 | 存量文档打开白块——必须走只读降级 |
+| 位置绑定静默猜测重映射 | 错配不报错——错数据比报错危险（§5.1：对不上就标记缺失） |
+| 无版本锚的图自动执行迁移链 | 猜测迁移 = 变相静默改写（§5.2：缺锚 validate-only） |
+| 破坏性变更不上报迁移器、靠 rebinder 兜底 | 语义变更（非结构变更）rebinder 无能为力——域作者必须显式声明 |
