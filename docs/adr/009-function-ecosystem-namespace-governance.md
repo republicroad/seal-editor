@@ -91,6 +91,19 @@ interface UdfPackMeta {
 | 4 | verdict 升级（seal-editor 1.8.0 + zen-udf 0.8.0） | verdict | 8.2 收官后 |
 | 5 | `@verdict/pack-*` 行业包骨架（模板 + packChecks + 导出 CLI 纳管） | verdict | 首个真实行业包出现时 |
 
+## 实施加强注记（2026-09-29 业界范式对照，jdm-editor 会话补充）
+
+两条业界惯例，作为实施清单 **#1** 的验收形态约束：
+
+1. **撞名检测的报错须列出冲突方**——npm/Terraform 的注册错误都指明冲突对象
+   （形如 `namespace 'crypto' already registered by reference-domains`）。
+   zen-udf 0.9.0 的撞名错误信息应带「冲突 namespace + 已注册来源包」，否则宿主
+   排障需要翻注册表逐包比对；
+2. **UdfPackMeta 遵守最小化纪律**——只放目录渲染与过滤需要的字段
+   （origin/version/license 即最终集），不收描述类内容（description/title 各有
+   归属）。Grafana 插件 manifest 的教训：元数据字段一旦发布即成为兼容性
+   surface，膨胀后的迁移成本极高——宁可后加，不可先滥。
+
 ## 备选方案
 
 | 方案 | 优势 | 劣势 |
