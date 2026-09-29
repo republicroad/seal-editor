@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.11.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.10.0...@republicroad/seal-editor@1.11.0) (2026-09-29)
+
+### Bug Fixes
+
+- **kernel:** cell-selection apiRef as structural mutable ref — React 18 types make RefObject.current readonly ([c042b5d](https://github.com/republicroad/seal-editor/commit/c042b5d54962179111252a7cc5a283287056f87a))
+
+### Features
+
+- **kernel:** B1 row virtualization + B2 A' single-cell focus — ported from jdm 9eb5aa7e/2c48f461 ([e574f2d](https://github.com/republicroad/seal-editor/commit/e574f2da6d9d4b481b133dc134a5675ff77c62df))
+
 # [1.10.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.9.0...@republicroad/seal-editor@1.10.0) (2026-09-29)
 
 ### Features
