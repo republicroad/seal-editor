@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.9.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.8.0...@republicroad/seal-appshell@1.9.0) (2026-09-29)
+
+### Features
+
+- **appshell:** pattern-D auto-persist — AutoPersistController + useAutoPersist + sync badge ([6c32399](https://github.com/republicroad/seal-editor/commit/6c32399b680c1493cf5d6c80af23f66240be5dd9))
+
 # [1.8.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.7.0...@republicroad/seal-appshell@1.8.0) (2026-09-29)
 
 ### Features
