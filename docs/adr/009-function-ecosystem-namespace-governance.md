@@ -1,0 +1,110 @@
+# ADR-009：函数生态分层与 namespace 治理——参考域/通用扩展/行业包三层
+
+## 状态
+accepted（2026-09-29，verdict 起草、用户主导裁定；前置：ADR-008 L7 已实施——zen-udf 0.8.0 分发组合能力）
+
+## 背景
+
+zen-udf 的函数生态正在出现三类共存的内容：
+
+1. **参考域**（开源，随 zen-udf 分发）：crypto/datetime/rate-window/validate-cn 等
+   14 域 22 工具——通用、无业务逻辑，是机制协议的参考实现；
+2. **通用扩展**：表达式语言标准库补齐（zen-expression-ext：lgEq/strSubstring/
+   strFormat/numClamp/arrFirst/arrLast/arrJoin/distinct）、http/notify/编码类——
+   通用但可能先在宿主仓孵化，稳定后回流开源（velocity 规划已确立此模式）；
+3. **行业包**（未来）：风控 velocity、金融费率、电商营销等**随客户行业场景演进、
+   不适合开源**的算子与节点。
+
+三类内容共用同一套机制（注册/分发/schema/conformance/文件协议），但带来三个
+治理问题：开源边界如何划分；namespace 如何立法防撞；目录视图如何统一并区分
+来源。现行 `UdfPack` 无元数据、注册无撞名检测，行业包一旦出现即裸奔。
+
+## 业界范式
+
+| 范式 | 机制 | 本 ADR 对应 |
+| --- | --- | --- |
+| PostgreSQL 扩展 | core 内建 + `CREATE EXTENSION`；扩展对象进独立 schema；`pg_catalog` 保留给核心 | 参考域 vs 行业包；namespace 保留前缀 |
+| K8s API groups | core group 保留 + 命名 group 带组织前缀（`apps/v1`）；组名即隔离边界 | 行业包强制 `{pack-id}.{domain}` 前缀 |
+| VS Code | 内置命令 + 扩展命令（`extension.command` 强制前缀）；统一命令面板聚合 | 目录统一视图 + 来源徽标 |
+| MCP | 多 server 各自暴露工具，客户端聚合视图；无跨 server 冲突 | 多 pack 聚合下发 |
+
+共同原则：**机制开源、内容分层；namespace 描述能力，不描述批次/来源**；聚合视图
+对消费方无差别，来源与治理凭元数据。
+
+## 决策
+
+### 1 · 三层生态位与开源边界（内容由内容决定）
+
+| 生态位 | 例 | 开源 | 代码归属 |
+| --- | --- | --- | --- |
+| 参考域 | crypto/datetime/validate-cn/…（14 域） | ✅ | zen-udf 仓 |
+| 通用扩展 | zen-expression-ext、http/notify/编码 | 孵化期宿主仓 → 稳定后回流 | verdict 仓 → 可回流 zen-udf |
+| 行业包 | `verdict.risk`、`verdict.finance`（velocity 等） | ❌ 永不开源 | verdict 私有仓 / 私有 npm 包 |
+
+机制开源、内容分层是 ADR-0001（公开库仓/私有产品仓分离）在函数生态的投影。
+回流时 **namespace 不变**——namespace 与代码位置解耦，消费方零影响
+（zen-expression-ext 为首例：现居 verdict 仓，回流后仍叫 zen-expression-ext）。
+
+### 2 · namespace 立法
+
+- **保留前缀**：`zen` / `core` / `reference` / `builtin` 保留给 zen-udf 本体与
+  参考域；禁止行业/宿主包使用；
+- **宿主通用扩展**：单词能力域名（zen-expression-ext 先例）或 `{host}.` 前缀；
+- **行业包强制前缀**：`{pack-id}.{domain}`（如 `verdict.risk`、`acme.fraud`）；
+- **撞名检测**：注册时函数名跨 namespace 重复 → deploy 期失败（对齐 packChecks
+  「契约即测试」取向），除非显式声明 overwrite；
+- **禁止过程标签**：namespace 描述能力，不描述批次/客户（t1 → zen-expression-ext
+  为反例正例对；批次信息只活在覆盖矩阵文档）。
+
+### 3 · UdfPack 元数据（统一视图的数据基础）
+
+```ts
+interface UdfPackMeta {
+  origin: "reference" | "extension" | "industry"; // 目录来源徽标
+  version: string;                                // 目录过期提示
+  license?: "oss" | "proprietary";                // 治理面可见
+}
+```
+
+`UdfPack` 增加可选 `meta?: UdfPackMeta`；`udfFunctionSchemaNamespaces()` 与
+文件协议信封透传；编辑器目录渲染来源徽标（官方/扩展/行业），并预留**租户级
+目录过滤**挂点（归属 appshell 治理线，见函数生态治理文档 §0）。
+
+### 4 · 统一视图与统一 API（现状即达标，立法固化）
+
+- 注册：`registerUdf` / `registerTools` / `defineContrib` / `defineToolFor` 四态
+  并存（机制不变）；
+- 分发：单 zenEngine + 单 customHandler + 注册表按函数名分发（ADR-008 L7 组合
+  能力生效后，宿主协议 handler 经 decline 委托与 UDF 分发共存）；
+- 视图：`udfFunctionSchemaNamespaces()` 聚合全部已注册域（不区分来源）→
+  `/api/custom-nodes/schema` 动态下发 + host-functions.json 文件协议（L5）双通道；
+- 多引擎按 handler 切分为反模式（L1 缓存碎片化/发布 N 倍/内存 N 倍）——单实例
+  内部分发是架构红线。
+
+## 实施清单（分归属）
+
+| # | 项 | 归属 | 触发 |
+| --- | --- | --- | --- |
+| 1 | `UdfPackMeta` + 注册撞名检测 | zen-udf | 0.9.0 候选 |
+| 2 | 文件协议信封/动态端点透传 meta | appshell + 宿主 | 随 1 |
+| 3 | 目录 origin 徽标 + 租户过滤挂点 | appshell | 随 1 |
+| 4 | verdict 升级（seal-editor 1.8.0 + zen-udf 0.8.0） | verdict | 8.2 收官后 |
+| 5 | `@verdict/pack-*` 行业包骨架（模板 + packChecks + 导出 CLI 纳管） | verdict | 首个真实行业包出现时 |
+
+## 备选方案
+
+| 方案 | 优势 | 劣势 |
+| --- | --- | --- |
+| A. 三层生态位 + namespace 立法 + pack 元数据（本 ADR） | 防撞有法、视图可治、开源边界清晰 | 元数据字段与注册校验为增量改动 |
+| B. 单层扁平 + 纯命名约定（无保留前缀/无检测） | 零改动 | 撞名运行期才炸；目录无来源语义；行业包污染开源域 |
+| C. 多 UdfRegistry 实例隔离（每来源一个 registry + 多 runtime） | 物理隔离彻底 | 缓存碎片化/发布 N 倍/内存 N 倍——反模式（见 ADR-008 L7 背景） |
+
+## 后果
+
+- 正面：行业包可安全私有化而不破坏统一目录；namespace 防撞前移到 deploy 期；
+  目录来源可治（徽标/过滤）；回流机制有名分（zen-expression-ext 首例）
+- 负面/约束：`UdfPackMeta` 为 zen-udf 增量字段（0.9.0 候选）；宿主升级
+  （1.8.0 / 0.8.0）前 L6/L7 能力对 verdict 不可见；
+- 中性：行业包命名带组织前缀会稍长——可读性换防撞，值得；
+- 回流提案（zen-expression-ext）与 velocity 包回流沿用本 ADR 的 namespace
+  不变原则。

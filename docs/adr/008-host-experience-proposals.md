@@ -89,6 +89,8 @@ IBM ODM Decision Center（治理型决策平台同型终态）、VS Code（dirty
 搜索框只匹配节点标题——搜索 `id_card`（validate-cn 内部的工具名）返回空，宿主
 用户与图作者无法按函数名定位工具，只能逐组展开翻找。
 
+【已实施（2026-09-29 本仓，随 1.8.0；落点=kernel GraphComponents 搜索 + appshell containerPlan 工具名索引）】
+
 提案：搜索索引纳入容器节点的内部工具名（name/title/description）；命中时展开
 该容器分组并高亮对应工具卡。归属 appshell 目录面板组件（A1 目录 UI 的搜索行为
 规格补全）。
@@ -120,6 +122,8 @@ verdict 的临时解法是移除自有 handler、crypto 节点改由 registry �
 1. `DecisionRuntime` 的内置分发器可访问（如 `runtime.handleCustomNode`），
    宿主在其 customHandler 内显式委托；
 2. 或支持 handler 链（decline 语义：handler 返回 not-handled 时回落内置分发）。
+
+【已实施（2026-09-29，jdm-editor 98936ce1，zen-udf 0.8.0）——decline + 显式委托双形态；路由键 = node.name】
 
 归属 packages/zen-udf（engine.ts 构造项与分发器可见性）。
 
@@ -159,6 +163,8 @@ zen-udf 0.8.0——verdict 的临时规避可退役）。
 | L5 导出 CLI + 文件接入 | ✅ 已实施（verdict 仓） | verdict apps/api/scripts/export-udf-catalog.ts |
 | L6 目录搜索索引内部工具名 | ✅ 已实施（2026-09-29 本仓，随 1.8.0；落点修正为 kernel GraphComponents + appshell containerPlan） | packages/seal-editor graph/component-search.ts · packages/appshell custom-node-plans.ts |
 | L7 customHandler 组合能力 | ✅ 已实施（2026-09-29，jdm-editor 98936ce1，zen-udf 0.8.0；decline + 显式委托双形态；路由键=node.name，TS 侧 content 恒 null） | packages/zen-udf engine.ts |
+| L6/L7 verdict 消费 | ⏳ 待宿主升级（现 seal-editor 1.4.0 / zen-udf 0.6.0 → 需 1.8.0 / 0.8.0） | verdict apps/web + apps/api |
+| L1/L2/L3/L4 |
 | L1/L2/L3/L4 | L1/L3 已实施（本仓 d159ae1，headerSlots 注入 + simulationFooter 插槽）；L2 契约文档已建（save-persistence-contract.md）；L4 基线已更新（bundle-analysis.md + 预算 790000/193000） |
 
 ## 后果
