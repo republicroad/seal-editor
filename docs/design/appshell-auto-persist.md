@@ -1,7 +1,7 @@
 # appshell 自动持久化与冲突版本化 · 通用接口机制设计
 
 - 日期：2026-09-27
-- 状态：**设计中（已裁决，实施排期待定）**——宿主裁决：weaveseal 目标态为模式 D（连续持久化，无 dirty，见 [ADR-008](../adr/008-host-experience-proposals.md) L2 方向裁决节）；本档设计 appshell 侧的通用接口机制
+- 状态：**已实施（2026-09-29，seal-appshell 1.9.0）**——宿主裁决：weaveseal 目标态为模式 D（连续持久化，无 dirty，见 [ADR-008](../adr/008-host-experience-proposals.md) L2 方向裁决节）；实施记录见文末 §6
 - 前置：[GraphPersistenceAdapter](../../packages/appshell/src/shell/persistence.ts) 契约（baseRevision 乐观锁 → CONFLICT；listVersions；auto 保留策略）
 
 ## 0. 定位
@@ -102,7 +102,22 @@ CONFLICT 时控制器置 status='conflict' 并暴露 `conflict` 详情；宿主�
 
 ## 5. 落点与排期
 
-- `shell/auto-persist.ts`：controller + hook + 类型（appshell）
+- `shell/auto-persist.ts`：controller + hook + 类型（appshell）——即 `packages/appshell/src/shell/auto-persist.ts`（该文件目前尚不存在，属提议落点；shell 目录现为 `packages/appshell/src/shell/`，含 `persistence.ts`、`indexed-db-adapter.ts`、`graphs-http-adapter.ts` 等）
 - `SkinnedDecisionGraph`：可选集成点（与 simulateHandler 同型的注入面）
 - 状态徽标组件：shell-header 右侧（Saving…/Saved/Conflict）
 - 排期：设计定稿（本档），实施随 1.7.0 或按 weaveseal 排期；实施后本档状态更新
+
+## 6. 实施记录（2026-09-29，seal-appshell 1.9.0）
+
+| 项 | 落点 | 说明 |
+| --- | --- | --- |
+| 控制器核心 | `packages/appshell/src/shell/auto-persist.ts` `createAutoPersistController` | §2.1 全语义 + 业界补强：防抖 2000ms/**maxWait 15000ms 兜底**、**no-op 基线跳过**（stableStringify 键序无关对比，吞受控回写/加载回声）、单 inflight + 尾随合并、CONFLICT 停轮、**非冲突错误指数退避重试**（缺省 2 次，FORBIDDEN/NOT_FOUND 不重试）、`resolveConflict('overwrite'\|'loadHead'\|'saveCopy')` 三选原语、命名版本节奏、遥测 `onEvent` |
+| React 集成 | 同文件 `useAutoPersist` | adopt 随 documentId/baseRevision 变化；pagehide + visibilitychange(hidden) 冲刷（`flush({keepalive:true})`）；unmount flush+destroy |
+| 注入面 | `SkinnedDecisionGraph` 可选 `autoPersist` prop | simulateHandler 同型；onChange 拦截喂控制器；外部 value 注入自动 adopt（emitted/adopted 双指纹守卫）；宿主未给 right 槽时注入默认 `SyncStatusBadge`；`onController`/`onStateChange` 转发宿主 |
+| 徽标 | `packages/appshell/src/components/sync-status-badge.tsx` | 纯 props：Saving…/Saved(时间)/Conflict(仅示警，三选归宿主)/Error+Retry；idle/pending 静默 |
+| 契约扩展 | `persistence.ts` save opts `keepalive?`；`graphs-http-adapter.ts` save 改 fetch | save 是唯一需要 keepalive 的调用（pagehide 存活传输；sendBeacon 破坏 CORS 不采用）；IndexedDB 适配器无 CONFLICT 语义（本地单用户） |
+| 演示 | `integration/auto-persist.stories.tsx` + playground `?storage=http` | story：内存版 CONFLICT 适配器 + 三选横幅；playground：ocean 槽位镜像徽标（onStateChange）+ 保存/恢复同步 autoHead |
+
+**业界实践对齐（2026-09 核定，实施时补强设计档原案 4 处）**：防抖+maxWait（纯防抖饿死连续编辑流）、no-op 基线跳过（首个防抖 tick 冗余保存为文档在案常见 bug；内核 `setDecisionGraph` 受控回写默认回声 onChange——基线机制吞掉，内核零改动成立）、pagehide+keepalive（unload/beforeunload 已弃用）、退避重试仅非冲突错误。二阶段候选不变：Web Locks + BroadcastChannel 多标签、IndexedDB 本地草稿、离线队列。
+
+**内核验证记录（2026-09-29）**：① 受控回写（dg-empty → setDecisionGraph）默认回声触发 onChange（`dg-store.context.tsx:646` skipOnChangeEvent 缺省 false）——由 no-op 基线 + emitted 指纹守卫吞掉，非缺陷不修；② load/restore 注入路径经 adopt 重置基线，无保存风暴。内核保持 1.8.0 零改动。

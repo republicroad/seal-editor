@@ -40,5 +40,5 @@
 ## 4. weaveseal 落地清单（宿主侧）
 
 1. dirty：onChange 快照对比（宿主 state）+ 关闭拦截（现有 dirtyRef 迁移即可）
-2. 模式 D：debounce → adapter.save（带 baseRevision）+ CONFLICT 三选 UX + 同步状态徽标
+2. 模式 D：debounce → adapter.save（带 baseRevision）+ CONFLICT 三选 UX + 同步状态徽标——**appshell 已提供现成实现（2026-09-29，seal-appshell 1.9.0）**：`SkinnedDecisionGraph` `autoPersist` prop（或独立 `useAutoPersist` hook），含防抖+maxWait、no-op 基线跳过、退避重试、pagehide keepalive 冲刷与同步徽标，见 appshell-auto-persist.md §6 实施记录
 3. 崩溃兜底（二阶段候选）：IndexedDB 本地草稿缓存（hot exit 类比，见 appshell-auto-persist.md §4）

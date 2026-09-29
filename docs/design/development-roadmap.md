@@ -42,6 +42,8 @@ jdm-editor 已验证的 A1 目录 UI / A2 补全 / A4 deprecated 移植进 kerne
 
 ### 轨道 C · D 模式基建 + 治理窗（3–4 天）
 
+**auto-persist 基建已实施（2026-09-29，seal-appshell 1.9.0）**：`useAutoPersist` + `SkinnedDecisionGraph` `autoPersist` prop + 同步徽标 + CONFLICT 三选原语，业界实践对齐（maxWait/no-op 跳过/退避重试/pagehide keepalive），见 `appshell-auto-persist.md` §6。原设计内容：
+
 按 `appshell-auto-persist.md` 实施：AutoPersistController（防抖连续保存 +
 baseRevision 乐观锁）→ Saving/Saved/Conflict 状态徽标 → CONFLICT 三选 UX →
 多标签页。设计时变更日志挂靠同一持久化事件流。
