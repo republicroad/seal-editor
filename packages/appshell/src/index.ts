@@ -1,3 +1,14 @@
+/**
+ * 内核全量透传（默认出口）：宿主从此单入口 `from '@republicroad/seal-appshell'`
+ * 即可拿到 kernel+appshell 全部公开面。构建期内核 JS/dts 均外置——本行只是
+ * 指针，不内联代码或类型。
+ *
+ * 命名规则（ESM 语义）：显式导出优先于星导出——本文件随后的 appshell 显式
+ * 导出与内核撞名时本地静默胜出。当前零撞名（2026-09-29 全量扫描）；新增
+ * appshell 公共导出前请比对内核面（scripts/check-export-collisions.mjs）。
+ */
+export * from '@republicroad/seal-editor';
+
 export * from './context/theme.provider';
 export { useCustomNodes, type UseCustomNodesOptions } from './hooks/useCustomNodes';
 export { applyNodeOverrides } from './skin/apply';
