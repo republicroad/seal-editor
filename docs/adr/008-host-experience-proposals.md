@@ -1,7 +1,7 @@
 # ADR-008：编辑器宿主体验增强提案——header 槽位/保存协议/仿真联动/bundle 基线/目录文件协议/搜索索引/分发组合
 
 ## 状态
-accepted（2026-09-28 verdict 提出，2026-09-28 本仓评审通过——逐项裁决见各节标注；L5 已实施，L1/L3 已实施，L4 文档更新随本提交；L6/L7 为 2026-09-28 verdict 增补提案，proposed）
+accepted（2026-09-28 verdict 提出，2026-09-28 本仓评审通过——逐项裁决见各节标注；L5 已实施，L1/L3 已实施，L4 文档更新随本提交；L7 已实施（zen-udf 0.8.0，jdm-editor 98936ce1）；L6/L2 为 proposed）
 
 ## 背景
 
@@ -112,6 +112,19 @@ verdict 的临时解法是移除自有 handler、crypto 节点改由 registry �
 
 归属 packages/zen-udf（engine.ts 构造项与分发器可见性）。
 
+【已实施（2026-09-29，jdm-editor 98936ce1，zen-udf 0.8.0）——两种形态都落地：
+① decline 语义：`DecisionRuntimeOptions.customHandler` 返回类型宽化为
+`Promise<ZenEngineHandlerResponse | undefined>`，返回 undefined（not-handled）
+时构造器包装自动回落内置 UDF 分发；② 显式委托：`handleCustomNode` 去 private
+公开，宿主 handler 内可调 `runtime.handleCustomNode(request)`。引擎侧 handler
+永不返回 undefined（decline 已回落），类型在 ZenEngine 边界收窄。
+实施发现（决定性约束）：TS 侧 handler 收到的 `node.content` 恒为 null
+（xyflow/wasm 引擎不把 content 传给 TS handler），宿主路由只能按
+node.id / node.name，不能按 content.kind——协议节点路由键需约定 name。
+verdict 可退役「移除自有 handler」的临时规避，恢复 crypto 协议 handler +
+registry 工具并存的组合形态。三种形态均有 spy 断言测试
+（engine-custom-handler.test.ts）。】
+
 ## 备选方案
 
 | 方案 | 优势 | 劣势 |
@@ -123,8 +136,8 @@ verdict 的临时解法是移除自有 handler、crypto 节点改由 registry �
 
 采用方案 A（本文档即提案合集，L5/L6/L7 增补后为七项）。实施顺序修订：L5（已完成）
 → L4（例行，零风险）→ L1（消费方需求最明确）→ L2（文档化即可先行动）→ L3（随
-velocity §6 核对一起做）→ L6（appshell 目录搜索）→ L7（zen-udf 分发器组合能力，
-优先级最高——当前架构下宿主协议节点与 UDF 工具互斥，verdict 已临时规避）。
+velocity §6 核对一起做）→ L6（appshell 目录搜索）→ L7（✅ 已完成，2026-09-29
+zen-udf 0.8.0——verdict 的临时规避可退役）。
 
 ## 实施记录（2026-09-28）
 
@@ -133,7 +146,7 @@ velocity §6 核对一起做）→ L6（appshell 目录搜索）→ L7（zen-udf
 | L5 信封解析 | ✅ 已实施（303e95b，宿主指示直接实施） | packages/appshell/src/lib/custom-node-schema-source.ts |
 | L5 导出 CLI + 文件接入 | ✅ 已实施（verdict 仓） | verdict apps/api/scripts/export-udf-catalog.ts |
 | L6 目录搜索索引内部工具名 | proposed，待评审排期 | appshell 目录面板组件 |
-| L7 customHandler 组合能力 | proposed（verdict 已临时移除自有 handler 规避） | packages/zen-udf engine.ts |
+| L7 customHandler 组合能力 | ✅ 已实施（2026-09-29，jdm-editor 98936ce1，zen-udf 0.8.0；decline + 显式委托双形态；路由键=node.name，TS 侧 content 恒 null） | packages/zen-udf engine.ts |
 | L1/L2/L3/L4 | L1/L3 已实施（本仓 d159ae1，headerSlots 注入 + simulationFooter 插槽）；L2 契约文档已建（save-persistence-contract.md）；L4 基线已更新（bundle-analysis.md + 预算 790000/193000） |
 
 ## 后果
