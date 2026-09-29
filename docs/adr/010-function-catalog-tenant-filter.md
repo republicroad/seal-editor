@@ -127,8 +127,10 @@ useCustomNodes({ schemaSource, catalogFilter?: CatalogFilter });
   过滤即在该端点内实现：会话 → workspace → entitlement → 按 namespace 白名单
   过滤 → 下发。per-tenant 静态文件**否决**（时效/运维随租户数线性，且 verdict
   为单实例部署，端点内存缓存按 workspace 键 + 目录版本失效即可）；
-- **参考域不可过滤原则**：第一层生态位（zen-udf 参考域 + zen-expression-ext）
-  是产品基础能力，任何租户永可见——entitlement 只约束行业包（第三层）；
+- **参考域缺省可见，非不可过滤（2026-09-29 修正）**：参考域随产品分发、
+  商业上缺省全量；但机制上一份白名单管所有 namespace——按租户移除参考域是
+  显式运维决策（真实场景：对试用租户关 http 域收窄出网面）。禁止的只是把
+  参考域移出版本发布（代码开源边界，非授权边界）；
 - 现有静态 host-functions.json 降级为离线开发用途（文件协议 L5 保留）。
 
 ## 分阶段实施
@@ -158,7 +160,7 @@ useCustomNodes({ schemaSource, catalogFilter?: CatalogFilter });
 | 2 | 体验层生效面 | **接受默认提案**：仅目录面板过滤，补全/REPL 不跟随 |
 | 3 | 下发通道 | **动态端点**（已上线）；per-tenant 静态文件否决 |
 | 4 | license 可见性 | **Phase 0 服务端整包隐藏**（未授权包不存在于载荷，无徽标问题）；已授权包的 origin/license 徽标进载荷可接受 |
-| 5 | 试用/匿名租户 | 编辑器在会话守卫后必有租户上下文（该场景实际不存在）；防御性回落 = **全量参考域 + zen-expression-ext 永可见**（参考层是产品基础能力不可过滤），行业包不出现 |
+| 5 | 试用/匿名租户 | 编辑器在会话守卫后必有租户上下文（该场景实际不存在）；防御性回落 = 全量参考域 + zen-expression-ext 缺省可见；**例外**：http 等出网类参考域可按租户显式关闭（SSRF 面管控，属运维决策非商业决策） |
 | 6 | schema 版本语义 | version 用全量目录单调值（不 per-tenant）；generatedAt 取过滤时时间戳——过期提示口径不受过滤影响 |
 
 Phase 0 实施承诺：动态端点过滤逻辑（env 白名单起步）在 verdict 8.2 收官后下一批次实施（纯 verdict 侧改动，不依赖本仓发版）。
