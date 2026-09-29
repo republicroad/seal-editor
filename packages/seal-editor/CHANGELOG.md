@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.8.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.7.0...@republicroad/seal-editor@1.8.0) (2026-09-29)
+
+### Features
+
+- **appshell,kernel:** ADR-008 L6 — panel search indexes container-internal tool names ([1f08b77](https://github.com/republicroad/seal-editor/commit/1f08b77f2ca309adee54ce73c277e1fb8e0e32a4))
+
 # [1.7.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.6.0...@republicroad/seal-editor@1.7.0) (2026-09-29)
 
 ### Features
