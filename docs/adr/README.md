@@ -14,8 +14,9 @@
 | [ADR-005](./005-zen-udf-esm-source-publish.md) | zen-udf 以 TS 源码发布（main = src/index.ts，不编译 dist） | accepted | 2026-09 |
 | [ADR-006](./006-zustand-selector-equality.md) | zustand 选择器相等性：弃用 zustand/traditional，本地深比较 memoizer 取代 | accepted | 2026-09 |
 | [ADR-007](./007-crypto-randomuuid-secure-context.md) | crypto.randomUUID 与非安全上下文：库内入口守卫式 polyfill，宿主侧仅作可选加固 | accepted | 2026-09 |
-| [ADR-008](./008-host-experience-proposals.md) | 编辑器宿主体验增强提案：header 槽位注入/保存回调/仿真联动/bundle 基线 | proposed | 2026-09 |
+| [ADR-008](./008-host-experience-proposals.md) | 编辑器宿主体验增强提案：header 槽位注入/保存回调/仿真联动/bundle 基线 | accepted | 2026-09 |
 | [ADR-009](./009-function-ecosystem-namespace-governance.md) | 函数生态分层与 namespace 治理：参考域/通用扩展/行业包三层 + UdfPackMeta | accepted | 2026-09 |
+| [ADR-010](./010-function-catalog-tenant-filter.md) | 函数目录租户过滤接口：过滤边界分层（服务端安全边界 + 客户端体验谓词）与接口形态 | proposed | 2026-09 |
 
 ## 状态定义
 
