@@ -399,7 +399,6 @@ export const useAutoPersist = (
         optionsRef.current?.onStateChange?.(s);
       },
     });
-     
   }, [adapter, documentId]);
 
   useEffect(() => {
