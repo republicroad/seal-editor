@@ -1,7 +1,7 @@
-# ADR-008：编辑器宿主体验增强提案——header 槽位注入/保存回调/仿真联动/bundle 基线
+# ADR-008：编辑器宿主体验增强提案——header 槽位/保存协议/仿真联动/bundle 基线/目录文件协议/搜索索引/分发组合
 
 ## 状态
-accepted（2026-09-28 verdict 提出，2026-09-28 本仓评审通过——逐项裁决见各节标注；L5 已实施，L1/L3 已实施，L4 文档更新随本提交）
+accepted（2026-09-28 verdict 提出，2026-09-28 本仓评审通过——逐项裁决见各节标注；L5 已实施，L1/L3 已实施，L4 文档更新随本提交；L6/L7 为 2026-09-28 verdict 增补提案，proposed）
 
 ## 背景
 
@@ -82,6 +82,36 @@ IBM ODM Decision Center（治理型决策平台同型终态）、VS Code（dirty
   （14 域 22 工具）并经 `schemaSource="/host-functions.json"` 接入
 - 动态端点（GET /v1/udf/catalog 实时下发）留作可选项，不阻塞文件协议闭环
 
+### L6 · Components 面板搜索不索引容器节点内部工具名
+
+现状（2026-09-28 verdict 实测）：schema 驱动的目录以「每域一个容器节点」形态渲染
+（如 validate-cn 函数集合(4)），工具在拖入画布后的节点设置面板里经下拉选择。面板
+搜索框只匹配节点标题——搜索 `id_card`（validate-cn 内部的工具名）返回空，宿主
+用户与图作者无法按函数名定位工具，只能逐组展开翻找。
+
+提案：搜索索引纳入容器节点的内部工具名（name/title/description）；命中时展开
+该容器分组并高亮对应工具卡。归属 appshell 目录面板组件（A1 目录 UI 的搜索行为
+规格补全）。
+
+### L7 · zen-udf customHandler 遮蔽内置 UDF 分发，宿主无法组合
+
+现状（2026-09-28 verdict 执行 E2E 实测）：engine.ts 仅在 `customHandler == null`
+时安装内置 UDF 分发器（handleCustomNode）。宿主一旦注入任何 customHandler（如
+crypto 节点的协议专用 handler），注册表全部参考域工具的分发即被完全遮蔽——所有
+非该 handler 域的 customNode 永远 passthrough（verdict 实测：22 工具 traceData
+全 null，无任何错误暴露）。
+
+影响：宿主无法同时支持「协议特化节点」与「注册表 UDF 工具」——二者只能选一。
+verdict 的临时解法是移除自有 handler、crypto 节点改由 registry 参考域 crypto
+函数处理（回归对照 E2E 通过、零行为差异），但协议特化的组合需求仍然存在。
+
+提案：暴露组合能力，二选一即可——
+1. `DecisionRuntime` 的内置分发器可访问（如 `runtime.handleCustomNode`），
+   宿主在其 customHandler 内显式委托；
+2. 或支持 handler 链（decline 语义：handler 返回 not-handled 时回落内置分发）。
+
+归属 packages/zen-udf（engine.ts 构造项与分发器可见性）。
+
 ## 备选方案
 
 | 方案 | 优势 | 劣势 |
@@ -91,9 +121,10 @@ IBM ODM Decision Center（治理型决策平台同型终态）、VS Code（dirty
 
 ## 决策
 
-采用方案 A（本文档即提案合集，L5 增补后为五项）。实施顺序修订：L5（已完成）→
-L4（例行，零风险）→ L1（消费方需求最明确）→ L2（文档化即可先行动）→ L3（随
-velocity §6 核对一起做）。
+采用方案 A（本文档即提案合集，L5/L6/L7 增补后为七项）。实施顺序修订：L5（已完成）
+→ L4（例行，零风险）→ L1（消费方需求最明确）→ L2（文档化即可先行动）→ L3（随
+velocity §6 核对一起做）→ L6（appshell 目录搜索）→ L7（zen-udf 分发器组合能力，
+优先级最高——当前架构下宿主协议节点与 UDF 工具互斥，verdict 已临时规避）。
 
 ## 实施记录（2026-09-28）
 
@@ -101,6 +132,8 @@ velocity §6 核对一起做）。
 | --- | --- | --- |
 | L5 信封解析 | ✅ 已实施（303e95b，宿主指示直接实施） | packages/appshell/src/lib/custom-node-schema-source.ts |
 | L5 导出 CLI + 文件接入 | ✅ 已实施（verdict 仓） | verdict apps/api/scripts/export-udf-catalog.ts |
+| L6 目录搜索索引内部工具名 | proposed，待评审排期 | appshell 目录面板组件 |
+| L7 customHandler 组合能力 | proposed（verdict 已临时移除自有 handler 规避） | packages/zen-udf engine.ts |
 | L1/L2/L3/L4 | L1/L3 已实施（本仓 d159ae1，headerSlots 注入 + simulationFooter 插槽）；L2 契约文档已建（save-persistence-contract.md）；L4 基线已更新（bundle-analysis.md + 预算 790000/193000） |
 
 ## 后果
