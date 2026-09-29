@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.16.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.15.0...@republicroad/seal-appshell@1.16.0) (2026-09-29)
+
+### Features
+
+- **appshell:** FunctionRepl — A3b stateless single-function REPL panel ([4ce04e3](https://github.com/republicroad/seal-editor/commit/4ce04e3d1010c6fd7b3386961a12bfb8fedbc9cc))
+
 # [1.15.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.14.0...@republicroad/seal-appshell@1.15.0) (2026-09-29)
 
 **Note:** Version bump only for package @republicroad/seal-appshell
