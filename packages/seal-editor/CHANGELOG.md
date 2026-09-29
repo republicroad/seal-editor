@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.10.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.9.0...@republicroad/seal-editor@1.10.0) (2026-09-29)
+
+### Features
+
+- **kernel,appshell:** ADR-009 [#2](https://github.com/republicroad/seal-editor/issues/2)/[#3](https://github.com/republicroad/seal-editor/issues/3) meta chain — spec.meta + panel origin badges (A1 remainder) ([27b7308](https://github.com/republicroad/seal-editor/commit/27b7308c68db170eac05d0f84dcecc62ddbe3bf5))
+
 # [1.9.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.8.0...@republicroad/seal-editor@1.9.0) (2026-09-29)
 
 ### Features
