@@ -128,6 +128,28 @@ describe('schemaToNodePlans', () => {
     expect(plans[0].searchKeywords).toEqual(['id_card', '身份证二要素认证', 'bank_card', '银行卡认证']);
   });
 
+  test('container plan passthrough namespace meta (ADR-009 #2/#3 origin badge chain)', () => {
+    const ns: CustomNodeNamespace = {
+      type: 'namespace',
+      name: 'verdict.risk',
+      title: 'verdict.risk',
+      meta: { origin: 'industry', version: '1.0.0', license: 'proprietary' },
+      tools: [
+        {
+          name: 'velocity_1h',
+          title: 'velocity_1h',
+          type: 'function',
+          parameters: { type: 'object', properties: {} },
+          returns: { type: 'integer' },
+          namespace: 'verdict.risk',
+          kind: 'verdict.risk',
+        },
+      ],
+    } as CustomNodeNamespace;
+    const plans = schemaToNodePlans([ns]);
+    expect(plans[0].meta).toEqual({ origin: 'industry', version: '1.0.0', license: 'proprietary' });
+  });
+
   test('container plan seeds empty expressions config', () => {
     const plans = schemaToNodePlans([collectionNamespace]);
     expect(plans[0].seed({ index: 0 }).config).toEqual(EMPTY_EXPRESSIONS_CONFIG);

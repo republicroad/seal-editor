@@ -31,6 +31,8 @@ export type CustomNodePlan = {
   tools?: CustomFunctionTool[];
   /** L6（ADR-008）：面板搜索附加关键词——容器内部工具的 name/title/描述首行，命中时高亮词条 */
   searchKeywords?: string[];
+  /** ADR-009：pack 元数据透传（目录 origin 徽标） */
+  meta?: CustomNodeNamespace['meta'];
   seed: (params: { index: number }) => { name: string; config: CustomNodeConfig };
 };
 
@@ -43,6 +45,7 @@ export const containerPlan = (namespace: CustomNodeNamespace): CustomNodePlan =>
     group: CUSTOM_FUNCTION_GROUP,
     shortDescription: firstLine(namespace.description) ?? `函数集合(${toolCount})`,
     tools: namespace.tools ?? [],
+    meta: namespace.meta,
     searchKeywords: Array.from(
       new Set(
         (namespace.tools ?? [])

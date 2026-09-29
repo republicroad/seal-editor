@@ -168,17 +168,40 @@ export const GraphComponents: React.FC<GraphComponentsProps> = React.memo(({ inp
   );
 });
 
+/** ADR-009：目录 origin 徽标——pack 元数据的可视化（数据经 schema 端点/文件协议透传） */
+const ORIGIN_BADGE: Record<string, { label: string; title: string }> = {
+  reference: { label: 'REF', title: 'Reference domain — ships with zen-udf' },
+  extension: { label: 'EXT', title: 'Extension pack' },
+  industry: { label: 'IND', title: 'Industry pack (proprietary)' },
+};
+
 const DragDecisionNode: React.FC<
   {
-    specification: Pick<NodeSpecification, 'color' | 'icon' | 'displayName' | 'shortDescription' | 'searchKeywords'>;
+    specification: Pick<
+      NodeSpecification,
+      'color' | 'icon' | 'displayName' | 'shortDescription' | 'searchKeywords' | 'meta'
+    >;
     /** L6：经 searchKeywords（内部工具名等）命中时的高亮词条——替换 shortDescription 徽标展示 */
     matchedKeywords?: string[];
     disabled?: boolean;
     collapsed?: boolean;
   } & React.HTMLAttributes<HTMLDivElement>
 > = ({ specification, matchedKeywords, disabled = false, collapsed, ...props }) => {
+  const originBadge = specification.meta ? ORIGIN_BADGE[specification.meta.origin] : undefined;
   return (
-    <div className={clsx('draggable-component cursor-grab [transform:translate(0)]')} draggable={!disabled} {...props}>
+    <div
+      className={clsx('draggable-component relative cursor-grab [transform:translate(0)]')}
+      draggable={!disabled}
+      {...props}
+    >
+      {originBadge && (
+        <span
+          title={originBadge.title}
+          className='text-muted-foreground bg-background absolute end-1.5 top-1.5 z-[1] rounded border border-[var(--border)] px-1 text-[10px] leading-4'
+        >
+          {originBadge.label}
+        </span>
+      )}
       <div style={{ pointerEvents: 'none' }}>
         <DecisionNode
           listMode
