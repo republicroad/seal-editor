@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.9.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.8.0...@republicroad/seal-editor@1.9.0) (2026-09-29)
+
+### Features
+
+- **kernel:** A2 — setUdfCompletions injected into the zen completion module ([6830ac1](https://github.com/republicroad/seal-editor/commit/6830ac17b228084648037df86aa2ead04f26d458))
+
 # [1.8.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.7.0...@republicroad/seal-editor@1.8.0) (2026-09-29)
 
 ### Features

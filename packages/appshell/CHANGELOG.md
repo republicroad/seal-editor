@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.12.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.11.0...@republicroad/seal-appshell@1.12.0) (2026-09-29)
+
+### Features
+
+- **appshell:** dedicated-function registry + catalogFilter — useCustomNodes restructured (track B M5/M1) ([465f93c](https://github.com/republicroad/seal-editor/commit/465f93c3d81902011e6a6e7077d747f22bb0dfce))
+- **appshell:** FunctionCatalog — A1 function catalog productized (track B) ([55fdd62](https://github.com/republicroad/seal-editor/commit/55fdd62bbc7bc424e0a3e2596e871ac887c68b58))
+- **appshell:** migrateGraph — version-anchored migration chains + drift report (track B M5b) ([c7a9073](https://github.com/republicroad/seal-editor/commit/c7a9073609b518ae59d5b4902eac6d7e4fc254e2))
+
 # [1.11.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.10.0...@republicroad/seal-appshell@1.11.0) (2026-09-29)
 
 ### Features
