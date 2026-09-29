@@ -1,9 +1,11 @@
-import { DecisionGraph, type DecisionGraphType } from '@republicroad/seal-editor';
+import { DecisionGraph, type DecisionGraphType, type Simulation } from '@republicroad/seal-editor';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import React, { useState } from 'react';
 
+import { SkinnedDecisionGraph } from '../components/skinned-decision-graph';
 import { useCustomNodes } from '../hooks/useCustomNodes';
 import type { GraphPersistenceAdapter, GraphRecord } from '../shell/persistence';
+import type { SimulateHandler } from '../shell/types';
 
 /**
  * Cross-package integration: kernel DecisionGraph + appshell custom nodes
@@ -87,4 +89,43 @@ const IntegrationGraph: React.FC = () => {
 
 export const KernelPlusAppshell: Story = {
   render: () => <IntegrationGraph />,
+};
+
+/** 离线假 handler：footer 演示不依赖后端，Run 出空结果即可 */
+const offlineSimulate: SimulateHandler = async () => ({ simulation: { result: {} } as Simulation });
+
+/** ADR-008 L3 演示：仿真面板底部宿主条——verdict 的「在调试页打开」联动入口（/debug?ws=&model=） */
+const SimulatorFooterGraph: React.FC = () => {
+  const { customNodes, ready } = useCustomNodes();
+
+  if (!ready) {
+    return <div style={{ padding: 24 }}>loading custom nodes…</div>;
+  }
+
+  return (
+    <SkinnedDecisionGraph
+      value={{ nodes: [], edges: [] }}
+      customNodes={customNodes}
+      onChange={() => {}}
+      simulateHandler={offlineSimulate}
+      simulationFooter={
+        <a
+          href='/debug?ws=demo&model=footer-demo'
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            fontSize: 12,
+            color: 'var(--seal-color-primary)',
+          }}
+        >
+          在调试页打开 →
+        </a>
+      }
+    />
+  );
+};
+
+export const SimulatorFooterHostEntry: Story = {
+  render: () => <SimulatorFooterGraph />,
 };

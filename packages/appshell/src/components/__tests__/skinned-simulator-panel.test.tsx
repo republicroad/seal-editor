@@ -121,4 +121,32 @@ describe('SkinnedDecisionGraph simulator panel', () => {
       { timeout: 15000, interval: 200 },
     );
   }, 20000);
+
+  it('simulationFooter：宿主联动入口渲染于面板底部（ADR-008 L3，verdict 形态）', async () => {
+    const { container } = render(
+      <ThemeContextProvider>
+        <SkinnedDecisionGraph
+          value={graph as never}
+          onChange={vi.fn()}
+          simulateHandler={createExecuteSimulate('http://localhost:8787')}
+          defaultActivePanel='simulator'
+          simulationFooter={
+            <a href='/debug?ws=demo&model=t1' data-testid='debug-entry'>
+              在调试页打开
+            </a>
+          }
+        />
+      </ThemeContextProvider>,
+    );
+
+    const footer = await waitFor(
+      () => {
+        const el = container.querySelector('[data-testid="debug-entry"]');
+        if (!el) throw new Error('simulation footer not mounted yet');
+        return el;
+      },
+      { timeout: 15000, interval: 200 },
+    );
+    expect(footer.getAttribute('href')).toBe('/debug?ws=demo&model=t1');
+  }, 20000);
 });

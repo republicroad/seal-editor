@@ -66,6 +66,12 @@ export type SkinnedDecisionGraphProps = DecisionGraphProps & {
    * （Saving…/Saved/Conflict）。未传则行为完全不变。
    */
   autoPersist?: AutoPersistBridgeOptions;
+  /**
+   * ADR-008 L3：仿真面板底部宿主条——宿主联动入口（verdict：「在调试页打开」→
+   * /debug?ws=&model=）。直通内核 GraphSimulator 底部动作条；需与 simulateHandler
+   * 同传（面板本身由 simulateHandler 驱动）。
+   */
+  simulationFooter?: React.ReactNode;
 };
 
 /**
@@ -80,7 +86,7 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
   SkinnedDecisionGraphProps & React.RefAttributes<DecisionGraphRef>
 > = React.forwardRef<DecisionGraphRef, SkinnedDecisionGraphProps>((props, ref) => {
   const { activeSkin } = useTheme();
-  const { simulateHandler, headerSlots, autoPersist, ...restProps } = props;
+  const { simulateHandler, headerSlots, autoPersist, simulationFooter, ...restProps } = props;
   const internalRef = useRef<DecisionGraphRef | null>(null);
   const [mounted, setMounted] = useState(false);
   const [simulation, setSimulation] = useState<Simulation | undefined>(undefined);
@@ -181,6 +187,7 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
         <GraphSimulator
           defaultRequest={'{\n  \n}'}
           loading={running}
+          simulationFooter={simulationFooter}
           onRun={({ graph, context }) => {
             setRunning(true);
             simulateHandler(graph as DecisionGraphType, context)
@@ -192,7 +199,7 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
       ),
     };
     return [...(props.panels ?? []), simulatorPanel];
-  }, [props.panels, simulateHandler, running]);
+  }, [props.panels, simulateHandler, running, simulationFooter]);
 
   // S005 P2：右缘面板槽位（VersionHistoryPanel 同款 Sheet 容器）
   const rightSlots = useMemo(() => mapPanelSlotIds(activeSkin?.layout?.panels?.right), [activeSkin]);
