@@ -38,7 +38,7 @@ proposed（L7 已在 jdm-editor 实施，zen-udf 0.8.0）。后续按四轨道�
 jdm-editor 已验证的 A1 目录 UI / A2 补全 / A4 deprecated 移植进 kernel/appshell
 （组件无状态），叠加治理三件：租户/权限目录过滤接口、deprecated 三处显示
 （画布角标/补全/目录）、A3 REPL 面板（端点原型已有）。
-**裁定（宿主 2026-09-29）：等与 weaveseal/verdict 协商租户过滤接口形态后启动——协商底稿已立：[ADR-010](../adr/010-function-catalog-tenant-filter.md)（过滤边界分层 + catalogFilter 接口提案 + 开放问题清单），收敛即解除 HOLD。**
+**裁定（宿主 2026-09-29）：等与 weaveseal/verdict 协商租户过滤接口形态后启动——[ADR-010](../adr/010-function-catalog-tenant-filter.md) 已于 2026-09-29 双向收敛转 accepted（verdict 六项结论回填 + 本仓确认），HOLD 解除，可启动实施（A1/A2/A4 产品化 + Phase 2 catalogFilter 谓词；Phase 0 过滤为 verdict 侧独立推进）。**
 
 ### 轨道 C · D 模式基建 + 治理窗（3–4 天）
 
