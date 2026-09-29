@@ -1,7 +1,7 @@
 # ADR-008：编辑器宿主体验增强提案——header 槽位注入/保存回调/仿真联动/bundle 基线
 
 ## 状态
-proposed（2026-09-28，verdict 宿主提出，待本仓评审）
+accepted（2026-09-28 verdict 提出，2026-09-28 本仓评审通过——逐项裁决见各节标注；L5 已实施，L1/L3 已实施，L4 文档更新随本提交）
 
 ## 背景
 
@@ -18,6 +18,8 @@ verdict 以 `/edit` 全页路由嵌入本仓 kernel+appshell（seal-editor/seal-
 现状：header slots 来自 `activeSkin.layout.header.slots`（皮肤定义），宿主无法在不定义
 整个 skin 的情况下注入 per-page 元素（如 home/back 链接）。verdict 的排查实测：皮肤
 header 内的导航元素宿主不可控，只能绕道页面级头部。
+
+【本仓评审 ✅ 接受（2026-09-28）——API 细化：prop 挂 SkinnedDecisionGraph（ThemeContextProvider 保持纯主题契约）；合并=宿主优先浅合并；v1 不带 ctx 参数（YAGNI）】
 
 提案：`ThemeContextProvider`（或 `SkinnedDecisionGraph`）接受可选
 `headerSlots={{ left?: (ctx) => ReactNode; right?: ... }}`，与 activeSkin 的 slots
@@ -48,6 +50,8 @@ IBM ODM Decision Center（治理型决策平台同型终态）、VS Code（dirty
 「仿真结果一键存为宿主测试用例」（verdict 6.1 已在宿主侧实现）与「仿真失败联跳宿主
 调试页」只能在面板外实现。
 
+【本仓评审 ✅ 接受（2026-09-28）——落地形态取 simulationFooter 插槽（面板底部宿主条），SimulationWithActions 返回载荷形态保留为按需演进项】
+
 提案：`simulateHandler` 返回值允许附带 `actions?: { label; onClick }[]`，面板在结果
 区渲染；或提供 `simulationFooter` 插槽。
 
@@ -55,6 +59,8 @@ IBM ODM Decision Center（治理型决策平台同型终态）、VS Code（dirty
 
 现状：docs/bundle-analysis.md 为旧版本基线；1.3.0（dagre 动态导入，R6）与 1.4.0
 （polyfills 入口副作用）后未重测。
+
+【本仓评审 ✅ 接受（2026-09-28）——fresh 实测已有：index.js 750.0KiB raw / 184.0KiB gzip（W1 后，预算随之 790000/193000）；bundle-analysis.md 基线段随本提交更新；verdict 消费方确认记录待其侧补充】
 
 提案：例行重测并更新文档——验证 dagre/monaco 的动态导入边界在消费方实测仍成立
 （verdict 侧确认编辑器 chunk 不进控制台首屏）。
@@ -95,7 +101,7 @@ velocity §6 核对一起做）。
 | --- | --- | --- |
 | L5 信封解析 | ✅ 已实施（303e95b，宿主指示直接实施） | packages/appshell/src/lib/custom-node-schema-source.ts |
 | L5 导出 CLI + 文件接入 | ✅ 已实施（verdict 仓） | verdict apps/api/scripts/export-udf-catalog.ts |
-| L1/L2/L3/L4 | proposed，待评审排期 | — |
+| L1/L2/L3/L4 | L1/L3 已实施（本仓 d159ae1，headerSlots 注入 + simulationFooter 插槽）；L2 契约文档已建（save-persistence-contract.md）；L4 基线已更新（bundle-analysis.md + 预算 790000/193000） |
 
 ## 后果
 
