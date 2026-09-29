@@ -167,7 +167,7 @@ zen-udf 0.8.0——verdict 的临时规避可退役）。
 | --- | --- | --- |
 | L5 信封解析 | ✅ 已实施（303e95b，宿主指示直接实施） | packages/appshell/src/lib/custom-node-schema-source.ts |
 | L5 导出 CLI + 文件接入 | ✅ 已实施（verdict 仓） | verdict apps/api/scripts/export-udf-catalog.ts |
-| L6 目录搜索索引内部工具名 | ✅ 已实施（2026-09-29 本仓，随 1.8.0；落点修正为 kernel GraphComponents + appshell containerPlan） | packages/seal-editor graph/component-search.ts · packages/appshell custom-node-plans.ts |
+| L6 目录搜索索引内部工具名 | ✅ 已实施（2026-09-29 本仓，随 1.8.0；落点修正为 kernel GraphComponents + appshell containerPlan）；**reui 线已移植（jdm-editor 9dd720f8，2.3.0/appshell 0.13.0）——两内核齐备** | packages/seal-editor graph/component-search.ts · packages/appshell custom-node-plans.ts · jdm-editor 同构 |
 | L7 customHandler 组合能力 | ✅ 已实施（2026-09-29，jdm-editor 98936ce1，zen-udf 0.8.0；decline + 显式委托双形态；路由键=node.name，TS 侧 content 恒 null） | packages/zen-udf engine.ts |
 | L6/L7 verdict 消费 | ⏳ 待宿主升级（现 seal-editor 1.4.0 / zen-udf 0.6.0 → 需 1.8.0 / 0.8.0） | verdict apps/web + apps/api |
 | L1/L2/L3/L4 |
