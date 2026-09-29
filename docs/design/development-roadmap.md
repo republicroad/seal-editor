@@ -20,6 +20,49 @@
 - 关键约束：CI Linux 构建 ~2.5% 大于 Windows 本地——体积预算以 CI 实测校准
   （index.js 695000/172000，style.css 116000/18700）
 
+## 0.5 当前规划（1.8.0 起，2026-09-29 宿主裁定）
+
+1.7.0 已发布（ADR-008 全套：L1 headerSlots + L3 simulationFooter + L2 保存契约 + L4 预算
+790000/193000 + L5 目录信封；demo-server zen-udf `^0.7.0`）。ADR-008 现为七项，仅 L6
+proposed（L7 已在 jdm-editor 实施，zen-udf 0.8.0）。后续按四轨道推进：
+
+### 轨道 A · ADR-008 收尾 + 依赖刷新（~1 天，执行中）
+
+- L6 目录面板搜索索引容器节点内部工具名（name/title/description），命中展开分组并
+  高亮工具卡——已接受（宿主 2026-09-29），归属 appshell 目录面板
+- demo-server bump zen-udf `^0.8.0`（L7 decline 语义 + 显式委托）+ 消费端冒烟
+- 随 **1.8.0** 发版（L6 是 feature，minor）
+
+### 轨道 B · 函数生态产品化（2–3 天，**待接口协商**）
+
+jdm-editor 已验证的 A1 目录 UI / A2 补全 / A4 deprecated 移植进 kernel/appshell
+（组件无状态），叠加治理三件：租户/权限目录过滤接口、deprecated 三处显示
+（画布角标/补全/目录）、A3 REPL 面板（端点原型已有）。
+**裁定（宿主 2026-09-29）：等与 weaveseal/verdict 协商租户过滤接口形态后启动。**
+
+### 轨道 C · D 模式基建 + 治理窗（3–4 天）
+
+按 `appshell-auto-persist.md` 实施：AutoPersistController（防抖连续保存 +
+baseRevision 乐观锁）→ Saving/Saved/Conflict 状态徽标 → CONFLICT 三选 UX →
+多标签页。设计时变更日志挂靠同一持久化事件流。
+**裁定（宿主 2026-09-29）：治理窗（批次 4：集中验证面板 + 设计时变更日志）后续
+单独安排和设计，不与本轨道捆绑排期**；集中验证面板无持久化依赖，届时可先行。
+
+### 轨道 D · 填缝与背景任务（按需穿插）
+
+- backlog 状态刷新（W1-B 调试器过滤、W1-C 列显隐已完成，划掉对应行）
+- spec renderSettings 密度规范（~1 天，触及 spec 面板时顺做）；graph 面板区形态统一（渐进）
+- **dt 大表虚拟化：裁定（宿主 2026-09-29）借鉴 jdm-editor 的实现即可**——待其主线
+  落地后回流，本仓不先行裁决 DndRows+Virt 三选一
+- radix island 分支（playground/radix-island-wip）验证；grid-extensions 上游提交
+  ReUI（宿主手动）；velocity §6 核对（等 verdict T1 启动）
+
+### 发布节奏
+
+- **1.8.0** = 轨道 A（L6 + zen-udf `^0.8.0`）
+- **1.9.0** 候选 = 轨道 C（auto-persist 基建）；轨道 B 视协商结果并入任一 minor
+- 2.0.0 暂无触发条件（无破坏性变更在望）
+
 ## 1. 短期（1.0.x → 1.1.x 维护与特性）
 
 ### 1.1 R6 dagre 体积评估结论（2026-09-25 实测）
