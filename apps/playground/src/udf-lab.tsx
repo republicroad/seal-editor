@@ -1,12 +1,14 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs';
 import {
   EditorShellProvider,
+  FunctionCatalog,
   type GraphPersistenceAdapter,
   SkinnedDecisionGraph,
   createExecuteSimulate,
   createIndexedDbAdapter,
   useEditorShell,
 } from '@republicroad/seal-appshell';
+import type { CustomFunctionTool } from '@republicroad/seal-appshell';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { InstanceShell } from './shared/instance-shell';
@@ -20,11 +22,12 @@ const GRAPH_ID = 'udf-lab-graph';
 const adapter: GraphPersistenceAdapter = createIndexedDbAdapter();
 
 const UdfLabBody: React.FC = () => {
-  const { customNodes, ready, runSimulate } = useEditorShell();
+  const { customNodes, schema, ready, runSimulate } = useEditorShell();
   const [graph, setGraph] = useState<any>(udfFixtures[0]?.model);
   const [activeFixture, setActiveFixture] = useState<string>(udfFixtures[0]?.id ?? '');
   const [status, setStatus] = useState('');
   const [serverUp, setServerUp] = useState<boolean | null>(null);
+  const [catalogOpen, setCatalogOpen] = useState(false);
 
   // demo-server 健康探针：schema 拉取失败会在 appshell 内静默回退内置样例，
   // 这里显式探测可达性，避免"面板有节点但一执行就失败"的困惑
@@ -50,6 +53,29 @@ const UdfLabBody: React.FC = () => {
     setGraph(fixture.model);
     setActiveFixture(fixture.id);
     setStatus(`已载入样例：${fixture.label}`);
+  }, []);
+
+  // 轨道 B（A1）：目录一键插入——customNode 序列化契约与夹具一致
+  // （expressions: key=函数名，value=位置绑定 udf名;;参数名…）
+  const insertTool = useCallback((tool: CustomFunctionTool) => {
+    setGraph((g: any) => {
+      const nodes = g?.nodes ?? [];
+      const paramNames = Object.keys(tool.parameters?.properties ?? {});
+      const value = paramNames.length ? [tool.name, ...paramNames].join(';;') : tool.name;
+      const node = {
+        id: crypto.randomUUID(),
+        type: 'customNode',
+        position: { x: 320, y: 140 + (nodes.length % 6) * 40 },
+        name: tool.title ?? tool.name,
+        content: {
+          kind: 'UDF',
+          config: { expressions: [{ id: crypto.randomUUID(), key: tool.name, value }] },
+        },
+      };
+      return { ...g, nodes: [...nodes, node] };
+    });
+    setCatalogOpen(false);
+    setStatus(`已插入 ${tool.name}（连好输入后执行）`);
   }, []);
 
   const currentRevision = (graph as { revision?: string }).revision;
@@ -93,6 +119,7 @@ const UdfLabBody: React.FC = () => {
             </button>
           ))}
           <button onClick={() => void save()}>Save (IndexedDB)</button>
+          <button onClick={() => setCatalogOpen(true)}>函数目录</button>
           <span className='pg-status'>{status}</span>
         </>
       }
@@ -124,6 +151,7 @@ const UdfLabBody: React.FC = () => {
           </Tabs>
         </div>
       </div>
+      <FunctionCatalog schema={schema} open={catalogOpen} onClose={() => setCatalogOpen(false)} onInsert={insertTool} />
     </InstanceShell>
   );
 };
