@@ -28,7 +28,9 @@
 4. **命中即续期**：get 刷新 LRU 位次 + lastAccess 时间戳
 5. **指标必须暴露**：hits / misses / evictions / ttlEvictions / builds / buildMicros——sink 可注入
 
-## 仓内实例
+## 参考实例
+
+zen-udf 单一源（jdm-editor 仓；2026-09-28 ruling 12 后移出本仓，本仓经 npm 消费 `@republicroad/zen-udf`）：
 
 - `packages/zen-udf/src/decision-cache.ts` — `DecisionCache` 类（LRU + TTL + 指标）
 - `packages/zen-udf/src/engine.ts` — `DecisionRuntime` 通过 `cacheCapacity` / `idleTtlMs` 配置

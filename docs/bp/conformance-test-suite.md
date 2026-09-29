@@ -23,7 +23,9 @@
 3. **参考实现必须全绿**——如果参考实现自己都不过，说明契约定义有误
 4. **新实现必须全绿**——否则不允许接入生产
 
-## 仓内实例
+## 参考实例
+
+zen-udf 单一源（jdm-editor 仓；2026-09-28 ruling 12 后移出本仓，本仓经 npm 消费 `@republicroad/zen-udf`）：
 
 - `packages/zen-udf/src/contrib/rate-store-conformance.ts`：`rateStoreConformance(name, createStore)` 
   覆盖 rate 计数/滑窗过期 + groupDistinct pv/uv/去重/expiry

@@ -13,7 +13,7 @@
 
 | 侧 | 事实 |
 | --- | --- |
-| seal-editor 仓 | 参照物就绪：`packages/zen-udf/src/contrib/rate-window.ts`（RateStore 端口 + InMemoryRateStore + `rate_1h`/`group_distinct_1h` 工具）与 `rate-store-conformance.ts`（注入时钟 + asOf 点算契约测试）。zen-udf 0.6.0 已发布五域，velocity 不在其中 |
+| seal-editor 仓 | 参照物就绪：zen-udf 单一源（jdm-editor 仓；2026-09-28 ruling 12 后移出本仓，本仓经 npm 消费 `^0.7.0`）的 `packages/zen-udf/src/contrib/rate-window.ts`（RateStore 端口 + InMemoryRateStore + `rate_1h`/`group_distinct_1h` 工具）与 `rate-store-conformance.ts`（注入时钟 + asOf 点算契约测试）。zen-udf 0.6.0 已发布五域（现 0.7.0），velocity 不在其中 |
 | verdict 仓 | **零代码**：无 velocity / RateStore / fraudPack 任何实现；`docs/udf-operators.md` T1–T5 纯函数算子规范已立但实现待启动，且 T1–T5 是纯函数体系，velocity（有状态）不在其内，需独立架构位 |
 | verdict 生产栈 | ECS 2C4G 八容器（postgres×2 / api / web / site / nginx / openobserve / vector）——**无 Redis**。状态存储前置 = Redis 引入（与 handoff §1 四端口的 RateStore Redis 化同船） |
 
@@ -22,7 +22,7 @@
 业务上对应风控 velocity check：同一实体在时间窗内跨事件类型的活跃度聚合。
 rate-window 是它的单事件退化情形（单 kind、count/distinct、固定 1h 滑窗）：
 
-| 维度 | rate-window（本仓已有） | velocity（本规划） |
+| 维度 | rate-window（zen-udf 上游已有） | velocity（本规划） |
 | --- | --- | --- |
 | 事件类型 | 隐含单一（rate/groupDistinct 各自固定） | 显式 `kind`（login/pay/bind_card/withdraw/…） |
 | 聚合 | count / distinct / idle | count / distinct / sum / max / idle（金额类） |

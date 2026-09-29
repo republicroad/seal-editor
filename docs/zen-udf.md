@@ -1,8 +1,8 @@
 # zen-udf：zen-engine 的 customNode UDF 运行时
 
-`@republicroad/zen-udf`（0.6.0）基于 [@gorules/zen-engine](https://www.npmjs.com/package/@gorules/zen-engine) 2.0.2，补齐其在服务端执行自定义节点的完整能力：**多函数实例执行规范 + UdfPack 注册表 + L1 决策缓存 + 多租户上下文与数据面端口**。
+`@republicroad/zen-udf`（0.7.0）基于 [@gorules/zen-engine](https://www.npmjs.com/package/@gorules/zen-engine) 2.0.2，补齐其在服务端执行自定义节点的完整能力：**多函数实例执行规范 + UdfPack 注册表 + L1 决策缓存 + 多租户上下文与数据面端口**。
 
-源码：`packages/zen-udf`（源码发布，消费方经 bundler/tsx/Bun 直跑）。
+源码：**jdm-editor 仓 `packages/zen-udf`**（ruling 12，2026-09-28——单一源与发布方均在该仓；本仓为纯 npm 消费方，demo-server 依赖 `^0.7.0`，源码发布，消费方经 bundler/tsx/Bun 直跑）。本文保留为能力综述与端口契约参考。
 
 ## 它解决什么
 
@@ -88,4 +88,4 @@ await runWithExecContext({ tenantId: 't-1', userId: 'u-1' }, async () => {
 - [V 系列开发计划（发布/规范收尾/消费方验证，已 shipped）](/seal-editor/docs/archive/plans/zen-udf-plan-v)
 - [verdict U10 接入指南](/seal-editor/docs/archive/plans/verdict-zen-udf-integration)
 - [上游 issue 草稿（gorules/zen async context）](/seal-editor/docs/rfc/gorules-zen-async-context)
-- 包内命名规范：`packages/zen-udf/docs/naming.md`
+- 包内命名规范：jdm-editor 仓 `packages/zen-udf/docs/naming.md`

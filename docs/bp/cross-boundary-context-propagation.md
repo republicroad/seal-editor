@@ -29,7 +29,9 @@
 3. **fail closed**：通道不可用（键丢失/序列化失败）时回退到"无上下文"安全行为，而非静默透传空值
 4. **副本语义**：嵌入的是冻结副本，回调内篡改不影响调用方
 
-## 仓内实例
+## 参考实例
+
+zen-udf 单一源（jdm-editor 仓；2026-09-28 ruling 12 后移出本仓，本仓经 npm 消费 `@republicroad/zen-udf`）：
 
 - `packages/zen-udf/src/engine.ts` — `EXEC_CONTEXT_INPUT_KEY` + `enrichInputWithExecContext` + passThrough 剥离
 - `packages/zen-udf/src/engine.ts` — act-skip 分支（`getExecContext()?.shadow` 跨 TSFN 边界）

@@ -19,7 +19,9 @@
 3. **act 必须声明 `idempotent: true`**——否则 validatePack 产生警告（verdict 登记页可见）
 4. **宿主负责提供通道**：query 的 asOf 时钟、observe 的持久化 store、act 的幂等去重都由宿主注入端口
 
-## 仓内实例
+## 参考实例
+
+zen-udf 单一源（jdm-editor 仓；2026-09-28 ruling 12 后移出本仓，本仓经 npm 消费 `@republicroad/zen-udf`）：
 
 - `packages/zen-udf/src/register.ts` — `semantics` + `idempotent` 字段（Y1/Z1）
 - `packages/zen-udf/src/engine.ts` — act-skip 分支（影子评估时 act 不执行）+ journal 读回（Y3 回放模式）

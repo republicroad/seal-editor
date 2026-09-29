@@ -12,6 +12,7 @@
 - 品牌：`grl-` → `seal-` 全前缀清扫完成（93 文件 ~574 处，含驼峰标识符）；npm 旧包 deprecated 已执行
 - 结构：monorepo 三包 —— `packages/seal-editor`（内核，包名 @republicroad/seal-editor，1.1.0 随下次发版）、
   `packages/appshell`（seal-appshell 1.1.0，内核依赖 workspace:^1.1.0）、`packages/zen-udf`（0.6.0 机制包，五域参考实现）
+  **〔2026-09-29 更新：ruling 12 后为两包——`packages/zen-udf` 移出本仓（单一源与发布方在 jdm-editor），demo-server 经 npm 消费 `^0.7.0`；两主包已随 1.7.0 发版〕**
 - 编辑器能力：ReUI 节点卡（IconTile + 类型 Badge）、悬浮工具栏（R2）、连接线"+"插入（R3）、
   分支路径标签 chip（R4）、停靠检查器（R5）、仿真 run strip（R7）；三形态调用规范
   （数组默认 / $call 命名 / ;; legacy）；Base UI 全栈

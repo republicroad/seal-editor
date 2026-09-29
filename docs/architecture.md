@@ -4,9 +4,12 @@
 >
 > This document describes the repository **after** the fork adjustments: support packages are consumed from npm
 
-> The repo hosts three workspace packages — `packages/seal-editor` (kernel), `packages/appshell`
-> (shell — see `docs/appshell.md`), `packages/zen-udf` (server-side UDF runtime for zen-engine) —
-> plus two apps: `apps/playground` (MPA demo shell) and `apps/demo-server` (Bun + Hono demo backend).
+> The repo hosts two workspace packages — `packages/seal-editor` (kernel), `packages/appshell`
+> (shell — see `docs/appshell.md`) — plus two apps: `apps/playground` (MPA demo shell) and
+> `apps/demo-server` (Bun + Hono demo backend). The server-side UDF runtime for zen-engine is
+> not hosted here: since ruling 12 (2026-09-28) its single source and publisher live in the
+> jdm-editor repo, and this repo consumes `@republicroad/zen-udf` from npm (`demo-server`,
+> currently `^0.7.0`).
 
 ## 1. Overview
 

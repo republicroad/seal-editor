@@ -2,10 +2,11 @@
 
 > 中文对照版,英文原版:[`architecture.md`](./architecture.md)。
 >
-> 本文档描述分叉调整后的仓库形态:支撑包改为从 npm 引入。本仓库包含三个 workspace 包 ——
-> `packages/seal-editor`(kernel)、`packages/appshell`(shell,见 docs/appshell.zh-CN.md)、
-> `packages/zen-udf`(zen-engine 服务端 UDF 运行时)—— 以及两个应用:`apps/playground`(MPA 演示壳)
-> 与 `apps/demo-server`(Bun + Hono 演示后端)。
+> 本文档描述分叉调整后的仓库形态:支撑包改为从 npm 引入。本仓库包含两个 workspace 包 ——
+> `packages/seal-editor`(kernel)、`packages/appshell`(shell,见 docs/appshell.zh-CN.md)——
+> 以及两个应用:`apps/playground`(MPA 演示壳)与 `apps/demo-server`(Bun + Hono 演示后端)。
+> zen-engine 服务端 UDF 运行时不再托管于本仓:ruling 12(2026-09-28)后其单一源与发布方均在
+> jdm-editor 仓,本仓经 npm 消费 `@republicroad/zen-udf`(demo-server,当前 `^0.7.0`)。
 
 ## 1. 总览
 

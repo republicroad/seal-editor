@@ -20,7 +20,9 @@
 2. **只钉有下游影响的行为**——纯内部实现细节不值得钉
 3. **行为变化不等于要修**——需要评估影响后决定：接受新行为 + 更新哨兵，或锁定旧版本
 
-## 仓内实例
+## 参考实例
+
+zen-udf 单一源（jdm-editor 仓；2026-09-28 ruling 12 后移出本仓，本仓经 npm 消费 `@republicroad/zen-udf`）：
 
 - `packages/zen-udf/src/engine-cache-semantics.test.ts`：钉住 zen-engine 2.0.2 的四条缓存语义（函数 loader 无引擎缓存 / getDecision 绕过 / createDecision 可复用 / customNode 不影响缓存）
 - 升级 zen-engine 后测试红 → 需重新评估 L1 缓存设计（多租户设计文档 §3 的前提条件）

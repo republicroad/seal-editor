@@ -1,7 +1,7 @@
 # 上游 issue 跨运行时总结：gorules/zen customNode 回调的执行上下文丢失（Node ALS × Python contextvars）
 
 > 状态：**总结稿就绪**——宿主手动探索确认后，将 §3 英文正文直接粘贴提交至 https://github.com/gorules/zen
-> 复现探针：`packages/zen-udf/src/decision-runtime.test.ts` + `engine-cache-semantics.test.ts`（JS）· 仓库根 `zen-engine-contextvars-demo.py`（Python，`uv run --with zen-engine python zen-engine-contextvars-demo.py`）
+> 复现探针：`packages/zen-udf/src/decision-runtime.test.ts` + `engine-cache-semantics.test.ts`（JS；zen-udf 单一源，jdm-editor 仓——2026-09-28 ruling 12 后移出本仓）· 本仓库根 `zen-engine-contextvars-demo.py`（Python，`uv run --with zen-engine python zen-engine-contextvars-demo.py`）
 
 ---
 

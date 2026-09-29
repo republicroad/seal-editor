@@ -21,11 +21,13 @@ package.json
 3. **源码即发布物**——TS 类型推断直接可用，消费方 bundler 原生处理
 4. **依赖声明精确**——runtime 依赖放 `dependencies`，peer 依赖放 `peerDependencies` + `peerDependenciesMeta.optional`
 
-## 仓内实例
+## 参考实例
+
+zen-udf 单一源与发布方在 jdm-editor 仓（2026-09-28 ruling 12 后移出本仓；路径相对该仓）：
 
 - `packages/zen-udf/package.json`：`type: "module"` / `main = src/index.ts` / `files = ["src","docs"]`
-- 消费方：playground（Vite + workspace:*）、demo-server（Bun + workspace:*）均直跑 TS 源码
-- 发布管线：`chore(release)` 头部提交触发 CI `pnpm publish --access public`，发布物冒烟 `pnpm test:zen-udf-smoke`
+- 消费方：demo-server（Bun + npm `@republicroad/zen-udf`，本仓 `^0.7.0`）直跑 TS 源码；playground 已无 zen-udf 依赖
+- 发布管线在 jdm-editor 仓；本仓保留消费端冒烟 `pnpm test:zen-udf-smoke`——安装 npm 构件并验证 UdfPack 注册 → customNode 执行 → traceData 全链路
 
 ## 反模式
 
