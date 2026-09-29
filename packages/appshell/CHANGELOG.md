@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.7.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.6.0...@republicroad/seal-appshell@1.7.0) (2026-09-29)
+
+### Features
+
+- **appshell,kernel:** ADR-008 L1+L3 — host header slots & simulation footer slot ([d159ae1](https://github.com/republicroad/seal-editor/commit/d159ae1fe55d57556862753b86e68fe68158d522))
+- **appshell:** schema 目录支持文件协议信封——{version, generatedAt, namespaces} ([303e95b](https://github.com/republicroad/seal-editor/commit/303e95b29b4b3a58bcc7650d47024ce3b311d93e))
+
 # [1.6.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.5.0...@republicroad/seal-appshell@1.6.0) (2026-09-28)
 
 **Note:** Version bump only for package @republicroad/seal-appshell
