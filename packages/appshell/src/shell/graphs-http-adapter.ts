@@ -66,24 +66,35 @@ export const createGraphsHttpAdapter = (baseUrl = '/api/graphs'): GraphPersisten
 
     async save(record, opts) {
       const { id, ...body } = record;
+      const url = id ? `${baseUrl}/${encodeURIComponent(id)}` : baseUrl;
+      const method = id ? 'PUT' : 'POST';
       try {
-        const url = id ? `${baseUrl}/${encodeURIComponent(id)}` : baseUrl;
-        const method = id ? 'put' : 'post';
-        const { data } = await axios[method]<{ id: string; revision: string }>(url, {
-          ...body,
-          baseRevision: opts?.baseRevision,
+        // fetch（非 axios）：save 是唯一需要 keepalive 的调用——auto-persist 的
+        // pagehide 冲刷依赖它存活于页面卸载；sendBeacon 会破坏 CORS 契约。
+        const response = await fetch(url, {
+          method,
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ ...body, baseRevision: opts?.baseRevision }),
+          keepalive: opts?.keepalive === true,
         });
-        return data;
-      } catch (e) {
-        if (axios.isAxiosError(e)) {
-          const code = e.response?.data?.error?.code;
-          if (e.response?.status === 409 || code === 'CONFLICT') {
+        if (!response.ok) {
+          let code: string | undefined;
+          try {
+            code = (await response.json())?.error?.code;
+          } catch {
+            // 非 JSON 错误体——仅按状态码判定
+          }
+          if (response.status === 409 || code === 'CONFLICT') {
             throw new GraphPersistenceError(
               'CONFLICT',
               `base revision ${opts?.baseRevision ?? '(none)'} does not match head`,
             );
           }
+          throw new Error(`graphs api save failed: ${response.status}`);
         }
+        return (await response.json()) as { id: string; revision: string };
+      } catch (e) {
+        // GraphPersistenceError(CONFLICT) 原样上抛；网络错误由调用方（auto-persist 重试策略）处置
         throw e;
       }
     },

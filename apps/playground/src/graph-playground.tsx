@@ -1,7 +1,10 @@
 import {
+  type AutoPersistController,
+  type AutoPersistState,
   type GraphPersistenceAdapter,
   type SkinDefinition,
   SkinnedDecisionGraph,
+  SyncStatusBadge,
   ThemeContextProvider,
   VersionHistoryPanel,
   createExecuteSimulate,
@@ -11,7 +14,7 @@ import {
   useTheme,
 } from '@republicroad/seal-appshell';
 import { type GraphDiff, computeGraphDiff } from '@republicroad/seal-editor';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 
 import { GRAPH_ID } from './shared/fixtures';
 import { ThemeToggle } from './shared/instance-shell';
@@ -64,6 +67,12 @@ export const GraphPlayground: React.FC = () => {
   const [diffs, setDiffs] = useState<Record<string, GraphDiff>>({});
   const [diffBase, setDiffBase] = useState<DiffBase | null>(null);
   const [status, setStatus] = useState('');
+  // 模式 D 自动持久化（?storage=http 演示）：head 与同步状态独立于图文档 state——
+  // 内核 onChange 回传的文档不含 revision，锁基线必须由宿主自行持有
+  const [autoHead, setAutoHead] = useState<string | undefined>(undefined);
+  const [syncState, setSyncState] = useState<AutoPersistState>({ status: 'idle' });
+  const autoPersistControllerRef = useRef<AutoPersistController | null>(null);
+  const autoPersistEnabled = STORAGE_MODE === 'http';
 
   const currentRevision = (graph as { revision?: string }).revision;
 
@@ -123,17 +132,22 @@ export const GraphPlayground: React.FC = () => {
               </span>
             ),
             right: ({ graph: g }) => (
-              <span
-                style={{
-                  fontSize: 11,
-                  padding: '2px 8px',
-                  borderRadius: 999,
-                  background: 'rgba(2, 132, 199, 0.15)',
-                  color: '#0369a1',
-                }}
-              >
-                {(g.nodes ?? []).length} nodes
-              </span>
+              <>
+                <span
+                  style={{
+                    fontSize: 11,
+                    padding: '2px 8px',
+                    borderRadius: 999,
+                    background: 'rgba(2, 132, 199, 0.15)',
+                    color: '#0369a1',
+                  }}
+                >
+                  {(g.nodes ?? []).length} nodes
+                </span>
+                {autoPersistEnabled && (
+                  <SyncStatusBadge state={syncState} onRetry={() => autoPersistControllerRef.current?.flush()} />
+                )}
+              </>
             ),
           },
         },
@@ -153,6 +167,7 @@ export const GraphPlayground: React.FC = () => {
       );
       setStatus(`saved ${revision}`);
       setGraph((g: any) => ({ ...g, revision }));
+      setAutoHead(revision);
     } catch (err) {
       setStatus(`save failed: ${String(err).slice(0, 80)}`);
     }
@@ -193,6 +208,7 @@ export const GraphPlayground: React.FC = () => {
       if (restored?.content) {
         setGraph({ ...(restored.content as object), id: GRAPH_ID, revision: saved.revision });
       }
+      setAutoHead(saved.revision);
       setDiffBase(null);
       setStatus(`restored ${revision} → head ${saved.revision}`);
       setHistoryOpen(false);
@@ -317,6 +333,25 @@ export const GraphPlayground: React.FC = () => {
             diffBaseline={diffBase ? (diffBase.content as any) : undefined}
             disabled={diffBase ? true : undefined}
             simulateHandler={createExecuteSimulate(import.meta.env.VITE_DEMO_SERVER_URL ?? 'http://localhost:8787')}
+            autoPersist={
+              autoPersistEnabled
+                ? {
+                    adapter,
+                    documentId: GRAPH_ID,
+                    recordMeta: { name: 'playground' },
+                    baseRevision: autoHead,
+                    onStateChange: setSyncState,
+                    onController: (c) => {
+                      autoPersistControllerRef.current = c;
+                    },
+                    onEvent: (event) => {
+                      if (event.type === 'saved') setStatus(`auto-saved ${event.revision}`);
+                      if (event.type === 'conflict')
+                        setStatus('CONFLICT — head moved; resolve via overwrite / version history');
+                    },
+                  }
+                : undefined
+            }
           />
         </main>
 

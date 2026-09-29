@@ -12,14 +12,44 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useTheme } from '../context/theme.provider';
 import PlayCircleIcon from '../reui/icons/animated/outline/play-circle';
+import {
+  type AutoPersistController,
+  type AutoPersistEvent,
+  type AutoPersistPolicy,
+  type AutoPersistRecordMeta,
+  type AutoPersistSnapshot,
+  type AutoPersistState,
+  stableStringify,
+  useAutoPersist,
+} from '../shell/auto-persist';
+import type { GraphPersistenceAdapter } from '../shell/persistence';
 import type { SimulateHandler } from '../shell/types';
 import { mapPanelSlotIds, mapToolbarSlots } from '../skin/layout';
 import type { SkinHeaderSlots, SkinSlotHostContext } from '../skin/types';
 import { ShellHeader } from './shell-header';
+import { SyncStatusBadge } from './sync-status-badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './ui/sheet';
 
 type PanelItem = NonNullable<DecisionGraphProps['panels']>[number];
+
+/** 模式 D 自动持久化桥（docs/design/appshell-auto-persist.md；ADR-008 L2） */
+export type AutoPersistBridgeOptions = {
+  adapter: GraphPersistenceAdapter;
+  documentId: string;
+  /** 静态记录元数据（name 必填——GraphRecordMeta 契约） */
+  recordMeta: AutoPersistRecordMeta;
+  /** 初始 head revision（宿主 load 后更新此值即触发基线重置；之后控制器自跟踪） */
+  baseRevision?: string;
+  policy?: AutoPersistPolicy;
+  /** 会话快照来源；缺省经 graphRef.serialize() best-effort 取页签现场 */
+  getSession?: () => AutoPersistSnapshot['session'];
+  onEvent?: (event: AutoPersistEvent) => void;
+  /** 状态面镜像（宿主自渲染徽标/页面 UI 时用；默认徽标注入时无需） */
+  onStateChange?: (state: AutoPersistState) => void;
+  /** 控制器就绪回调：宿主经此做手动保存（flush）、CONFLICT 三选（resolveConflict）等宿主 UX */
+  onController?: (controller: AutoPersistController) => void;
+};
 
 export type SkinnedDecisionGraphProps = DecisionGraphProps & {
   /**
@@ -30,6 +60,12 @@ export type SkinnedDecisionGraphProps = DecisionGraphProps & {
   simulateHandler?: SimulateHandler;
   /** ADR-008 L1：宿主头部槽位注入——与 activeSkin 槽位浅合并（宿主优先） */
   headerSlots?: SkinHeaderSlots;
+  /**
+   * 模式 D 自动持久化：拦截 onChange 喂控制器（防抖连续保存 + 乐观锁 + CONFLICT 停轮），
+   * 外部 value 注入（load/adopt）自动重置基线；宿主未提供 right 槽时自动注入同步徽标
+   * （Saving…/Saved/Conflict）。未传则行为完全不变。
+   */
+  autoPersist?: AutoPersistBridgeOptions;
 };
 
 /**
@@ -44,15 +80,67 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
   SkinnedDecisionGraphProps & React.RefAttributes<DecisionGraphRef>
 > = React.forwardRef<DecisionGraphRef, SkinnedDecisionGraphProps>((props, ref) => {
   const { activeSkin } = useTheme();
-  const { simulateHandler, headerSlots, ...restProps } = props;
+  const { simulateHandler, headerSlots, autoPersist, ...restProps } = props;
   const internalRef = useRef<DecisionGraphRef | null>(null);
   const [mounted, setMounted] = useState(false);
   const [simulation, setSimulation] = useState<Simulation | undefined>(undefined);
   const [running, setRunning] = useState(false);
 
+  // ---- 模式 D 自动持久化桥（autoPersist 缺省时 hooks 仍无条件调用，内部空转） ----
+  const latestValueRef = useRef<DecisionGraphType | undefined>(props.value);
+  latestValueRef.current = props.value;
+  /** 本组件经 onChange 发出的最后内容指纹——区分「自己发出的变更」与「外部 value 注入」 */
+  const emittedJsonRef = useRef<string | undefined>(undefined);
+  const adoptedJsonRef = useRef<string | undefined>(undefined);
+
+  const { state: autoPersistState, controller: autoPersistController } = useAutoPersist(
+    autoPersist
+      ? {
+          adapter: autoPersist.adapter,
+          documentId: autoPersist.documentId,
+          recordMeta: autoPersist.recordMeta,
+          policy: autoPersist.policy,
+          getBaseRevision: () => autoPersist?.baseRevision,
+          getSnapshot: () => {
+            const graphRef = internalRef.current;
+            const session =
+              autoPersist?.getSession?.() ??
+              (graphRef && typeof graphRef.serialize === 'function' ? graphRef.serialize() : undefined);
+            return {
+              content: latestValueRef.current,
+              ...(session !== undefined && { session }),
+            };
+          },
+          onEvent: (event) => autoPersist?.onEvent?.(event),
+          onStateChange: (state) => autoPersist?.onStateChange?.(state),
+        }
+      : undefined,
+  );
+  const autoPersistActive = autoPersist !== undefined;
+
+  // 外部 value 注入（初始 load / 宿主加载 head）→ adopt 重置基线与乐观锁；
+  // 自己经 onChange 发出的内容（emitted）与已注入过的内容（adopted）跳过。
+  useEffect(() => {
+    if (!autoPersistController || !autoPersist || props.value === undefined) return;
+    const json = stableStringify(props.value);
+    if (json === emittedJsonRef.current || json === adoptedJsonRef.current) return;
+    adoptedJsonRef.current = json;
+    autoPersistController.adopt({
+      documentId: autoPersist.documentId,
+      baseRevision: autoPersist.baseRevision,
+      snapshot: { content: props.value, session: autoPersist.getSession?.() },
+    });
+  });
+
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (autoPersistController && autoPersist?.onController) {
+      autoPersist.onController(autoPersistController);
+    }
+  }, [autoPersistController, autoPersist]);
 
   const setRef = React.useCallback(
     (node: DecisionGraphRef | null) => {
@@ -124,17 +212,33 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
   // S005 P3：皮肤头部槽位（ShellHeader，kernel 无 header）
   // ADR-008 L1：宿主优先浅合并——宿主给定的侧覆盖皮肤槽位
   const mergedHeaderSlots = { ...activeSkin?.layout?.header?.slots, ...headerSlots };
-  const hasHeader = !!(mergedHeaderSlots?.left || mergedHeaderSlots?.right);
+  // 模式 D：autoPersist 接线且宿主未提供 right 槽 → 注入默认同步徽标（宿主优先原则不变）
+  const headerSlotsFinal =
+    autoPersistActive && autoPersistController && !mergedHeaderSlots.right
+      ? {
+          ...mergedHeaderSlots,
+          right: () => <SyncStatusBadge state={autoPersistState} onRetry={() => autoPersistController.flush()} />,
+        }
+      : mergedHeaderSlots;
+  const hasHeader = !!(headerSlotsFinal?.left || headerSlotsFinal?.right);
   const headerNode = hasHeader ? (
     <ShellHeader
       graph={slotContext.graph}
       disabled={slotContext.disabled}
       graphRef={slotContext.graphRef}
-      slots={mergedHeaderSlots}
+      slots={headerSlotsFinal}
     />
   ) : null;
 
   const hasRail = !!rightSlots?.length;
+  const handleGraphChange = (val: DecisionGraphType) => {
+    latestValueRef.current = val;
+    if (autoPersistActive) {
+      emittedJsonRef.current = stableStringify(val);
+      autoPersistController?.scheduleChange();
+    }
+    restProps.onChange?.(val);
+  };
   const decisionGraph = (
     <DecisionGraph
       {...restProps}
@@ -142,6 +246,7 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
       toolbarItems={toolbarItems}
       panels={panels}
       simulate={props.simulate ?? simulation}
+      onChange={autoPersistActive ? handleGraphChange : restProps.onChange}
     />
   );
 

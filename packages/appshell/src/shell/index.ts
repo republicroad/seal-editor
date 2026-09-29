@@ -7,4 +7,18 @@ export { GraphPersistenceError } from './persistence';
 export { createGraphsHttpAdapter } from './graphs-http-adapter';
 export { createIndexedDbAdapter, AUTO_VERSIONS_KEEP } from './indexed-db-adapter';
 export { restoreVersion } from './restore';
+export {
+  createAutoPersistController,
+  useAutoPersist,
+  stableStringify,
+  type AutoPersistController,
+  type AutoPersistControllerOptions,
+  type AutoPersistEvent,
+  type AutoPersistPolicy,
+  type AutoPersistRecordMeta,
+  type AutoPersistSnapshot,
+  type AutoPersistState,
+  type AutoPersistStatus,
+  type UseAutoPersistOptions,
+} from './auto-persist';
 export type { GraphPersistenceAdapter, GraphRecord, GraphRecordMeta, PersistenceErrorCode } from './persistence';

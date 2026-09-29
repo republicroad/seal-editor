@@ -61,9 +61,14 @@ export interface GraphPersistenceAdapter {
   /**
    * 保存(upsert)。
    * @param opts.baseRevision 乐观锁：提供时校验 head 是否匹配，不匹配抛 CONFLICT。
+   * @param opts.keepalive 页面退出冲刷（auto-persist pagehide 路径）时置 true——
+   *   适配器应使用存活于页面卸载的传输（fetch keepalive）；不支持时可忽略。
    * @returns 包含分配的 id 与新 revision。
    */
-  save(record: GraphRecord, opts?: { baseRevision?: string }): Promise<{ id: string; revision: string }>;
+  save(
+    record: GraphRecord,
+    opts?: { baseRevision?: string; keepalive?: boolean },
+  ): Promise<{ id: string; revision: string }>;
 
   /** 删除指定图；返回 false = 不可见或不存在(404 语义) */
   delete?(id: string): Promise<boolean>;

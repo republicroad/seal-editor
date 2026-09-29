@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { createGraphsHttpAdapter } from '../graphs-http-adapter';
 import { GraphPersistenceError } from '../persistence';
@@ -6,6 +6,7 @@ import { GraphPersistenceError } from '../persistence';
 /**
  * 契约语义通过参考 HTTP 适配器验证（GraphPersistenceAdapter 唯一的可执行实现面）：
  * 404 → load null / delete false；409 → GraphPersistenceError('CONFLICT')；其余错误原样上抛。
+ * save 走 fetch（keepalive 支持，auto-persist pagehide 冲刷依赖）——list/load/delete 走 axios。
  */
 const http = vi.hoisted(() => {
   const axiosError = (status: number, data?: unknown) => ({
@@ -23,6 +24,13 @@ const http = vi.hoisted(() => {
     isAxiosError: (e: unknown): boolean =>
       Boolean(e && typeof e === 'object' && (e as { isAxiosError?: boolean }).isAxiosError === true),
   };
+});
+
+const fetchMock = vi.fn();
+const jsonResponse = (ok: boolean, status: number, body: unknown) => ({
+  ok,
+  status,
+  json: async () => body,
 });
 
 vi.mock('axios', () => ({ default: http }));
@@ -43,6 +51,11 @@ const meta = {
 describe('createGraphsHttpAdapter', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   test('list：GET baseUrl 携带 query，元数据原样映射', async () => {
@@ -100,7 +113,7 @@ describe('createGraphsHttpAdapter', () => {
   });
 
   test('save：有 id 走 PUT，body 含 baseRevision 与 session', async () => {
-    http.put.mockResolvedValueOnce({ data: { id: 'g1', revision: 'v8' } });
+    fetchMock.mockResolvedValueOnce(jsonResponse(true, 200, { id: 'g1', revision: 'v8' }));
     const adapter = createGraphsHttpAdapter('/api/graphs');
     const session = { tabs: {} };
 
@@ -109,7 +122,12 @@ describe('createGraphsHttpAdapter', () => {
       { baseRevision: 'v7' },
     );
 
-    expect(http.put).toHaveBeenCalledWith('/api/graphs/g1', {
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('/api/graphs/g1');
+    expect(init.method).toBe('PUT');
+    expect(init.keepalive).toBe(false);
+    const body = JSON.parse(String(init.body));
+    expect(body).toMatchObject({
       name: 'demo',
       description: 'd',
       owner: 'u1',
@@ -117,8 +135,6 @@ describe('createGraphsHttpAdapter', () => {
       extensions: { k: 'v' },
       revision: 'v7',
       auto: false,
-      createdAt: meta.createdAt,
-      updatedAt: meta.updatedAt,
       content: { nodes: [] },
       session,
       baseRevision: 'v7',
@@ -126,23 +142,21 @@ describe('createGraphsHttpAdapter', () => {
     expect(saved).toEqual({ id: 'g1', revision: 'v8' });
   });
 
-  test('save：无 id 走 POST（新建）', async () => {
-    http.post.mockResolvedValueOnce({ data: { id: 'new', revision: 'v1' } });
+  test('save：无 id 走 POST（新建），baseRevision 缺省不进 body', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(true, 200, { id: 'new', revision: 'v1' }));
     const adapter = createGraphsHttpAdapter('/api/graphs');
 
     const saved = await adapter.save({ id: '', name: 'n', content: {}, revision: '' });
 
-    expect(http.post).toHaveBeenCalledWith('/api/graphs', {
-      name: 'n',
-      content: {},
-      revision: '',
-      baseRevision: undefined,
-    });
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('/api/graphs');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(String(init.body))).toEqual({ name: 'n', content: {}, revision: '' });
     expect(saved).toEqual({ id: 'new', revision: 'v1' });
   });
 
   test('save：HTTP 409 → GraphPersistenceError(CONFLICT)', async () => {
-    http.put.mockRejectedValueOnce(http.axiosError(409));
+    fetchMock.mockResolvedValueOnce(jsonResponse(false, 409, { error: { code: 'CONFLICT' } }));
     const adapter = createGraphsHttpAdapter('/api/graphs');
 
     try {
@@ -156,13 +170,38 @@ describe('createGraphsHttpAdapter', () => {
   });
 
   test('save：响应体 error.code=CONFLICT 同样映射为 CONFLICT', async () => {
-    http.put.mockRejectedValueOnce(http.axiosError(400, { error: { code: 'CONFLICT' } }));
+    fetchMock.mockResolvedValueOnce(jsonResponse(false, 400, { error: { code: 'CONFLICT' } }));
     const adapter = createGraphsHttpAdapter('/api/graphs');
 
     await expect(adapter.save({ id: 'g1', name: 'n', content: {}, revision: '' })).rejects.toMatchObject({
       name: 'GraphPersistenceError',
       code: 'CONFLICT',
     });
+  });
+
+  test('save：非 JSON 错误体的非 2xx → 通用错误（重试策略可辨识）', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 503,
+      json: async () => {
+        throw new Error('not json');
+      },
+    });
+    const adapter = createGraphsHttpAdapter('/api/graphs');
+
+    await expect(adapter.save({ id: 'g1', name: 'n', content: {}, revision: '' })).rejects.toThrow(
+      'graphs api save failed: 503',
+    );
+  });
+
+  test('save：keepalive 选项透传 fetch（pagehide 冲刷路径）', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(true, 200, { id: 'g1', revision: 'v8' }));
+    const adapter = createGraphsHttpAdapter('/api/graphs');
+
+    await adapter.save({ id: 'g1', name: 'n', content: {}, revision: '' }, { keepalive: true });
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.keepalive).toBe(true);
   });
 
   test('delete：成功 true；404 false；其余上抛', async () => {
@@ -192,15 +231,13 @@ describe('createGraphsHttpAdapter', () => {
   });
 
   test('save：versionName 随保存 body 透传', async () => {
-    http.put.mockResolvedValueOnce({ data: { id: 'g1', revision: 'v8' } });
+    fetchMock.mockResolvedValueOnce(jsonResponse(true, 200, { id: 'g1', revision: 'v8' }));
     const adapter = createGraphsHttpAdapter('/api/graphs');
 
     await adapter.save({ ...meta, content: {}, revision: 'v7', versionName: 'release-candidate' });
 
-    expect(http.put).toHaveBeenCalledWith(
-      '/api/graphs/g1',
-      expect.objectContaining({ versionName: 'release-candidate' }),
-    );
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(String(init.body))).toMatchObject({ versionName: 'release-candidate' });
   });
 
   test('renameVersion：PATCH versions 端点携带新命名，null 表示清除', async () => {
