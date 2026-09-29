@@ -41,7 +41,7 @@ const applyCatalogFilter = (schema: CustomNodeNamespace[], filter?: CatalogFilte
         .map((namespace) => ({
           ...namespace,
           tools: (namespace.tools ?? []).filter((tool) =>
-            filter({ namespace: namespace.name, origin: namespace.origin, tool: tool.name }),
+            filter({ namespace: namespace.name, origin: namespace.meta?.origin, tool: tool.name }),
           ),
         }))
         .filter((namespace) => namespace.tools.length > 0)

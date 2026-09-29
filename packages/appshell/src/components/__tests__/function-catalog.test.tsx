@@ -13,6 +13,7 @@ const schema: CustomNodeNamespace[] = [
     name: 'crypto',
     title: 'crypto 加解密',
     description: '编解码域',
+    meta: { origin: 'reference', version: '0.9.0', license: 'oss' },
     tools: [
       {
         name: 'legacy_hash',
@@ -44,6 +45,7 @@ const schema: CustomNodeNamespace[] = [
     type: 'namespace',
     name: 'http',
     title: 'http 出网',
+    meta: { origin: 'industry', version: '0.9.0', license: 'proprietary' },
     tools: [
       {
         name: 'http_request',
@@ -81,6 +83,28 @@ describe('FunctionCatalog（轨道 B A1 产品化）', () => {
 
     expect(screen.getByText(/legacy_hash/)).toBeDefined();
     expect(screen.queryByText(/HTTP 请求/)).toBeNull();
+  });
+
+  test('ADR-009 #3：origin 徽标（参考域/行业包，license 入 title）', () => {
+    render(<FunctionCatalog schema={schema} open onClose={vi.fn()} onInsert={vi.fn()} />);
+
+    expect(screen.getByText('参考域')).toBeDefined();
+    expect(screen.getByText('行业包').getAttribute('title')).toContain('proprietary');
+  });
+
+  test('ADR-010 catalogFilter origin 维度：按 meta.origin 过滤', () => {
+    render(
+      <FunctionCatalog
+        schema={schema}
+        open
+        onClose={vi.fn()}
+        onInsert={vi.fn()}
+        filter={({ origin }) => origin !== 'industry'}
+      />,
+    );
+
+    expect(screen.queryByText('http 出网')).toBeNull();
+    expect(screen.getByText('crypto 加解密')).toBeDefined();
   });
 
   test('ADR-010 catalogFilter：目录面过滤（http 域整组消失）', () => {

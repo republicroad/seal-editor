@@ -48,6 +48,15 @@ export interface CustomFunctionTool {
   kind: string;
 }
 
+/** ADR-009 #1：pack 元数据最小集（zen-udf 0.9.0 UdfPackMeta 同形）——目录徽标/过滤唯一依据 */
+export type UdfPackOrigin = 'reference' | 'extension' | 'industry';
+export interface UdfPackMeta {
+  origin: UdfPackOrigin;
+  /** 目录过期提示 */
+  version: string;
+  license?: 'oss' | 'proprietary';
+}
+
 export interface CustomNodeNamespace {
   /** 恒为 'namespace'(集合容器档；契约字段保留供未来场景) */
   type?: 'namespace';
@@ -55,9 +64,9 @@ export interface CustomNodeNamespace {
   name: string;
   description?: string;
   tools: CustomFunctionTool[];
-  /** ADR-009 #1/#2 透传位：生态位来源（参考域/通用扩展/行业包）。当前载荷缺省，
-   *  字段先行——目录徽标与 catalogFilter origin 维度消费点。 */
-  origin?: 'reference' | 'extension' | 'industry';
+  /** ADR-009 #1/#2：pack 元数据（zen-udf 0.9.0 setPackMeta → 视图透传；parse 形状守卫天然兼容）。
+   *  缺省 = 无徽标（向后兼容旧载荷）。 */
+  meta?: UdfPackMeta;
 }
 
 export type CustomNodeExpression = {

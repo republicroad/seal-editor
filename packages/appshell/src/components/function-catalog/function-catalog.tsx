@@ -43,7 +43,9 @@ export const FunctionCatalog: React.FC<{
       }))
       .filter((ns) => ns.tools.length > 0)
       .filter((ns) =>
-        filter ? ns.tools.every((tool) => filter({ namespace: ns.name, origin: ns.origin, tool: tool.name })) : true,
+        filter
+          ? ns.tools.every((tool) => filter({ namespace: ns.name, origin: ns.meta?.origin, tool: tool.name }))
+          : true,
       )
       .filter((ns) => ns.tools.length > 0);
   }, [schema, search, filter]);
@@ -69,7 +71,18 @@ export const FunctionCatalog: React.FC<{
         {namespaces.map((ns) => (
           <div key={ns.name}>
             <div className='border-b border-[var(--border)] pb-1.5'>
-              <p className='text-[13px] font-semibold'>{ns.title}</p>
+              <p className='flex items-center gap-1.5 text-[13px] font-semibold'>
+                {ns.title}
+                {ns.meta && (
+                  <Badge
+                    variant='secondary'
+                    className='align-middle text-[10px]'
+                    title={ns.meta.license ? `license: ${ns.meta.license}` : undefined}
+                  >
+                    {ns.meta.origin === 'reference' ? '参考域' : ns.meta.origin === 'extension' ? '扩展' : '行业包'}
+                  </Badge>
+                )}
+              </p>
               <p className='text-[11px] text-[var(--muted-foreground)]'>
                 {ns.name}
                 {ns.description ? ` — ${ns.description}` : ''}
