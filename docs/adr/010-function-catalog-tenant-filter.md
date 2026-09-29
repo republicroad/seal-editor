@@ -2,8 +2,9 @@
 
 ## 状态
 accepted（2026-09-29 seal-editor 起草；2026-09-29 verdict 逐节裁定回填——方案 C
-接受、生效面取默认提案、六项开放问题全部有结论，另立「参考域不可过滤」原则；
-2026-09-29 本仓确认无异议转 accepted。**轨道 B HOLD 解除**）
+接受、生效面取默认提案、六项开放问题全部有结论，另立「参考域缺省可见、有条件
+可过滤」原则（ed4595d 修正：出网域可按租户显式关闭，SSRF 面管控）；2026-09-29
+本仓确认转 accepted（确认随修正更新）。**轨道 B HOLD 解除**）
 
 ## 背景
 
@@ -165,20 +166,32 @@ useCustomNodes({ schemaSource, catalogFilter?: CatalogFilter });
 
 Phase 0 实施承诺：动态端点过滤逻辑（env 白名单起步）在 verdict 8.2 收官后下一批次实施（纯 verdict 侧改动，不依赖本仓发版）。
 
-### 本仓确认（2026-09-29，seal-editor 评审结论）
+### 本仓确认（2026-09-29，seal-editor 评审结论；随 ed4595d 修正更新）
 
-verdict 六项结论与「参考域不可过滤」新原则**均无异议**，要点核验：
+verdict 六项结论**均无异议**，要点核验：
 
 - `catalogFilter` 的谓词维度（namespace/origin/tool）恰落在 ADR-009「实施加强
   注记」的元数据最小化纪律内——过滤依据被正式封顶，无将来扩维度的预期管理负担；
 - version 取全量目录单调值 + generatedAt 取过滤时时间戳的组合，对本仓 L5 信封
   的消费语义（目录过期提示）无破坏——过期提示口径不受过滤影响正是其设计目标；
-- 「参考域不可过滤」与 ADR-009 三层生态位自洽（参考域 = 产品基础能力），
-  entitlement 收窄为仅约束行业包——第一层生态位的编辑器侧零负担；
+- 「参考域缺省可见、有条件可过滤」（ed4595d 修正版）与 ADR-009 三层生态位自洽：
+  商业缺省与授权边界解耦——一份白名单管所有 namespace，按租户移除参考域是
+  显式运维决策（http 域 × 试用租户 = 出网面/SSRF 收窄）；禁止的只是移出版本
+  发布（代码开源边界非授权边界）。本仓无异议；
 - L5 文件协议降级为离线开发用途：协议本身保留（本仓 1.7.0 已实施并带单测），
   verdict 侧的重新定位不触及本仓任何改动。
 
 **转 accepted，轨道 B HOLD 解除。**
+
+**随 ed4595d 修正补录一项编辑器侧一致性缺口（本确认发现，归属 seal-editor，
+随轨道 B/Phase 2 落地）**：服务端目录过滤对 schema 驱动域天然一致（目录/补全/
+REPL 同源），但 appshell `useCustomNodes` 的四个内建基础节点（http-request /
+crypto / current-date / query-list，`composeBaseNodes` 硬编码）不经目录载荷——
+verdict 按租户关 http 域（本修正的真实场景）时，httpRequestNode 仍可见可拖而
+执行端注册已撤，画布节点运行期报未知函数。修复方向二选一：① `useCustomNodes`
+增 `disabledNamespaces?: string[]`，`composeBaseNodes` 按 namespace 排除内建
+节点（约半天，可作 Phase 0 一致性临时措施）；② 四节点去硬编码、改为 origin
+元数据驱动的 schema 化渲染（与 ADR-009 #3 徽标同批）。
 
 ## 备选方案
 
