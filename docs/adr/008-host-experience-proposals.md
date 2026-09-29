@@ -55,6 +55,12 @@ IBM ODM Decision Center（治理型决策平台同型终态）、VS Code（dirty
 提案：`simulateHandler` 返回值允许附带 `actions?: { label; onClick }[]`，面板在结果
 区渲染；或提供 `simulationFooter` 插槽。
 
+【部分实施 + 转发缺口（2026-09-29 实测）——kernel GraphSimulator 已有 simulationFooter
+插槽（d159ae1），但 appshell simulatorPanel 实例化时未透传（1.8.0 dist 无该 prop），
+经 SkinnedDecisionGraph 的宿主够不到。缺口闭合 = simulatorPanel 透传 simulationFooter
+（一行 spread）+ SkinnedDecisionGraphProps 经 DecisionGraphProps 携带。verdict 消费
+示例（调试页联跳按钮）已备，缺口闭合后即可接线。】
+
 ### L4 · bundle 体积基线更新
 
 现状：docs/bundle-analysis.md 为旧版本基线；1.3.0（dagre 动态导入，R6）与 1.4.0
@@ -165,7 +171,9 @@ zen-udf 0.8.0——verdict 的临时规避可退役）。
 | L7 customHandler 组合能力 | ✅ 已实施（2026-09-29，jdm-editor 98936ce1，zen-udf 0.8.0；decline + 显式委托双形态；路由键=node.name，TS 侧 content 恒 null） | packages/zen-udf engine.ts |
 | L6/L7 verdict 消费 | ⏳ 待宿主升级（现 seal-editor 1.4.0 / zen-udf 0.6.0 → 需 1.8.0 / 0.8.0） | verdict apps/web + apps/api |
 | L1/L2/L3/L4 |
-| L1/L2/L3/L4 | L1/L3 已实施（本仓 d159ae1，headerSlots 注入 + simulationFooter 插槽）；L2 契约文档已建（save-persistence-contract.md）；L4 基线已更新（bundle-analysis.md + 预算 790000/193000） |
+| L1/L2/L4 | L1 已实施（本仓 d159ae1，headerSlots 注入）；L2 契约文档已建（save-persistence-contract.md）；L4 基线已更新（bundle-analysis.md + 预算 790000/193000） |
+| L3 | ⚠️ 部分实施——kernel simulationFooter 插槽已有（d159ae1），appshell simulatorPanel 未透传（宿主经 SkinnedDecisionGraph 够不到）；缺口闭合 = simulatorPanel 一行透传 |
+| L6/L7 verdict 消费 | ✅ 已升级消费（seal-editor 1.8.0 / zen-udf 0.8.0 部署；L6 实测：面板搜 id_card 命中 validate-cn→id_card） |
 
 ## 后果
 
