@@ -1,10 +1,12 @@
 import { PlusCircleOutlined, TableColumnsOutlined } from '#icons';
 import { DataGrid, dataGridFeatures } from '#reui/data-grid/data-grid';
+import { DataGridCellSelection } from '#reui/data-grid/data-grid-cell-selection';
 import { DataGridColumnVisibility } from '#reui/data-grid/data-grid-column-visibility';
 import { DataGridTableDndRowHandle, DataGridTableDndRows } from '#reui/data-grid/data-grid-table-dnd-rows';
 import type { DragEndEvent, UniqueIdentifier } from '@dnd-kit/core';
-import type { ColumnDef } from '@tanstack/react-table';
+import type { CellSelectionState, ColumnDef } from '@tanstack/react-table';
 import { useTable } from '@tanstack/react-table';
+import type { Virtualizer } from '@tanstack/react-virtual';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal/es6/react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -206,6 +208,14 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
     [permission, disabled, inputs, outputs, minColWidth, colWidth],
   );
 
+  // A' 单格聚焦（Phase 2 备选立项）：grid 焦点经受控 cellSelection 桥接回
+  // dt cursor——命令栏/快捷键的行级操作契约零改动。本 fork 的 tanstack 里
+  // 传 onCellSelectionChange 即外部接管态，必须同时持有 state 才会生效，
+  // 故走受控模式（state + onCellSelectionChange 直通）。single 模式无范围/
+  // 剪贴板/内置编辑器（dt 列未声明 meta.cellEdit，编辑仍走自家控件），
+  // CodeMirror 与格内输入由控制器的事件过滤器天然让位。
+  const [cellSelection, setCellSelection] = useState<CellSelectionState>([]);
+
   const table = useTable({
     data: rules,
     features: dtTableFeatures,
@@ -218,14 +228,31 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
     meta: {
       getCell: cellRenderer,
     },
+    state: {
+      cellSelection,
+      ...(id ? { columnSizing } : {}),
+    },
+    onCellSelectionChange: setCellSelection,
     initialState: { columnVisibility: loadColumnVisibility(id) },
-    ...(!id
-      ? {}
-      : {
-          state: { columnSizing },
+    ...(id
+      ? {
           onColumnSizingChange: setColumnSizing,
-        }),
+        }
+      : {}),
   });
+
+  // 焦点→cursor 桥接：'__index' 伪列映射为 cursor 惯用的 'id'（行级操作
+  // 定位语义）；无变化不写。焦点视觉复用既有 cursor 格描边，无新增样式。
+  useEffect(() => {
+    const range = cellSelection[cellSelection.length - 1];
+    if (!range) return;
+    const row = table.getRow(range.focusRowId);
+    if (!row) return;
+    const x = range.focusColumnId === '__index' ? ('id' as const) : range.focusColumnId;
+    if (cursor?.y !== row.index || cursor?.x !== x) {
+      tableActions.setCursor({ x, y: row.index });
+    }
+  }, [cellSelection, table, cursor?.x, cursor?.y, tableActions]);
 
   // 行拖拽：grid 原生 DndRows，落点保持 swapRows 契约
   const dataIds = useMemo<UniqueIdentifier[]>(() => rules.map((r: any) => r._id), [rules]);
@@ -285,6 +312,14 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
   );
 
   const tableContainerRef = React.useRef<HTMLDivElement | null>(null);
+  // 大表虚拟化（backlog：dt 换装解锁候选）：DndRows 表体窗口化。≤minRows 行保持
+  // 全量渲染（绝大多数决策表 + 全部快照/交互用例路径零变化），≥minRows 才挂
+  // 虚拟窗口。38px 与旧手搓虚拟表的 estimateSize 一致。
+  const virtualizerRef = React.useRef<Virtualizer<HTMLElement, HTMLTableRowElement> | null>(null);
+  const virtualConfig = React.useMemo(
+    () => ({ estimateSize: 38, overscan: 8, minRows: 100, scrollElementRef: tableContainerRef }),
+    [],
+  );
 
   useEffect(() => {
     if (!id) {
@@ -302,10 +337,11 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
     localStorage.setItem(columnSizeKey(id), JSON.stringify(columnSizing));
   }, [columnSizing]);
 
-  // scrollApiRef：DOM 精确定位（grid 行携带 data-index；行高随内容变化，
-  // 38px 均值近似不可靠，直接按行元素几何换算）
+  // scrollApiRef：虚拟化时走虚拟器（窗口外无 DOM，几何查询自然失效）；小表
+  // （<minRows，未虚拟化）保持 DOM 几何路径。sticky 表头占位在两处显式补偿。
   useEffect(() => {
     if (!scrollApiRef) return;
+    const headerHeight = () => tableContainerRef.current?.querySelector('thead')?.getBoundingClientRect().height ?? 0;
     const topOfRow = (index: number): number | null => {
       const el = tableContainerRef.current;
       const row = el?.querySelector<HTMLElement>(`[data-index="${index}"]`);
@@ -316,6 +352,10 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
       getTopRowIndex: () => {
         const el = tableContainerRef.current;
         if (!el) return 0;
+        const virtualizer = virtualizerRef.current;
+        if (virtualizer) {
+          return virtualizer.getVirtualItemForOffset(Math.max(0, el.scrollTop - headerHeight()))?.index ?? 0;
+        }
         let top = 0;
         for (const row of el.querySelectorAll<HTMLElement>('[data-index]')) {
           const index = Number(row.dataset.index);
@@ -326,10 +366,28 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         return top;
       },
       scrollToRowIndex: (index) => {
+        const virtualizer = virtualizerRef.current;
+        if (virtualizer) {
+          // 第一段：虚拟器按估值落点；第二段：行挂载后按真实几何补偿
+          // sticky 表头与动态行高的残余偏差（估值 ≠ 实测时的兜底）。
+          virtualizer.scrollToIndex(index, { align: 'start' });
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => {
+              const el = tableContainerRef.current;
+              const top = topOfRow(index);
+              if (!el || top == null) return;
+              const delta = top - el.scrollTop - headerHeight();
+              if (Math.abs(delta) > 1) {
+                el.scrollBy({ top: delta });
+              }
+            }),
+          );
+          return;
+        }
         const el = tableContainerRef.current;
         const top = topOfRow(index);
         if (el && top != null) {
-          el.scrollTo({ top, behavior: 'smooth' });
+          el.scrollTo({ top: top - headerHeight(), behavior: 'smooth' });
         }
       },
     });
@@ -343,16 +401,23 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
       if (disabled) {
         return;
       }
+      // 编辑控件内的事件让位（Word 删除词、输入导航等原生语义优先）
+      if ((e.target as HTMLElement | null)?.closest?.('input, textarea, select, [contenteditable]')) {
+        return;
+      }
 
-      if (e.code === 'ArrowUp' && (e.metaKey || e.altKey)) {
+      // A' 之后的方向键约定：plain=焦点移动（grid），Ctrl/⌘+方向=边缘跳转
+      // （grid），Alt+方向/⌫=插删行（本处，grid 已让位 altKey）——原先的
+      // ⌘+方向插删行与 grid 边缘跳转撞车，收敛为 Alt-only。
+      if (e.code === 'ArrowUp' && e.altKey) {
         const y = cursor?.y;
         if (y != null) tableActions.addRowAbove(y);
       }
-      if (e.code === 'ArrowDown' && (e.metaKey || e.altKey)) {
+      if (e.code === 'ArrowDown' && e.altKey) {
         const y = cursor?.y;
         if (y != null) tableActions.addRowBelow(y);
       }
-      if (e.code === 'Backspace' && (e.metaKey || e.altKey)) {
+      if (e.code === 'Backspace' && e.altKey) {
         const y = cursor?.y;
         if (y != null) tableActions.removeRow(y);
       }
@@ -385,14 +450,26 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
           stripped: false,
           rowsDraggable: true,
           headerSticky: true,
+          // A'：单格聚焦——方向键格间导航 + aria 焦点跟踪；范围/填充/剪贴板/
+          // 内置编辑器全不启用（cellEditMode 缺省 dblclick 且列无 cellEdit，
+          // 双击编辑仍走 dt 自家控件）
+          cellSelection: true,
+          cellSelectionMode: 'single',
         }}
       >
         <TableContextMenu>
-          {/* SPIKE 取舍：DndRows（行拖拽）与 Virtual（虚拟化）在 vendored 套件中不共存。
-              决策表以中小规则表为主，spike 先取行拖拽；大表虚拟化留 Phase 1 定案
-              （选项：a 非 Virtual 全量渲染 / b 去 Dnd 保留 Virtual / c vendored 增强）。 */}
-          <DataGridTableDndRows handleDragEnd={handleDragEnd} dataIds={dataIds} />
+          {/* SPIKE 取舍已收口（backlog dt 解锁候选）：DndRows（行拖拽）与 Virtual
+              （虚拟化）经 vendored 增强共存——虚拟化下沉进 DndRows 表体，≥minRows
+              行窗口化渲染，拖拽/悬停钮/右键/列显隐路径不变。 */}
+          <DataGridTableDndRows
+            handleDragEnd={handleDragEnd}
+            dataIds={dataIds}
+            virtual={virtualConfig}
+            virtualizerRef={virtualizerRef}
+          />
         </TableContextMenu>
+        {/* 单格聚焦控制器：键盘导航开启，剪贴板关闭（dt 无 onCellsChange 契约） */}
+        <DataGridCellSelection clipboard={false} />
         <div className='sticky bottom-0 flex items-center gap-3 bg-[var(--card)] p-2'>
           <Button
             type='link'
