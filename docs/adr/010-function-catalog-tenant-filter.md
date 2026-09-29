@@ -1,9 +1,9 @@
 # ADR-010：函数目录租户过滤接口——过滤边界分层与接口形态（轨道 B 启动前置）
 
 ## 状态
-proposed（2026-09-29 seal-editor 起草，**待 verdict/weaveseal 协商裁定**——轨道 B
-（函数生态产品化）的启动前置；协商方式沿 ADR-008 惯例：逐节标注接受/否决/修改，
-并更新本状态行）
+proposed → 协商收敛（2026-09-29 seal-editor 起草；2026-09-29 verdict 逐节裁定回填
+——方案 C 接受、生效面取默认提案、六项开放问题全部有结论，见「verdict 协商结论」
+章节；状态待本仓确认后转 accepted。轨道 B 可启动）
 
 ## 背景
 
@@ -75,6 +75,10 @@ verdict 当前经静态文件接入（14 域 22 工具）。**任何租户差异
 - 第二层（体验）：编辑器 `catalogFilter` 谓词在已授权集合内做视图个性化
   （按角色折叠、按 origin 隐藏等）——漏掉只影响体验，不构成泄漏。
 
+【verdict ✅ 接受（2026-09-29）——与 verdict 架构原则同构：服务端注册表/端点是
+唯一事实源与安全边界，客户端一切过滤仅体验层。文件协议（L5）在租户过滤下重新
+定位：静态全量文件降级为离线开发用途，租户差异只走动态端点。】
+
 ## seal-editor 侧接口提案（仅体验层；Phase 2 随轨道 B 产品化）
 
 ```ts
@@ -92,6 +96,10 @@ useCustomNodes({ schemaSource, catalogFilter?: CatalogFilter });
 - 生效面（**默认提案，供协商**）：目录面板确定过滤；补全（A2）与 REPL（A3）
   **不跟随**——体验层语义是"视图个性化"，授权全集仍可用（服务端已保证安全）；
   若 verdict 希望补全也跟随，提供第二谓词或布尔开关（开放问题 2）；
+
+【verdict ✅ 接受（2026-09-29）——生效面取默认提案：仅目录面板过滤，补全/REPL
+不跟随。理由：授权全集仍可用（安全已在服务端保证），补全跟随会造成「补全有、
+目录无」的口径分裂；等真实用户反馈再评估第二谓词。】
 - 与弃用标记（A4）正交：`deprecated` 是显示语义（角标/警示），entitlement
   才是过滤——**弃用工具不因弃用而被过滤**；
 - origin 徽标（ADR-009 实施清单 #3）是本提案的前置：`origin` 进 schema 载荷
@@ -107,6 +115,21 @@ useCustomNodes({ schemaSource, catalogFilter?: CatalogFilter });
   - per-tenant 静态文件：`host-functions.{tenant}.json` + `schemaSource` 指向
     租户专属 URL——零计算但时效/运维随租户数线性；
 - 现有静态文件（host-functions.json）保留为**无租户差异租户**的缺省通道。
+
+【verdict 裁定 + 设计（2026-09-29 回填）】
+
+- **entitlement 数据源**：workspace 即租户单位。两阶段：
+  - Phase 0（当前单租户运营够用）：env `CATALOG_ALLOWED_NAMESPACES`（逗号分隔
+    namespace 白名单；缺省空 = 全量）——部署级开关；
+  - Phase 1（多租户差异化时）：workspace 级设置（JSONB `enabled_packs` 列或
+    独立表），管理界面配置；
+- **下发通道：动态端点（已上线，8.2.a 实现 `GET /api/custom-nodes/schema`）**。
+  过滤即在该端点内实现：会话 → workspace → entitlement → 按 namespace 白名单
+  过滤 → 下发。per-tenant 静态文件**否决**（时效/运维随租户数线性，且 verdict
+  为单实例部署，端点内存缓存按 workspace 键 + 目录版本失效即可）；
+- **参考域不可过滤原则**：第一层生态位（zen-udf 参考域 + zen-expression-ext）
+  是产品基础能力，任何租户永可见——entitlement 只约束行业包（第三层）；
+- 现有静态 host-functions.json 降级为离线开发用途（文件协议 L5 保留）。
 
 ## 分阶段实施
 
@@ -126,6 +149,19 @@ useCustomNodes({ schemaSource, catalogFilter?: CatalogFilter });
 5. **试用/匿名租户**：无租户上下文的请求回落全量参考域还是 401？
 6. **schema 版本语义**：过滤后 `version/generatedAt` 是否 per-tenant（影响
    目录过期提示的口径）？
+
+### verdict 协商结论（2026-09-29 回填）
+
+| # | 问题 | verdict 结论 |
+| --- | --- | --- |
+| 1 | 过滤粒度 | **namespace 级足够**：行业包以整包为授权单位；工具级属体验层（`tool?: string` 字段保留为预留） |
+| 2 | 体验层生效面 | **接受默认提案**：仅目录面板过滤，补全/REPL 不跟随 |
+| 3 | 下发通道 | **动态端点**（已上线）；per-tenant 静态文件否决 |
+| 4 | license 可见性 | **Phase 0 服务端整包隐藏**（未授权包不存在于载荷，无徽标问题）；已授权包的 origin/license 徽标进载荷可接受 |
+| 5 | 试用/匿名租户 | 编辑器在会话守卫后必有租户上下文（该场景实际不存在）；防御性回落 = **全量参考域 + zen-expression-ext 永可见**（参考层是产品基础能力不可过滤），行业包不出现 |
+| 6 | schema 版本语义 | version 用全量目录单调值（不 per-tenant）；generatedAt 取过滤时时间戳——过期提示口径不受过滤影响 |
+
+Phase 0 实施承诺：动态端点过滤逻辑（env 白名单起步）在 verdict 8.2 收官后下一批次实施（纯 verdict 侧改动，不依赖本仓发版）。
 
 ## 备选方案
 
