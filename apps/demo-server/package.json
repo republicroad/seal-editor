@@ -11,7 +11,7 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@republicroad/zen-udf": "^0.7.0",
+    "@republicroad/zen-udf": "^0.8.0",
     "hono": "^4.6.0"
   },
   "devDependencies": {
