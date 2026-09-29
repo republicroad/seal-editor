@@ -35,6 +35,8 @@ export interface CustomFunctionTool {
   title: string;
   type: 'function';
   description?: string;
+  /** A4：弃用标记（zen-udf schema 透传，0.7.0 batch-2 契约）——目录卡警示 + 补全文档首行 */
+  deprecated?: { since?: string; note?: string };
   parameters: {
     properties: Record<string, JsonSchemaProperty>;
     required?: string[];
@@ -53,6 +55,9 @@ export interface CustomNodeNamespace {
   name: string;
   description?: string;
   tools: CustomFunctionTool[];
+  /** ADR-009 #1/#2 透传位：生态位来源（参考域/通用扩展/行业包）。当前载荷缺省，
+   *  字段先行——目录徽标与 catalogFilter origin 维度消费点。 */
+  origin?: 'reference' | 'extension' | 'industry';
 }
 
 export type CustomNodeExpression = {
