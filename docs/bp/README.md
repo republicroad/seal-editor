@@ -19,6 +19,7 @@
 | [临时跨项目源码直通](./cross-repo-source-bridge.md) | 仓外消费者发版前预览未发布源码：link/portal 桥五步接拆 | 跨仓消费者临时验证（verdict/editor） |
 | [zustand 选择器相等性](./zustand-selector-equality.md) | useShallow 只救一层——嵌套派生选择器用深比较 memoizer | zustand v5 订阅与 traditional 迁移 |
 | [包公开面与全量透传](./package-surface-reexport.md) | 壳包 `export *` 单入口透传内核：类型/样式/符号规则 + 三守卫 + 测试基线 | 双包发布（壳包默认透传内核） |
+| [自动持久化演进与模式 D](./auto-persist-best-practices.md) | dirty 五模式阶梯 + 持久化基建演进 + 连续持久化八铁律 | 编辑器保存机制选型与实现 |
 
 ## 选用规则
 
@@ -33,6 +34,7 @@
 | 仓外应用要在发版前看库的未发布改动 | BP-07 临时跨项目源码直通 |
 | zustand 订阅触发渲染循环或迁移 traditional | BP-08 zustand 选择器相等性 |
 | 壳包透传内核/维护双包公开面（类型·样式·符号） | BP-09 包公开面与全量透传 |
+| 编辑器保存机制选型（dirty vs 同步状态）或实现自动保存 | BP-10 自动持久化演进与模式 D |
 
 ## 格式约定
 
