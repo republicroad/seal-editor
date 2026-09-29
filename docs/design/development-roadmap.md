@@ -40,7 +40,7 @@ jdm-editor 已验证的 A1 目录 UI / A2 补全 / A4 deprecated 移植进 kerne
 （画布角标/补全/目录）、A3 REPL 面板（端点原型已有）。
 **裁定（宿主 2026-09-29）：等与 weaveseal/verdict 协商租户过滤接口形态后启动——[ADR-010](../adr/010-function-catalog-tenant-filter.md) 已于 2026-09-29 双向收敛转 accepted（verdict 六项结论回填 + 本仓确认），HOLD 解除，可启动实施（A1/A2/A4 产品化 + Phase 2 catalogFilter 谓词；Phase 0 过滤为 verdict 侧独立推进）。**
 
-**实施落地（2026-09-29，本批随版）**：A1 FunctionCatalog 组件（appshell，弃用卡 + filter 面）、A2 setUdfCompletions 内核移植 + useCustomNodes hook 内自动接线（宿主零接线）、A4 弃用类型 + 目录卡/补全两面、Phase 2 catalogFilter（过滤面 = 组件面板 + 目录视图；补全/REPL 不跟随，与裁定一致）、专用函数注册表（tester+rank 去硬编码，[dedicated-node-registry-design.md](./dedicated-node-registry-design.md)）+ migrateGraph 版本迁移器。**余项：A3 REPL 面板**（需 demo-server POST /v1/functions/:name/execute 端点先行，随 demo-server 批次）；origin 徽标待 ADR-009 #1/#2（zen-udf 0.9.0）。
+**实施落地（2026-09-29，本批随版）**：A1 FunctionCatalog 组件（appshell，弃用卡 + filter 面）、A2 setUdfCompletions 内核移植 + useCustomNodes hook 内自动接线（宿主零接线）、A4 弃用类型 + 目录卡/补全两面、Phase 2 catalogFilter（过滤面 = 组件面板 + 目录视图；补全/REPL 不跟随，与裁定一致）、专用函数注册表（tester+rank 去硬编码，[dedicated-node-registry-design.md](./dedicated-node-registry-design.md)）+ migrateGraph 版本迁移器。A3 REPL 面板 + demo-server 端点已落地（2026-09-29，[repl-panel-plan.md](./repl-panel-plan.md) §3.5）；origin 徽标已随 ADR-009 #1/#2 跟进落地（appshell 1.13.0）。**轨道 B 全部完成。**
 
 ### 轨道 C · D 模式基建 + 治理窗（3–4 天）
 

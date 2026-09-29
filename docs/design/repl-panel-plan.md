@@ -1,7 +1,7 @@
 # A3 · UDF REPL 面板 + demo-server 单函数执行端点——实施规划
 
 - 日期：2026-09-29
-- 状态：**规划定稿待实施**（轨道 B 余项；原型 = jdm-editor 批 2 `3c7938d0`，live 验证过）
+- 状态：**已实施（2026-09-29，seal-appshell 1.16.0 + demo-server）**——实施注记见 §5（原型 = jdm-editor 批 2 `3c7938d0`，live 验证过）
 - 关联：[function-ecosystem-authoring-governance.md](./function-ecosystem-authoring-governance.md) §1-A3 ·
   [function-catalog](../../packages/appshell/src/components/function-catalog/function-catalog.tsx)（试运行入口已预留 `onTry`）
 
@@ -63,6 +63,18 @@ body: { args?: unknown[] }          // 位置参数（v1）；具名 kwargs 预�
 | 3 | udf-lab 接线（REPL 页签 + catalog `onTry` 预选）+ 目录卡片「试运行」激活 | ~0.25 天 |
 
 前置：无（zen-udf 0.10.0 已就位）。总量 ~1.25 天。
+
+
+## 3.5 实施注记（2026-09-29 落地时的两处偏差修正）
+
+- **校验/绑定改取目录视图**：roster 等经完整 parametersSchema 注册的工具没有
+  扁平 parameters，registry 的 validatePositionalArgs/funcBindParams 对其空转
+  （jdm 原型未暴露——其演示工具 legacy_hash 是扁平注册）。端点改从
+  udfFunctionSchemaNamespaces()（与面板同源的目录视图）取参数名序/required/
+  default 做校验与 kwargs 绑定，两种注册形态都覆盖；未知函数显式 404；
+- **ExecContext 包装必须**：roster 等域函数按 ExecContext.tenantId 取数据面，
+  callCtx 的 tenantId 不够——call 需包 runWithExecContext（与其他路由同款），
+  否则名单查询恒 miss（首跑实测暴露）。
 
 ## 4. 开放问题
 

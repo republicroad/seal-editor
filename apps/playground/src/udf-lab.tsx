@@ -1,14 +1,16 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs';
 import {
+  type CustomFunctionTool,
   EditorShellProvider,
   FunctionCatalog,
+  FunctionRepl,
   type GraphPersistenceAdapter,
+  type ReplExecuteResult,
   SkinnedDecisionGraph,
   createExecuteSimulate,
   createIndexedDbAdapter,
   useEditorShell,
 } from '@republicroad/seal-appshell';
-import type { CustomFunctionTool } from '@republicroad/seal-appshell';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { InstanceShell } from './shared/instance-shell';
@@ -28,6 +30,7 @@ const UdfLabBody: React.FC = () => {
   const [status, setStatus] = useState('');
   const [serverUp, setServerUp] = useState<boolean | null>(null);
   const [catalogOpen, setCatalogOpen] = useState(false);
+  const [replToolName, setReplToolName] = useState<string | undefined>(undefined);
 
   // demo-server 健康探针：schema 拉取失败会在 appshell 内静默回退内置样例，
   // 这里显式探测可达性，避免"面板有节点但一执行就失败"的困惑
@@ -76,6 +79,27 @@ const UdfLabBody: React.FC = () => {
     });
     setCatalogOpen(false);
     setStatus(`已插入 ${tool.name}（连好输入后执行）`);
+  }, []);
+
+  // 轨道 B（A3）：目录「试运行」→ REPL 页签预选（onTry 槽位在 A1 已预留）
+  const onTryTool = useCallback((tool: CustomFunctionTool) => {
+    setReplToolName(tool.name);
+    setCatalogOpen(false);
+  }, []);
+
+  // A3：demo-server 单函数执行通道（POST /v1/functions/:name/execute）
+  const replExecute = useCallback(async (name: string, args: unknown[]): Promise<ReplExecuteResult> => {
+    const res = await fetch(`${DEMO_SERVER}/v1/functions/${encodeURIComponent(name)}/execute`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ args }),
+    });
+    const body = await res.json().catch(() => ({ error: 'non-JSON response' }));
+    if (!res.ok) {
+      const details = Array.isArray(body.details) ? `: ${body.details.join('; ')}` : '';
+      throw new Error(String(body.error ?? 'execute failed') + details);
+    }
+    return body as ReplExecuteResult;
   }, []);
 
   const currentRevision = (graph as { revision?: string }).revision;
@@ -140,6 +164,7 @@ const UdfLabBody: React.FC = () => {
               <TabsList>
                 <TabsTrigger value='trust'>Trust Chain</TabsTrigger>
                 <TabsTrigger value='monitor'>Run Monitor</TabsTrigger>
+                <TabsTrigger value='repl'>REPL</TabsTrigger>
               </TabsList>
             </div>
             <TabsContent value='trust' className='pg-monitor-tabpane'>
@@ -148,10 +173,19 @@ const UdfLabBody: React.FC = () => {
             <TabsContent value='monitor' className='pg-monitor-tabpane'>
               <RunMonitor key={activeFixture} model={graph} defaultInput={currentFixture?.inputText ?? '{}'} />
             </TabsContent>
+            <TabsContent value='repl' className='pg-monitor-tabpane'>
+              <FunctionRepl schema={schema ?? []} execute={replExecute} initialToolName={replToolName} />
+            </TabsContent>
           </Tabs>
         </div>
       </div>
-      <FunctionCatalog schema={schema} open={catalogOpen} onClose={() => setCatalogOpen(false)} onInsert={insertTool} />
+      <FunctionCatalog
+        schema={schema}
+        open={catalogOpen}
+        onClose={() => setCatalogOpen(false)}
+        onInsert={insertTool}
+        onTry={onTryTool}
+      />
     </InstanceShell>
   );
 };

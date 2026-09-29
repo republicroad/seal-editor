@@ -17,6 +17,7 @@ export * from './skin/types';
 export { SkinnedDecisionGraph, type SkinnedDecisionGraphProps } from './components/skinned-decision-graph';
 export { SyncStatusBadge, type SyncStatusBadgeProps } from './components/sync-status-badge';
 export { FunctionCatalog } from './components/function-catalog/function-catalog';
+export { FunctionRepl, type ReplExecuteResult, type ReplExecutor } from './components/function-repl/function-repl';
 export type { CatalogFilter, CatalogFilterRef } from './hooks/useCustomNodes';
 export {
   dedicatedFunctionRegistry,
