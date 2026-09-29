@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.10.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.9.0...@republicroad/seal-appshell@1.10.0) (2026-09-29)
+
+### Features
+
+- **appshell:** ADR-008 L3 completion — simulationFooter pass-through on SkinnedDecisionGraph ([bb8696f](https://github.com/republicroad/seal-editor/commit/bb8696fbb459e90ba0f5256ee007643fc3484bdd))
+
 # [1.9.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.8.0...@republicroad/seal-appshell@1.9.0) (2026-09-29)
 
 ### Features
