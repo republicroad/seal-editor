@@ -249,6 +249,66 @@ export const createApp = () => {
   // appshell 侧的专用节点（roster/crypto/http_request/current_date）会在客户端按名去重接管
   app.get('/v1/custom-nodes/schema', (c) => c.json(runtime.registry.udfFunctionSchemaNamespaces()));
 
+  // A3a：单函数执行（REPL，docs/design/repl-panel-plan.md §1）——位置参数经
+  // positional 校验与默认值绑定后直调 registry。无状态、无图、无持久化；
+  // per-tool 超时由 registry 自身兜底（与图内执行同一语义）；micros 含
+  // TSFN/wasm 冷启动（面板标注，不做预热）。
+  // 校验/绑定取自目录视图（与面板同源）而非 registry 扁平 schema——roster 等
+  // 经完整 parametersSchema 注册的工具无扁平 parameters，registry 侧校验为空转
+  // （jdm 原型未暴露：其演示工具 legacy_hash 是扁平注册）。
+  app.post('/v1/functions/:name/execute', async (c) => {
+    const name = c.req.param('name');
+    const body = await c.req.json().catch(() => ({}) as { args?: unknown[] });
+    const args = Array.isArray(body?.args) ? (body!.args as unknown[]) : [];
+
+    const tool = runtime.registry
+      .udfFunctionSchemaNamespaces()
+      .flatMap((ns) => ns.tools ?? [])
+      .find((t) => t.name === name);
+    if (!tool) {
+      return c.json({ error: `unknown function '${name}'` }, 404);
+    }
+
+    const paramNames = Object.keys(tool.parameters?.properties ?? {});
+    const required = new Set(tool.parameters?.required ?? []);
+    const issues = paramNames
+      .map((p, i) => (required.has(p) && i >= args.length ? `${p} is required (position ${i})` : undefined))
+      .filter((v): v is string => v !== undefined);
+    if (issues.length > 0) {
+      return c.json({ error: 'invalid args', details: issues }, 400);
+    }
+
+    const kwargs: Record<string, unknown> = {};
+    paramNames.forEach((p, i) => {
+      const fallback = (tool.parameters?.properties?.[p] as { default?: unknown })?.default;
+      kwargs[p] = args[i] ?? fallback;
+    });
+
+    const started = performance.now();
+    try {
+      // roster 等域函数按 ExecContext.tenantId 取数据面——与图内执行同
+      // 一上下文包装（callCtx 仅承载 tracing 字段）。
+      const result = await runWithExecContext(
+        { tenantId: DEMO_TENANT, tenantExempt: true, decisionId: 'repl-' + name },
+        async () =>
+          runtime.registry.call(name, kwargs, {
+            name,
+            tenantId: DEMO_TENANT,
+            requestId: 'repl-' + crypto.randomUUID(),
+            signal: new AbortController().signal,
+            deadlineAt: null,
+          }),
+      );
+      return c.json({
+        result,
+        micros: Math.round((performance.now() - started) * 1000),
+        kwargs,
+      });
+    } catch (e) {
+      return c.json({ error: String((e as Error)?.message ?? e) }, 500);
+    }
+  });
+
   app.post('/v1/validate', async (c) => {
     const body = await c.req.json().catch(() => null);
     if (!isModelShape(body)) {
