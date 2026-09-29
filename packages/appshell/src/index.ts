@@ -16,6 +16,20 @@ export { mapToolbarSlots } from './skin/layout';
 export * from './skin/types';
 export { SkinnedDecisionGraph, type SkinnedDecisionGraphProps } from './components/skinned-decision-graph';
 export { SyncStatusBadge, type SyncStatusBadgeProps } from './components/sync-status-badge';
+export { FunctionCatalog } from './components/function-catalog/function-catalog';
+export type { CatalogFilter, CatalogFilterRef } from './hooks/useCustomNodes';
+export {
+  dedicatedFunctionRegistry,
+  dedupeByDedicatedRegistry,
+  unsupportedDedicatedNodes,
+  type DedicatedFunctionRegistration,
+} from './lib/dedicated-node-registry';
+export {
+  migrateGraph,
+  type MigrationChain,
+  type MigrationReportEntry,
+  type MigrateGraphResult,
+} from './lib/migrate-graph';
 export type { AutoPersistBridgeOptions } from './components/skinned-decision-graph';
 export { ShellHeader, type ShellHeaderProps } from './components/shell-header';
 export * from './lib/custom-node-plans';
