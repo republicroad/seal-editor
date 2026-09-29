@@ -271,32 +271,10 @@
 }
 
 /* [Batch D] CodeMirror skin declarations above this point moved to
-     code-editor/theme.ts (EditorView.theme). Layout classes, the layered
-     --ce-* defaults guard and the manual CodeHighlighter skeleton stay. */
-
-/* Highlighter PARITY ONLY — the live editor gets these through
-   code-editor/theme.ts now; the manual DOM still needs plain CSS so its
-   geometry keeps matching the editor it hands off to. */
-.seal-ce-highlighter {
-  line-height: var(--ce-lineHeight);
-}
-
-.seal-ce-highlighter .cm-editor {
-  border: 1px solid var(--border);
-}
-
-.seal-ce-highlighter .cm-scroller {
-  font-family: monospace;
-  line-height: inherit;
-}
-
-.seal-ce-highlighter .cm-content {
-  padding: var(--ce-verticalPadding) var(--ce-horizontalPadding);
-}
-
-.seal-ce-highlighter .cm-line {
-  padding: 0;
-}
+     code-editor/theme.ts (EditorView.theme). Layout classes and the layered
+     --ce-* defaults guard stay; the manual CodeHighlighter skeleton retired
+     in phase-2b (2026-09-29) — display cells render via the pooled
+     CodeHighlighterView (EditorView.theme already covers it). */
 
 .seal-ce-preview {
   border-radius: 8px;
@@ -310,68 +288,6 @@
 
 .seal-ce-preview .seal-ce.no-style .cm-content {
   padding: 0 !important;
-}
-
-.seal-ce-highlighter .cm-scroller {
-  display: flex !important;
-  align-items: flex-start !important;
-  font-family: monospace;
-  height: 100%;
-  overflow-x: auto;
-  position: relative;
-  z-index: 0;
-  overflow-anchor: none;
-}
-
-.seal-ce-highlighter .cm-lintRange {
-  background-position: left bottom;
-  background-repeat: repeat-x;
-}
-
-.seal-ce-highlighter .cm-tooltip {
-  z-index: 999;
-}
-
-.seal-ce-highlighter .cm-tooltip ul {
-  margin: 0;
-}
-
-.seal-ce-highlighter .cm-diagnostic {
-  border-left: 5px solid;
-  padding: 3px 6px 3px 8px;
-  display: block;
-  white-space: pre-wrap;
-}
-
-.seal-ce-highlighter .cm-content {
-  flex-grow: 2;
-  flex-shrink: 1;
-  white-space: break-spaces;
-  word-break: break-word;
-  overflow-wrap: anywhere;
-}
-
-.seal-ce-highlighter .cm-placeholder {
-  color: var(--seal-color-text-placeholder);
-}
-
-.seal-ce-highlighter .cm-line {
-  display: block;
-}
-
-.seal-ce-highlighter .cm-editor {
-  display: flex;
-  flex-direction: column;
-  position: static;
-  box-sizing: border-box;
-}
-
-.seal-ce-highlighter .cm-editor[data-severity='warning'] .cm-lintRange {
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6" height="3">%3Cpath%20d%3D%22m0%202.5%20l2%20-1.5%20l1%200%20l2%201.5%20l1%200%22%20stroke%3D%22%23FFA500%22%20fill%3D%22none%22%20stroke-width%3D%221.2%22%2F%3E</svg>');
-}
-
-.seal-ce-highlighter .cm-editor[data-severity='error'] .cm-lintRange {
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6" height="3">%3Cpath%20d%3D%22m0%202.5%20l2%20-1.5%20l1%200%20l2%201.5%20l1%200%22%20stroke%3D%22%23FF0000%22%20fill%3D%22none%22%20stroke-width%3D%221.2%22%2F%3E</svg>');
 }
 
 /* ⚠️ SEAL-STYLE-HACK[HK-08](cascade-layer) — scope REDUCED (Batch HK-08 shrink):
@@ -523,14 +439,13 @@
 
 /* Own-DOM rules relocated from the unlayered zone (HK-08 shrink): the wrapper
    div/button are OURS and nothing third-party fights them, so component-layer
-   placement is safe; !importants still beat the Button's utility padding. */
+   placement is safe; the Button's padding/width now come from consumer
+   utilities (p-0 w-8) instead of !important. */
 @layer components {
   .seal-edge-delete-button {
     opacity: 0;
     pointer-events: none;
     transition: var(--seal-transition);
-    padding: 0 !important;
-    width: 32px !important;
     height: 32px;
     display: flex;
     justify-content: center;
