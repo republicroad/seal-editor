@@ -1,7 +1,7 @@
 # ADR-008：编辑器宿主体验增强提案——header 槽位/保存协议/仿真联动/bundle 基线/目录文件协议/搜索索引/分发组合
 
 ## 状态
-accepted（2026-09-28 verdict 提出，2026-09-28 本仓评审通过——逐项裁决见各节标注；L5 已实施，L1/L3 已实施，L4 文档更新随本提交；L7 已实施（zen-udf 0.8.0，jdm-editor 98936ce1）；L6/L2 为 proposed）
+accepted（2026-09-28 verdict 提出，2026-09-28 本仓评审通过——逐项裁决见各节标注；L5 已实施，L1/L3 已实施，L4 文档更新随本提交；L7 已实施（zen-udf 0.8.0，jdm-editor 98936ce1）；L6 已实施（2026-09-29 本仓，随 1.8.0）；L2 契约文档已建，方向=D 模式）
 
 ## 背景
 
@@ -93,6 +93,17 @@ IBM ODM Decision Center（治理型决策平台同型终态）、VS Code（dirty
 该容器分组并高亮对应工具卡。归属 appshell 目录面板组件（A1 目录 UI 的搜索行为
 规格补全）。
 
+【本仓评审 ✅ 接受（2026-09-29 宿主裁定）并已实施——落点修正：搜索实现在内核
+GraphComponents 面板（appshell 为组装方）。① kernel spec 增可选 `searchKeywords`
+字段（NodeSpecification / CustomNodeSpecification / BaseNode 三处，additive）；
+② 面板匹配抽纯模块 `graph/component-search.ts`（matchComponent）：规范字段
+（type/displayName/shortDescription/group）+ 关键词索引，返回值区分「规范字段命中
+（[]，无需高亮）」与「关键词命中（非空词条）」；③ 命中工具词条时容器卡徽标显示
+命中词条（最多 3 个，` · ` 连接）替代 shortDescription——本面板形态为每域一卡，
+「展开分组并高亮工具卡」由过滤命中 + 词条徽标承载；④ appshell `containerPlan`
+以工具 name/title/描述首行生成去重关键词经 spec 透传。单测：kernel
+component-search 6 例 + appshell plans 关键词生成 1 例】
+
 ### L7 · zen-udf customHandler 遮蔽内置 UDF 分发，宿主无法组合
 
 现状（2026-09-28 verdict 执行 E2E 实测）：engine.ts 仅在 `customHandler == null`
@@ -136,7 +147,8 @@ registry 工具并存的组合形态。三种形态均有 spy 断言测试
 
 采用方案 A（本文档即提案合集，L5/L6/L7 增补后为七项）。实施顺序修订：L5（已完成）
 → L4（例行，零风险）→ L1（消费方需求最明确）→ L2（文档化即可先行动）→ L3（随
-velocity §6 核对一起做）→ L6（appshell 目录搜索）→ L7（✅ 已完成，2026-09-29
+velocity §6 核对一起做）→ L6（✅ 已完成，2026-09-29 本仓——落点 kernel GraphComponents
+面板搜索 + appshell 关键词组装）→ L7（✅ 已完成，2026-09-29
 zen-udf 0.8.0——verdict 的临时规避可退役）。
 
 ## 实施记录（2026-09-28）
@@ -145,7 +157,7 @@ zen-udf 0.8.0——verdict 的临时规避可退役）。
 | --- | --- | --- |
 | L5 信封解析 | ✅ 已实施（303e95b，宿主指示直接实施） | packages/appshell/src/lib/custom-node-schema-source.ts |
 | L5 导出 CLI + 文件接入 | ✅ 已实施（verdict 仓） | verdict apps/api/scripts/export-udf-catalog.ts |
-| L6 目录搜索索引内部工具名 | proposed，待评审排期 | appshell 目录面板组件 |
+| L6 目录搜索索引内部工具名 | ✅ 已实施（2026-09-29 本仓，随 1.8.0；落点修正为 kernel GraphComponents + appshell containerPlan） | packages/seal-editor graph/component-search.ts · packages/appshell custom-node-plans.ts |
 | L7 customHandler 组合能力 | ✅ 已实施（2026-09-29，jdm-editor 98936ce1，zen-udf 0.8.0；decline + 显式委托双形态；路由键=node.name，TS 侧 content 恒 null） | packages/zen-udf engine.ts |
 | L1/L2/L3/L4 | L1/L3 已实施（本仓 d159ae1，headerSlots 注入 + simulationFooter 插槽）；L2 契约文档已建（save-persistence-contract.md）；L4 基线已更新（bundle-analysis.md + 预算 790000/193000） |
 
