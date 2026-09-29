@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.13.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.12.0...@republicroad/seal-appshell@1.13.0) (2026-09-29)
+
+### Features
+
+- **appshell:** ADR-009 [#2](https://github.com/republicroad/seal-editor/issues/2)/[#3](https://github.com/republicroad/seal-editor/issues/3) follow-up — meta passthrough + catalog origin badges ([6be6bce](https://github.com/republicroad/seal-editor/commit/6be6bce498d31e2eae15b51cfe5af0eab28a1135))
+
 # [1.12.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.11.0...@republicroad/seal-appshell@1.12.0) (2026-09-29)
 
 ### Features
