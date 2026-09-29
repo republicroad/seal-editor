@@ -2,7 +2,7 @@ import { Button } from '#components/ui/button';
 import { cn } from '#lib/utils';
 import { Subscribe } from '@tanstack/react-table';
 import { useEffect, useRef, useState } from 'react';
-import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, ReactNode, RefObject } from 'react';
+import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
 import { useDataGrid } from './data-grid';
@@ -966,7 +966,9 @@ function DataGridCellSelection<TData extends object>({
   keyboard = true,
 }: {
   /** Receives the controller's imperative API, e.g. for create-row flows. */
-  apiRef?: RefObject<DataGridCellSelectionApi | null>;
+  /** 结构化可变 ref（React 18 类型的 RefObject.current 为只读；readonly 不参与
+   *  可赋值性检查，useRef/forwardRef 传参均可）——赋值点见 effect/cleanup */
+  apiRef?: { current: DataGridCellSelectionApi | null };
   /** Native copy, cut and paste handling. Defaults to true. */
   clipboard?: boolean;
   /**
