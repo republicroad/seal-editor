@@ -18,6 +18,7 @@
 | [Monorepo App + 多库](./monorepo-app-and-libraries.md) | 一个 app 消费多个同仓库：源码形态 vs 产物形态不互渗 | 仓内 app + libraries 的 pnpm monorepo |
 | [临时跨项目源码直通](./cross-repo-source-bridge.md) | 仓外消费者发版前预览未发布源码：link/portal 桥五步接拆 | 跨仓消费者临时验证（verdict/editor） |
 | [zustand 选择器相等性](./zustand-selector-equality.md) | useShallow 只救一层——嵌套派生选择器用深比较 memoizer | zustand v5 订阅与 traditional 迁移 |
+| [包公开面与全量透传](./package-surface-reexport.md) | 壳包 `export *` 单入口透传内核：类型/样式/符号规则 + 三守卫 + 测试基线 | 双包发布（壳包默认透传内核） |
 
 ## 选用规则
 
@@ -31,6 +32,7 @@
 | 发布 TS 源码包到 npm | BP-06 ESM-only 源码发布 |
 | 仓外应用要在发版前看库的未发布改动 | BP-07 临时跨项目源码直通 |
 | zustand 订阅触发渲染循环或迁移 traditional | BP-08 zustand 选择器相等性 |
+| 壳包透传内核/维护双包公开面（类型·样式·符号） | BP-09 包公开面与全量透传 |
 
 ## 格式约定
 
