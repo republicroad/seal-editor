@@ -304,6 +304,7 @@
 .seal-dg {
   font-family: var(--seal-font-family);
   height: 100%;
+  position: relative; /* GraphPanel 浮层抽屉的定位祖先（absolute bottom-0 从下往上浮起） */
   display: grid;
   grid-template-areas:
     'sidebar graph component'

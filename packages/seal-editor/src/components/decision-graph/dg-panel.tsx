@@ -29,10 +29,10 @@ export const GraphPanel: React.FC = () => {
   return (
     <Resizable
       className={
-        // grid-area:bottom — full-width row under the canvas (template lives
-        // in styles/tailwind.css; without the placement auto-positioning
-        // drops this panel into the narrow right column).
-        '[grid-area:bottom] relative flex h-full w-full flex-col border-t border-t-[var(--border)] bg-[var(--seal-color-primary-bg-fade)]'
+        // 浮层抽屉（宿主 2026-09-30 裁定）：从 graph 主面板底部向上浮起、覆盖画布
+        // （不再占用 grid-area:bottom 行挤压布局）。.seal-dg 为定位祖先；侧栏
+        // simulator 按钮为开关（再次点击收起）。收起时 bottom 行自然塌缩为 0。
+        'absolute inset-x-0 bottom-0 z-30 flex w-full flex-col border-t border-t-[var(--border)] bg-[var(--seal-color-primary-bg-fade)] shadow-[0_-8px_24px_rgba(0,0,0,0.12)]'
       }
       defaultSize={{ height: defaultHeight }}
       handleStyles={{
