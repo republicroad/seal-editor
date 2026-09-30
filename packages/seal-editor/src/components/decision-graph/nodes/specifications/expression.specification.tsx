@@ -18,7 +18,7 @@ import { compareAndUnifyLists, compareStringFields } from '../../diff/comparison
 import { TabExpression } from '../../graph/tab-expression';
 import { GraphNode } from '../graph-node';
 import type { NodeDecisionTableData } from './decision-table.specification';
-import { SettingsFrame } from './settings-frame';
+import { SettingsFrame, settingsCodeEditorStyle } from './settings-frame';
 import type { NodeSpecification } from './specification-types';
 import { NodeKind } from './specification-types';
 
@@ -241,7 +241,7 @@ export const expressionSpecification: NodeSpecification<NodeExpressionData> = {
             disabled={disabled}
             displayDiff={contentDiff?.fields?.inputField?.status === 'modified'}
             previousValue={contentDiff?.fields?.inputField?.previousValue}
-            style={{ fontSize: 12, lineHeight: '20px', width: '100%' }}
+            style={settingsCodeEditorStyle}
             expectedVariableType={fields?.executionMode === 'loop' ? { Array: 'Any' } : undefined}
             maxRows={4}
             value={fields?.inputField ?? ''}

@@ -9,14 +9,14 @@ import type { z } from 'zod';
 
 import { useNodeType } from '../../../../helpers/node-type';
 import type { decisionTableSchema } from '../../../../helpers/schema';
-import { Button, Form, Space } from '../../../primitives';
+import { Button, Form } from '../../../primitives';
 import { DiffCodeEditor, DiffInput, DiffRadio, DiffSwitch } from '../../../shared';
 import { useDecisionGraphActions, useDecisionGraphState, useNodeDiff } from '../../context/dg-store.context';
 import type { Diff, DiffMetadata } from '../../dg-types';
 import { compareAndUnifyLists } from '../../diff/comparison';
 import { TabDecisionTable } from '../../graph/tab-decision-table';
 import { GraphNode } from '../graph-node';
-import { SettingsFrame } from './settings-frame';
+import { SettingsFrame, settingsCodeEditorStyle } from './settings-frame';
 import { NodeKind } from './specification-types';
 import type { NodeSpecification } from './specification-types';
 
@@ -376,27 +376,25 @@ export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData
 
     return (
       <SettingsFrame title='Decision table'>
-        <Form.Item label={'Hit Policy'}>
-          <Space direction={'vertical'} size={2}>
-            <DiffRadio
-              size={'small'}
-              previousValue={contentDiff?.fields?.hitPolicy?.previousValue}
-              displayDiff={contentDiff?.fields?.hitPolicy?.status === 'modified'}
-              disabled={disabled}
-              value={fields?.hitPolicy}
-              onChange={(e) => updateNode({ hitPolicy: e?.target?.value as 'first' | 'collect' })}
-              options={[
-                {
-                  value: 'first',
-                  label: 'First',
-                },
-                {
-                  value: 'collect',
-                  label: 'Collect',
-                },
-              ]}
-            />
-          </Space>
+        <Form.Item label={'Hit policy'}>
+          <DiffRadio
+            size={'small'}
+            previousValue={contentDiff?.fields?.hitPolicy?.previousValue}
+            displayDiff={contentDiff?.fields?.hitPolicy?.status === 'modified'}
+            disabled={disabled}
+            value={fields?.hitPolicy}
+            onChange={(e) => updateNode({ hitPolicy: e?.target?.value as 'first' | 'collect' })}
+            options={[
+              {
+                value: 'first',
+                label: 'First',
+              },
+              {
+                value: 'collect',
+                label: 'Collect',
+              },
+            ]}
+          />
         </Form.Item>
         <Form.Item label='Passthrough'>
           <DiffSwitch
@@ -414,7 +412,7 @@ export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData
             disabled={disabled}
             displayDiff={contentDiff?.fields?.inputField?.status === 'modified'}
             previousValue={contentDiff?.fields?.inputField?.previousValue}
-            style={{ fontSize: 12, lineHeight: '20px', width: '100%' }}
+            style={settingsCodeEditorStyle}
             expectedVariableType={fields?.executionMode === 'loop' ? { Array: 'Any' } : undefined}
             maxRows={4}
             value={fields?.inputField ?? ''}

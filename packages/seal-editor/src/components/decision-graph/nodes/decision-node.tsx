@@ -203,7 +203,7 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
               }}
             >
               <div className='flex flex-col'>
-                <div className='flex items-center justify-between pl-2.5 bg-[var(--seal-color-primary-bg-fade)] rounded-t-[var(--node-border-radius)] border-b border-b-[var(--border)]'>
+                <div className='flex items-center justify-between gap-1 p-2 bg-[var(--seal-color-primary-bg-fade)] rounded-t-[var(--node-border-radius)] border-b border-b-[var(--border)]'>
                   <Typography.Text className='text-xs! text-[var(--muted-foreground)]'>{detailsTitle}</Typography.Text>
                   <Button
                     type={'text'}
@@ -213,7 +213,7 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
                     onClick={onDetailsClose}
                   />
                 </div>
-                <div className='flex flex-col p-2.5 gap-0.5 [&_.settings-form_.seal-ce]:text-xs'>{details}</div>
+                <div className='flex flex-col p-2.5 gap-1 [&_.settings-form_.seal-ce]:text-xs'>{details}</div>
               </div>
             </GraphCard>
           )
