@@ -72,6 +72,16 @@ body: { args?: unknown[] }          // 位置参数（v1）；具名 kwargs 预�
   （jdm 原型未暴露——其演示工具 legacy_hash 是扁平注册）。端点改从
   udfFunctionSchemaNamespaces()（与面板同源的目录视图）取参数名序/required/
   default 做校验与 kwargs 绑定，两种注册形态都覆盖；未知函数显式 404；
+- **【事实修正，ADR-011 评审 bun 实测 2026-09-29】**：上条的「registry 对
+  parametersSchema 注册空转」表述不准——normalizeUdfSchema 自 U7 即对
+  parametersSchema 注册**双向派生**扁平 parameters，合法位置参数的校验/绑定
+  正常。当时观察到的现象真相有二：① 缺参路径（args=[]）返回 200，是派生
+  **丢弃 required 数组** + 缺位静默填空串的 R1 缺陷（ADR-011 评审注记 #2/#5
+  实锤复现）；② hit:false 是 ExecContext 缺失（下条已修）。另评审补充第四条
+  缺陷：ContribToolDef（defineTool+registerTools 路径）**无扁平字段**，扁平声明
+  被静默丢弃——三种空转的入口各不相同。view-driven 校验/绑定在
+  zen-udf 0.11.0（R1 required 语义 + 缺参失败语义）落地后可回退 registry 直调
+  （ADR-011 实施清单 #3，本仓联动项）；
 - **ExecContext 包装必须**：roster 等域函数按 ExecContext.tenantId 取数据面，
   callCtx 的 tenantId 不够——call 需包 runWithExecContext（与其他路由同款），
   否则名单查询恒 miss（首跑实测暴露）。
