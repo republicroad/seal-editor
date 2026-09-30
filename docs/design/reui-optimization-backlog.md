@@ -23,10 +23,10 @@
 
 | # | 区域 | 现状 | 可做 | 量级 | 触发条件 |
 | --- | --- | --- | --- | --- | --- |
-| 1 | **graph 面板区**（5,605 行 / 14 文件，最大剩余面） | tab-request / tab-function / tab-json-schema / request-definitions / request-examples 为 primitives 堆叠（同一"列表+工具栏+空态"形态逐文件手写） | ~~tree 承载 request-definitions~~（侦察修正：它是可编辑定义编辑器，非只读树——tree 落点=UDF Lab）；request 面板空态已用共享 PanelEmpty 统一（52102f64） | ✅ 空态部分完成 | — |
+| ~~1~~ | 侦察完成（2026-09-30）→ [graph-panel-recon.md](./graph-panel-recon.md)：精确重复点 = monaco editorOptions + 工具栏按钮组（tab-request/tab-json-schema 逐字重复 ~110 行）+ 三种添加钮形态；提案 A 两步走待裁定 | 提案待排期 |
 | 2 | ~~fields-reorder-dialog~~ | ✅ 2026-09-26 完成（sortable vendored，176→88 行） | — | — | — |
 | ~~3~~ | ~~function 调试器搜索过滤 + hover 复制~~ | ✅ 2026-09-29 随 1.6.0 落地（W1-B：日志过滤 + hover 复制）；日志级别类型化需 WASM 侧拦截，另行评估 | 已完成 |
-| 4 | **specifications renderSettings**（1,752 行） | 已用 kernel ui 但密度/层级/间距未规范 | [frame](https://reui.io/components/frame?ref=mcp) + 密度规范统一——属"规范化"非"换件" | ~1 天 | 触及 spec 面板时顺做 |
+| ~~4~~ | ✅ 2026-09-30 落地：SettingsFrame spacing=xs + FramePanel gap 收紧 + 双宿主头部/间距统一 + DiffCodeEditor 内联样式收编共享常量 + 冗余 Space/标签大小写规范化 | 已完成 |
 | ~~5~~ | ✅ 2026-09-30 随 1.20.0：**tree**（目录树 catalog-tree.tsx，点工具即插入）+ **timeline**（TrustChain 审计时间线）+ **code-block**（FunctionRepl renderResult JSON 高亮）三组件首次入链完成 | 已完成 |
 
 ## dt 换装解锁的增强候选（新功能，非优化）
