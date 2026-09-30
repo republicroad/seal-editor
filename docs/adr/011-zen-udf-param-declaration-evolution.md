@@ -265,6 +265,31 @@ scripts-time-probe.mjs（69 项实测）。P1 = now()/today() + isBetween。
 - verdict 消费口径：apps/api 锚定 `^0.11.2`（tsc 干净；0.11 归一化核心已含，
   ext/参考域位置调用实测通过），上游发布修复版后重锚 0.12.x。
 
+### 消费方阻塞修复（2026-09-30，jdm-editor e094d571 + 687dca45，zen-udf 0.12.2 已发布）
+
+上述注记全部三项随 0.12.2 收口，实测复核对账：
+
+- **`.fn` 残迹比注记判断的更重**：不只类型面缺失——`UdfTool` 对象运行时本无
+  `fn` 属性，`notifyWebhook` 解构结果为 `undefined`，**15 例 notify 测试全红**
+  （0.12.0/0.12.1 带病发版实锤；bun 跑测试不查类型，本仓侧此前未暴露）。修法取
+  裸函数导出保留路线：`export const notifyWebhook = notifyWebhookTool.run;`；
+  rate-window/http 两域扫描无同型解构（注记之虑排除）；
+- **包面缺口三项出包**：`UdfPackMeta`/`RESERVED_NAMESPACE_PREFIXES`/
+  `reservedNamespaceViolation` 已从包根导出，verdict registerPack 可拆本地镜像
+  与手抄保留前缀表；
+- **附带发现并修复**：3fa90635 提交信息声称的 `createUdfRegistry({ ports })`
+  组合根接线实际未落地（diff 只有 CONTRACT §5 别名）——0.12.2 补上真实接线
+  （options.ports → setPorts）+ 端口面出包（`setPorts`/`getPorts`/`UdfPorts`），
+  CONTRACT §6 组合根注入自此可从 npm 消费方使用；
+- **全包 tsc 清零**：10 处存量类型错一并清扫（`import.meta.dir` bun 专有收窄 ×3、
+  conformance fixtures 类型缺口 ×2、datetime/validate-cn/engine-custom-handler
+  断言收窄 ×5）——源码直发包不再随包透传类型错。差分 smoke：同一严格
+  consumer tsconfig 下 0.11.2 与 0.12.2 错误集完全一致（仅 otel 可选 peer
+  环境项）、零回归，且新面 strict 下全通过；
+- **验收**：全量 1069 测试绿（notify 15 例转绿 + 端口接线新测 1 例）；消费方
+  实测 ports 接线/保留前缀/meta 查询/notify 裸导出可调用。
+  **verdict 可自 `^0.11.2` 重锚 `^0.12.2`**。
+
 
 ## 后果
 
