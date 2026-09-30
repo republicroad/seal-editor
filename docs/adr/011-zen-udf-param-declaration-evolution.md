@@ -1,7 +1,7 @@
 # ADR-011：zen-udf 参数声明统一与 defineTool 声明体验——0.11.0 演进提案
 
 ## 状态
-proposed（2026-09-29 seal-editor 起草，**待 jdm-editor 仓协商裁定**——zen-udf 单一源与
+proposed（2026-09-29 seal-editor 起草；**同日 jdm-editor 评审完成——决策 1/2 修改后接受**：问题陈述事实修正 + 决策 1 两条修订 + 多语言 contract-first 修订 + 开放问题 1-5 表态，见「评审注记」「多语言修订」节；zen-udf 后续路线见「后续规划」节。zen-udf 单一源与
 发布方在彼仓（ruling 12），本 ADR 为移交协商稿。协商方式沿 ADR-010 惯例：逐节标注
 接受/否决/修改，并更新本状态行）
 
@@ -108,6 +108,73 @@ const rosterTool = defineTool({
    的迁移时间表？
 5. **回归语料**：双形态等价性用例的口径（同函数双形态注册 → validate/bind/
    call 结果逐字段相等）？
+
+## 评审注记（jdm-editor 仓，2026-09-29——zen-udf 唯一源仓的协商裁定）
+
+### 事实核查（三条断言，两条修正）
+
+1. **「读点只读扁平形态」——属实**（validatePositionalArgs 读 schema.parameters）；
+2. **「parametersSchema 注册的工具校验恒通过、绑定恒空」——表述不准，实证修正**
+   （bun 实测当前 0.9.0，两条注册路径一致）：
+   - normalizeUdfSchema 自 U7（09-13，早于分叉）即有**双向派生**——parametersSchema
+     注册自动派生扁平 parameters，合法位置参数的校验/绑定均正常工作；
+   - **真实缺陷在缺参语义**：validatePositionalArgs 跳过越界位（注释假定 funcBindParams
+     以默认值补齐）、funcBindParams 对缺位静默填**空字符串**、且派生函数**丢弃
+     required 数组**——schema 工具的必填约束在规范表示里就不存在。A3 端点以
+     kwargs 对象风格调用经位置换算得空串参数，即「绑定恒空」的观察真相；
+3. **「视图输出不变」——成立**（视图本就优先输出 parametersSchema）。
+
+**结论：归一化方向正确且必要，但仅「读点收敛」修不掉上述缺陷——§1 必须补
+required 语义与缺参失败语义的明确条款（见修订 R1）。**
+
+### 逐节裁定
+
+| 节 | 裁定 |
+| --- | --- |
+| 决策 §1 归一化 | **修改后接受**。修订两条：**R1** 派生必须携带 required（映射为扁平无 default），并新增「缺必填位置参数 → validate 报错 / bind 拒绝」的显式失败语义——否则本节目标「双形态空转从机制上消失」不成立（消失的只是形态差，缺参静默仍在）；**R2** 归一化落点扩展现有 normalizeUdfSchema（U7 双向派生骨架），不新写 |
+| 决策 §2 defineTool | **接受方向**。开放问题 1 表态：内建 P.* 为默认（TypeBox 的 type-marker 推导思路自研约百行级可行）；zod/TypeBox 作 defineTool 入口逃生舱输入，不进核心 |
+| 开放问题 2 | **维持仅顶层原始类型**——与 schema-container-tab 的下拉+位置参数交互模型一致 |
+| 开放问题 3 | 0.11.0 在扁平声明位打 deprecated（A4 机制现成）；物理移除随 1.0 |
+| 开放问题 4 | defineTool 新增推荐位即可；#4 迁移示范做 1-2 个域，不排全量时间表 |
+| 开放问题 5 | **口径修正**：「回归语料补双形态等价性」表述有歧义——861 例语料是表达式语言，与本 ADR 无关。等价性用例落在 register.test.ts / udf-pack.test.ts，且**四点口径**：同函数双形态注册 → validatePositionalArgs / **缺参报错** / funcBindParams / call 逐字段相等 |
+| 工作量估计 | 修正：归一化含 required 语义与缺参失败语义后 **~1 天**（原 0.5 偏乐观，含四点等价性用例）；其余估计合理 |
+
+## 多语言修订（contract-first——zen-udf 未来移植各部署后端语言的前提）
+
+若 zen-udf 将随 zen-engine 部署后端移植多语言（Go/Rust/Python 等），业界收敛
+实践是 **契约先行、DX 本地化**（MCP/gRPC-IDL/Terraform plugin protocol/Spark UDF
+目录签名同构）：跨语言的只有规范表示与语义字段，一切声明期糖衣是各语言本地实现。
+对本 ADR 的三条修订：
+
+1. **§1 升格为「契约层」章节**：规范表示 = 唯一跨语言契约，必须语义自足——
+   required/default/semantics/idempotent/deprecated 全部在 JSON Schema（含扩展
+   字段）中可得，移植语言零重推导即可实现 validate/bind。R1 由「应该」升级为
+   「必须」（否则每个移植版各自重造必填语义并各自不一致）；
+2. **§2 重新定位为「TS DX 层」**：defineTool/P.* 是 TS 侧惯用糖（编译期推导是
+   TS-only 产物，天然不随移植走），输出即契约；各语言移植版实现等价 builder
+   （Go functional options / Python dataclass+pydantic 等），验收唯一标准 =
+   输出符合契约的规范表示。开放问题 1（builder 选型）随之**降级**——选错可换，
+   它不是契约的一部分；
+3. **新增交付物：语言中立 conformance fixtures**——双形态等价性用例以 JSON
+   fixtures 形式入 zen-udf 包（与 expression-regression 语料同思路、同目录层级），
+   TS 单测消费它，语言移植版跑同一份即得 conformance。TS 单测不随移植走，
+   fixtures 会。**这是开放问题 5 的最终答案**。
+
+配套五条最佳实践：契约是产品 DX 是适配；规范表示语义自足（零重推导）；一致性
+用例语言中立（fixtures 即规范）；编译期机制永不进运行时表示（type-brand symbol
+不得渗入 JSON Schema）；契约带版本字段（schema 方言版本入 pack meta 或文档）。
+
+## 后续规划（zen-udf，0.11.0+）
+
+| 版本 | 内容 | 备注 |
+| --- | --- | --- |
+| 0.10.x | 已发布：引擎 2.1.0 + 回归语料 861 例（分歧台账 6 条） | 语料即引擎升级的一键验证网 |
+| **0.11.0** | 本 ADR 修订后范围：normalizeUdfSchema 扩展（R1 required 语义 + 缺参失败语义）+ defineTool/P.* DX 层 + **conformance fixtures（语言中立）** + 四点等价性用例 + 扁平声明位 deprecated | 实施清单 #1/#2/#4，~1.5-2 天 |
+| 0.11.x | dt 域 vs 2.1.0 内建重叠 review（回归语料为对照基准，结论写回时间函数盘点文档） | ~半天 |
+| 0.12 候选 | 上游 issue 反哺跟进（时间函数盘点 P1：now/today+isBetween；宿主手动提交后随上游版本吸收） | 依赖上游 |
+| 多语言移植 | contract-first：fixtures 即移植 conformance；各语言 builder 输出契约即可 | 触发=真实部署后端语言出现 |
+| ADR-009 尾项 | #4 verdict 升级消费 / #5 行业包骨架 | verdict 侧会话 |
+
 
 ## 后果
 
