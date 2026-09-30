@@ -318,6 +318,29 @@ scripts-time-probe.mjs（69 项实测）。P1 = now()/today() + isBetween。
 - 启动前置不变：verdict 重锚 `^0.12.2` 确认 + dt months 双口径业务裁决
   （anniversary vs 月序调减，重叠探针实测在案）。
 
+### 默认命名空间终裁（2026-10-01，宿主拍板）：1.0 不存在默认命名空间
+
+与上节同日裁决、同一决策链（遗留面退役立法）。现状考古：`'default'` 是遗留
+注册面的隐式兜底（`registerFunction`/`normalizeUdfSchema` 四处 `?? 'default'`，
+legacy 路径省略 namespace 时落此）；理想态 `register(entry)` 已双缺即抛
+（"requires a namespace (or pack id)"）；ADR-009 保留前缀（zen/core/reference/
+builtin）不含 default——显式 `id: 'default'` 今日合法；仓内零显式使用；
+verdict 本地镜像已额外禁 default（消费注记在案）。裁决：
+
+- **隐式兜底随 1.0 自然消亡**（遗留四态 API 移除时 `?? 'default'` 兜底与
+  两处读取侧回退同步死亡，与扁平声明位 B 案同一逻辑，无需单独动作）；
+- **显式 `'default'` 加入 `RESERVED_NAMESPACE_PREFIXES` 拒绝**（1.0 生效，
+  0.x 不动）：①无合法受众——显式 default 等于匿名回潮，与理想态「身份必须
+  显式」及 ADR-009 治理线（pack 带 origin/version meta）相悖；②verdict 对齐
+  收益——重锚后其本地「额外禁 default」规则可拆，保留前缀单一立法；
+  ③1.0 本就 breaking，保留清单加一个字符串零边际成本；
+- **1.0 移除清单终版（三项齐整）**：①遗留四态注册 API + 旧 defineTool；
+  ②扁平 parameters 声明字段 + 仅服务它的派生入口；③default 隐式兜底与
+  显式 default（入保留清单）。**保留**=tool()/pack()/registry.register()/
+  执行三动作/端口面冻结/目录视图扁平输出（表示层不受影响）；
+- CONTRACT §4（pack 组织）随 1.0 实施，同步增补 default 保留条款
+  （立法先行落档于本节，实施时不得遗漏）。
+
 
 ## 后果
 
