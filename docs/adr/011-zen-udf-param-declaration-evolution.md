@@ -184,7 +184,7 @@ zen-udf 移植各语言时，「统一的工具声明与执行模式约束规范
 | --- | --- | --- |
 | 0.10.x | 已发布：引擎 2.1.0 + 回归语料 861 例（分歧台账 6 条） | 语料即引擎升级的一键验证网 |
 | **0.11.0** | 本 ADR 修订后范围：normalizeUdfSchema 扩展（R1 required 语义 + 缺参失败语义）+ defineTool/P.* DX 层 + **conformance fixtures（语言中立）** + 四点等价性用例 + 扁平声明位 deprecated | 实施清单 #1/#2/#4，~1.5-2 天 |
-| 0.11.x | dt 域 vs 2.1.0 内建重叠 review（回归语料为对照基准，结论写回时间函数盘点文档） | ~半天 |
+| 0.11.x | ✅ 已实施（2026-09-30，jdm-editor 6eaeef31）：dt 域 vs 2.1.0 内建重叠 review——探针逐工具实测（scripts-dt-overlap-probe.mjs）：convert 转换本体已内建（tz()+format 逐字符相等，差异仅错误通道→收窄为 IANA 校验+结构化错误工具）；diff days 重叠（符号差）/months 语义分歧实锤（内建 anniversary=3 vs dt 月序调减=2，双口径须业务先裁）/business_days 无对应；business_day 零重叠长期保留；三工具均不打 deprecated。结论回写时间函数盘点文档分工节 | 已划账 |
 | 0.12 候选 | 上游 issue 反哺跟进（时间函数盘点 P1：now/today+isBetween；宿主手动提交后随上游版本吸收） | 依赖上游 |
 | 多语言移植 | contract-first：fixtures 即移植 conformance；各语言 builder 输出契约即可 | 触发=真实部署后端语言出现 |
 | ADR-009 尾项 | #4 verdict 升级消费 / #5 行业包骨架 | verdict 侧会话 |
