@@ -290,6 +290,34 @@ scripts-time-probe.mjs（69 项实测）。P1 = now()/today() + isBetween。
   实测 ports 接线/保留前缀/meta 查询/notify 裸导出可调用。
   **verdict 可自 `^0.11.2` 重锚 `^0.12.2`**。
 
+### 开放问题 3 终裁（2026-10-01，宿主拍板）：扁平 parameters 声明位随 1.0 移除（B 案）
+
+两份在案裁定的冲突就此裁决。冲突经过：2026-09-29 立场改写（宿主表达兼容关切后）
+=「声明位三态自由（扁平/P.\*/裸 schema）、扁平长期保留，统一的是存储不是表达
+方式」；2026-09-30 1.0 注册 API 终态呈报=移除清单含「扁平 parameters 声明位」。
+同事项相反结论，宿主裁决如下：
+
+- **裁决：按 B 案移除，不补救**——1.0 声明面=TypeBox 单态（`tool()` 的
+  `input`），不给理想态 API 补扁平入口/转换糖；
+- **关键事实（裁决依据）**：扁平形态的宿主入口只有遗留四态注册 API
+  （registerUdf/createExtRegister/registerTools/defineContrib/defineToolFor/旧
+  defineTool）——理想态 `tool()` 自设计起只收 TypeBox，1.0 物理移除遗留 API
+  时扁平声明自动消失；「保留」的实际含义是给新 API 复刻旧语法并永久背负
+  双态等价性契约与测试税；
+- **兼容关切（裁定 A 的实质动机）由归一化层兜住**：运行时行为对存量数据零
+  破坏（注册期归一化 + R1 位置绑定直读规范表示），1.0 退役的只是声明语法；
+  遗留作者迁移窗口=0.11.0（JSDoc deprecated）起至 1.0；
+- **边界澄清**：目录视图的扁平**输出**（udfFunctionSchemaTools 对齐
+  zen_custom_node_function.json 的编辑器契约）是表示层非声明层，不受本裁影响；
+  `normalizeUdfSchema` 中仅为消化扁平声明而存在的派生入口随遗留 API 一并退役；
+- **1.0 移除清单据此定稿**：registerUdf / createExtRegister / registerTools /
+  defineContrib / defineToolFor / 旧 defineTool / ContribToolDef 扁平 parameters
+  声明字段 + 仅服务扁平声明的派生入口；**保留**=tool()/pack()/
+  registry.register()/执行三动作/端口面冻结/目录视图输出。
+  2026-09-29 的「三态自由/扁平长期保留」interim 立场就此作废（记录在案防重开）；
+- 启动前置不变：verdict 重锚 `^0.12.2` 确认 + dt months 双口径业务裁决
+  （anniversary vs 月序调减，重叠探针实测在案）。
+
 
 ## 后果
 
