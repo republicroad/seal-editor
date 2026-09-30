@@ -23,7 +23,7 @@
 
 | # | 区域 | 现状 | 可做 | 量级 | 触发条件 |
 | --- | --- | --- | --- | --- | --- |
-| ~~1~~ | 侦察完成（2026-09-30）→ [graph-panel-recon.md](./graph-panel-recon.md)：精确重复点 = monaco editorOptions + 工具栏按钮组（tab-request/tab-json-schema 逐字重复 ~110 行）+ 三种添加钮形态；提案 A 两步走待裁定 | 提案待排期 |
+| ~~1~~ | ✅ 2026-09-30 收口：Step 1（monaco options + 工具栏组共享件）已落地（schema-editor-shared.tsx，净 -约 110 行）；Step 2 ListPanel 裁定不做（两面板结构性不同，强抽为过度抽象）——详见 [graph-panel-recon.md](./graph-panel-recon.md) §5 | 已完成 |
 | 2 | ~~fields-reorder-dialog~~ | ✅ 2026-09-26 完成（sortable vendored，176→88 行） | — | — | — |
 | ~~3~~ | ~~function 调试器搜索过滤 + hover 复制~~ | ✅ 2026-09-29 随 1.6.0 落地（W1-B：日志过滤 + hover 复制）；日志级别类型化需 WASM 侧拦截，另行评估 | 已完成 |
 | ~~4~~ | ✅ 2026-09-30 落地：SettingsFrame spacing=xs + FramePanel gap 收紧 + 双宿主头部/间距统一 + DiffCodeEditor 内联样式收编共享常量 + 冗余 Space/标签大小写规范化 | 已完成 |

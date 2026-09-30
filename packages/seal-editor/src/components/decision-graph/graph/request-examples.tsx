@@ -36,7 +36,7 @@ export type RequestExamplesProps = {
   onJsonEditorMount: (instance: editor.IStandaloneCodeEditor) => void;
   summary: RequestExampleSummaryData | null;
   getDefinitionTypeLabel: (type: RequestDefinitionType) => string;
-  editorOptions: Record<string, unknown>;
+  editorOptions: editor.IStandaloneEditorConstructionOptions;
 };
 
 export const RequestExamples: React.FC<RequestExamplesProps> = ({

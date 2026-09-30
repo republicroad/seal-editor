@@ -38,12 +38,17 @@ request-definitions 是 blur-commit 可编辑表单网格（非展示表格）�
 
 ### reui 适用性
 
-- `frame` ✅（面板壳 + FrameHeader 做工具栏条，dense 档适配列表行）
-- `sortable` ❌（examples 源列表无拖拽需求；fields-reorder 已有独立落地）
-- `data-grid` ❌（同提案 B）
+- `frame` ✅（面板壳 + FrameHeader 做工具栏条，`dense`/`stacked` 适配列表行）
+- `sortable` ❌（examples 源列表无拖拽需求，且已在 fields-reorder-dialog 落地）
+- `data-grid` ❌（request-definitions 是 blur-commit 可编辑表单网格，非展示表格——data-grid 已用于 graph-excel-dialog/）
 
 ## 4. 裁定点
 
 1. Step 1/2 是否排期（Step 1 可随任一批顺做）；
 2. ListPanel 归属：kernel `decision-graph/graph/` 内（面板是内核面）——建议 kernel；
 3. 三种添加钮形态收敛为哪种（建议 `dashed`——列表底内嵌不抢 Tabs extra 空间）。
+
+## 5. 实施结果（2026-09-30，随 1.13.0）
+
+- **Step 1 ✅ 已实施**：`graph/schema-editor-shared.tsx`——`schemaEditorOptions` 共享基座 + `useThemedSchemaEditorOptions`（主题叠加）+ `SchemaToolbarActions`（tab: 'examples'|'schema' 双形态）。tab-request / tab-json-schema 迁移完成，顺带收编 request-examples / request-schema-editor 的 `editorOptions` prop 类型（`Record<string, unknown>` → monaco 强类型）。净 -约 110 行逐字重复。
+- **Step 2 裁定：不做全量 ListPanel**。通读实码后的修正：request-examples 是 master-detail 双栏（源列表 + monaco 编辑器 + inlay hints 生命周期），request-definitions 是递归 grid 编辑器（DefinitionCard 树 + 折叠/子字段）——两者除 PanelEmpty（已共享）外无同构骨架，强抽 ListPanel 需把布局参数化到比两份实现更复杂，违背 backlog「primitives 堆叠才是漂移源」判据。**维持各面板自带布局 + PanelEmpty 共享空态**；新增面板时按「列表+工具栏+空态」判据逐案评估（reui frame 适配列表行壳可选）。

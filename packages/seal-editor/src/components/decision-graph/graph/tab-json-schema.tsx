@@ -1,4 +1,3 @@
-import { FormatPainterOutlined, ImportOutlined } from '#icons';
 import InformationIcon from '#reui/icons/animated/outline/information';
 import { DiffEditor, Editor } from '@monaco-editor/react';
 import { type editor } from 'monaco-editor';
@@ -8,29 +7,13 @@ import { match } from 'ts-pattern';
 import { useThrottledCallback } from 'use-debounce';
 
 import { useThemeMode } from '../../../theme';
-import { useT } from '../../../theming/i18n';
-import { Button, Space, Spin, Tabs, Tooltip } from '../../primitives';
+import { Spin, Tabs, Tooltip } from '../../primitives';
 import { useDecisionGraphActions, useDecisionGraphState, useNodeDiff } from '../context/dg-store.context';
 import { useTabSerializer } from '../context/serializer.context';
 import { JsonToJsonSchemaDialog } from './json-to-json-schema-dialog';
+import { SchemaToolbarActions, useThemedSchemaEditorOptions } from './schema-editor-shared';
 
 const schemaTooltip = 'Provide JSON Schema format. If no JSON Schema is provided, validation will be skipped.';
-
-const monacoOptions: editor.IStandaloneEditorConstructionOptions = {
-  automaticLayout: true,
-  contextmenu: false,
-  fontSize: 13,
-  fontFamily: 'var(--mono-font-family)',
-  tabSize: 2,
-  minimap: { enabled: false },
-  overviewRulerBorder: false,
-  scrollbar: {
-    verticalSliderSize: 4,
-    verticalScrollbarSize: 4,
-    horizontalScrollbarSize: 4,
-    horizontalSliderSize: 4,
-  },
-};
 
 enum TabKey {
   Schema = 'Schema',
@@ -47,8 +30,8 @@ export const TabJsonSchema: React.FC<TabJsonSchemaProps> = ({ id, type = 'input'
   const language = 'json';
 
   const mode = useThemeMode();
+  const themedOptions = useThemedSchemaEditorOptions();
 
-  const t = useT();
   const [jsonToJsonSchemaOpen, setJsonToJsonSchemaOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState(TabKey.Schema);
@@ -140,28 +123,12 @@ export const TabJsonSchema: React.FC<TabJsonSchemaProps> = ({ id, type = 'input'
                 activeKey={activeTab}
                 onChange={(t) => setActiveTab(t as TabKey)}
                 tabBarExtraContent={
-                  <Space style={{ marginRight: 8 }} size={'small'}>
-                    <Tooltip title={t('dg.schema.formatCode')} placement='bottomRight'>
-                      <Button
-                        size='small'
-                        type='text'
-                        disabled={disabled}
-                        icon={<FormatPainterOutlined />}
-                        onClick={() => editor?.getAction?.('editor.action.formatDocument')?.run?.()}
-                      />
-                    </Tooltip>
-                    <Tooltip title={t('dg.schema.importFromJson')} placement='bottomRight'>
-                      <Button
-                        type='text'
-                        size={'small'}
-                        disabled={disabled}
-                        icon={<ImportOutlined />}
-                        onClick={() => {
-                          setJsonToJsonSchemaOpen(true);
-                        }}
-                      />
-                    </Tooltip>
-                  </Space>
+                  <SchemaToolbarActions
+                    tab='schema'
+                    disabled={Boolean(disabled)}
+                    onFormat={() => editor?.getAction?.('editor.action.formatDocument')?.run?.()}
+                    onConvertFromJson={() => setJsonToJsonSchemaOpen(true)}
+                  />
                 }
               />
             </div>
@@ -178,7 +145,7 @@ export const TabJsonSchema: React.FC<TabJsonSchemaProps> = ({ id, type = 'input'
                       theme={mode === 'dark' ? 'vs-dark' : 'light'}
                       height='100%'
                       options={{
-                        ...monacoOptions,
+                        ...themedOptions,
                         readOnly: true,
                       }}
                     />
@@ -197,7 +164,7 @@ export const TabJsonSchema: React.FC<TabJsonSchemaProps> = ({ id, type = 'input'
                       theme={mode === 'dark' ? 'vs-dark' : 'light'}
                       height='100%'
                       options={{
-                        ...monacoOptions,
+                        ...themedOptions,
                         readOnly: disabled,
                       }}
                     />

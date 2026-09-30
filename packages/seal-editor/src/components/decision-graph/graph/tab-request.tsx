@@ -1,25 +1,17 @@
-import {
-  CloudDownloadOutlined,
-  CloudUploadOutlined,
-  FormatPainterOutlined,
-  ImportOutlined,
-  PlayCircleOutlined,
-  PlusOutlined,
-} from '#icons';
 import InformationIcon from '#reui/icons/animated/outline/information';
 import type { DragDropManager } from 'dnd-core';
 import type { editor } from 'monaco-editor';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 import '../../../helpers/monaco';
-import { useThemeMode } from '../../../theme';
 import { useT } from '../../../theming/i18n';
-import { Button, Space, Tabs, Tooltip } from '../../primitives';
+import { Tabs, Tooltip } from '../../primitives';
 import { useDecisionGraphActions, useDecisionGraphState } from '../context/dg-store.context';
 import { RequestDefinitions } from './request-definitions';
 import { RequestExamples } from './request-examples';
 import { RequestSchemaEditor } from './request-schema-editor';
 import { useRequestSessionDraftSerializer } from './request-session-draft';
+import { SchemaToolbarActions, useThemedSchemaEditorOptions } from './schema-editor-shared';
 import { useRequestDefinitionsEditing } from './use-request-definitions-editing';
 import { useRequestExamplesEditing } from './use-request-examples-editing';
 import { useRequestSchemaEditing } from './use-request-schema-editing';
@@ -37,25 +29,8 @@ enum RequestTabKey {
   Schema = 'schema',
 }
 
-const editorOptions: editor.IStandaloneEditorConstructionOptions = {
-  automaticLayout: true,
-  contextmenu: false,
-  fontSize: 13,
-  fontFamily: 'var(--mono-font-family)',
-  tabSize: 2,
-  minimap: { enabled: false },
-  overviewRulerBorder: false,
-  scrollbar: {
-    verticalSliderSize: 4,
-    verticalScrollbarSize: 4,
-    horizontalScrollbarSize: 4,
-    horizontalSliderSize: 4,
-  },
-};
-
 export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   const t = useT();
-  const mode = useThemeMode();
   const graphActions = useDecisionGraphActions();
   const [activeTab, setActiveTab] = useState<RequestTabKey>(RequestTabKey.Definitions);
   const schemaEditorRef = useRef<editor.IStandaloneCodeEditor | undefined>(undefined);
@@ -172,85 +147,37 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   const renderTabBarExtraContent = () => {
     if (activeTab === RequestTabKey.Examples) {
       return (
-        <Space size='small' className='mr-2'>
-          <Button type='text' size='small' disabled={disabled} icon={<PlusOutlined />} onClick={addExampleSource}>
-            {t('request.addDataSource')}
-          </Button>
-          <Tooltip title={t('request.uploadJsonTooltip')}>
-            <Button
-              type='text'
-              size='small'
-              disabled={disabled}
-              icon={<CloudUploadOutlined />}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              {t('dg.toolbar.uploadJson')}
-            </Button>
-          </Tooltip>
-          <Tooltip title={t('request.downloadJsonTooltip')}>
-            <Button
-              type='text'
-              size='small'
-              disabled={!activeSource}
-              icon={<CloudDownloadOutlined />}
-              onClick={handleDownloadJson}
-            >
-              {t('dg.toolbar.downloadJson')}
-            </Button>
-          </Tooltip>
-          <Tooltip title={t('request.simulateTooltip')} placement='bottomRight'>
-            <Button
-              type='text'
-              size='small'
-              icon={<PlayCircleOutlined />}
-              disabled={disabled || activePanel === 'simulator'}
-              onClick={openSimulatorPanel}
-            />
-          </Tooltip>
-        </Space>
+        <SchemaToolbarActions
+          tab='examples'
+          disabled={disabled}
+          onAddSource={addExampleSource}
+          onUploadJson={() => fileInputRef.current?.click()}
+          onDownloadJson={handleDownloadJson}
+          hasActiveSource={Boolean(activeSource)}
+          onSimulate={openSimulatorPanel}
+          simulateDisabled={activePanel === 'simulator'}
+        />
       );
     }
 
     if (activeTab === RequestTabKey.Schema) {
       return (
-        <Space size='small' className='mr-2'>
-          <Tooltip title={t('request.formatSchema')} placement='bottomRight'>
-            <Button
-              type='text'
-              size='small'
-              shape='circle'
-              icon={<FormatPainterOutlined />}
-              onClick={() => {
-                const formatAction = schemaEditorRef.current?.getAction?.('editor.action.formatDocument');
-                formatAction?.run();
-              }}
-              disabled={disabled}
-            />
-          </Tooltip>
-          <Tooltip title={t('dg.jsonSchema.title')} placement='bottomRight'>
-            <Button
-              type='text'
-              size='small'
-              shape='circle'
-              icon={<ImportOutlined />}
-              onClick={() => setJsonToJsonSchemaOpen(true)}
-              disabled={disabled}
-            />
-          </Tooltip>
-        </Space>
+        <SchemaToolbarActions
+          tab='schema'
+          disabled={disabled}
+          onFormat={() => {
+            const formatAction = schemaEditorRef.current?.getAction?.('editor.action.formatDocument');
+            formatAction?.run();
+          }}
+          onConvertFromJson={() => setJsonToJsonSchemaOpen(true)}
+        />
       );
     }
 
     return null;
   };
 
-  const themedEditorOptions = useMemo(
-    () => ({
-      ...editorOptions,
-      theme: mode === 'dark' ? 'vs-dark' : 'light',
-    }),
-    [mode],
-  );
+  const themedEditorOptions = useThemedSchemaEditorOptions();
 
   return (
     <div className='relative box-border flex h-full flex-col overflow-hidden bg-[var(--card)]'>
