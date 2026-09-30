@@ -29,11 +29,22 @@ export const GraphPanel: React.FC = () => {
   return (
     <Resizable
       className={
-        // 浮层抽屉（宿主 2026-09-30 裁定）：从 graph 主面板底部向上浮起、覆盖画布
+        // 浮层抽屉（宿主 2026-09-30 裁定）：从编辑面底部向上浮起、覆盖画布
         // （不再占用 grid-area:bottom 行挤压布局）。.seal-dg 为定位祖先；侧栏
         // simulator 按钮为开关（再次点击收起）。收起时 bottom 行自然塌缩为 0。
-        'absolute inset-x-0 bottom-0 z-30 flex w-full flex-col border-t border-t-[var(--border)] bg-[var(--seal-color-primary-bg-fade)] shadow-[0_-8px_24px_rgba(0,0,0,0.12)]'
+        // 定位走 inline style：re-resizable 自带 .re-resizable { position: relative }
+        // 会在类级层叠里压掉 Tailwind 的 absolute（实测：面板退化成自动放置的
+        // grid 项、落到 component 列右侧）——inline 永远赢。
+        'flex w-full flex-col border-t border-t-[var(--border)] bg-[var(--seal-color-primary-bg-fade)]'
       }
+      style={{
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 30,
+        boxShadow: '0 -8px 24px rgba(0, 0, 0, 0.12)',
+      }}
       defaultSize={{ height: defaultHeight }}
       handleStyles={{
         bottom: { display: 'none' },
