@@ -41,6 +41,8 @@ jdm-editor 已验证的 A1 目录 UI / A2 补全 / A4 deprecated 移植进 kerne
 **裁定（宿主 2026-09-29）：等与 weaveseal/verdict 协商租户过滤接口形态后启动——[ADR-010](../adr/010-function-catalog-tenant-filter.md) 已于 2026-09-29 双向收敛转 accepted（verdict 六项结论回填 + 本仓确认），HOLD 解除，可启动实施（A1/A2/A4 产品化 + Phase 2 catalogFilter 谓词；Phase 0 过滤为 verdict 侧独立推进）。**
 
 
+
+**治理窗落地（2026-09-30，appshell 1.18.0）**：ValidationPanel（集中验证列表 + 跳转，宿主注入校验通道——内核无内置图校验器，demo-server /v1/validate 为参考通道）+ ChangeLogPanel + changeLogEntryFromPersistEvent（设计时变更日志：auto-persist 事件流映射 + migrateGraph 报告/裁决条目由宿主追加；存储归宿主——GraphRecord.extensions 或自有存储）。graph-playground 演示接线（验证/变更日志按钮）。**治理窗（批次 4）完成，四轨道全部收口。**
 **可靠性卫生批（2026-09-30，appshell 1.17.0）**：validate 工作流 runner 钉 ubuntu-24.04（ubuntu-latest 2026-10-19 起迁 26，钉版保基线稳定；迁 26 需单独立重测体积预算）；demo-server typecheck + bun test 进 CI 门禁（lerna 口径此前不覆盖 apps）；appshell peer 下限 ^1.8.0 → ^1.10.0（1.12+ hook 接线依赖 kernel 1.9.0 setUdfCompletions、1.13+ 消费 meta——低配内核会运行期 undefined）。
 **实施落地（2026-09-29，本批随版）**：A1 FunctionCatalog 组件（appshell，弃用卡 + filter 面）、A2 setUdfCompletions 内核移植 + useCustomNodes hook 内自动接线（宿主零接线）、A4 弃用类型 + 目录卡/补全两面、Phase 2 catalogFilter（过滤面 = 组件面板 + 目录视图；补全/REPL 不跟随，与裁定一致）、专用函数注册表（tester+rank 去硬编码，[dedicated-node-registry-design.md](./dedicated-node-registry-design.md)）+ migrateGraph 版本迁移器。A3 REPL 面板 + demo-server 端点已落地（2026-09-29，[repl-panel-plan.md](./repl-panel-plan.md) §3.5）；origin 徽标已随 ADR-009 #1/#2 跟进落地（appshell 1.13.0）。**轨道 B 全部完成。**
 
