@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.14.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.13.0...@republicroad/seal-editor@1.14.0) (2026-09-30)
+
+**Note:** Version bump only for package @republicroad/seal-editor
+
 # [1.13.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.12.0...@republicroad/seal-editor@1.13.0) (2026-09-30)
 
 ### Bug Fixes
