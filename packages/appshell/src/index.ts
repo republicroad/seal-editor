@@ -18,6 +18,17 @@ export { SkinnedDecisionGraph, type SkinnedDecisionGraphProps } from './componen
 export { SyncStatusBadge, type SyncStatusBadgeProps } from './components/sync-status-badge';
 export { FunctionCatalog } from './components/function-catalog/function-catalog';
 export { FunctionRepl, type ReplExecuteResult, type ReplExecutor } from './components/function-repl/function-repl';
+export {
+  ValidationPanel,
+  type ValidationEntry,
+  type ValidationSeverity,
+} from './components/governance/validation-panel';
+export {
+  ChangeLogPanel,
+  changeLogEntryFromPersistEvent,
+  type ChangeLogEntry,
+  type ChangeLogKind,
+} from './components/governance/change-log-panel';
 export type { CatalogFilter, CatalogFilterRef } from './hooks/useCustomNodes';
 export {
   dedicatedFunctionRegistry,
