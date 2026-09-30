@@ -1,7 +1,7 @@
 # ADR-011：zen-udf 参数声明统一与 defineTool 声明体验——0.11.0 演进提案
 
 ## 状态
-accepted→implementing（2026-09-29 seal-editor 起草，同日 jdm-editor 评审 + 宿主裁定：**直接以理想态实施**——问题陈述事实修正 + 决策 1 两条修订 + 多语言 contract-first 修订 + 开放问题 1-5 表态，见「评审注记」「多语言修订」节；zen-udf 后续路线见「后续规划」节。基石交付物=**语言中立工具契约规范 + conformance fixtures**（多语言移植的执行模式基石，1.0 前试验窗口内定稿）。zen-udf 单一源与
+implemented（2026-09-29 zen-udf 0.11.0 发布：e4be74d1 理想态 tool()/pack()+conformance fixtures、e4edea68 R1 required 语义；contrib 示范迁移随 0.11.x；原）（2026-09-29 seal-editor 起草，同日 jdm-editor 评审 + 宿主裁定：**直接以理想态实施**——问题陈述事实修正 + 决策 1 两条修订 + 多语言 contract-first 修订 + 开放问题 1-5 表态，见「评审注记」「多语言修订」节；zen-udf 后续路线见「后续规划」节。基石交付物=**语言中立工具契约规范 + conformance fixtures**（多语言移植的执行模式基石，1.0 前试验窗口内定稿）。zen-udf 单一源与
 发布方在彼仓（ruling 12）；实施随 0.11.0 在彼仓进行，本仓侧联动项见实施清单 #3）
 
 ## 背景
