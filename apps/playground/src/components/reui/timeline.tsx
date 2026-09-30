@@ -1,6 +1,8 @@
-import { cn } from '#lib/utils';
+'use client';
+
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useRender } from '@base-ui/react/use-render';
+import { cn } from 'cn';
 import { createContext, useCallback, useContext, useState } from 'react';
 
 // Types

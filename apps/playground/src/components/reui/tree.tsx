@@ -1,7 +1,7 @@
-import { cn } from '#lib/utils';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useRender } from '@base-ui/react/use-render';
 import type { ItemInstance } from '@headless-tree/core';
+import { cn } from 'cn';
 import { ChevronDownIcon, MinusIcon, PlusIcon } from 'lucide-react';
 import { createContext, useContext } from 'react';
 

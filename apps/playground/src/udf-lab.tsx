@@ -1,3 +1,4 @@
+import { CodeBlock } from '#components/reui/code-block/code-block';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs';
 import {
   type CustomFunctionTool,
@@ -13,6 +14,7 @@ import {
 } from '@republicroad/seal-appshell';
 import React, { useCallback, useEffect, useState } from 'react';
 
+import { CatalogTree } from './shared/catalog-tree';
 import { InstanceShell } from './shared/instance-shell';
 import { RunMonitor } from './shared/run-monitor';
 import { TrustChainPanel } from './shared/trust-chain-panel';
@@ -102,6 +104,11 @@ const UdfLabBody: React.FC = () => {
     return body as ReplExecuteResult;
   }, []);
 
+  // 批次一（code-block）：REPL 结果 JSON 高亮（宿主注入渲染插槽）
+  const replResultRenderer = useCallback((result: unknown) => {
+    return <CodeBlock code={JSON.stringify(result, null, 2)} language='json' variant='ghost' maxLines={20} />;
+  }, []);
+
   const currentRevision = (graph as { revision?: string }).revision;
   const save = useCallback(async () => {
     try {
@@ -160,6 +167,10 @@ const UdfLabBody: React.FC = () => {
         <div className='pg-split-trust'>
           {/* key = 夹具 id：切换夹具时重挂载面板，默认输入随夹具走 */}
           <Tabs defaultValue='trust' className='pg-monitor-tabs'>
+            <div style={{ padding: '8px 12px 0', maxHeight: 200, overflow: 'auto' }}>
+              <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 4 }}>函数目录树（点击工具插入画布）</div>
+              <CatalogTree schema={schema ?? []} onPick={(tool) => insertTool(tool)} />
+            </div>
             <div style={{ padding: '8px 12px 0' }}>
               <TabsList>
                 <TabsTrigger value='trust'>Trust Chain</TabsTrigger>
@@ -174,7 +185,12 @@ const UdfLabBody: React.FC = () => {
               <RunMonitor key={activeFixture} model={graph} defaultInput={currentFixture?.inputText ?? '{}'} />
             </TabsContent>
             <TabsContent value='repl' className='pg-monitor-tabpane'>
-              <FunctionRepl schema={schema ?? []} execute={replExecute} initialToolName={replToolName} />
+              <FunctionRepl
+                schema={schema ?? []}
+                execute={replExecute}
+                initialToolName={replToolName}
+                renderResult={replResultRenderer}
+              />
             </TabsContent>
           </Tabs>
         </div>

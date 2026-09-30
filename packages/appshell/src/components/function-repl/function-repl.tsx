@@ -15,6 +15,9 @@ export type ReplExecuteResult = {
 /** 宿主注入的执行通道（组件不绑 demo-server URL——无状态原则同 FunctionCatalog） */
 export type ReplExecutor = (name: string, args: unknown[]) => Promise<ReplExecuteResult>;
 
+/** 结果渲染插槽：宿主可注入自定义高亮渲染（如 playground 的 code-block）；缺省 = JSON pre */
+export type ReplResultRenderer = (result: unknown) => React.ReactNode;
+
 /** 冷启动标注阈值：µs 计——首调含 TSFN/wasm 冷启动（UDF Lab 实测 50ms 级） */
 const COLD_START_MICROS = 10_000;
 
@@ -48,7 +51,9 @@ export const FunctionRepl: React.FC<{
   execute: ReplExecutor;
   initialToolName?: string;
   onBack?: () => void;
-}> = ({ schema, execute, initialToolName, onBack }) => {
+  /** 结果渲染插槽（缺省 JSON pre）；宿主可注入自定义高亮渲染 */
+  renderResult?: ReplResultRenderer;
+}> = ({ schema, execute, initialToolName, onBack, renderResult }) => {
   const tools = useMemo(() => schema.flatMap((ns) => ns.tools ?? []), [schema]);
   const [toolName, setToolName] = useState<string>(initialToolName ?? tools[0]?.name ?? '');
   const tool = tools.find((t) => t.name === toolName);
@@ -186,12 +191,18 @@ export const FunctionRepl: React.FC<{
               kwargs: <code>{JSON.stringify(outcome.kwargs)}</code>
             </div>
           )}
-          <pre
-            data-testid='repl-result'
-            className='max-h-48 overflow-auto whitespace-pre-wrap break-all rounded bg-[var(--muted)] p-2 font-mono text-[11px]'
-          >
-            {JSON.stringify(outcome.result, null, 2)}
-          </pre>
+          {renderResult ? (
+            <div data-testid='repl-result' className='max-h-48 overflow-auto rounded bg-[var(--muted)] p-2'>
+              {renderResult(outcome.result)}
+            </div>
+          ) : (
+            <pre
+              data-testid='repl-result'
+              className='max-h-48 overflow-auto whitespace-pre-wrap break-all rounded bg-[var(--muted)] p-2 font-mono text-[11px]'
+            >
+              {JSON.stringify(outcome.result, null, 2)}
+            </pre>
+          )}
         </div>
       )}
     </div>

@@ -1,5 +1,14 @@
 import React, { useCallback, useMemo, useState } from 'react';
 
+import {
+  Timeline,
+  TimelineContent,
+  TimelineHeader,
+  TimelineIndicator,
+  TimelineItem,
+  TimelineTitle,
+} from '../components/reui/timeline';
+
 /**
  * Trust Chain 面板：执行（含审计事件）→ 确定性回放 → 影子对比，
  * 把"声明→强制→证据→重演"信任链变成可嵌入的界面段。
@@ -245,6 +254,31 @@ export const TrustChainPanel: React.FC<{ model: unknown; defaultInput?: string }
                   审计事件 · decisionId <code>{audit.decisionId?.slice(0, 18)}</code> · inputHash{' '}
                   <code>{audit.inputHash?.slice(0, 16)}…</code> · {audit.processingTime}
                 </div>
+                {/* 批次一（reui timeline 首次入链）：审计 observed 行时间线 */}
+                {(audit?.observed ?? []).length > 0 && (
+                  <Timeline defaultValue={(audit.observed ?? []).length}>
+                    {(audit.observed ?? []).map((o, i) => (
+                      <TimelineItem key={i} step={i + 1}>
+                        <TimelineHeader>
+                          <TimelineIndicator />
+                          <TimelineTitle style={{ fontSize: 12 }}>
+                            {o.name}
+                            <span style={{ opacity: 0.7, marginLeft: 6, fontWeight: 400 }}>
+                              {o.semantics ?? 'query'} · {o.micros}µs
+                            </span>
+                          </TimelineTitle>
+                        </TimelineHeader>
+                        <TimelineContent style={{ fontSize: 11 }}>
+                          {o.code ? (
+                            <span style={{ color: '#f85149' }}>code: {o.code}</span>
+                          ) : (
+                            <code style={{ opacity: 0.8 }}>{JSON.stringify(o.outcome)?.slice(0, 160)}</code>
+                          )}
+                        </TimelineContent>
+                      </TimelineItem>
+                    ))}
+                  </Timeline>
+                )}
                 <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ textAlign: 'left', opacity: 0.7 }}>
