@@ -6,7 +6,7 @@ import path from 'node:path';
 /**
  * zen-udf 消费端冒烟（裁决 12：zen-udf 源在 jdm-editor，seal-editor 为 npm 消费者）：
  * 直接安装 npm 已发布的 @republicroad/zen-udf，验证「消费方拿到的 artifact」——
- * UdfPack 注册 → customNode 执行 → traceData 全链路。
+ * tool()/pack() 理想态声明（0.11.0 CONTRACT 参考实现）→ registry.register → customNode 执行 → traceData 全链路。
  *
  * Usage: node scripts/probes/zen-udf-npm-smoke.mjs   （依赖 bun + npm 网络可达）
  */
@@ -17,7 +17,7 @@ writeFileSync(
   JSON.stringify({ name: 'zen-udf-smoke', private: true, type: 'module' }, null, 2),
 );
 
-const install = spawnSync('bun', ['add', '@republicroad/zen-udf@^0.6.0'], {
+const install = spawnSync('bun', ['add', '@republicroad/zen-udf@^0.11.0', '@sinclair/typebox@0.34.38'], {
   cwd: workdir,
   encoding: 'utf8',
   shell: process.platform === 'win32',
@@ -29,23 +29,30 @@ if (install.status !== 0) {
 }
 
 const consumerScript = `
-import { DecisionRuntime, createUdfRegistry, runWithExecContext } from '@republicroad/zen-udf';
+import { DecisionRuntime, createUdfRegistry, pack, runWithExecContext, toConformance, tool } from '@republicroad/zen-udf';
+import { Type } from '@sinclair/typebox';
 
-const registry = createUdfRegistry({
-  packs: [
-    {
+// 理想态声明（CONTRACT.md 参考实现）：tool() schema-as-type + pack() 可序列化契约层
+const smokePack = pack({
+  id: 'smoke',
+  tools: [
+    tool({
       namespace: 'smoke',
-      tools: [
-        {
-          name: 'smoke_udf',
-          parametersSchema: { properties: { x: { type: 'integer' } }, type: 'object' },
-          returnsSchema: { type: 'object', properties: { doubled: { type: 'integer' } }, required: ['doubled'] },
-          fn: (kwargs) => ({ doubled: (kwargs?.x ?? 0) * 2 }),
-        },
-      ],
-    },
+      name: 'smoke_udf',
+      description: 'doubles the input',
+      input: Type.Object({ x: Type.Integer() }),
+      output: Type.Object({ doubled: Type.Integer() }),
+      // conformance 即声明：example 生成 validate/bind/call 三断言
+      examples: [{ input: { x: 21 }, output: { doubled: 42 } }],
+      run: async (kwargs) => ({ doubled: (kwargs?.x ?? 0) * 2 }),
+    }),
   ],
 });
+
+const registry = createUdfRegistry({});
+registry.register(smokePack);
+const fixtures = toConformance(smokePack);
+if (!fixtures) throw new Error('empty conformance fixtures');
 
 const runtime = new DecisionRuntime({ registry });
 const graph = {
