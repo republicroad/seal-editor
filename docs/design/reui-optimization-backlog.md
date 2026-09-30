@@ -27,7 +27,7 @@
 | 2 | ~~fields-reorder-dialog~~ | ✅ 2026-09-26 完成（sortable vendored，176→88 行） | — | — | — |
 | ~~3~~ | ~~function 调试器搜索过滤 + hover 复制~~ | ✅ 2026-09-29 随 1.6.0 落地（W1-B：日志过滤 + hover 复制）；日志级别类型化需 WASM 侧拦截，另行评估 | 已完成 |
 | 4 | **specifications renderSettings**（1,752 行） | 已用 kernel ui 但密度/层级/间距未规范 | [frame](https://reui.io/components/frame?ref=mcp) + 密度规范统一——属"规范化"非"换件" | ~1 天 | 触及 spec 面板时顺做 |
-| 5 | **UDF Lab**（主线新功能，非存量） | 已建成未走查 | **tree**（自定义节点目录）+ **timeline**（审计/回放）+ data-grid 原生采用——tree/timeline 的首次入链场景 | 随主线 | A1 验证后 |
+| ~~5~~ | ✅ 2026-09-30 随 1.20.0：**tree**（目录树 catalog-tree.tsx，点工具即插入）+ **timeline**（TrustChain 审计时间线）+ **code-block**（FunctionRepl renderResult JSON 高亮）三组件首次入链完成 | 已完成 |
 
 ## dt 换装解锁的增强候选（新功能，非优化）
 
