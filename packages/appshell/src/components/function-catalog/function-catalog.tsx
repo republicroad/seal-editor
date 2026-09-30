@@ -2,6 +2,8 @@ import React, { useMemo, useState } from 'react';
 
 import type { CatalogFilter } from '../../hooks/useCustomNodes';
 import { type CustomFunctionTool, type CustomNodeNamespace } from '../../lib/custom-node-types';
+import PlayCircleIcon from '../../reui/icons/animated/outline/play-circle';
+import PlusCircleIcon from '../../reui/icons/animated/outline/plus-circle';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -115,10 +117,12 @@ export const FunctionCatalog: React.FC<{
                       </div>
                       <div className='flex shrink-0 gap-1'>
                         <Button variant='outline' size='sm' onClick={() => onInsert(tool)}>
+                          <PlusCircleIcon className='size-3.5' />
                           插入画布
                         </Button>
                         {onTry && (
                           <Button variant='ghost' size='sm' onClick={() => onTry(tool)}>
+                            <PlayCircleIcon className='size-3.5' />
                             试运行
                           </Button>
                         )}

@@ -1,5 +1,6 @@
 import React from 'react';
 
+import LinkIcon from '../../reui/icons/animated/outline/link';
 import { Button } from '../ui/button';
 
 export type ValidationSeverity = 'error' | 'warning' | 'info';
@@ -71,6 +72,7 @@ export const ValidationPanel: React.FC<{
           </div>
           {onJump && entry.nodeId && (
             <Button variant='outline' size='sm' className='shrink-0' onClick={() => onJump(entry.nodeId!)}>
+              <LinkIcon className='size-3.5' />
               跳转
             </Button>
           )}
