@@ -190,6 +190,64 @@ zen-udf 移植各语言时，「统一的工具声明与执行模式约束规范
 | ADR-009 尾项 | #4 verdict 升级消费 / #5 行业包骨架 | verdict 侧会话 |
 
 
+## 终稿补录（2026-09-30，jdm-editor 仓裁定与实施全量回写）
+
+### S012 类型复用修复
+
+register() 入参复用 UdfTool 类型（消除手写内联漂移根因），UdfTool.run ctx 改可选。
+editor 仓 S012 状态→implemented（91fab28）。commit 7d678e89，zen-udf 0.11.2。
+
+### CONTRACT.md 基石
+
+CONTRACT.md v0.1.0-draft 落地（2704d6c3，随 0.11.0 发布）——语言中立工具契约规范：
+声明契约（§3 身份/语义/参数/返回值/examples 即 conformance）、pack 组织与注册（§4）、
+执行语义与错误码表（§5）、策略边界（§6 端口注入不进契约）、conformance 协议（§7）、
+版本演进（§8）。随 npm 包分发，多语言移植版跑同一份 fixtures 即得 conformance。
+
+### 集中管理 vs per-tenant 覆写——分层设计定稿
+
+宿主拍板（2026-09-30）：闭包捕获（域工厂接收基础设施实现，构造时一次捕获）+
+集中管理（组合根 createUdfRuntime 一次注入全部端口）+ per-tenant 覆写由端口接口
+自带的 tenantId 参数处理（实现方内部按租户数据决策，不注入不同实现）。
+
+关键区分：**基础设施实现**（EgressGuard 类）是全局唯一的组合根注入项；**per-tenant
+决策**（哪些 URL 允许）是端口实现内部按 tenantId 数据做的判定。类比：一个数据库
+连接池服务所有租户（查询带 tenantId），不是一个租户一个池。
+
+### createUdfRuntime 重命名
+
+createUdfRegistry → **createUdfRuntime**（Runtime 强调执行层，区别于 zen-engine
+规则求值层；Registry 暗示查找表但不承载执行策略）。旧名 UdfRegistry 保留为内部
+实现细节。缩写一律 Udf（非 UDF）——对齐代码库既有约定与 Google TS Style Guide。
+
+### 端口层落地
+
+ports.ts：策略层端口接口（EgressGuard/SecretResolver/RateStore + UdfPorts 聚合）；
+runtime-ports.ts：组合根设值 + getPorts() 读取（handlers 按需读取端口）。
+createUdfRegistry gains ports parameter（CONTRACT §6 端口注入的构造器立法化）。
+commit 3fa90635。
+
+### loadReferenceInto 包 id 硬编码 bug 修复
+
+Wave 1 重写 loadReferenceInto 时，新风格循环将所有 referencePacks 以硬编码
+id 'ab-bucket' 注册——四包工具相互覆盖、pack meta 串包。ADR-009 隔离实例的
+crypto meta 断言失败暴露。修正为 ReferencePack{id,tools} 迭代（3a2f0c31）。
+**教训**：重写 loader 时必须逐包验证 isolated 实例的目录完整性与 meta 独立性。
+
+### contrib 渐进迁移进展
+
+9/13 域已迁移理想态（ab-bucket/crypto/custom-list-query/debugui/datetime/geo/
+ip-location/roster/validate-cn）。语义修正：debugui current_date 依赖处理时间，
+semantics 由缺省 query 修正为 observe（对齐 Y3 三元定义）。剩余 4 域
+（notify/rate-window/http + debug 暂缓）为端口注入或遗留语义域。
+
+### 时间函数盘点
+
+docs/design/zen-expression-time-functions.md（61a58d4b）：业务常用时间表达式
+三态标注（✅43/❌22/⚠️1）+ 上游 issue 提案包 P1-P3 + 探针脚本
+scripts-time-probe.mjs（69 项实测）。P1 = now()/today() + isBetween。
+
+
 ## 后果
 
 - 正面：双形态空转从机制上消失；贡献域作者 DX 对齐 MCP SDK 业界标准；参数
