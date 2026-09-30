@@ -247,6 +247,24 @@ docs/design/zen-expression-time-functions.md（61a58d4b）：业务常用时间�
 三态标注（✅43/❌22/⚠️1）+ 上游 issue 提案包 P1-P3 + 探针脚本
 scripts-time-probe.mjs（69 项实测）。P1 = now()/today() + isBetween。
 
+### 消费方阻塞注记（2026-09-30，verdict 升级实测）
+
+**0.12.0/0.12.1 存在一处随包透传的 tsc 类型错误，verdict 被阻塞在 ^0.11.2**
+（CI 跑 typecheck，源码直发包的错误对消费方是一等公民）：
+
+- 位置：`src/contrib/notify.ts:198`（jdm-editor 主干 eddf9224，Wave 3 同源）——
+  `export const { fn: notifyWebhook } = notifyWebhookTool;` 对理想态 `UdfTool`
+  解构 `.fn`，而该类型的公开面已不再暴露 `fn`（运行时存在、类型面缺失）；
+- 修法建议（一行）：解构处走显式类型收窄（`as { fn: ... }`）或在 `UdfTool`
+  公开类型上恢复只读 `fn` 暴露；顺带扫一遍 0.12.0 迁移的 rate-window/http 两域
+  是否有同型解构；
+- 随包同源复查：ADR-009 包面缺口（`UdfPackMeta` 类型与
+  `reservedNamespaceViolation`/`RESERVED_NAMESPACE_PREFIXES` 未从包根导出）
+  在 0.12.1 依旧未收敛——verdict 的 registerPack 仍走本地镜像 + 手抄保留前缀表
+  （且额外禁用 `default`），两件可随同一发版收口；
+- verdict 消费口径：apps/api 锚定 `^0.11.2`（tsc 干净；0.11 归一化核心已含，
+  ext/参考域位置调用实测通过），上游发布修复版后重锚 0.12.x。
+
 
 ## 后果
 
