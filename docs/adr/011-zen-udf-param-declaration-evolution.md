@@ -93,7 +93,7 @@ const rosterTool = defineTool({
 | --- | --- | --- | --- |
 | 1 | 注册期归一化（parametersSchema 唯一规范表示 + 读点收敛 + 回归语料补双形态等价性） | zen-udf（jdm-editor） | 0.11.0 候选 |
 | 2 | defineTool + P builder + 泛型推导（含单测：推导正确性/注册撞名/meta 协同） | zen-udf（jdm-editor） | 随 1 |
-| 3 | 本仓 A3 端点回退 registry 直调（删 view-driven 特例） | seal-editor | 随 1 发版 |
+| 3 | 本仓 A3 端点回退 registry 直调（删 view-driven 特例） | seal-editor | ✅ 已实施（2026-09-30，demo-server zen-udf ^0.11.0——R1 缺参语义实测生效，bun 16/16） |
 | 4 | defineContrib 迁移示范（contrib 域改写为 defineTool，作文档范例） | zen-udf（jdm-editor） | 随 2 |
 
 ## 开放问题（逐条协商）

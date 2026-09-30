@@ -253,36 +253,27 @@ export const createApp = () => {
   // positional 校验与默认值绑定后直调 registry。无状态、无图、无持久化；
   // per-tool 超时由 registry 自身兜底（与图内执行同一语义）；micros 含
   // TSFN/wasm 冷启动（面板标注，不做预热）。
-  // 校验/绑定取自目录视图（与面板同源）而非 registry 扁平 schema——roster 等
-  // 经完整 parametersSchema 注册的工具无扁平 parameters，registry 侧校验为空转
-  // （jdm 原型未暴露：其演示工具 legacy_hash 是扁平注册）。
+  // 校验/绑定直调 registry——zen-udf 0.11.0（ADR-011 R1）起 validatePositionalArgs
+  // 携带 required 语义、缺必填位显式报错，view-driven 特例按实施清单 #3 回退；
+  // 404 仍走目录视图查名（与面板同源，先于调用给出明确判定）。
   app.post('/v1/functions/:name/execute', async (c) => {
     const name = c.req.param('name');
     const body = await c.req.json().catch(() => ({}) as { args?: unknown[] });
     const args = Array.isArray(body?.args) ? (body!.args as unknown[]) : [];
 
-    const tool = runtime.registry
+    const known = runtime.registry
       .udfFunctionSchemaNamespaces()
-      .flatMap((ns) => ns.tools ?? [])
-      .find((t) => t.name === name);
-    if (!tool) {
+      .some((ns) => (ns.tools ?? []).some((t) => t.name === name));
+    if (!known) {
       return c.json({ error: `unknown function '${name}'` }, 404);
     }
 
-    const paramNames = Object.keys(tool.parameters?.properties ?? {});
-    const required = new Set(tool.parameters?.required ?? []);
-    const issues = paramNames
-      .map((p, i) => (required.has(p) && i >= args.length ? `${p} is required (position ${i})` : undefined))
-      .filter((v): v is string => v !== undefined);
+    const issues = runtime.registry.validatePositionalArgs(name, args);
     if (issues.length > 0) {
       return c.json({ error: 'invalid args', details: issues }, 400);
     }
 
-    const kwargs: Record<string, unknown> = {};
-    paramNames.forEach((p, i) => {
-      const fallback = (tool.parameters?.properties?.[p] as { default?: unknown })?.default;
-      kwargs[p] = args[i] ?? fallback;
-    });
+    const kwargs = runtime.registry.funcBindParams(name, args);
 
     const started = performance.now();
     try {

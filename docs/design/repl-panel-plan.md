@@ -79,9 +79,9 @@ body: { args?: unknown[] }          // 位置参数（v1）；具名 kwargs 预�
   **丢弃 required 数组** + 缺位静默填空串的 R1 缺陷（ADR-011 评审注记 #2/#5
   实锤复现）；② hit:false 是 ExecContext 缺失（下条已修）。另评审补充第四条
   缺陷：ContribToolDef（defineTool+registerTools 路径）**无扁平字段**，扁平声明
-  被静默丢弃——三种空转的入口各不相同。view-driven 校验/绑定在
-  zen-udf 0.11.0（R1 required 语义 + 缺参失败语义）落地后可回退 registry 直调
-  （ADR-011 实施清单 #3，本仓联动项）；
+  被静默丢弃——三种空转的入口各不相同。view-driven 校验/绑定已回退 registry 直调（2026-09-30，
+  zen-udf 0.11.0 R1 required 语义 + 缺参失败语义落地；ADR-011 实施清单 #3 划账）；
+  404 判定保留目录视图查名（与面板同源，先于调用给出明确判定）；
 - **ExecContext 包装必须**：roster 等域函数按 ExecContext.tenantId 取数据面，
   callCtx 的 tenantId 不够——call 需包 runWithExecContext（与其他路由同款），
   否则名单查询恒 miss（首跑实测暴露）。

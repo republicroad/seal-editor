@@ -136,8 +136,8 @@ importers:
   apps/demo-server:
     dependencies:
       '@republicroad/zen-udf':
-        specifier: ^0.10.0
-        version: 0.10.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(@opentelemetry/api@1.9.1)
+        specifier: ^0.11.0
+        version: 0.11.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(@opentelemetry/api@1.9.1)
       hono:
         specifier: ^4.6.0
         version: 4.13.9
@@ -2233,8 +2233,8 @@ packages:
       react: '>= 18'
       react-dom: '>= 18'
 
-  '@republicroad/zen-udf@0.10.0':
-    resolution: {integrity: sha512-gcMOqOdxTgRt2MLtvH5hnABPjsK3mH17QnbXPkCYBsElcdAVede5BE2ZoyNfT56hISApFWb+QsC4tkEsqKGx7g==}
+  '@republicroad/zen-udf@0.11.0':
+    resolution: {integrity: sha512-CFw9iZIX32OKOqI1sMcVTgRKHddJBu4oNpKl9ZGDD0Irh35xC7v31NLuprooD7gtslyx1zmrnWoZUC/7gilqgA==}
     peerDependencies:
       '@opentelemetry/api': ^1.0.0
     peerDependenciesMeta:
@@ -2579,6 +2579,9 @@ packages:
 
   '@sinclair/typebox@0.27.12':
     resolution: {integrity: sha512-hhyNJ+nbR6ZR7pToHvllEFun9TL0sbL+tk/ON75lo+Xas054uez98qRbsuNt7MBCyZKK4+8Yli/OAGZhmfBZ/g==}
+
+  '@sinclair/typebox@0.34.38':
+    resolution: {integrity: sha512-HpkxMmc2XmZKhvaKIZZThlHmx1L0I/V1hWK1NubtlFnr6ZqdiOpV72TKudZUNQjZNsyDBay72qFEhEvb+bcwcA==}
 
   '@sinclair/typebox@0.34.52':
     resolution: {integrity: sha512-XiMQh7qqVlxZzcVD+kkGMNGMzcTrDMLWI7S4x7z1MkCkbDPrekpZXEUK0eZqZFMuHQg2a2DZOcDIh9o5v3Gonw==}
@@ -10477,9 +10480,10 @@ snapshots:
       - vest
       - yup
 
-  '@republicroad/zen-udf@0.10.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(@opentelemetry/api@1.9.1)':
+  '@republicroad/zen-udf@0.11.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(@opentelemetry/api@1.9.1)':
     dependencies:
       '@gorules/zen-engine': 2.1.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
+      '@sinclair/typebox': 0.34.38
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
     transitivePeerDependencies:
@@ -10819,6 +10823,8 @@ snapshots:
       '@sigstore/protobuf-specs': 0.3.3
 
   '@sinclair/typebox@0.27.12': {}
+
+  '@sinclair/typebox@0.34.38': {}
 
   '@sinclair/typebox@0.34.52': {}
 
