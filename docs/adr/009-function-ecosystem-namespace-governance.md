@@ -89,7 +89,7 @@ interface UdfPackMeta {
 | 2 | 文件协议信封/动态端点透传 meta | appshell + 宿主 | ✅ 已实施（jdm-editor 仓 106b8609，appshell 0.14.0——parse 守卫为形状检查天然透传；containerPlan→planToJdmNode 链路） |
 | 3 | 目录 origin 徽标 + 租户过滤挂点 | appshell | ✅ 已实施（同上——kernel GraphComponents REF/EXT/IND 徽标 + tenantFilter 挂点（治理线实现语义）；UDF Lab 实测 14/15 命名空间带标） |
 | 4 | verdict 升级（seal-editor 1.8.0 + zen-udf 0.8.0） | verdict | 8.2 收官后 |
-| 5 | `@verdict/pack-*` 行业包骨架（模板 + packChecks + 导出 CLI 纳管） | verdict | 首个真实行业包出现时 |
+| 5 | `@verdict/pack-*` 行业包骨架（模板 + packChecks + 导出 CLI 纳管） | verdict | ✅ 骨架已落地（2026-09-30，verdict 仓 6f97af1——registerPack 校验器（点分强制 + 保留前缀含 `default` 拒绝）+ `_template/` 三步工作流 + `packs/index.ts` 唯一纳管清单（运行时 `src/index.ts` 与导出 CLI 双接入）+ packChecks/目录/meta 透传守卫测试）；首个真实行业包出现时在清单加一行 import 即生效 |
 
 ## 实施加强注记（2026-09-29 业界范式对照，jdm-editor 会话补充）
 
@@ -103,6 +103,17 @@ interface UdfPackMeta {
    （origin/version/license 即最终集），不收描述类内容（description/title 各有
    归属）。Grafana 插件 manifest 的教训：元数据字段一旦发布即成为兼容性
    surface，膨胀后的迁移成本极高——宁可后加，不可先滥。
+
+## 包面缺口注记（2026-09-30，verdict 骨架实施时发现）
+
+`UdfPackMeta`（register.ts 定义）与 `reservedNamespaceViolation` /
+`RESERVED_NAMESPACE_PREFIXES`（ADR-009 立法的权威实现）均**未从 zen-udf 包根
+导出**（0.10.0）。宿主实现 registerPack 时只能本地镜像类型 + 手抄保留前缀表
+（verdict 仓 `apps/api/src/udf/packs/register.ts` 即此形态，且额外禁用
+`default`——schema 无 namespace 时的回退组，行业包不应占用）。建议下次发版
+补三者的根导出，宿主侧收敛到单一事实源；`default` 是否入官方保留清单一并裁定
+（verdict 侧已按「禁用」执行，上游若采纳即为立法对齐，若否决则 verdict 收窄回
+四前缀）。
 
 ## 备选方案
 
