@@ -1,9 +1,8 @@
 # ADR-011：zen-udf 参数声明统一与 defineTool 声明体验——0.11.0 演进提案
 
 ## 状态
-proposed（2026-09-29 seal-editor 起草；**同日 jdm-editor 评审完成——决策 1/2 修改后接受**：问题陈述事实修正 + 决策 1 两条修订 + 多语言 contract-first 修订 + 开放问题 1-5 表态，见「评审注记」「多语言修订」节；zen-udf 后续路线见「后续规划」节。zen-udf 单一源与
-发布方在彼仓（ruling 12），本 ADR 为移交协商稿。协商方式沿 ADR-010 惯例：逐节标注
-接受/否决/修改，并更新本状态行）
+accepted→implementing（2026-09-29 seal-editor 起草，同日 jdm-editor 评审 + 宿主裁定：**直接以理想态实施**——问题陈述事实修正 + 决策 1 两条修订 + 多语言 contract-first 修订 + 开放问题 1-5 表态，见「评审注记」「多语言修订」节；zen-udf 后续路线见「后续规划」节。基石交付物=**语言中立工具契约规范 + conformance fixtures**（多语言移植的执行模式基石，1.0 前试验窗口内定稿）。zen-udf 单一源与
+发布方在彼仓（ruling 12）；实施随 0.11.0 在彼仓进行，本仓侧联动项见实施清单 #3）
 
 ## 背景
 
@@ -168,6 +167,12 @@ required 语义与缺参失败语义的明确条款（见修订 R1）。**
    fixtures 形式入 zen-udf 包（与 expression-regression 语料同思路、同目录层级），
    TS 单测消费它，语言移植版跑同一份即得 conformance。TS 单测不随移植走，
    fixtures 会。**这是开放问题 5 的最终答案**。
+
+**宿主裁定（2026-09-29）**：本节升格为 ADR 主旨——zen-engine 未来在多后端语言执行，
+zen-udf 移植各语言时，「统一的工具声明与执行模式约束规范 + conformance fixtures」是
+基石；1.0 前无生态负担，直接按理想模式设计（TypeBox 结案开放问题 1：schema-as-type
+不重造）。交付顺序：①契约规范（语言中立）→ ②conformance fixtures → ③TS 参考实现
+（tool()/pack()）→ ④contrib 示范迁移。
 
 配套五条最佳实践：契约是产品 DX 是适配；规范表示语义自足（零重推导）；一致性
 用例语言中立（fixtures 即规范）；编译期机制永不进运行时表示（type-brand symbol
