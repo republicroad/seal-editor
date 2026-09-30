@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.19.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.18.0...@republicroad/seal-appshell@1.19.0) (2026-09-30)
+
+### Bug Fixes
+
+- **appshell:** commit the missing vendored link icon — the A3b-staging sweep dropped it ([79db556](https://github.com/republicroad/seal-editor/commit/79db556d754ea09820b7e297fc5a0b94df25925f))
+
+### Features
+
+- **appshell:** reui Motion Icons on catalog + validation jump buttons ([00ff89e](https://github.com/republicroad/seal-editor/commit/00ff89e7a79456f3c8607c619d0ea1cc8efb4f7f))
+
 # [1.18.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.17.0...@republicroad/seal-appshell@1.18.0) (2026-09-30)
 
 ### Features

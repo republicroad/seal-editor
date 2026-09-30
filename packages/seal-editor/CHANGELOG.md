@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.12.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.11.0...@republicroad/seal-editor@1.12.0) (2026-09-30)
+
+### Features
+
+- **graph:** simulator panel becomes a floating bottom drawer — rises over the canvas ([51e76ab](https://github.com/republicroad/seal-editor/commit/51e76ab88e4389e51becfdfcf476aa2cd4d83f04))
+
 # [1.11.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.10.0...@republicroad/seal-editor@1.11.0) (2026-09-29)
 
 ### Bug Fixes
