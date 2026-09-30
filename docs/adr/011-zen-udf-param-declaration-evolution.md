@@ -111,7 +111,7 @@ const rosterTool = defineTool({
 
 ## 评审注记（jdm-editor 仓，2026-09-29——zen-udf 唯一源仓的协商裁定）
 
-### 事实核查（三条断言，两条修正）
+### 事实核查（五条断言/发现，三条修正两条补充）
 
 1. **「读点只读扁平形态」——属实**（validatePositionalArgs 读 schema.parameters）；
 2. **「parametersSchema 注册的工具校验恒通过、绑定恒空」——表述不准，实证修正**
@@ -122,7 +122,16 @@ const rosterTool = defineTool({
      以默认值补齐）、funcBindParams 对缺位静默填**空字符串**、且派生函数**丢弃
      required 数组**——schema 工具的必填约束在规范表示里就不存在。A3 端点以
      kwargs 对象风格调用经位置换算得空串参数，即「绑定恒空」的观察真相；
-3. **「视图输出不变」——成立**（视图本就优先输出 parametersSchema）。
+3. **「视图输出不变」——成立**（视图本就优先输出 parametersSchema）；
+4. **补充实测（2026-09-29，注册示例走查发现第四条缺陷）**：**ContribToolDef 没有
+   `parameters` 扁平字段**——经 defineTool + registerTools 注册的工具，扁平声明被
+   **静默丢弃**（validate 恒 `[]`、bind 恒 `{}`），只有 `parametersSchema` 透传
+   （扁平形态仅 registerUdf 路径支持）。这是「双形态」的第三种空转：入口不一致。
+   **对 seal A3 排障的直接价值**：本仓 demo 观察到的「绑定恒空」很可能就是
+   defineTool+扁平 的组合（而非 parametersSchema 注册路径）；
+5. **R1 缺陷的实锤复现**：`required: ['income']` 的工具 `validatePositionalArgs(name, [])`
+   返回 `[]`（应报 income required）——即上述「越界位跳过」的实测例，R1 修复的
+   验收断言直接以此为准。
 
 **结论：归一化方向正确且必要，但仅「读点收敛」修不掉上述缺陷——§1 必须补
 required 语义与缺参失败语义的明确条款（见修订 R1）。**
