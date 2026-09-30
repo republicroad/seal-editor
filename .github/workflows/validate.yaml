@@ -12,7 +12,9 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # ubuntu-latest 自 2026-10-19 起迁移 Ubuntu 26——显式钉 24.04 保持体积/行为
+    # 基线稳定；迁移 26 单独立校准任务处理（体积预算需重测）。
+    runs-on: ubuntu-24.04
     name: Validate
     steps:
       - uses: actions/checkout@v5
@@ -59,6 +61,12 @@ jobs:
 
       - name: Type check
         run: pnpm typecheck
+
+      - name: Demo-server typecheck（bun types 口径，res.json() 返回 unknown）
+        run: pnpm --filter @republicroad/demo-server typecheck
+
+      - name: Demo-server tests（bun test：REPL 端点契约 + graph API）
+        run: pnpm --filter @republicroad/demo-server test
 
       - name: Appshell typecheck
         run: pnpm --filter @republicroad/seal-appshell typecheck
