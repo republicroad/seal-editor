@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.13.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.12.0...@republicroad/seal-editor@1.13.0) (2026-09-30)
+
+### Bug Fixes
+
+- **graph:** simulator drawer positioning via inline style — re-resizable CSS was overriding the Tailwind absolute ([423fbea](https://github.com/republicroad/seal-editor/commit/423fbeae57be7cdfbdc7aff4decae4c5e4e9c96d))
+
 # [1.12.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.11.0...@republicroad/seal-editor@1.12.0) (2026-09-30)
 
 ### Features
