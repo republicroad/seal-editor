@@ -1,12 +1,17 @@
 import {
   type AutoPersistController,
   type AutoPersistState,
+  type ChangeLogEntry,
+  ChangeLogPanel,
   type GraphPersistenceAdapter,
   type SkinDefinition,
   SkinnedDecisionGraph,
   SyncStatusBadge,
   ThemeContextProvider,
+  type ValidationEntry,
+  ValidationPanel,
   VersionHistoryPanel,
+  changeLogEntryFromPersistEvent,
   createExecuteSimulate,
   createGraphsHttpAdapter,
   createIndexedDbAdapter,
@@ -14,7 +19,7 @@ import {
   useTheme,
 } from '@republicroad/seal-appshell';
 import { type GraphDiff, computeGraphDiff } from '@republicroad/seal-editor';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { GRAPH_ID } from './shared/fixtures';
 import { ThemeToggle } from './shared/instance-shell';
@@ -73,6 +78,43 @@ export const GraphPlayground: React.FC = () => {
   const [syncState, setSyncState] = useState<AutoPersistState>({ status: 'idle' });
   const autoPersistControllerRef = useRef<AutoPersistController | null>(null);
   const autoPersistEnabled = STORAGE_MODE === 'http';
+  // 治理窗演示：集中验证面板 + 设计时变更日志
+  const [govPanel, setGovPanel] = useState<'none' | 'validation' | 'changelog'>('none');
+  const [validationEntries, setValidationEntries] = useState<ValidationEntry[]>([]);
+  const [validationRunning, setValidationRunning] = useState(false);
+  const [changeLog, setChangeLog] = useState<ChangeLogEntry[]>([]);
+  const graphRef = useRef<any>(null);
+  const jumpToNode = useCallback((nodeId: string) => {
+    // kernel goToNode：切图页 + fitView 定位节点
+    graphRef.current?.goToNode?.(nodeId);
+  }, []);
+
+  // 验证通道：demo-server /v1/validate（模型级，zen 引擎权威）——面板打开时随
+  // 图变化防抖刷新；zen 校验为模型级单错误，映射为单条 error 条目。
+  useEffect(() => {
+    if (govPanel !== 'validation') return;
+    const t = setTimeout(() => {
+      setValidationRunning(true);
+      fetch(`${DEMO_SERVER}/v1/validate`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ nodes: graph?.nodes ?? [], edges: graph?.edges ?? [] }),
+      })
+        .then(async (res) => {
+          if (res.ok) {
+            setValidationEntries([]);
+          } else {
+            const body = await res.json().catch(() => ({}) as any);
+            setValidationEntries([
+              { severity: 'error' as const, message: String(body.details ?? body.error ?? 'invalid model') },
+            ]);
+          }
+        })
+        .catch((e) => setValidationEntries([{ severity: 'error' as const, message: '校验通道不可达：' + String(e) }]))
+        .finally(() => setValidationRunning(false));
+    }, 800);
+    return () => clearTimeout(t);
+  }, [govPanel, graph]);
 
   const currentRevision = (graph as { revision?: string }).revision;
 
@@ -306,6 +348,20 @@ export const GraphPlayground: React.FC = () => {
               Save (IndexedDB)
             </button>
             <button onClick={() => void openHistory()}>Version history</button>
+            <button
+              onClick={() => setGovPanel((p) => (p === 'validation' ? 'none' : 'validation'))}
+              title='集中验证面板（demo-server /v1/validate）'
+            >
+              验证
+            </button>
+            {autoPersistEnabled && (
+              <button
+                onClick={() => setGovPanel((p) => (p === 'changelog' ? 'none' : 'changelog'))}
+                title='设计时变更日志（auto-persist 事件流）'
+              >
+                变更日志
+              </button>
+            )}
             <button onClick={() => void onServerExecute()} title='POST current graph to apps/demo-server :8787'>
               Server run
             </button>
@@ -328,6 +384,7 @@ export const GraphPlayground: React.FC = () => {
 
         <main className='pg-main'>
           <SkinnedDecisionGraph
+            ref={graphRef}
             value={graph}
             onChange={setGraph}
             diffBaseline={diffBase ? (diffBase.content as any) : undefined}
@@ -345,6 +402,8 @@ export const GraphPlayground: React.FC = () => {
                       autoPersistControllerRef.current = c;
                     },
                     onEvent: (event) => {
+                      const logEntry = changeLogEntryFromPersistEvent(event);
+                      if (logEntry) setChangeLog((l) => [...l, logEntry]);
                       if (event.type === 'saved') setStatus(`auto-saved ${event.revision}`);
                       if (event.type === 'conflict')
                         setStatus('CONFLICT — head moved; resolve via overwrite / version history');
@@ -354,6 +413,35 @@ export const GraphPlayground: React.FC = () => {
             }
           />
         </main>
+
+        {govPanel !== 'none' && (
+          <div
+            style={{
+              position: 'fixed',
+              right: 16,
+              top: 72,
+              width: 400,
+              maxHeight: '62vh',
+              overflow: 'auto',
+              zIndex: 60,
+              background: 'var(--card, #fff)',
+              border: '1px solid var(--border, #ddd)',
+              borderRadius: 8,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '4px 6px 0' }}>
+              <button onClick={() => setGovPanel('none')} aria-label='关闭治理面板'>
+                ✕
+              </button>
+            </div>
+            {govPanel === 'validation' ? (
+              <ValidationPanel entries={validationEntries} running={validationRunning} onJump={jumpToNode} />
+            ) : (
+              <ChangeLogPanel entries={changeLog} />
+            )}
+          </div>
+        )}
 
         <VersionHistoryPanel
           open={historyOpen}
