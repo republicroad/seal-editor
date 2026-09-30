@@ -25,7 +25,7 @@
 | --- | --- | --- | --- | --- | --- |
 | 1 | **graph 面板区**（5,605 行 / 14 文件，最大剩余面） | tab-request / tab-function / tab-json-schema / request-definitions / request-examples 为 primitives 堆叠（同一"列表+工具栏+空态"形态逐文件手写） | ~~tree 承载 request-definitions~~（侦察修正：它是可编辑定义编辑器，非只读树——tree 落点=UDF Lab）；request 面板空态已用共享 PanelEmpty 统一（52102f64） | ✅ 空态部分完成 | — |
 | 2 | ~~fields-reorder-dialog~~ | ✅ 2026-09-26 完成（sortable vendored，176→88 行） | — | — | — |
-| 3 | function 调试器切片（3,889 行区，IoInspector 已做） | 日志无搜索/过滤，单条无复制 | 搜索过滤 + hover 复制。日志级别类型化需 WASM 侧拦截，另行评估 | ~半天 | 随手做 |
+| ~~3~~ | ~~function 调试器搜索过滤 + hover 复制~~ | ✅ 2026-09-29 随 1.6.0 落地（W1-B：日志过滤 + hover 复制）；日志级别类型化需 WASM 侧拦截，另行评估 | 已完成 |
 | 4 | **specifications renderSettings**（1,752 行） | 已用 kernel ui 但密度/层级/间距未规范 | [frame](https://reui.io/components/frame?ref=mcp) + 密度规范统一——属"规范化"非"换件" | ~1 天 | 触及 spec 面板时顺做 |
 | 5 | **UDF Lab**（主线新功能，非存量） | 已建成未走查 | **tree**（自定义节点目录）+ **timeline**（审计/回放）+ data-grid 原生采用——tree/timeline 的首次入链场景 | 随主线 | A1 验证后 |
 
@@ -33,7 +33,7 @@
 
 | 候选 | 说明 | 量级 |
 | --- | --- | --- |
-| 列显隐菜单 | `data-grid-column-visibility` 已 vendored 未用，dt 开列显隐是现成能力 | ~半天 |
+| ~~列显隐菜单~~ | ✅ 2026-09-29 随 1.6.0 落地（W1-C：dt 列显隐菜单，data-grid-column-visibility 启用） | 已完成 |
 | ~~大表虚拟化~~ | ✅ 2026-09-29 落地（jdm 9eb5aa7e 移植）：虚拟化下沉 DndRows 表体（virtual prop + 七纪律 + rAF 兜底重连），dt ≥100 行窗口化，scrollApiRef 双路径 | 已完成 |
 | ~~cellSelection single 模式（A'）~~ | ✅ 2026-09-29 落地（jdm 2c48f461 移植）：受控 cellSelection 对桥接 cursor，键盘三分约定（plain/Ctrl/Alt），输入控件让位；Alt-only 收敛（⌘ 变体与边缘跳转撞车） | 已完成 |
 
@@ -48,10 +48,10 @@
 
 ## ReUI 组件覆盖快照（22 个免费组件）
 
-- **在用 6**：data-grid 系（含 11 子模块）、badge、icon-tile、stepper、sortable、frame
+- **在用 8**：data-grid 系（含 13 子模块，含 cell-selection / column-visibility）、badge、icon-tile、stepper、sortable、frame
 - **有落点待用 4**：tree、timeline、sortable、frame
 - **候选 4**：alert、icon-stack、number-field、code-block
-- **已 vendored 未启用 2**：data-grid-cell-selection（Phase 2 备选 A'）、data-grid-column-visibility（列显隐）
+- **vendored 全部启用（0 未启用）**：data-grid-cell-selection（A' 单格聚焦，2026-09-30 启用）、data-grid-column-visibility（列显隐，1.6.0 启用）
 - **无场景/否决 10**：见上表
 - 另有 premium blocks（整页区块）与 Motion Icons 产品线，本仓未涉及
 
