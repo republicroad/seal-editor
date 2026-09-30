@@ -106,6 +106,11 @@ interface UdfPackMeta {
 
 ## 包面缺口注记（2026-09-30，verdict 骨架实施时发现）
 
+> **✅ 收口（2026-09-30，zen-udf 0.12.2）**：`UdfPackMeta` /
+> `RESERVED_NAMESPACE_PREFIXES` / `reservedNamespaceViolation` 已从包根导出
+> （见 ADR-011 消费方阻塞修复节）。verdict registerPack 已收敛到上游辅助
+> （861565b）；`default` 上游裁定维持四前缀不变，verdict 保留该条为本地加严。
+
 `UdfPackMeta`（register.ts 定义）与 `reservedNamespaceViolation` /
 `RESERVED_NAMESPACE_PREFIXES`（ADR-009 立法的权威实现）均**未从 zen-udf 包根
 导出**（0.10.0）。宿主实现 registerPack 时只能本地镜像类型 + 手抄保留前缀表
