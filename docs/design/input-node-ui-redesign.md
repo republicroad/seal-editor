@@ -1,8 +1,8 @@
 # 输入节点 UI 重设计——从三页签独立到分屏联动编辑器
 
 - 日期：2026-09-30
-- 状态：**UI 范式提案 · 待裁定**（[ADR-012](../adr/012-input-contract-design.md) 的 UI 层配套设计；ADR 定义数据模型与同步机制，本文档定义视图形态）
-- 前置：[ADR-012](../adr/012-input-contract-design.md) InputContract 契约对象
+- 状态：**UI 范式提案 · 待裁定**（[ADR-013](../adr/013-input-contract-design.md) 的 UI 层配套设计；ADR 定义数据模型与同步机制，本文档定义视图形态）
+- 前置：[ADR-013](../adr/013-input-contract-design.md) InputContract 契约对象
 
 ## 0. 现状与痛点
 

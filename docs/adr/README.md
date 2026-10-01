@@ -17,8 +17,9 @@
 | [ADR-008](./008-host-experience-proposals.md) | 编辑器宿主体验增强提案：header 槽位注入/保存回调/仿真联动/bundle 基线 | accepted | 2026-09 |
 | [ADR-009](./009-function-ecosystem-namespace-governance.md) | 函数生态分层与 namespace 治理：参考域/通用扩展/行业包三层 + UdfPackMeta | accepted | 2026-09 |
 | [ADR-010](./010-function-catalog-tenant-filter.md) | 函数目录租户过滤接口：过滤边界分层（服务端安全边界 + 客户端体验谓词）与接口形态 | accepted | 2026-09 |
-| [ADR-011](./011-zen-udf-param-declaration-evolution.md) | zen-udf 参数声明统一与 defineTool 声明体验：形态二归一 + builder 泛型推导（0.11.0 提案） | accepted→implementing | 2026-09 |
-| [ADR-012](./012-input-contract-design.md) | 输入节点契约统一：InputContract 数据模型 + 三视图同步 + Examples 即测试用例 | proposed | 2026-09 |
+| [ADR-011](./011-zen-udf-param-declaration-evolution.md) | zen-udf 参数声明统一与 defineTool 声明体验：形态二归一 + builder 泛型推导（0.11.0 提案） | implemented | 2026-09 |
+| [ADR-012](./012-zen-udf-ports-layered-design.md) | zen-udf 端口层分层设计：集中管理 vs per-tenant 覆写（ADR-011 多语言修订落地档） | accepted | 2026-09 |
+| [ADR-013](./013-input-contract-design.md) | 输入节点契约统一：InputContract 数据模型 + 三视图同步 + Examples 即测试用例（原 ADR-012，与 ports 012 编号冲突改号；jdm 评审调整已落档） | accepted | 2026-10 |
 
 ## 状态定义
 

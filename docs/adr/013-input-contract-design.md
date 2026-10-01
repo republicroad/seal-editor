@@ -1,11 +1,14 @@
-# ADR-012：输入节点契约统一——InputContract 数据模型与三视图同步机制
+# ADR-013：输入节点契约统一——InputContract 数据模型与三视图同步机制
 
 ## 状态
-proposed（2026-09-30 seal-editor 起草）→ **reviewed（2026-10-01 jdm-editor 评审：决策
-§1-§4 修改后接受，§3 附实施简化，开放问题 1-5 已表态（#5 判类别错误应删），
-五条补充发现见「评审注记」——首项为改号 ADR-013（编号与 ports 012 冲突）**。
+proposed（2026-09-30 seal-editor 起草）→ reviewed（2026-10-01 jdm-editor 评审）→
+**accepted（2026-10-01 seal-editor 按评审调整落档，协商环闭合）**。裁定要点：决策
+§1-§4 修改后接受；开放问题 1-5 全部表态闭合（#5 类别错误删除）；五条补充发现
+见「评审注记」。**本文档原编号 ADR-012，因与
+[012-zen-udf-ports-layered-design.md](./012-zen-udf-ports-layered-design.md)
+（端口层分层设计）编号冲突改号 ADR-013——引用面大的一侧（ports 012）不改号**。
 输入节点是内核决策图的核心编辑面，涉及三个视图的合并重构与 simulator 联动协议
-升级，量级 ~3 天。协商方式沿 ADR-010/011 惯例：逐节标注接受/否决/修改，更新本状态行）
+升级，量级 ~3 天。
 
 ## 背景
 
@@ -116,6 +119,10 @@ interface NamedExample {
 - **不安全漂移**（类型变更）→ 用户逐个决策；
 - 漂移分类与报告 = **变更日志面板**（治理窗批次 4）的天然数据源。
 
+**Drift 报告实现口径（评审实施简化）**：逐 example 重校验 + missing/extra/
+type-mismatch 三类清单即可——**不做**全量 JSON Schema structural diff（成本高、
+迁移 UI 消费不了那么多信息）。
+
 ### 3 · Examples 即测试用例
 
 每个 example 带一个**执行按钮**（不是全局 simulate 按钮），一键将该
@@ -127,12 +134,19 @@ example 喂给 simulator：
   （example × 结论），即 property-based testing 雏形——
   examples ARE test cases，schema 是 property spec。
 
+**批量执行复用 zen-udf 既有 `runDecisionTests`（评审实施简化）**：N 个 example
+组装 `DecisionFixture[]` 一次调用，`FixtureReport` 即结果矩阵——不新写 runner。
+Run all 的语义与 A5 夹具视图（demo-server `/v1/fixtures/execute`）天然合流，
+结果结构一致后两面板可共享组件。
+
 ### 4 · 序列化 / 分享
 
-InputContract 整体序列化为自包含 JSON（schema + examples）：
+InputContract 整体序列化为自包含 JSON（**信封带 `contractVersion`**——评审修订，
+对齐 CONTRACT §8 版本纪律：分享格式无版本号则未来格式演进无升级锚点）：
 
 ```json
 {
+  "contractVersion": 1,
   "schema": { "type": "object", "properties": { ... }, "required": [...] },
   "examples": [
     { "name": "正常GOLD用户", "data": { "customer": { "tier": "GOLD" } } },
@@ -160,29 +174,46 @@ InputContract 整体序列化为自包含 JSON（schema + examples）：
 
 | # | 项 | 归属 | 量级 | 前置 |
 | --- | --- | --- | --- | --- |
-| 1 | InputContract store（合并三 hook → 单 store + drift 检测） | seal-editor kernel | ~1 天 | — |
+| 0 | InputContract 数据形状 + 序列化信封（含 contractVersion）定稿，并入 CONTRACT.md 输入侧一节——分享格式是跨仓交换物，先立法后实施（ADR-011 契约先行同纪律） | seal-editor kernel | ~0.5 天 | — |
+| 1 | InputContract store（合并三 hook → 单 store + drift 检测） | seal-editor kernel | ~1 天 | #0 |
 | 2 | Definitions 视图迁移到 contract store | seal-editor kernel | ~0.5 天 | 随 1 |
 | 3 | Examples 视图迁移 + drift 徽标 | seal-editor kernel | ~0.5 天 | 随 1 |
 | 4 | Schema 视图迁移（monaco ↔ contract 同步） | seal-editor kernel | ~0.5 天 | 随 1 |
 | 5 | ajv 客户端实时校验（Examples 编辑时） | seal-editor kernel | ~0.5 天 | 随 1 |
-| 6 | 批量仿真（Run all）+ 结果矩阵 | seal-editor kernel | ~0.5 天 | 随 3 |
+| 6 | 批量仿真（Run all，复用 runDecisionTests）+ 结果矩阵 | seal-editor kernel | ~0.5 天 | 随 3 |
 | 7 | 序列化导入/导出（分享格式） | seal-editor kernel | ~0.5 天 | 随 1 |
-| 8 | 变更日志对接（漂移报告 → ChangeLogPanel） | seal-editor appshell | ~0.5 天 | 治理窗 |
+| 8 | 变更日志对接（漂移报告 → ChangeLogPanel；**数据装配放 kernel，appshell 只消费——薄层纪律**） | seal-editor appshell | ~0.5 天 | 治理窗 |
 
 总量 ~3 天（含测试），可拆两个 PR。
 
-## 开放问题（逐条协商）
+## 开放问题（已裁定，2026-10-01 jdm 评审，逐条闭合）
 
-1. **JSON Schema draft 版本**：2020-12 还是 07？（影响 ajv 版本与 OpenAPI 兼容）
-2. **客户端校验引擎**：ajv（生态标准，~65kB gzip）vs 纯函数手写 vs zen-engine
-   wasm validate（已在包内）？
-3. **schema 复杂度边界**：只支持顶层原始类型属性（与 Definitions 表单能力一致）
-   还是支持嵌套 object/array？
-4. **example 数量上限**：是否设上限（如 20 个）防止 examples 无限膨胀？
-5. **与现有 `;;` 位置绑定的兼容**：旧图的 expressions 是位置绑定格式——
-   InputContract 存储后是否自动转具名调用（$call）？
+1. **JSON Schema draft 版本 → 2020-12**：OpenAPI 3.1 对齐（3.0 是 draft-04
+   子集，导出会丢表达力）+ ajv v8 的 2020 模块成熟；TypeBox 产出的 keywords
+   无 $schema 依赖，与 input schema 同形（长期可互认）；
+2. **客户端校验引擎 → ajv core + 2020 模块**（随 #3 支持嵌套的裁定分叉）：
+   走仓内 size 预算校准流程（CI 实测口径，预算上调需宿主裁）。若未来收窄为
+   顶层+受限嵌套，备选是手写子集校验器（~200 行零依赖）。~~zen-engine wasm
+   validate~~ **选项作废**——事实修正：zen-engine-wasm 只导出
+   `validateExpression`/`validateUnaryExpression`（表达式语法校验），没有
+   JSON Schema 实例校验器（见评审注记·事实核查 3）；
+3. **schema 复杂度边界 → 支持嵌套 object/array**：与 ADR-011「仅顶层原始
+   类型」裁定**不冲突**——那是 UDF 位置参数绑定域的约束（位置绑定求值器只吃
+   原始标量）；输入节点是完整 JSON 实例域，递归字段树本就实现了嵌套。两域
+   约束各自成立，勿互串；
+4. **example 数量上限 → 无硬上限，软提醒**（>20 提示折叠）：examples 即测试
+   用例，存储成本可忽略；硬上限伤「examples ARE test cases」的定位；
+5. ~~与现有 `;;` 位置绑定的兼容~~ **问题删除（类别错误）**：`;;` 位置绑定是
+   customNode 表达式调用的求值器实现格式；InputContract 的 examples 是完整
+   JSON 实例（simulator 直接消费），二者不同层面、无转换关系——原问题与 §1
+   「位置绑定不泄漏到用户面」自相矛盾，疑为起草时串了 ADR-011 的上下文。
 
 ## 评审注记（jdm-editor 仓，2026-10-01）
+
+> **落档**：以下裁定已于 2026-10-01 并入正文——§2/§3 实施简化、§4
+> contractVersion、实施清单 #0 增补与 #8 薄层注记、开放问题 1-5 依裁定闭合、
+> 后果-约束增补三条（additive 存储 / 指纹对称 / Y3 回放联动）；文档改号
+> ADR-013（补充发现 1）。
 
 ### 事实核查（四条属实、一条事实修正、两条补充）
 
@@ -264,5 +295,17 @@ InputContract 整体序列化为自包含 JSON（schema + examples）：
   输入节点与自定义节点的设计成熟度对等；
 - 约束：三个 hook 重构为单 store（内核变更，量级最大的一批）；ajv 依赖引入
   需评估体积预算；Definitions 视图的树形嵌套编辑不受影响（仅数据源换）；
+- **图 interchange 兼容（硬约束，评审补充发现 2）**：InputContract 落 node
+  content 后，同一张图会被两仓 kernel、新旧版本、playground/demo-server 打开
+  ——存储形态 **MUST additive**：InputContract 作为 content 新增子对象（如
+  `content.inputContract`），原 schema/examples 字段保留为 legacy 读取回退，
+  首次编辑时迁移写入（dt 换装 additive 纪律同款）。跨仓图分享向前兼容不可破，
+  此条不落则分享格式即 breaking；
+- **指纹对称性（评审补充发现 3）**：输入侧 schemaFingerprint（本 ADR）与
+  pack 侧版本钉扎（journal 记 pack version）构成信任链两端的漂移检测同构
+  ——verdict 侧将来复用同一指纹纪律；
+- **drift 迁移与回放联动（评审补充发现 4）**：example 迁移（补 required
+  缺省值）后重算 inputHash；迁移不覆盖历史审计记录（旧 input + 旧图版本仍可
+  回放），只影响新执行；
 - 协商方式：jdm-editor 在本文档逐节标注（接受/否决/修改），裁定后更新
   状态行；实施随内核 minor 发版。
