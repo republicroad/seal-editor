@@ -8,7 +8,8 @@ jdm-editor 评审：定位公理 + 决策 §1-§5 全部接受，开放问题 1-
 §4 附 A.4 蓝图 bug 依评审修正（expression 求值器上下文 `{ result: data }`），
 实施清单增补 #6（jdm demo-server fixtures-route 迁移，归属 jdm-editor 仓）。
 执行时序：#1/#2（zen-udf 0.13.0 + CONTRACT 测试侧）归属 jdm-editor，待宿主
-口令启动；#3-#5（seal 侧批次三 M1'）随之。
+口令启动；#3-#5（seal 侧批次三 M1'）随之。**增补 §6 同步面预案（2026-10-01
+宿主提议）待 jdm 表态**——仅立名位与边界，不阻塞实施。
 
 ## 背景
 
@@ -116,6 +117,36 @@ DSL，`evaluateExpressionSync` 已在用），跨端可序列化。`predicate` �
 fixtures 形状是跨仓交换物（verdict 存库、seal-editor 消费）——入 CONTRACT.md
 **测试侧一节**，对齐 CONTRACT §8 / ADR-013 信封的 `contractVersion` 纪律
 （开放问题 2）。
+
+### 6 · 同步面预案（增补提案，2026-10-01 宿主提议；待 jdm 表态）
+
+宿主提议：zen-engine 支持同步与异步方法，zen-udf 可考虑同时提供。binding
+直读后的事实边界——
+
+- **表达式层**：sync/async 双形态已存在且 zen-udf 已在用（`evaluateExpressionSync`
+  即 §4/附 A.4 求值器的实现）——此层无需新增；
+- **决策求值层**（夹具 runner 的世界）：`@gorules/zen-engine` 2.1.0（napi，
+  zen-udf 唯一依赖的绑定）`Sync` 导出仅三个——`evaluateExpressionSync` /
+  `evaluateUnaryExpressionSync` / `renderTemplateSync`；**决策求值仅 Promise**
+  （`ZenDecision.evaluate` / `ZenEngine.evaluate` / `evaluateBatch`）——同步
+  runner 今天没有挂点，需上游先暴露决策级 `evaluateSync`（超出 zen-udf 一侧
+  能力）；
+- 勘误随此记录：`zen-engine-wasm` 0.23.1 仅含表达式引擎与校验器（无
+  ZenEngine/ZenDecision 面），本仓此前「完整引擎的 wasm 编译」表述不准确；
+  浏览器全图执行另属 gorules 独立工件，不在两仓任何依赖内——定位公理
+  （wasm 出局）因此更稳固。
+
+**预案（上游条件达成后纯增量落地，异步契约零改动、本 ADR 立法零变更）**：
+
+| 新增 | 形态 | 边界 |
+| --- | --- | --- |
+| `runDecisionTestsSync(options)` | 同签名的同步变体（匹配/报告核心为纯函数，天然可同步） | **无异步 handler 的执行子集**——http/异步算子夹具在 sync 通道显式 `execution-error` |
+| `DecisionTestExecutorSync` | `(fixture, index) => {result?, error?, durationMs?, traceHits?}` | 同步 executor 不许抛 Promise |
+| `createRuntimeExecutorSync` | 挂上游决策级 `evaluateSync`（待其存在） | 复用 `__fixtures__:` 键隔离 |
+
+立名动机：1.0 端口面冻结前定名，避免 1.0 后加名的表面断裂；本节仅预留名位
+与边界，**不阻塞 #1-#6 实施**。jdm 可在 0.13.0 中先只落异步面（本 ADR 主
+体），同步面随上游能力另批落地。
 
 ## 备选方案
 
