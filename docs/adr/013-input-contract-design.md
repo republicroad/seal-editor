@@ -134,7 +134,7 @@ example 喂给 simulator：
   （example × 结论），即 property-based testing 雏形——
   examples ARE test cases，schema 是 property spec。
 
-**批量执行复用 zen-udf 既有 `runDecisionTests`（评审实施简化）**：N 个 example
+**批量执行复用 zen-udf 既有 `runDecisionTests`（评审实施简化；复用形态——executor 反转契约——已立法为 [ADR-014](./014-zen-udf-fixture-contract.md)）**：N 个 example
 组装 `DecisionFixture[]` 一次调用，`FixtureReport` 即结果矩阵——不新写 runner。
 Run all 的语义与 A5 夹具视图（demo-server `/v1/fixtures/execute`）天然合流，
 结果结构一致后两面板可共享组件。
