@@ -48,7 +48,7 @@ export type RequestExamplesProps = {
 
 const ExampleDriftBadge: React.FC<{ state: RequestExampleDriftState }> = ({ state }) => {
   const t = useT();
-  const { drift } = state;
+  const { drift, constraintIssues } = state;
   const parts: string[] = [];
 
   if (drift.missing.length > 0) {
@@ -59,6 +59,9 @@ const ExampleDriftBadge: React.FC<{ state: RequestExampleDriftState }> = ({ stat
   }
   if (drift.conflicts.length > 0) {
     parts.push(`${t('request.driftConflicts')} ${drift.conflicts.length}`);
+  }
+  if (constraintIssues.length > 0) {
+    parts.push(`${t('request.driftConstraints')} ${constraintIssues.length}`);
   }
 
   return (
@@ -74,6 +77,9 @@ const ExampleDriftBadge: React.FC<{ state: RequestExampleDriftState }> = ({ stat
     </Tooltip>
   );
 };
+
+/** OQ4 裁定：无硬上限，>20 软提醒（列表折叠 + 一键展开） */
+const SOURCE_LIST_SOFT_LIMIT = 20;
 
 export const RequestExamples: React.FC<RequestExamplesProps> = ({
   sources,
@@ -107,6 +113,7 @@ export const RequestExamples: React.FC<RequestExamplesProps> = ({
 }) => {
   const t = useT();
   const [inlayHintsEnabled, setInlayHintsEnabled] = useState(true);
+  const [allSourcesShown, setAllSourcesShown] = useState(false);
   const blurDisposableRef = useRef<{ dispose: () => void } | null>(null);
   const inlayHintsDisposableRef = useRef<{ dispose: () => void } | null>(null);
   const inlayHintsEnabledRef = useRef(inlayHintsEnabled);
@@ -176,86 +183,103 @@ export const RequestExamples: React.FC<RequestExamplesProps> = ({
     <div className='flex h-full min-h-0 flex-col'>
       <div className='flex min-h-0 flex-1 gap-4'>
         <div className='flex w-[220px] shrink-0 flex-col gap-2 overflow-y-auto'>
-          {sources.map((source, index) => (
-            <div
-              key={source.id}
-              role='button'
-              tabIndex={disabled ? -1 : 0}
-              aria-pressed={index === activeSourceIndex}
-              className={`flex items-center gap-1 rounded-lg border px-2 py-1.5 transition-colors ${
-                index === activeSourceIndex ? 'border-primary/40 bg-primary/10' : 'border-transparent hover:bg-muted/60'
-              }`}
-              onClick={() => {
-                onSourceSelect(index);
-              }}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  onSourceSelect(index);
-                }
-              }}
-            >
-              <div
-                className='min-w-0 flex-1'
-                onDoubleClick={(event) => {
-                  event.stopPropagation();
-                  if (!disabled) {
-                    onEnterEditing(index);
-                  }
-                }}
-              >
-                {editingSourceIndex === index ? (
-                  <BlurCommitInput
-                    disabled={disabled}
-                    value={source.name}
-                    blurBehavior='cancel'
-                    saveLabel={t('request.save')}
-                    cancelLabel={t('common.cancel')}
-                    showActions={true}
-                    onCommit={(nextName) => {
-                      const trimmedName = nextName.trim();
-                      if (trimmedName) {
-                        onSourceRename(index, trimmedName);
+          {(() => {
+            const collapsed = sources.length > SOURCE_LIST_SOFT_LIMIT && !allSourcesShown;
+            const visibleSources = collapsed ? sources.slice(0, SOURCE_LIST_SOFT_LIMIT) : sources;
+
+            return (
+              <>
+                {visibleSources.map((source, index) => (
+                  <div
+                    key={source.id}
+                    role='button'
+                    tabIndex={disabled ? -1 : 0}
+                    aria-pressed={index === activeSourceIndex}
+                    className={`flex items-center gap-1 rounded-lg border px-2 py-1.5 transition-colors ${
+                      index === activeSourceIndex
+                        ? 'border-primary/40 bg-primary/10'
+                        : 'border-transparent hover:bg-muted/60'
+                    }`}
+                    onClick={() => {
+                      onSourceSelect(index);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        onSourceSelect(index);
                       }
                     }}
-                    onExit={onSourceRenameExit}
-                  />
-                ) : (
-                  <Tooltip title={source.description ? `${source.name} — ${source.description}` : source.name}>
-                    <Typography.Text className='block truncate'>{source.name}</Typography.Text>
-                  </Tooltip>
+                  >
+                    <div
+                      className='min-w-0 flex-1'
+                      onDoubleClick={(event) => {
+                        event.stopPropagation();
+                        if (!disabled) {
+                          onEnterEditing(index);
+                        }
+                      }}
+                    >
+                      {editingSourceIndex === index ? (
+                        <BlurCommitInput
+                          disabled={disabled}
+                          value={source.name}
+                          blurBehavior='cancel'
+                          saveLabel={t('request.save')}
+                          cancelLabel={t('common.cancel')}
+                          showActions={true}
+                          onCommit={(nextName) => {
+                            const trimmedName = nextName.trim();
+                            if (trimmedName) {
+                              onSourceRename(index, trimmedName);
+                            }
+                          }}
+                          onExit={onSourceRenameExit}
+                        />
+                      ) : (
+                        <Tooltip title={source.description ? `${source.name} — ${source.description}` : source.name}>
+                          <Typography.Text className='block truncate'>{source.name}</Typography.Text>
+                        </Tooltip>
+                      )}
+                    </div>
+                    {(() => {
+                      const driftState = driftStates?.[source.id];
+                      if (!driftState) {
+                        return null;
+                      }
+
+                      const hasDrift =
+                        driftState.drift.missing.length > 0 ||
+                        driftState.drift.extra.length > 0 ||
+                        driftState.drift.conflicts.length > 0 ||
+                        driftState.constraintIssues.length > 0;
+
+                      return driftState.schemaChanged || hasDrift ? <ExampleDriftBadge state={driftState} /> : null;
+                    })()}
+                    <Popconfirm
+                      title={t('request.deleteDataSourceConfirm')}
+                      okText={t('common.delete')}
+                      cancelText={t('common.cancel')}
+                      onConfirm={() => onSourceRemove(index)}
+                    >
+                      <Button
+                        danger
+                        type='text'
+                        size='small'
+                        disabled={disabled}
+                        icon={<DeleteOutlined />}
+                        onClick={(event) => event.stopPropagation()}
+                      />
+                    </Popconfirm>
+                  </div>
+                ))}
+                {collapsed && (
+                  <Button type='link' size='small' className='!pl-1' onClick={() => setAllSourcesShown(true)}>
+                    {t('request.showRemainingSources')} ({sources.length - SOURCE_LIST_SOFT_LIMIT})
+                  </Button>
                 )}
-              </div>
-              {(() => {
-                const driftState = driftStates?.[source.id];
-                if (!driftState) {
-                  return null;
-                }
-
-                const hasDrift =
-                  driftState.drift.missing.length > 0 ||
-                  driftState.drift.extra.length > 0 ||
-                  driftState.drift.conflicts.length > 0;
-
-                return driftState.schemaChanged || hasDrift ? <ExampleDriftBadge state={driftState} /> : null;
-              })()}
-              <Popconfirm
-                title={t('request.deleteDataSourceConfirm')}
-                okText={t('common.delete')}
-                cancelText={t('common.cancel')}
-                onConfirm={() => onSourceRemove(index)}
-              >
-                <Button
-                  danger
-                  type='text'
-                  size='small'
-                  disabled={disabled}
-                  icon={<DeleteOutlined />}
-                  onClick={(event) => event.stopPropagation()}
-                />
-              </Popconfirm>
-            </div>
-          ))}
+              </>
+            );
+          })()}
           <Tooltip title={t('request.addDataSource')} placement='bottom'>
             <Button type='dashed' size='small' disabled={disabled} icon={<PlusOutlined />} onClick={onSourceAdd} />
           </Tooltip>
@@ -295,19 +319,23 @@ export const RequestExamples: React.FC<RequestExamplesProps> = ({
                         </Button>
                       </Tooltip>
                     )}
-                    {schemaChanged && !safeFixable && drift.conflicts.length === 0 && onConfirmSourceValid && (
-                      <Tooltip title={t('request.driftConfirmTooltip')} placement='bottom'>
-                        <Button
-                          size='small'
-                          type='link'
-                          className='!px-1'
-                          disabled={disabled}
-                          onClick={() => onConfirmSourceValid(activeSourceIndex)}
-                        >
-                          {t('request.driftConfirmValid')}
-                        </Button>
-                      </Tooltip>
-                    )}
+                    {schemaChanged &&
+                      !safeFixable &&
+                      drift.conflicts.length === 0 &&
+                      driftState.constraintIssues.length === 0 &&
+                      onConfirmSourceValid && (
+                        <Tooltip title={t('request.driftConfirmTooltip')} placement='bottom'>
+                          <Button
+                            size='small'
+                            type='link'
+                            className='!px-1'
+                            disabled={disabled}
+                            onClick={() => onConfirmSourceValid(activeSourceIndex)}
+                          >
+                            {t('request.driftConfirmValid')}
+                          </Button>
+                        </Tooltip>
+                      )}
                     {hasAnyDriftedExample && sources.length > 1 && onMigrateAll && (
                       <Tooltip title={t('request.driftMigrateAllTooltip')} placement='bottom'>
                         <Button size='small' type='link' className='!px-1' disabled={disabled} onClick={onMigrateAll}>

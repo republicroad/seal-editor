@@ -63,6 +63,12 @@ export type SchemaToolbarActionsProps = {
   onSimulate?: () => void;
   /** examples：simulator 已打开时按钮 disabled */
   simulateDisabled?: boolean;
+  /** examples：导入契约信封（触发宿主隐藏 file input）——清单 #7 */
+  onImportContract?: () => void;
+  /** examples：导出契约信封——清单 #7；hasContract 为 false 时 disabled */
+  onExportContract?: () => void;
+  /** examples：契约是否非空（schema 或 examples 任一存在） */
+  hasContract?: boolean;
   /** schema：格式化（monaco formatDocument） */
   onFormat?: () => void;
   /** schema：JSON → Schema 转换对话框 */
@@ -82,6 +88,9 @@ export const SchemaToolbarActions: React.FC<SchemaToolbarActionsProps> = ({
   hasActiveSource,
   onSimulate,
   simulateDisabled,
+  onImportContract,
+  onExportContract,
+  hasContract,
   onFormat,
   onConvertFromJson,
 }) => {
@@ -109,6 +118,26 @@ export const SchemaToolbarActions: React.FC<SchemaToolbarActionsProps> = ({
             {t('dg.toolbar.downloadJson')}
           </Button>
         </Tooltip>
+        {onImportContract && (
+          <Tooltip title={t('request.importContractTooltip')}>
+            <Button type='text' size='small' disabled={disabled} icon={<ImportOutlined />} onClick={onImportContract}>
+              {t('request.importContract')}
+            </Button>
+          </Tooltip>
+        )}
+        {onExportContract && (
+          <Tooltip title={t('request.exportContractTooltip')}>
+            <Button
+              type='text'
+              size='small'
+              disabled={disabled || !hasContract}
+              icon={<CloudDownloadOutlined />}
+              onClick={onExportContract}
+            >
+              {t('request.exportContract')}
+            </Button>
+          </Tooltip>
+        )}
         <Tooltip title={t('request.simulateTooltip')} placement='bottomRight'>
           <Button
             type='text'

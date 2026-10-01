@@ -5,8 +5,9 @@
 - 上位决策：[ADR-013 输入节点契约统一](../adr/013-input-contract-design.md)
 - 对齐：jdm-editor 仓 CONTRACT.md §8 版本纪律（本文档为输入侧对应物，条件成熟时
   可并入 CONTRACT.md 输入侧一节）
-- 实施批次：批次一（本仓 kernel 1.16.0）已落数据形状 + 存储纪律 + 漂移协议；
-  信封导入/导出 UI（批次二）、Run all 复用 runDecisionTests（批次三）后续落地
+- 实施批次：批次一已落码（未发版，随批次二/三合版——§7 勘误修正）+ 批次二
+  已落（ajv 懒加载约束校验 + 信封导入/导出 + >20 软折叠）；Run all 复用
+  runDecisionTests（批次三）后续落地
 
 ## 1 · 数据形状
 
@@ -50,8 +51,11 @@ example.data 是完整实例（非 `;;` 位置绑定）；schemaFingerprint 是�
 
 - `contractVersion` 必填——对齐 CONTRACT §8 版本纪律：分享格式无版本号则未来
   格式演进无升级锚点；
-- 信封 = `content.inputContract` 的同构投影；导入 = 解析后并入契约 examples
-  （id 冲突重生成）；
+- 信封 = `content.inputContract` 的同构投影；**导入 = 采用信封整体**（schema +
+  examples 一并替换当前契约；id 缺失/与既有契约冲突时由导入方重铸；
+  contractVersion 高于支持版本拒收——向前兼容报版本错误而非静默丢数据）；
+- 导出**不携带** `schemaFingerprint`：指纹锚是接收方自己的校验时点，导入后
+  重新戳记；
 - 演进规则：additive 为 soft（同版本兼容）；breaking（删字段/改语义）必须 bump
   `contractVersion` 并提供迁移注记。
 
@@ -70,7 +74,10 @@ additive**：
    `inputContract`，只读浏览不写；
 5. **模型声明**：`inputNodeSchema.content.inputContract` 必须在 zod schema 显式
    声明——safeParse 会剥掉未声明键（edgeSchema.name 同类事故），
-   parse-fidelity fixture 同步覆盖。
+   parse-fidelity fixture 同步覆盖；
+6. **单写漏斗纪律（批次一验收补丁，2026-10-01）**：新增写路径（信封导入等）
+   **MUST 经 `writeRequestInputContract`**——双写完备性靠此约定维持，绕行即
+   产生陈旧镜像或失真契约。
 
 ## 4 · 漂移协议（ADR-013 §2 评审简化口径）
 
@@ -101,7 +108,7 @@ ADR §1 写的是「zustand store 作为第四个同构成员」；本仓实施�
 | 批次 | 内容 | 状态 |
 | --- | --- | --- |
 | 一 | 数据形状 + 双写存储 + 指纹 + 漂移引擎 + 徽标/迁移/确认 UI + 本立法文档 | ✅ 本批（已验收，见 §7） |
-| 二 | ajv（懒加载）约束级校验（required/min/max/enum/pattern）+ 信封导入/导出 + >20 软提醒；**新增写路径 MUST 经 writeRequestInputContract** | 待排 |
+| 二 | ajv（懒加载）约束级校验（required/min/max/enum/pattern）+ 信封导入/导出 + >20 软提醒；**新增写路径 MUST 经 writeRequestInputContract**（见 §3-6） | ✅ 本批（ajv 外置 + 主入口预算校准 202→206kB gzip；导入整体采用语义见 §2） |
 | 三 | Run all 复用 zen-udf `runDecisionTests`（DecisionFixture[] → FixtureReport）+ appshell 变更日志对接 | 待排 |
 
 ## 7 · 批次一验收记录（jdm-editor 仓，2026-10-01）

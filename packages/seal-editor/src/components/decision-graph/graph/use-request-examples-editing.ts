@@ -24,6 +24,7 @@ import {
   normalizeRequestExampleDataByDefinitions,
   readRequestInputContract,
   requestSchemaFingerprint,
+  validateExampleDatasBySchema,
   writeRequestInputContract,
 } from '../../../helpers/request-schema';
 import type { TranslationKey } from '../../../theming/i18n';
@@ -34,6 +35,8 @@ export type RequestExampleDriftState = {
   drift: RequestExampleDrift;
   /** 指纹 ≠ 当前 schema 指纹（含未锚定的 legacy 示例）——徽标判据 */
   schemaChanged: boolean;
+  /** ajv 约束违例（required/min/max/enum/pattern，懒加载）——实时警告，不参与指纹戳记 */
+  constraintIssues: string[];
 };
 
 type UseRequestExamplesEditingParams = {
@@ -138,6 +141,32 @@ export const useRequestExamplesEditing = ({
       extra,
     };
   }, [activeSource, definitionDrafts, mergedExampleData]);
+  /** ajv 约束违例（ADR-013 OQ2）：懒加载异步批量校验，schema/example 变更后重算 */
+  const [constraintIssuesBySourceId, setConstraintIssuesBySourceId] = useState<Record<string, string[]>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+
+    validateExampleDatasBySchema(
+      inputContract.examples.map((example) => example.data),
+      inputContract.schema,
+    ).then((results) => {
+      if (cancelled) {
+        return;
+      }
+
+      const next: Record<string, string[]> = {};
+      inputContract.examples.forEach((example, index) => {
+        next[example.id] = results[index] ?? [];
+      });
+      setConstraintIssuesBySourceId(next);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [inputContract]);
+
   /** 每 example 漂移状态（ADR-013 §2：逐 example 重校验 + 三类清单 + 指纹锚徽标） */
   const exampleDriftStates = useMemo(() => {
     const states: Record<string, RequestExampleDriftState> = {};
@@ -146,16 +175,19 @@ export const useRequestExamplesEditing = ({
       states[example.id] = {
         drift: computeExampleDrift(exampleSources[index]?.data ?? example.data, definitionDrafts),
         schemaChanged: example.schemaFingerprint !== currentSchemaFingerprint,
+        constraintIssues: constraintIssuesBySourceId[example.id] ?? [],
       };
     });
 
     return states;
-  }, [currentSchemaFingerprint, definitionDrafts, exampleSources, inputContract.examples]);
+  }, [constraintIssuesBySourceId, currentSchemaFingerprint, definitionDrafts, exampleSources, inputContract.examples]);
   const hasAnyDriftedExample = useMemo(
     () =>
       inputContract.examples.some((example) => {
         const state = exampleDriftStates[example.id];
-        return Boolean(state && (state.schemaChanged || hasExampleDrift(state.drift)));
+        return Boolean(
+          state && (state.schemaChanged || hasExampleDrift(state.drift) || state.constraintIssues.length > 0),
+        );
       }),
     [exampleDriftStates, inputContract.examples],
   );

@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  INPUT_CONTRACT_SUPPORTED_VERSION,
   INPUT_CONTRACT_VERSION,
   applySchemaTextToInputContract,
   computeExampleDrift,
   contractExamplesToSources,
+  exportInputContractEnvelope,
   hasExampleDrift,
   migrateRequestExampleDataByDefinitions,
+  parseInputContractEnvelope,
   readRequestInputContract,
   requestSchemaFingerprint,
   writeRequestInputContract,
@@ -260,5 +263,77 @@ describe('contract ↔ definitions coherence', () => {
     });
 
     expect(getRequestDefinitions(content).map((definition) => definition.path)).toEqual(['customer']);
+  });
+});
+
+describe('share envelope (ADR-013 清单 #7)', () => {
+  const contract: InputContract = {
+    contractVersion: INPUT_CONTRACT_VERSION,
+    schema: { type: 'object', properties: { customer: { type: 'string' } } },
+    examples: [
+      { id: 'ex-1', name: 'GOLD', description: 'gold tier', data: { customer: 'GOLD' }, schemaFingerprint: 'ab' },
+      { id: 'ex-2', name: '', data: {} },
+    ],
+  };
+
+  it('exports a self-contained envelope without fingerprint anchors', () => {
+    const envelope = exportInputContractEnvelope(contract);
+
+    expect(envelope).toEqual({
+      contractVersion: INPUT_CONTRACT_VERSION,
+      schema: contract.schema,
+      examples: [
+        { id: 'ex-1', name: 'GOLD', description: 'gold tier', data: { customer: 'GOLD' } },
+        { id: 'ex-2', name: '', data: {} },
+      ],
+    });
+    expect(JSON.stringify(envelope)).not.toContain('schemaFingerprint');
+  });
+
+  it('round-trips export → parse back into an equivalent contract', () => {
+    const parsed = parseInputContractEnvelope(JSON.stringify(exportInputContractEnvelope(contract)));
+
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+
+    expect(parsed.contract.contractVersion).toBe(INPUT_CONTRACT_VERSION);
+    expect(parsed.contract.schema).toEqual(contract.schema);
+    expect(parsed.contract.examples).toEqual([
+      { id: 'ex-1', name: 'GOLD', description: 'gold tier', data: { customer: 'GOLD' } },
+      { id: 'ex-2', name: 'Data 2', data: {} },
+    ]);
+  });
+
+  it('rejects invalid json / malformed shape / newer versions deterministically', () => {
+    expect(parseInputContractEnvelope('{not json')).toEqual({ ok: false, error: 'invalid-json' });
+    expect(parseInputContractEnvelope('{"schema": "not-a-record"}')).toEqual({ ok: false, error: 'invalid-shape' });
+    expect(parseInputContractEnvelope('{"contractVersion": 99, "schema": {}, "examples": []}')).toEqual({
+      ok: false,
+      error: 'unsupported-version',
+    });
+    expect(INPUT_CONTRACT_SUPPORTED_VERSION).toBe(1);
+  });
+
+  it('blanks missing/duplicate ids for the caller to mint (deterministic parse)', () => {
+    const parsed = parseInputContractEnvelope(
+      JSON.stringify({
+        contractVersion: 1,
+        schema: {},
+        examples: [
+          { name: 'A', data: {} },
+          { id: 'dup', data: {} },
+          { id: 'dup', data: {} },
+        ],
+      }),
+    );
+
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+
+    expect(parsed.contract.examples.map((example) => example.id)).toEqual(['', 'dup', '']);
   });
 });

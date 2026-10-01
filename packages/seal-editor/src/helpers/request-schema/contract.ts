@@ -1,3 +1,5 @@
+import json5 from 'json5';
+
 import {
   buildRequestExampleTemplateFromDefinitions,
   collectExampleDataPaths,
@@ -265,7 +267,7 @@ export const hasExampleDrift = (drift: RequestExampleDrift): boolean =>
   drift.missing.length > 0 || drift.extra.length > 0 || drift.conflicts.length > 0;
 
 /**
- * 安全迁移（ADR-013 §2）：缺值按定义默认值（无默认值按类型零值）补齐、多余字段
+ * 安全迁移（ADR-013 §2）：缺值按定义默认值（无默认按类型零值）补齐、多余字段
  * 移除、datetime 归一化；类型冲突值**原样保留**（不安全漂移——用户逐个决策），
  * 经 conflicts 返回。
  */
@@ -299,4 +301,73 @@ export const migrateRequestExampleDataByDefinitions = (
     data: normalized,
     conflicts: getRequestExampleDataDefinitionConflicts(normalized, validDefinitions),
   };
+};
+
+/**
+ * 分享信封（spec §2 / ADR-013 §4，清单 #7）：{contractVersion, schema,
+ * examples} 自包含交换物——OpenAPI / mock / 测试夹具 / 规则分享的共同根。
+ * 不携带 schemaFingerprint：指纹锚是接收方自己的校验时点，导入后重新戳记。
+ */
+export type InputContractEnvelope = {
+  contractVersion: number;
+  schema: RequestJsonSchema;
+  examples: Array<Pick<InputContractExample, 'id' | 'name' | 'description' | 'data'>>;
+};
+
+export const exportInputContractEnvelope = (contract: InputContract): InputContractEnvelope => ({
+  contractVersion: contract.contractVersion || INPUT_CONTRACT_VERSION,
+  schema: isRecord(contract.schema) ? contract.schema : {},
+  examples: contract.examples.map((example) => ({
+    id: example.id,
+    name: example.name,
+    ...(example.description ? { description: example.description } : {}),
+    data: cloneRequestExampleValue(example.data) as Record<string, unknown>,
+  })),
+});
+
+export type ParseInputContractEnvelopeResult =
+  | { ok: true; contract: InputContract }
+  | { ok: false; error: 'invalid-json' | 'invalid-shape' | 'unsupported-version' };
+
+/** 支持的最低/当前信封版本——更高版本拒收（向前兼容：旧版本读新信封报版本错误而非静默丢数据） */
+export const INPUT_CONTRACT_SUPPORTED_VERSION = INPUT_CONTRACT_VERSION;
+
+/**
+ * 解析分享信封。确定性（无随机）：缺失/重复的 id 置为 ''，由调用层在合并时
+ * 铸造新 id（须对照既有契约的 id 空间）。
+ */
+export const parseInputContractEnvelope = (text: string): ParseInputContractEnvelopeResult => {
+  let parsed: unknown;
+
+  try {
+    parsed = json5.parse(text);
+  } catch {
+    return { ok: false, error: 'invalid-json' };
+  }
+
+  if (!isRecord(parsed) || !isRecord(parsed.schema) || !Array.isArray(parsed.examples)) {
+    return { ok: false, error: 'invalid-shape' };
+  }
+
+  const contractVersion = parsed.contractVersion;
+  if (typeof contractVersion !== 'number' || contractVersion > INPUT_CONTRACT_SUPPORTED_VERSION) {
+    return { ok: false, error: 'unsupported-version' };
+  }
+
+  const seenIds = new Set<string>();
+  const examples = parsed.examples.map((example, index) => {
+    const record = isRecord(example) ? example : {};
+    const rawId = typeof record.id === 'string' ? record.id.trim() : '';
+    const id = rawId && !seenIds.has(rawId) ? rawId : '';
+    seenIds.add(rawId);
+
+    return {
+      id,
+      name: typeof record.name === 'string' && record.name.trim() ? record.name : formatRequestExampleSourceName(index),
+      description: typeof record.description === 'string' && record.description.trim() ? record.description : undefined,
+      data: toRecordData(record.data),
+    };
+  });
+
+  return { ok: true, contract: { contractVersion, schema: parsed.schema, examples } };
 };

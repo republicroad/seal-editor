@@ -61,6 +61,10 @@ export default defineConfig({
         // bare-name entry only matches the root, which silently inlined the
         // whole library (+315kB) in the 0.10.0 release.
         /^@base-ui\/react(\/.*)?$/,
+        // Same bare-name trap for ajv: the lazy validator imports the SUBPATH
+        // ajv/dist/2020 — the bare dependency string left a 165kB ajv chunk
+        // inlined into dist (2026-10-01); subpaths need the regex form.
+        /^ajv(\/.*)?$/,
         ...Object.keys(packageJson.dependencies),
         ...Object.keys(packageJson.peerDependencies ?? {}),
       ],

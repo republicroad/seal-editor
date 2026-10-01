@@ -2,8 +2,16 @@ import InformationIcon from '#reui/icons/animated/outline/information';
 import type { DragDropManager } from 'dnd-core';
 import type { editor } from 'monaco-editor';
 import React, { useRef, useState } from 'react';
+import { toast } from 'sonner';
 
+import { saveFile } from '../../../helpers/file-helpers';
 import '../../../helpers/monaco';
+import {
+  type RequestContentLike,
+  exportInputContractEnvelope,
+  parseInputContractEnvelope,
+  writeRequestInputContract,
+} from '../../../helpers/request-schema';
 import { useT } from '../../../theming/i18n';
 import { Tabs, Tooltip } from '../../primitives';
 import { useDecisionGraphActions, useDecisionGraphState } from '../context/dg-store.context';
@@ -35,6 +43,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   const [activeTab, setActiveTab] = useState<RequestTabKey>(RequestTabKey.Definitions);
   const schemaEditorRef = useRef<editor.IStandaloneCodeEditor | undefined>(undefined);
   const exampleJsonEditorRef = useRef<editor.IStandaloneCodeEditor | undefined>(undefined);
+  const contractFileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     disabled: disabledRaw,
@@ -56,6 +65,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   const disabled = disabledRaw ?? false;
 
   const {
+    contract,
     sourceSchemaValue,
     schemaDraft,
     jsonToJsonSchemaOpen,
@@ -147,6 +157,63 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     },
   );
 
+  // 契约信封导入/导出（ADR-013 清单 #7）：导入采用信封（schema + examples），
+  // 与既有 id 冲突时重铸；导出不携带指纹锚（接收方按自己的校验时点重新戳记）
+  const hasContract = Object.keys(contract.schema ?? {}).length > 0 || contract.examples.length > 0;
+
+  const handleExportContract = () => {
+    const baseName =
+      (nodeName ?? '')
+        .replace(/\.json$/i, '')
+        .replace(/[\\/:*?"<>|]/g, '-')
+        .trim() || t('request');
+    const envelope = exportInputContractEnvelope(contract);
+    saveFile(`${baseName}-contract.json`, new Blob([JSON.stringify(envelope, null, 2)], { type: 'application/json' }));
+  };
+
+  const handleImportContractFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    try {
+      const result = parseInputContractEnvelope(await file.text());
+
+      if (!result.ok) {
+        toast.error(
+          result.error === 'unsupported-version'
+            ? t('request.importContractUnsupportedVersion')
+            : result.error === 'invalid-shape'
+              ? t('request.importContractInvalidShape')
+              : t('request.importContractInvalidJson'),
+        );
+        return;
+      }
+
+      const existingIds = new Set(contract.examples.map((example) => example.id));
+      const examples = result.contract.examples.map((example) =>
+        !example.id || existingIds.has(example.id) ? { ...example, id: crypto.randomUUID() } : example,
+      );
+
+      graphActions.updateNode(id, (draft) => {
+        draft.content ??= {};
+        // 导入 = 整体采用信封（schema + examples），无需在 draft 上预读契约
+        writeRequestInputContract(draft.content as RequestContentLike & Record<string, any>, {
+          ...result.contract,
+          examples,
+        });
+        return draft;
+      });
+      toast.success(t('request.importContractSuccess'));
+    } catch (error: any) {
+      console.warn('[request-node] failed to import contract envelope', { nodeId: id, error });
+      toast.error(error?.message || t('request.importContractInvalidJson'));
+    } finally {
+      event.target.value = '';
+    }
+  };
+
   const renderTabBarExtraContent = () => {
     if (activeTab === RequestTabKey.Examples) {
       return (
@@ -157,6 +224,9 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
           onUploadJson={() => fileInputRef.current?.click()}
           onDownloadJson={handleDownloadJson}
           hasActiveSource={Boolean(activeSource)}
+          onImportContract={() => contractFileInputRef.current?.click()}
+          onExportContract={handleExportContract}
+          hasContract={hasContract}
           onSimulate={openSimulatorPanel}
           simulateDisabled={activePanel === 'simulator'}
         />
@@ -240,6 +310,16 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
               type='file'
               ref={fileInputRef}
               onChange={handleUploadJson}
+              onClick={(event) => {
+                (event.target as HTMLInputElement).value = '';
+              }}
+            />
+            <input
+              hidden
+              accept='application/json'
+              type='file'
+              ref={contractFileInputRef}
+              onChange={handleImportContractFile}
               onClick={(event) => {
                 (event.target as HTMLInputElement).value = '';
               }}
