@@ -288,6 +288,31 @@ InputContract 整体序列化为自包含 JSON（**信封带 `contractVersion`**
    contractVersion）先定稿并入 CONTRACT.md 输入侧一节（或独立小节）——分享
    格式是跨仓交换物，先立法后实施（ADR-011 契约先行同纪律）。
 
+## 实施注记（2026-10-01，批次一落档）
+
+批次一已实施（清单 #0-#4：契约层/双写存储/指纹/漂移引擎/迁移 UI；立法档见
+[input-contract-spec.md](../design/input-contract-spec.md)）。一处**机制偏差**
+申报，待实施评审裁定：
+
+- §1 原文「zustand store 作为第四个同构成员」→ 实施为**契约模块（纯函数）+
+  单写漏斗**：读/写/指纹/漂移/迁移收敛于 `helpers/request-schema/contract.ts`，
+  三编辑 hook 与模拟器持久化统一经它读写 content；三 hook 保留的只是纯会话
+  草稿态（防抖/脏标），node content 仍是唯一事实源；
+- 理由（详展见 spec §5）：唯一持久副本是 node content，zustand store 会引入
+  第二权威副本与同步税（undo/切图/上传/模拟器保存都要双向对账）；InputContract
+  是单页签会话态，与既有三 store 的跨面板作用域错配；additive 双写决定写路径
+  无论如何穿过 updateNode，store 只能坐在漏斗旁边而非替代它；§1 被评审接受的
+  三条根基决策（标准 JSON Schema / 完整实例 / 指纹锚）不受机制影响；
+- **改判条件**（任一成真则晋升 zustand——把模块函数包进 store 壳，语义层零
+  改动）：① 出现页签外消费者（Run-all 矩阵面板/跨面板漂移视图）；② jdm 按
+  字面实施 zustand 版本，两仓机制同构成为移植显性成本；③ 草稿同步效应持续
+  产 bug（store 单一状态机本身即 Bug 面收敛手段）。
+
+另注（批次二设计裁定）：ajv 约束校验与指纹锚协议**正交**——指纹戳记以定义
+走查为准（评审 §2「逐 example 重校验」的锚定语义维持结构层），约束违例
+（required/min/max/enum/pattern）作为实时警告呈现，不阻塞戳记；ajv 懒加载
+（动态 import 独立 chunk），主入口体积预算不动。
+
 ## 后果
 
 - 正面：三视图共享状态消除漂移静默；schema↔example 漂移在创作时暴露；
