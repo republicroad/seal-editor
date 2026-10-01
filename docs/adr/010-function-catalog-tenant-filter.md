@@ -6,6 +6,16 @@ accepted（2026-09-29 seal-editor 起草；2026-09-29 verdict 逐节裁定回填
 可过滤」原则（ed4595d 修正：出网域可按租户显式关闭，SSRF 面管控）；2026-09-29
 本仓确认转 accepted（确认随修正更新）。**轨道 B HOLD 解除**）
 
+> **✅ verdict 侧 Phase 0 + Phase 1 已落地（2026-10-01，verdict 仓批次 11）**：
+> `workspace.enabled_packs`（0008 迁移，null = 全量）+ **工作间目录端点**
+> `GET /v1/workspaces/:ws/custom-nodes/schema`（viewer+ 鉴权：会话成员或 api
+> key；`filterNamespaces` 双闸 = 部署 env `CATALOG_ALLOWED_NAMESPACES` ∩ 工作
+> 间白名单；编辑器 schemaSource 已接线带 ws）。**过滤语义与本 ADR 立法一致**：
+> 体验层过滤、执行面不加闸（服务端注册表唯一事实源）。设置页按全量口渲染
+> 勾选（origin 徽标 + 工具数），admin 可配。**遗留一致性问题**：下方补录的
+> appshell 四内建基础节点不经目录载荷——verdict 关 http 域后 httpRequestNode
+> 仍可见（归属本仓 ①/② 两案，verdict 未动，待轨道 B）。
+
 ## 背景
 
 轨道 B 裁定（宿主 2026-09-29）：函数生态产品化（A1 目录 UI / A2 补全 / A4 弃用
