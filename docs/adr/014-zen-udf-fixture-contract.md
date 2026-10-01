@@ -9,7 +9,21 @@ jdm-editor 评审：定位公理 + 决策 §1-§5 全部接受，开放问题 1-
 实施清单增补 #6（jdm demo-server fixtures-route 迁移，归属 jdm-editor 仓）。
 执行时序：#1/#2（zen-udf 0.13.0 + CONTRACT 测试侧）归属 jdm-editor，待宿主
 口令启动；#3-#5（seal 侧批次三 M1'）随之。**增补 §6 同步面预案（2026-10-01
-宿主提议）待 jdm 表态**——仅立名位与边界，不阻塞实施。
+宿主提议）待 jdm 表态**——仅立名位与边界，不阻塞实施。→ **implemented
+（2026-10-01 jdm-editor 侧 #1/#2/#6 完成：1a30cbbf + release 05f48335，
+zen-udf@0.13.0 已受理发布）**：executor 反转 + createRuntimeExecutor
+（`__fixtures__:` 键隔离 + promise memo + trace 显开供 traceHits）+ smoke/
+outcome 三分/durationMs/traceHits + expression 断言（评审修正形态
+`evaluateExpressionSync(source, { result: data })` 落地）+ CONTRACT.md §10
+测试契约（contractVersion 落存库信封层，OQ2 精确化）+ #6 jdm demo-server
+fixtures-route 迁移；验收=zen-udf 1078 全绿（存量两测迁移 + smoke/expression/
+outcome 三分/键隔离/onProgress 九用例，含宿主键不被覆盖断言）+ demo-server
+12/12。**§6 同步面预案：jdm 表态=接受（名位与边界照案）**，两点精化记录：
+①sync 通道的真实可达性受本仓分发器链路约束——UDF handler/limiter/breaker/
+端口皆异步，sync 面要求「全同步链路」（sync handler + 无异步策略），边界
+声明宜精确到分发器层而非仅执行器层；②名位入 CONTRACT §10 的时机=随 sync
+面实施批（本 ADR 立法零变更确认）。0.13.0 已按预案只落异步面。#3-#5（seal
+侧批次三 M1'）随本版实施。
 
 ## 背景
 
