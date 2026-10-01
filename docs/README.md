@@ -77,6 +77,7 @@ English files are canonical; `.zh-CN.md` files are translations kept in sync.
 | [`design/repl-panel-plan.md`](./design/repl-panel-plan.md) | ✅ 已实施(appshell 1.16.0) | A3 REPL 面板 + demo-server 单函数执行端点:参数校验/绑定分离、冷启动标注、catalog 试运行衔接;~1.25 天 |
 | [`design/graph-panel-recon.md`](./design/graph-panel-recon.md) | 🔵 侦察完成待裁定 | graph 面板区形态统一侦察:精确重复点(monaco options/工具栏组/添加钮三形态)+ ListPanel 提取两步走提案 |
 | [`design/input-node-ui-redesign.md`](./design/input-node-ui-redesign.md) | 🔵 UI 范式提案待裁定 | 输入节点 UI 重设计:三页签→分屏联动编辑器(Stoplight Studio 范式)+ reui 组件选型;ADR-013 的 UI 层配套 |
+| [`design/input-contract-spec.md`](./design/input-contract-spec.md) | 🟢 立法文档 | InputContract 数据形状/contractVersion 信封/additive 双写存储纪律/漂移协议;ADR-013 清单 #0,批次一已实施 |
 | [`design/upstream-contribution-plan.md`](./design/upstream-contribution-plan.md) | ✅ | 上游贡献治理裁决:贡献线由宿主手动执行,本仓不回馈上游 |
 
 ## 四、历史归档 / History(📦 只读)

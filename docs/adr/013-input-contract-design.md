@@ -174,7 +174,7 @@ InputContract 整体序列化为自包含 JSON（**信封带 `contractVersion`**
 
 | # | 项 | 归属 | 量级 | 前置 |
 | --- | --- | --- | --- | --- |
-| 0 | InputContract 数据形状 + 序列化信封（含 contractVersion）定稿，并入 CONTRACT.md 输入侧一节——分享格式是跨仓交换物，先立法后实施（ADR-011 契约先行同纪律） | seal-editor kernel | ~0.5 天 | — |
+| 0 | InputContract 数据形状 + 序列化信封（含 contractVersion）定稿，立法档见 [input-contract-spec.md](../design/input-contract-spec.md)——分享格式是跨仓交换物，先立法后实施（ADR-011 契约先行同纪律） | seal-editor kernel | ~0.5 天 | — |
 | 1 | InputContract store（合并三 hook → 单 store + drift 检测） | seal-editor kernel | ~1 天 | #0 |
 | 2 | Definitions 视图迁移到 contract store | seal-editor kernel | ~0.5 天 | 随 1 |
 | 3 | Examples 视图迁移 + drift 徽标 | seal-editor kernel | ~0.5 天 | 随 1 |
