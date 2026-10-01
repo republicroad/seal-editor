@@ -28,8 +28,9 @@ import {
   writeRequestInputContract,
 } from '../../../helpers/request-schema';
 import type { TranslationKey } from '../../../theming/i18n';
+import { type SimulatorExampleBinding, useDecisionGraphRaw, useDecisionGraphState } from '../context/dg-store.context';
 import type { useDecisionGraphActions } from '../context/dg-store.context';
-import { type SimulatorExampleBinding } from '../context/dg-store.context';
+import type { ContractDriftEvent, ExampleRunReport } from './fixtures-runner';
 
 export type RequestExampleDriftState = {
   drift: RequestExampleDrift;
@@ -51,6 +52,12 @@ type UseRequestExamplesEditingParams = {
   definitionDrafts: RequestDefinition[];
 };
 
+export type RunAllState = {
+  status: 'idle' | 'running' | 'done' | 'error';
+  report?: ExampleRunReport;
+  error?: string;
+};
+
 export const useRequestExamplesEditing = ({
   id,
   content,
@@ -69,6 +76,9 @@ export const useRequestExamplesEditing = ({
   const [exampleJsonDrafts, setExampleJsonDrafts] = useState<Record<string, string>>({});
   const [exampleJsonDirtyBySourceId, setExampleJsonDirtyBySourceId] = useState<Record<string, boolean>>({});
   const [descriptionDrafts, setDescriptionDrafts] = useState<Record<string, string>>({});
+  const { stateStore } = useDecisionGraphRaw();
+  const fixturesRunner = useDecisionGraphState((s) => s.fixturesRunner);
+  const [runAll, setRunAll] = useState<RunAllState>({ status: 'idle' });
 
   const inputContract = useMemo(
     () => readRequestInputContract(content).contract,
@@ -191,6 +201,88 @@ export const useRequestExamplesEditing = ({
       }),
     [exampleDriftStates, inputContract.examples],
   );
+
+  // ── 漂移事件外发（ADR-013 批次三 M2：数据装配归 kernel，宿主经 onContractEvent 消费）──
+  // effect 内读最新值用 ref，避免把高频 memo/草稿拉进依赖环
+  const contractRef = useRef(inputContract);
+  const definitionDraftsRef = useRef(definitionDrafts);
+  const constraintIssuesRef = useRef(constraintIssuesBySourceId);
+  const emitDriftEvent = useCallback(
+    (kind: ContractDriftEvent['kind'], exampleNames: string[], counts?: ContractDriftEvent['counts']) => {
+      graphActions.emitContractEvent({
+        at: new Date().toISOString(),
+        nodeId: id,
+        ...(nodeName?.trim() ? { nodeName } : {}),
+        kind,
+        exampleNames,
+        ...(counts ? { counts } : {}),
+      });
+    },
+    [graphActions, id, nodeName],
+  );
+  const driftCountsOf = useCallback(
+    (data: Record<string, unknown>, sourceId?: string): NonNullable<ContractDriftEvent['counts']> => {
+      const drift = computeExampleDrift(data, definitionDraftsRef.current);
+      return {
+        missing: drift.missing.length,
+        extra: drift.extra.length,
+        conflicts: drift.conflicts.length,
+        constraints: (constraintIssuesRef.current[sourceId ?? ''] ?? []).length,
+      };
+    },
+    [],
+  );
+
+  useEffect(() => {
+    contractRef.current = inputContract;
+  }, [inputContract]);
+
+  useEffect(() => {
+    definitionDraftsRef.current = definitionDrafts;
+  }, [definitionDrafts]);
+
+  useEffect(() => {
+    constraintIssuesRef.current = constraintIssuesBySourceId;
+  }, [constraintIssuesBySourceId]);
+
+  // drift-detected：schema 指纹变更时，已锚定示例转入漂移 → 每次提交至多一条
+  const prevSchemaFingerprintRef = useRef<string | null>(null);
+  useEffect(() => {
+    const previous = prevSchemaFingerprintRef.current;
+    prevSchemaFingerprintRef.current = currentSchemaFingerprint;
+
+    if (!previous || previous === currentSchemaFingerprint) {
+      return;
+    }
+
+    const drifted = contractRef.current.examples.filter(
+      (example) =>
+        typeof example.schemaFingerprint === 'string' && example.schemaFingerprint !== currentSchemaFingerprint,
+    );
+
+    if (drifted.length === 0) {
+      return;
+    }
+
+    const counts = drifted.reduce(
+      (acc, example) => {
+        const per = driftCountsOf(example.data, example.id);
+        return {
+          missing: acc.missing + per.missing,
+          extra: acc.extra + per.extra,
+          conflicts: acc.conflicts + per.conflicts,
+          constraints: acc.constraints + per.constraints,
+        };
+      },
+      { missing: 0, extra: 0, conflicts: 0, constraints: 0 },
+    );
+
+    emitDriftEvent(
+      'drift-detected',
+      drifted.map((example) => example.name),
+      counts,
+    );
+  }, [currentSchemaFingerprint, driftCountsOf, emitDriftEvent]);
   const exampleSourcesSyncSignature = useMemo(
     () => JSON.stringify(exampleSources.map((source) => ({ name: source.name, data: source.data }))),
     [exampleSources],
@@ -428,7 +520,9 @@ export const useRequestExamplesEditing = ({
       return;
     }
 
+    const before = driftCountsOf(source.data, source.id);
     const { data } = migrateRequestExampleDataByDefinitions(source.data, definitionDrafts);
+    emitDriftEvent('drift-migrated', [source.name], before);
     persistExamples(
       exampleSources.map((item, currentIndex) => (currentIndex === index ? { ...item, data } : item)),
       index,
@@ -439,6 +533,27 @@ export const useRequestExamplesEditing = ({
   const migrateAllExamples = () => {
     if (exampleSources.length === 0) {
       return;
+    }
+
+    const driftedNames: string[] = [];
+    const counts = exampleSources.reduce(
+      (acc, source) => {
+        const per = driftCountsOf(source.data, source.id);
+        if (per.missing + per.extra + per.conflicts + per.constraints > 0) {
+          driftedNames.push(source.name);
+        }
+        return {
+          missing: acc.missing + per.missing,
+          extra: acc.extra + per.extra,
+          conflicts: acc.conflicts + per.conflicts,
+          constraints: acc.constraints + per.constraints,
+        };
+      },
+      { missing: 0, extra: 0, conflicts: 0, constraints: 0 },
+    );
+
+    if (driftedNames.length > 0) {
+      emitDriftEvent('drift-migrated', driftedNames, counts);
     }
 
     persistExamples(
@@ -458,8 +573,38 @@ export const useRequestExamplesEditing = ({
       return;
     }
 
+    emitDriftEvent('drift-confirmed', [source.name]);
     persistExamples(exampleSources, index, { syncToSimulator: false });
   };
+
+  // ── Run all（ADR-013 批次三 M1 / ADR-014）：执行经宿主注入的 fixturesRunner，
+  // kernel 不认识引擎；宿主未注入（槽位为空）时按钮不渲染，此函数不会被调用
+  const runAllExamples = async () => {
+    if (!fixturesRunner || runAll.status === 'running' || exampleSources.length === 0) {
+      return;
+    }
+
+    setRunAll({ status: 'running' });
+    try {
+      const { decisionGraph } = stateStore.getState();
+      const report = await fixturesRunner(
+        decisionGraph,
+        exampleSources.map((source, index) => ({
+          name: source.name.trim() || formatRequestExampleSourceName(index, t('request.dataLabel')),
+          input: getPreparedExampleData(source.data),
+        })),
+      );
+      setRunAll({ status: 'done', report });
+    } catch (error: any) {
+      console.warn('[request-node] run all failed', { nodeId: id, error });
+      setRunAll({ status: 'error', error: error?.message ?? String(error) });
+    }
+  };
+
+  // 切节点即弃用上一节点的运行报告（矩阵是节点会话态）
+  useEffect(() => {
+    setRunAll({ status: 'idle' });
+  }, [id]);
 
   const handleExampleJsonChange = (nextValue: string) => {
     const activeSourceId = activeExampleSourceIdRef.current ?? activeSource?.id;
@@ -673,6 +818,9 @@ export const useRequestExamplesEditing = ({
     exampleSources,
     exampleDriftStates,
     hasAnyDriftedExample,
+    fixturesRunner,
+    runAll,
+    runAllExamples,
     activeSourceIndex,
     setActiveSourceIndex,
     editingSourceIndex,

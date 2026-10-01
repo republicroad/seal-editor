@@ -18,6 +18,7 @@ import type { JdmUiMode } from '../../decision-table/context/dt-store.context';
 import type { DecisionEdge, DecisionGraphType, DecisionNode } from '../dg-types';
 import { privateSymbol } from '../dg-types';
 import { mapToGraphEdge, mapToGraphEdges, mapToGraphNode, mapToGraphNodes } from '../dg-util';
+import type { ContractDriftEvent, FixturesRunner } from '../graph/fixtures-runner';
 import type { useGraphClipboard } from '../hooks/use-graph-clipboard';
 import type { CustomNodeSpecification } from '../nodes/custom-node';
 import { NodeKind, type NodeSpecification } from '../nodes/specifications/specification-types';
@@ -93,6 +94,9 @@ export type DecisionGraphStoreType = {
     simulatorRequest?: string;
     simulatorExampleBinding?: SimulatorExampleBinding;
 
+    /** ADR-013 批次三：Run all 执行槽位——宿主注入（appshell = simulateHandler 适配），未注入时 Run all 不渲染 */
+    fixturesRunner?: FixturesRunner | null;
+
     compactMode?: boolean;
 
     dictionaries?: DictionaryMap;
@@ -151,6 +155,9 @@ export type DecisionGraphStoreType = {
 
     setSimulatorRequest: (req: string) => void;
     setSimulatorExampleBinding: (binding?: SimulatorExampleBinding) => void;
+    setFixturesRunner: (runner: FixturesRunner | null) => void;
+    /** 漂移事件外发：经 listeners.onContractEvent 投递（无订阅者时静默） */
+    emitContractEvent: (event: ContractDriftEvent) => void;
 
     triggerNodeSelect: (id: string, mode: 'toggle' | 'only') => void;
   };
@@ -158,6 +165,7 @@ export type DecisionGraphStoreType = {
   listeners: {
     onChange?: (val: DecisionGraphType) => void;
     onPanelsChange?: (val?: string) => void;
+    onContractEvent?: (event: ContractDriftEvent) => void;
     onReactFlowInit?: (instance: ReactFlowInstance) => void;
     onCodeExtension?: CodeEditorProps['extension'];
     onFunctionReady?: (monaco: Monaco) => void;
@@ -210,6 +218,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         activePanel: undefined,
         panels: [],
         user: '',
+        fixturesRunner: null,
         compactMode: localStorage.getItem('jdm-compact-mode') === 'true',
         nodeTypes: {},
         globalType: {},
@@ -712,6 +721,12 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       },
       setSimulatorExampleBinding: (binding) => {
         stateStore.setState({ simulatorExampleBinding: binding });
+      },
+      setFixturesRunner: (runner) => {
+        stateStore.setState({ fixturesRunner: runner });
+      },
+      emitContractEvent: (event) => {
+        listenerStore.getState().onContractEvent?.(event);
       },
       removeNodeType: (id, kind) => {
         const { nodeTypes } = stateStore.getState();

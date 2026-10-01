@@ -102,6 +102,9 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     exampleSources,
     exampleDriftStates,
     hasAnyDriftedExample,
+    fixturesRunner,
+    runAll,
+    runAllExamples,
     activeSourceIndex,
     setActiveSourceIndex,
     editingSourceIndex,
@@ -227,6 +230,8 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
           onImportContract={() => contractFileInputRef.current?.click()}
           onExportContract={handleExportContract}
           hasContract={hasContract}
+          onRunAll={fixturesRunner ? runAllExamples : undefined}
+          runAllRunning={runAll.status === 'running'}
           onSimulate={openSimulatorPanel}
           simulateDisabled={activePanel === 'simulator'}
         />
@@ -372,6 +377,11 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
               onMigrateSource={migrateExample}
               onConfirmSourceValid={confirmExampleValid}
               onMigrateAll={migrateAllExamples}
+              runAll={runAll}
+              onRunResultSelect={(index) => {
+                setActiveSourceIndex(index);
+                syncExampleToSimulator(exampleSources[index], index);
+              }}
             />
           </React.Fragment>
         )}

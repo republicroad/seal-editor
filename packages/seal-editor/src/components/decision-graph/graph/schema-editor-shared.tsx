@@ -69,6 +69,9 @@ export type SchemaToolbarActionsProps = {
   onExportContract?: () => void;
   /** examples：契约是否非空（schema 或 examples 任一存在） */
   hasContract?: boolean;
+  /** examples：Run all（ADR-013 批次三）——宿主注入执行槽位时才提供（优雅降级：不传则不渲染） */
+  onRunAll?: () => void;
+  runAllRunning?: boolean;
   /** schema：格式化（monaco formatDocument） */
   onFormat?: () => void;
   /** schema：JSON → Schema 转换对话框 */
@@ -91,6 +94,8 @@ export const SchemaToolbarActions: React.FC<SchemaToolbarActionsProps> = ({
   onImportContract,
   onExportContract,
   hasContract,
+  onRunAll,
+  runAllRunning,
   onFormat,
   onConvertFromJson,
 }) => {
@@ -135,6 +140,19 @@ export const SchemaToolbarActions: React.FC<SchemaToolbarActionsProps> = ({
               onClick={onExportContract}
             >
               {t('request.exportContract')}
+            </Button>
+          </Tooltip>
+        )}
+        {onRunAll && (
+          <Tooltip title={t('request.runAllTooltip')} placement='bottomRight'>
+            <Button
+              type='text'
+              size='small'
+              disabled={disabled || runAllRunning}
+              icon={<PlayCircleOutlined />}
+              onClick={onRunAll}
+            >
+              {t('request.runAll')}
             </Button>
           </Tooltip>
         )}

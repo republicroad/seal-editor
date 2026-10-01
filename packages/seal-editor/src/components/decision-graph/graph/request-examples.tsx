@@ -5,14 +5,14 @@ import type { editor } from 'monaco-editor';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { RequestDefinition, RequestDefinitionType, RequestExampleSource } from '../../../helpers/request-schema';
-import { useT } from '../../../theming/i18n';
+import { type TranslationKey, useT } from '../../../theming/i18n';
 import { AutosizeTextArea } from '../../autosize-text-area';
 import { Button, Card, Popconfirm, Tooltip, Typography } from '../../primitives';
 import { PanelEmpty } from '../../shared/panel-empty';
 import { BlurCommitInput } from './blur-commit-input';
 import { RequestExampleSummary, type RequestExampleSummaryData } from './request-example-summary';
 import { registerJsonInlayHintsProvider } from './request-inlay-hints';
-import type { RequestExampleDriftState } from './use-request-examples-editing';
+import type { RequestExampleDriftState, RunAllState } from './use-request-examples-editing';
 
 export type RequestExamplesProps = {
   sources: RequestExampleSource[];
@@ -44,6 +44,9 @@ export type RequestExamplesProps = {
   onMigrateSource?: (index: number) => void;
   onConfirmSourceValid?: (index: number) => void;
   onMigrateAll?: () => void;
+  /** Run all 状态（ADR-013 批次三）：done/error 时渲染结果矩阵 */
+  runAll?: RunAllState;
+  onRunResultSelect?: (index: number) => void;
 };
 
 const ExampleDriftBadge: React.FC<{ state: RequestExampleDriftState }> = ({ state }) => {
@@ -81,6 +84,69 @@ const ExampleDriftBadge: React.FC<{ state: RequestExampleDriftState }> = ({ stat
 /** OQ4 裁定：无硬上限，>20 软提醒（列表折叠 + 一键展开） */
 const SOURCE_LIST_SOFT_LIMIT = 20;
 
+const OUTCOME_CLASS: Record<string, string> = {
+  'passed': 'text-emerald-600 dark:text-emerald-400',
+  'assertion-failed': 'text-amber-600 dark:text-amber-400',
+  'execution-error': 'text-destructive',
+};
+
+const OUTCOME_LABEL: Record<string, TranslationKey> = {
+  'passed': 'request.outcomePassed',
+  'assertion-failed': 'request.outcomeAssertionFailed',
+  'execution-error': 'request.outcomeExecutionError',
+};
+
+/** Run all 结果矩阵（examples ARE test cases，ADR-013 §3）：行序 = 用例序，点行选中 */
+const RunAllMatrix: React.FC<{
+  report: NonNullable<RunAllState['report']>;
+  onSelect: (index: number) => void;
+}> = ({ report, onSelect }) => {
+  const t = useT();
+
+  return (
+    <div
+      aria-label={t('request.runAllMatrixLabel')}
+      className='shrink-0 overflow-y-auto rounded-lg border border-border bg-card'
+      style={{ maxHeight: 180 }}
+    >
+      <div className='flex items-center justify-between border-b border-border px-3 py-1.5'>
+        <Typography.Text strong className='text-xs'>
+          {t('request.runAllMatrixTitle')}
+        </Typography.Text>
+        <Typography.Text className='text-xs opacity-70'>
+          {t('request.runAllPassed')} {report.passed} · {t('request.runAllFailedCount')} {report.failed}
+        </Typography.Text>
+      </div>
+      {report.results.map((result, index) => (
+        <div
+          key={`${result.name}-${index}`}
+          role='button'
+          tabIndex={0}
+          className='flex cursor-pointer items-center gap-2 border-b border-border/60 px-3 py-1.5 text-xs last:border-b-0 hover:bg-muted/60'
+          onClick={() => onSelect(index)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              onSelect(index);
+            }
+          }}
+        >
+          <span className={`w-16 shrink-0 font-medium ${OUTCOME_CLASS[result.outcome] ?? ''}`}>
+            {t(OUTCOME_LABEL[result.outcome] ?? 'request.outcomePassed')}
+          </span>
+          <Typography.Text className='min-w-0 flex-1 truncate'>{result.name}</Typography.Text>
+          {result.durationMs !== undefined && <span className='shrink-0 opacity-60'>{result.durationMs}ms</span>}
+          {result.error && (
+            <Tooltip title={result.error}>
+              <span className='max-w-[180px] shrink-0 truncate text-destructive'>{result.error}</span>
+            </Tooltip>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export const RequestExamples: React.FC<RequestExamplesProps> = ({
   sources,
   activeSourceIndex,
@@ -110,6 +176,8 @@ export const RequestExamples: React.FC<RequestExamplesProps> = ({
   onMigrateSource,
   onConfirmSourceValid,
   onMigrateAll,
+  runAll,
+  onRunResultSelect,
 }) => {
   const t = useT();
   const [inlayHintsEnabled, setInlayHintsEnabled] = useState(true);
@@ -409,6 +477,14 @@ export const RequestExamples: React.FC<RequestExamplesProps> = ({
           <RequestExampleSummary summary={summary} getDefinitionTypeLabel={getDefinitionTypeLabel} />
         </div>
       </div>
+      {runAll?.status === 'error' && (
+        <div className='shrink-0 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-1.5 text-xs text-destructive'>
+          {runAll.error || t('request.runAllFailed')}
+        </div>
+      )}
+      {runAll?.status === 'done' && runAll.report && onRunResultSelect && (
+        <RunAllMatrix report={runAll.report} onSelect={onRunResultSelect} />
+      )}
     </div>
   );
 };

@@ -51,6 +51,15 @@ export { calculateDiffGraph, processEdges, processNodes, type ProcessNodesOption
 export { computeGraphDiff, type GraphDiff, type GraphNodeChange } from './diff/compute-graph-diff';
 
 export { TabRequest, type TabRequestProps } from './graph/tab-request';
+export type {
+  ContractDriftEvent,
+  ContractDriftEventKind,
+  ContractFixture,
+  ExampleRunOutcome,
+  ExampleRunReport,
+  ExampleRunResult,
+  FixturesRunner,
+} from './graph/fixtures-runner';
 export { CustomFunctionTable, type TabCustomFunctionProps } from './graph/tab-custom-function-table';
 export { ToolbarAnchor, clusterToolbarItems, type ToolbarItem } from './graph/toolbar-anchor';
 

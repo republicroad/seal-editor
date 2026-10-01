@@ -223,4 +223,38 @@ describe('decision graph store actions', () => {
     expect(context.stateStore.getState().compactMode).toBe(true);
     expect(localStorage.getItem('jdm-compact-mode')).toBe('true');
   });
+
+  it('fixtures runner slot defaults to null and accepts injection (ADR-013 batch-3)', () => {
+    expect(context.stateStore.getState().fixturesRunner).toBeNull();
+
+    const runner = async () => ({ passed: 1, failed: 0, results: [] });
+    act(() => context.actions.setFixturesRunner(runner));
+    expect(context.stateStore.getState().fixturesRunner).toBe(runner);
+
+    act(() => context.actions.setFixturesRunner(null));
+    expect(context.stateStore.getState().fixturesRunner).toBeNull();
+  });
+
+  it('emitContractEvent forwards to the onContractEvent listener (ADR-013 batch-3 M2)', () => {
+    const seen: unknown[] = [];
+    act(() => {
+      context.listenerStore.setState({
+        onContractEvent: (event) => {
+          seen.push(event);
+        },
+      });
+    });
+
+    const event = {
+      at: '2026-10-01T00:00:00.000Z',
+      nodeId: 'in',
+      nodeName: 'Request',
+      kind: 'drift-migrated' as const,
+      exampleNames: ['GOLD'],
+      counts: { missing: 2, extra: 1, conflicts: 0, constraints: 0 },
+    };
+    act(() => context.actions.emitContractEvent(event));
+
+    expect(seen).toEqual([event]);
+  });
 });
