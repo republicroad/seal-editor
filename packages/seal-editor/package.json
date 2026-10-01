@@ -72,6 +72,7 @@
     "@tanstack/react-virtual": "catalog:",
     "@xyflow/react": "^12.3.0",
     "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
     "dnd-core": "^16.0.1",

@@ -36,6 +36,21 @@ describe('ajv lazy validation service (ADR-013 OQ2: ajv core + 2020-12)', () => 
     expect(await validateExampleDataBySchema({ any: 'thing' }, {})).toEqual([]);
   });
 
+  it('validates format keywords via ajv-formats (definitions emit date-time for datetime fields)', async () => {
+    const formatSchema = {
+      type: 'object',
+      properties: { when: { type: 'string', format: 'date-time' } },
+      required: ['when'],
+    };
+
+    expect(await validateExampleDataBySchema({ when: '2026-10-01T00:00:00Z' }, formatSchema)).toEqual([]);
+    expect(
+      (await validateExampleDataBySchema({ when: 'not-a-timestamp' }, formatSchema)).some((issue) =>
+        issue.includes('format'),
+      ),
+    ).toBe(true);
+  });
+
   it('non-compilable schema degrades to an empty list (schema errors surface in the Schema tab)', async () => {
     const issues = await validateExampleDataBySchema(
       { a: 1 },

@@ -402,7 +402,7 @@ importers:
         version: 0.23.1
       '@hookform/resolvers':
         specifier: ^5.9.1
-        version: 5.9.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(ajv@8.20.0)(joi@18.2.9)(react-hook-form@7.88.0(react@19.2.8))(valibot@1.2.0(typescript@5.9.3))(zod@4.3.6)
+        version: 5.9.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(ajv-formats@3.0.1(ajv@8.20.0))(ajv@8.20.0)(joi@18.2.9)(react-hook-form@7.88.0(react@19.2.8))(valibot@1.2.0(typescript@5.9.3))(zod@4.3.6)
       '@lezer/common':
         specifier: ^1.5.2
         version: 1.5.2
@@ -427,6 +427,9 @@ importers:
       ajv:
         specifier: ^8.20.0
         version: 8.20.0
+      ajv-formats:
+        specifier: ^3.0.1
+        version: 3.0.1(ajv@8.20.0)
       class-variance-authority:
         specifier: 'catalog:'
         version: 0.7.1
@@ -9446,7 +9449,7 @@ snapshots:
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
 
-  '@hookform/resolvers@5.9.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(ajv@8.20.0)(joi@18.2.9)(react-hook-form@7.88.0(react@19.2.8))(valibot@1.2.0(typescript@5.9.3))(zod@4.3.6)':
+  '@hookform/resolvers@5.9.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(ajv-formats@3.0.1(ajv@8.20.0))(ajv@8.20.0)(joi@18.2.9)(react-hook-form@7.88.0(react@19.2.8))(valibot@1.2.0(typescript@5.9.3))(zod@4.3.6)':
     dependencies:
       '@standard-schema/utils': 0.3.0
       react-hook-form: 7.88.0(react@19.2.8)
@@ -9454,6 +9457,7 @@ snapshots:
       '@sinclair/typebox': 0.34.52
       '@standard-schema/spec': 1.1.0
       ajv: 8.20.0
+      ajv-formats: 3.0.1(ajv@8.20.0)
       joi: 18.2.9
       valibot: 1.2.0(typescript@5.9.3)
       zod: 4.3.6
@@ -10435,7 +10439,7 @@ snapshots:
       '@gorules/lezer-zen': 0.8.1
       '@gorules/lezer-zen-template': 0.4.0
       '@gorules/zen-engine-wasm': 0.23.1
-      '@hookform/resolvers': 5.9.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(ajv@8.20.0)(joi@18.2.9)(react-hook-form@7.88.0(react@19.2.8))(valibot@1.2.0(typescript@5.9.3))(zod@4.3.6)
+      '@hookform/resolvers': 5.9.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(ajv-formats@3.0.1(ajv@8.20.0))(ajv@8.20.0)(joi@18.2.9)(react-hook-form@7.88.0(react@19.2.8))(valibot@1.2.0(typescript@5.9.3))(zod@4.3.6)
       '@lezer/common': 1.5.2
       '@lezer/highlight': 1.2.3
       '@lezer/lr': 1.4.10

@@ -16,7 +16,14 @@ let ajvInstancePromise: Promise<Ajv2020> | null = null;
 const compileCache = new Map<string, Promise<ValidateFunction>>();
 
 const loadAjv = (): Promise<Ajv2020> => {
-  ajvInstancePromise ??= import('ajv/dist/2020').then((mod) => new mod.default({ allErrors: true }));
+  // ajv-formats 随 ajv 同批懒加载——definitions 为 datetime 字段产出
+  // format: 'date-time'，strict 模式下未知 format 会在编译期抛错，
+  // 不注册 formats 则该 schema 的约束校验静默降级（2026-10-01 实测钉住）
+  ajvInstancePromise ??= Promise.all([import('ajv/dist/2020'), import('ajv-formats')]).then(([mod, formats]) => {
+    const ajv = new mod.default({ allErrors: true });
+    formats.default(ajv);
+    return ajv;
+  });
   return ajvInstancePromise;
 };
 
