@@ -178,7 +178,7 @@ fixtures 形状是跨仓交换物（verdict 存库、seal-editor 消费）——
 | 2 | CONTRACT.md 测试侧一节（executor/fixture/report 形状 + contractVersion） | jdm-editor | ~0.25 天 |
 | 3 | Run all UI + `fixturesRunner` 槽位（kernel 保持零 zen-udf 依赖） | seal-editor kernel（ADR-013 批次三 M1） | ~0.5 天 |
 | 4 | zen-udf 依赖 + 参考适配器（simulateHandler→executor：图快照闭包 + Simulation.trace→traceHits）注入槽位 | seal-editor appshell | ~0.5 天 |
-| 5 | demo-server `/v1/fixtures/execute` 迁移 createRuntimeExecutor（字面同款验证） | seal-editor demo-server | ~0.25 天 |
+| ~~5~~ | **勘误（批次三实施核查，2026-10-01）：seal 侧 demo-server 从无 fixtures 路由**（评审「两仓各有」仅 jdm 侧成立）——seal 侧无 createRuntimeExecutor 消费点，#6 为唯一迁移项 | — | — |
 | 6 | jdm 仓 demo-server `apps/demo-server/src/fixtures-route.ts` 迁移 createRuntimeExecutor（签名 `Parameters<typeof runDecisionTests>[0]` 随形态变更）——评审补充发现 2 增补 | jdm-editor | ~0.25 天 |
 
 验收口径（评审补充发现 5）：现 fixtures.test.ts 套件迁移新形态全绿 + jdm/seal
