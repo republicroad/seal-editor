@@ -4,7 +4,10 @@
 proposed（2026-10-01 seal-editor 起草——zen-udf 单一源与发布方在 jdm-editor 仓
 （ruling 12），目标版本 **0.13.0**，旧形态 1.0 移除。本 ADR 起因于 ADR-013 批次
 三「Run all 复用 runDecisionTests，勿新写 runner」的复用诉求与 kernel 引擎无关
-架构的张力。待 jdm 协商裁定：逐节标注接受/否决/修改，更新本状态行）
+架构的张力。）→ **reviewed（2026-10-01 jdm-editor 评审：定位公理接受、决策
+§1-§5 全部接受（§4 附 A.4 蓝图 bug 修正一处）、开放问题 1-5 表态、五条补充
+发现见「评审注记」——实施清单增补 jdm demo-server 迁移项后即可开工）**
+（待 jdm 协商裁定：逐节标注接受/否决/修改，更新本状态行）
 
 ## 背景
 
@@ -346,3 +349,67 @@ demo-server `/v1/fixtures/execute` 与 verdict 登记页同款迁移（约 5 行
 seal-appshell 参考适配器（批次三 M1'）则以 simulateHandler 构造 executor：
 `simulation.error → {error}`、`simulation.result.result → {result}`、
 `Object.keys(simulation.result.trace) → traceHits`——zen-udf 零浏览器代码。
+
+## 评审注记（jdm-editor 仓——zen-udf 源仓，2026-10-01）
+
+### 事实核查（四缺陷全部属实；一处行数勘误；一处消费面勘误）
+
+1. **执行器耦合——属实**：`runDecisionTests(runtime, options)` 馂参即
+   DecisionRuntime（fixtures.ts:88）；
+2. **expect 必填 + predicate 不可序列化——属实**：`expect: Expectation`
+   为必填字段（:30），predicate 携带函数体（:27）；
+3. **报告太薄——属实**：FixtureResult 仅 {name, passed, actual?, error?}；
+4. **隔离缺陷——属实且比陈述更具体**：fixtures.ts:96-102 将模型登记在
+   **用户传入的 key** 上（共享 runtime）——同键替换宿主在服务的模型缓存 +
+   污染 ADR-003 归宿主所有的 L1 决策缓存；跑完还驻留缓存不逐出；
+5. 行数勘误：现文件 139 行（ADR 写 140，无关紧要）；
+6. **消费面勘误（实施清单须补）**：demo-server 两仓各有——jdm-editor
+   `apps/demo-server/src/fixtures-route.ts`（registerFixturesRoute，签名
+   `Parameters<typeof runDecisionTests>[0]` 即 runtime）**不在实施清单**，
+   迁移归属 jdm-editor 仓（随 0.13.0 同批）；清单 #5 的 seal demo-server
+   迁移保留。
+
+### 逐节裁定
+
+| 节 | 裁定 |
+| --- | --- |
+| 定位边界公理 | **接受**（宿主 2026-10-01 已裁；与本仓端口层/服务端多租户定位/审计免 trace 化立场一致。wasm 出局=新工件多租户重设计的划界，防止了 1.0 范围膨胀） |
+| §1 executor 反转 | **接受**。实现注记三条：①`ensureRegistered` 闭包 boolean 在并发首跑可双重登记（try/catch 幂等兜底无害，建议 promise memo 一行）；②`model` 形态与现实现对齐（object = 图 content）；③index.ts 类型导出面同步（`RunDecisionTestsOptionsWithModel` → `RunDecisionTestsOptions` 等随签名变更重排） |
+| §2 expect 可选化（smoke） | **接受**——NamedExample↔DecisionFixture 的桥成立，「smoke 起步、逐个毕业为断言」的演进路径与 ADR-011 conformance 同构 |
+| §3 报告增强 | **接受**（additive、passed 保留向后兼容、outcome 枚举三分正确——断言失败与执行错误分家是结果矩阵可读性的关键） |
+| §4 expression 断言 | **接受方向，附 A.4 蓝图 bug 修正一处（实施时必改）**：`createZenExpressionEvaluator` 现稿 `evaluateExpressionSync(source, JSON.stringify(data ?? {}))` 两处错——①input 须传**对象**非 JSON 字符串（回归语料 runner 同款 API 用法为证）；②按开放问题 3 的裁定（仅 result 根绑定），上下文应为 `{ result: data }`。**正确形态：`evaluateExpressionSync(source, { result: data }) !== false`**。predicate 降级进程内糖、文档标注不入序列化契约——正确，序列化债务就此清偿 |
+| §5 契约立法 | **接受**——executor/fixture/report 形状随 0.13.0 同版入 CONTRACT.md 测试侧（清单 #2），契约先行纪律与 ADR-012 #0 同款 |
+
+### 开放问题表态（1-5）
+
+1. **直接替换——同意**（0.x 破坏许可内；消费方三处：jdm demo-server、
+   verdict 登记页、seal demo-server，迁移均机械，A.4 各约 5 行）；
+2. **加 contractVersion——同意，精确化落点**：版本落在**存库的信封层**
+   （verdict 登记页存的夹具文档），运行时 `FixtureReport` 返回值不携带
+   （其形状随包版本走，加版本无升级语义）；
+3. **仅 result 根绑定——同意**（输入上下文暴露属 v2；夹具的 input 本就
+   在 fixture 上，断言引用它属罕见需求）；
+4. **traceHits 归 executor——同意**（runtime 侧 `Object.keys(result.trace)`、
+   浏览器侧 `Simulation.trace` keys，各自语义对齐）；
+5. **并发下 onProgress 乱序可接受——同意**（progress 携带 index）。
+
+### 补充发现（五条）
+
+1. **0.13.0 编号可用性确认**：dt months 对齐已裁随 1.0.0 发版，0.13.0 空闲——
+   本提案可用；且 fixtures 契约在 1.0 端口面冻结前落位，时序正确（契约先冻结）；
+2. **jdm demo-server 迁移补清单**（事实核查 6）：实施清单增 #6——
+   `apps/demo-server/src/fixtures-route.ts` 迁移 createRuntimeExecutor，
+   归属 jdm-editor，~0.25 天，随 #1 同批发版验证；
+3. **隔离修复的价值加成**：`__fixtures__:` 键隔离顺带消除「夹具模型永久驻留
+   L1 缓存」的内存驻留问题——可选增强：适配器跑完 evict（或依赖 LRU 自然
+   淘汰，注记即可，不强求）；
+4. **traceHits 与审计免 trace 化不冲突**：runtime 适配器取命中节点需
+   `trace: true`（evaluateAsync 透传）——夹具是低频测试面，与生产热路径的
+   审计免 trace 化（auditJournalRegistry，cbbbd347）互不干扰；此处 trace
+   开销是测试语义的一部分；
+5. **验收口径**：现 fixtures.test.ts 套件迁移新形态全绿 + jdm/seal 两侧
+   demo-server 字面同款验证 + 新增四组用例（smoke 语义/expression 断言/
+   outcome 三分/`__fixtures__:` 键隔离——最后一条以「宿主键不被覆盖」断言）。
+
+**裁定汇总：全部接受（§4 附一处必改），实施清单增补 #6 后即可开工——
+#1/#2（zen-udf 0.13.0 + CONTRACT 测试侧）归属 jdm-editor，待宿主口令启动。**
