@@ -155,3 +155,194 @@ fixtures 形状是跨仓交换物（verdict 存库、seal-editor 消费）——
   依赖（集成层归属）；执行语义单源原则不变（默认通道仍是宿主服务端执行）；
 - 边界公理：zen-udf 服务端定位 + wasm 出局（宿主裁定 2026-10-01）——将来
   浏览器本地引擎 = 新工件 + 多租户重设计，不经由、也不预留于本 ADR。
+
+## 附 A · fixtures.ts 修改蓝图（实现级）
+
+> 现文件 140 行（Y7）。改造四步：契约类型 → runner 重写 → createRuntimeExecutor
+> 新增 → 表达式求值器注入。执行/租户/回放/追踪全部从 runner 迁出到适配器，
+> runner 保持零引擎导入（浏览器可移植的前提）。
+
+### A.1 契约类型（替换/新增）
+
+```ts
+export type Expectation =
+  | { mode: 'deep'; value: unknown }
+  | { mode: 'path'; path: string; value: unknown }
+  | { mode: 'expression'; source: string }                       // 新增：可序列化
+  | { mode: 'predicate'; test: (result: unknown) => boolean };   // 保留：进程内糖，不入序列化契约
+
+export interface DecisionFixture {
+  name: string;
+  input: unknown;
+  asOf?: string;
+  journal?: ReplayJournalEntry[];
+  expect?: Expectation;                                          // 必填 → 可选（smoke）
+}
+
+export type FixtureOutcome = 'passed' | 'assertion-failed' | 'execution-error';
+
+export interface FixtureResult {
+  name: string;
+  passed: boolean;                                               // 保留（聚合向后兼容）
+  outcome: FixtureOutcome;                                       // 新增
+  actual?: unknown;
+  error?: string;
+  durationMs?: number;                                           // 新增
+  traceHits?: string[];                                          // 新增
+}
+
+export interface FixtureReport { passed: number; failed: number; results: FixtureResult[]; }
+
+/** 执行器契约（CONTRACT.md 测试侧）：一段「给定夹具，产出一次执行结果」的能力 */
+export type DecisionTestExecutor = (
+  fixture: DecisionFixture,
+  index: number,
+) => Promise<{
+  result?: unknown;
+  error?: string;
+  durationMs?: number;
+  traceHits?: string[];
+}>;
+
+/** expression 断言求值器（注入——runner 保持零引擎依赖；Node 世界用 A.4 工厂） */
+export type ExpressionEvaluator = (source: string, data: unknown) => boolean;
+
+export interface RunDecisionTestsOptions {
+  executor: DecisionTestExecutor;
+  fixtures: DecisionFixture[];
+  concurrency?: number;            // 默认 1——act 类算子副作用，并发是显式选择
+  onProgress?: (result: FixtureResult, index: number, total: number) => void;
+  expressionEvaluator?: ExpressionEvaluator;   // 缺省遇 expression 断言 → assertion-failed
+  // tenantId/rev 移除：执行关切，归 createRuntimeExecutor（见 A.3）
+}
+```
+
+### A.2 runner 重写（核心循环——零引擎导入）
+
+```ts
+export async function runDecisionTests(options: RunDecisionTestsOptions): Promise<FixtureReport> {
+  const { executor, fixtures, concurrency = 1, onProgress, expressionEvaluator } = options;
+  const results: FixtureResult[] = new Array(fixtures.length);
+  let cursor = 0;
+
+  const runNext = async (): Promise<void> => {
+    while (cursor < fixtures.length) {
+      const index = cursor++;
+      const fixture = fixtures[index];
+      const startedAt = Date.now();
+      let execution: Awaited<ReturnType<DecisionTestExecutor>>;
+      try {
+        execution = await executor(fixture, index);
+      } catch (e) {
+        execution = { error: e instanceof Error ? e.message : String(e) };
+      }
+      const durationMs = execution.durationMs ?? Date.now() - startedAt;
+
+      let result: FixtureResult;
+      if (execution.error) {
+        result = { name: fixture.name, passed: false, outcome: 'execution-error',
+                   error: execution.error, durationMs, traceHits: execution.traceHits };
+      } else if (fixture.expect) {
+        const passed = matches(execution.result, fixture.expect, expressionEvaluator);
+        result = { name: fixture.name, passed, outcome: passed ? 'passed' : 'assertion-failed',
+                   actual: execution.result,
+                   ...(passed ? {} : { error: 'expectation mismatch' }),
+                   durationMs, traceHits: execution.traceHits };
+      } else {
+        result = { name: fixture.name, passed: true, outcome: 'passed',
+                   actual: execution.result, durationMs, traceHits: execution.traceHits };
+      }
+
+      results[index] = result;
+      onProgress?.(result, index, fixtures.length);
+    }
+  };
+
+  await Promise.all(Array.from({ length: Math.max(1, concurrency) }, runNext));
+
+  return {
+    passed: results.filter((r) => r.passed).length,
+    failed: results.filter((r) => !r.passed).length,
+    results,
+  };
+}
+
+// matches() 增分支：expression → evaluator 存在则 try{evaluator(source,result)}
+// （抛错=断言失败，error 注明 expression evaluation failed），缺省=断言失败；
+// deep/path 分支与现实现逐字保留。
+```
+
+### A.3 createRuntimeExecutor（新增——现 runDecisionTests 的执行侧原样迁入）
+
+```ts
+const FIXTURE_KEY_PREFIX = '__fixtures__:';
+
+export const createRuntimeExecutor = (
+  runtime: DecisionRuntime,
+  options: { key: string; model: string | object; rev?: string; tenantId?: string },
+): DecisionTestExecutor => {
+  const tenantId = options.tenantId ?? 'fixtures';
+  const rev = options.rev ?? 'latest';
+  const cacheKey = `${FIXTURE_KEY_PREFIX}${options.key}`;   // 键隔离：不碰宿主服务键空间
+  let registered = false;
+
+  const ensureRegistered = async () => {                    // 惰性登记：首次执行才落缓存
+    if (registered) return;
+    await runWithExecContext({ tenantId }, async () => {
+      try {
+        runtime.createDecisionWithCacheKey(cacheKey, options.model, rev);
+      } catch {
+        runtime.updateDecisionWithCacheKey(cacheKey, options.model, rev);
+      }
+    });
+    registered = true;
+  };
+
+  return async (fixture) => {
+    await ensureRegistered();
+    const startedAt = Date.now();
+    const execCtx = {
+      tenantId,
+      decisionId: `fixture:${fixture.name}`,
+      ...(fixture.asOf ? { eventTime: fixture.asOf } : {}),
+      ...(fixture.journal
+        ? { replay: { decisionId: `fixture:${fixture.name}`,
+                      asOf: fixture.asOf ?? new Date().toISOString(), journal: fixture.journal } }
+        : {}),
+    };
+    const outcome = await runWithExecContext(execCtx, () =>
+      runtime.evaluateAsync(cacheKey, fixture.input, undefined, rev));
+    return {
+      result: outcome.result,
+      durationMs: Date.now() - startedAt,
+      traceHits: extractTraceHitIds(outcome),   // 从 evaluateAsync 的 trace 数据面取命中节点 id
+    };
+  };
+};
+
+/** Node 世界便利工厂（@gorules/zen-engine 的 evaluateExpression 封装） */
+export const createZenExpressionEvaluator = (): ExpressionEvaluator =>
+  (source, data) => evaluateExpressionSync(source, JSON.stringify(data ?? {})) !== false;
+```
+
+要点：现实现第 97-101 行的登记与 103-132 行的逐夹具 ExecContext/journal/replay
+逻辑**逐字迁入**适配器，仅三处变化——键加 `__fixtures__:` 前缀（隔离修复）、
+登记惰性化（不再无谓落缓存）、trace 命中提取。
+
+### A.4 消费方迁移（各一行）
+
+```ts
+// 旧
+await runDecisionTests(runtime, { key, model, fixtures, tenantId, rev });
+// 新
+await runDecisionTests({
+  executor: createRuntimeExecutor(runtime, { key, model, tenantId, rev }),
+  fixtures,
+  expressionEvaluator: createZenExpressionEvaluator(),   // 夹具含 expression 断言时
+});
+```
+
+demo-server `/v1/fixtures/execute` 与 verdict 登记页同款迁移（约 5 行/处）；
+seal-appshell 参考适配器（批次三 M1'）则以 simulateHandler 构造 executor：
+`simulation.error → {error}`、`simulation.result.result → {result}`、
+`Object.keys(simulation.result.trace) → traceHits`——zen-udf 零浏览器代码。
