@@ -100,6 +100,29 @@ ADR §1 写的是「zustand store 作为第四个同构成员」；本仓实施�
 
 | 批次 | 内容 | 状态 |
 | --- | --- | --- |
-| 一 | 数据形状 + 双写存储 + 指纹 + 漂移引擎 + 徽标/迁移/确认 UI + 本立法文档 | ✅ 本批 |
-| 二 | ajv（懒加载）约束级校验（required/min/max/enum/pattern）+ 信封导入/导出 + >20 软提醒 | 待排 |
+| 一 | 数据形状 + 双写存储 + 指纹 + 漂移引擎 + 徽标/迁移/确认 UI + 本立法文档 | ✅ 本批（已验收，见 §7） |
+| 二 | ajv（懒加载）约束级校验（required/min/max/enum/pattern）+ 信封导入/导出 + >20 软提醒；**新增写路径 MUST 经 writeRequestInputContract** | 待排 |
 | 三 | Run all 复用 zen-udf `runDecisionTests`（DecisionFixture[] → FixtureReport）+ appshell 变更日志对接 | 待排 |
+
+## 7 · 批次一验收记录（jdm-editor 仓，2026-10-01）
+
+**结论：批次一验收通过**（324668f + 48c8aab + c74f6e6 代码级核查）。
+
+- **评审五点全部落地**：改号 ADR-013、contractVersion 信封、漂移三类清单
+  （未做 structural diff）、zod 显式声明 + parse-fidelity fixture（safeParse
+  剥键陷阱预防）、schema 投影纪律（legacy 读与 schema 文本并入双路剥离
+  examples/x-examples-meta）；
+- **跨仓 interchange 实证**：jdm-editor 读取面为 `content.schema/schemaUI`
+  （use-request-schema-editing.ts:27）——与双写镜像逐字段对上，旧读者兼容
+  成立；契约读取优先级/首编辑迁移/只读不写均按 spec §3 实现；
+- **§5 偏差（契约模块替代 zustand store）——裁定接受**：§1 的本质要求是
+  「唯一事实源 + 单一写路径」，契约模块+单写漏斗完整交付且纯函数形态更好测
+  （12 例单测）；zustand 的前提是跨面板响应式共享态，当前 content 本身即共享
+  事实源、三 hook 持有会话草稿，前提不成立。字面 zustand 化**不作义务**，
+  留作未来需要响应式跨面板订阅时的机械重构选项；
+- **一条纪律补丁**：单写漏斗的完备性靠约定维持——**新增写路径（批次二信封
+  导入等）MUST 经 `writeRequestInputContract`**，建议随批次二在本文档显式
+  立此条；
+- **一处文档勘误**：本档头部「本仓 kernel 1.16.0 已落」与 package.json
+  1.15.0 不符——批次一未发版，表述应为「已落码、未发版，随批次二/三合版」，
+  随下次提交修正。
