@@ -90,6 +90,8 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   });
   const {
     exampleSources,
+    exampleDriftStates,
+    hasAnyDriftedExample,
     activeSourceIndex,
     setActiveSourceIndex,
     editingSourceIndex,
@@ -102,6 +104,9 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     addExampleSource,
     removeExampleSource,
     persistExamples,
+    migrateExample,
+    migrateAllExamples,
+    confirmExampleValid,
     handleExampleJsonChange,
     commitExampleJson,
     handleDescriptionChange,
@@ -119,8 +124,6 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     activeGraphTabId,
     simulatorExampleBinding,
     nodeName,
-    sourceSchemaValue,
-    updateNodeSchema,
     definitionDrafts,
   });
 
@@ -284,6 +287,11 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
               summary={exampleFieldSummary}
               getDefinitionTypeLabel={getDefinitionTypeLabel}
               editorOptions={themedEditorOptions}
+              driftStates={exampleDriftStates}
+              hasAnyDriftedExample={hasAnyDriftedExample}
+              onMigrateSource={migrateExample}
+              onConfirmSourceValid={confirmExampleValid}
+              onMigrateAll={migrateAllExamples}
             />
           </React.Fragment>
         )}

@@ -2,14 +2,15 @@ import json5 from 'json5';
 import { toast } from 'sonner';
 
 import {
+  type RequestContentLike,
+  contractExamplesToSources,
   formatRequestExampleSourceName,
   getRequestDefinitions,
   getRequestExampleDataDefinitionConflicts,
-  getRequestExampleSources,
   normalizeRequestExampleDataByDefinitions,
-  resolveRequestSchemaValue,
-  setRequestSchemaValue,
+  readRequestInputContract,
   updateRequestSchemaExamples,
+  writeRequestInputContract,
 } from '../../../helpers/request-schema';
 import type { TranslationKey } from '../../../theming/i18n';
 import { type SimulatorExampleBinding, useDecisionGraphRaw } from '../context/dg-store.context';
@@ -63,7 +64,8 @@ export const useRequestExamplePersistence = ({
       return null;
     }
 
-    const currentSources = getRequestExampleSources(targetNode.content, { dataLabel: t('request.dataLabel') });
+    const { contract: targetContract } = readRequestInputContract(targetNode.content);
+    const currentSources = contractExamplesToSources(targetContract, { dataLabel: t('request.dataLabel') });
     const currentBoundSource = currentSources[activeExampleBinding.sourceIndex];
     const formatted = JSON.stringify(preparedParsed, null, 2);
 
@@ -110,14 +112,31 @@ export const useRequestExamplePersistence = ({
     actions.updateNode(activeExampleBinding.nodeId, (draft) => {
       draft.content ??= {};
       if (draft.type === 'inputNode') {
-        const currentSchema = resolveRequestSchemaValue(draft.content, { includeExamples: true });
-        setRequestSchemaValue(
-          draft.content as Record<string, any>,
-          updateRequestSchemaExamples(
-            currentSchema,
-            nextSources.map((source) => source.data),
-          ),
-        );
+        // 契约写路径：draft 内新读契约（双写镜像由 writeRequestInputContract 重生成）；
+        // 覆写示例的指纹清空 → 漂移状态在编辑器内重估（确认/迁移后熄灭）
+        const contentRecord = draft.content as RequestContentLike & Record<string, any>;
+        const { contract: freshContract } = readRequestInputContract(contentRecord);
+        const nextExamples = [...freshContract.examples];
+
+        while (nextExamples.length <= activeExampleBinding.sourceIndex) {
+          nextExamples.push({
+            id: crypto.randomUUID(),
+            name: formatRequestExampleSourceName(nextExamples.length, t('request.dataLabel')),
+            data: {},
+          });
+        }
+
+        nextExamples[activeExampleBinding.sourceIndex] = {
+          ...nextExamples[activeExampleBinding.sourceIndex],
+          name:
+            activeExampleBinding.sourceName ??
+            nextExamples[activeExampleBinding.sourceIndex]?.name ??
+            formatRequestExampleSourceName(activeExampleBinding.sourceIndex, t('request.dataLabel')),
+          data: preparedParsed,
+          schemaFingerprint: undefined,
+        };
+
+        writeRequestInputContract(contentRecord, { ...freshContract, examples: nextExamples });
       } else {
         draft.content.schema = updateRequestSchemaExamples(
           draft.content?.schema,

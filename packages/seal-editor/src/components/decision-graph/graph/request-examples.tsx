@@ -12,6 +12,7 @@ import { PanelEmpty } from '../../shared/panel-empty';
 import { BlurCommitInput } from './blur-commit-input';
 import { RequestExampleSummary, type RequestExampleSummaryData } from './request-example-summary';
 import { registerJsonInlayHintsProvider } from './request-inlay-hints';
+import type { RequestExampleDriftState } from './use-request-examples-editing';
 
 export type RequestExamplesProps = {
   sources: RequestExampleSource[];
@@ -37,6 +38,41 @@ export type RequestExamplesProps = {
   summary: RequestExampleSummaryData | null;
   getDefinitionTypeLabel: (type: RequestDefinitionType) => string;
   editorOptions: editor.IStandaloneEditorConstructionOptions;
+  /** InputContract 漂移状态（ADR-013 §2）：指纹锚失配 + missing/extra/type-mismatch 清单 */
+  driftStates?: Record<string, RequestExampleDriftState>;
+  hasAnyDriftedExample?: boolean;
+  onMigrateSource?: (index: number) => void;
+  onConfirmSourceValid?: (index: number) => void;
+  onMigrateAll?: () => void;
+};
+
+const ExampleDriftBadge: React.FC<{ state: RequestExampleDriftState }> = ({ state }) => {
+  const t = useT();
+  const { drift } = state;
+  const parts: string[] = [];
+
+  if (drift.missing.length > 0) {
+    parts.push(`${t('request.driftMissing')} ${drift.missing.length}`);
+  }
+  if (drift.extra.length > 0) {
+    parts.push(`${t('request.driftExtra')} ${drift.extra.length}`);
+  }
+  if (drift.conflicts.length > 0) {
+    parts.push(`${t('request.driftConflicts')} ${drift.conflicts.length}`);
+  }
+
+  return (
+    <Tooltip
+      title={
+        parts.length > 0 ? `${t('request.driftSchemaChanged')} · ${parts.join(' · ')}` : t('request.driftSchemaChanged')
+      }
+    >
+      <span
+        aria-label={t('request.driftSchemaChanged')}
+        className='ml-1 inline-block size-1.5 shrink-0 rounded-full bg-amber-500'
+      />
+    </Tooltip>
+  );
 };
 
 export const RequestExamples: React.FC<RequestExamplesProps> = ({
@@ -63,6 +99,11 @@ export const RequestExamples: React.FC<RequestExamplesProps> = ({
   summary,
   getDefinitionTypeLabel,
   editorOptions,
+  driftStates,
+  hasAnyDriftedExample,
+  onMigrateSource,
+  onConfirmSourceValid,
+  onMigrateAll,
 }) => {
   const t = useT();
   const [inlayHintsEnabled, setInlayHintsEnabled] = useState(true);
@@ -185,6 +226,19 @@ export const RequestExamples: React.FC<RequestExamplesProps> = ({
                   </Tooltip>
                 )}
               </div>
+              {(() => {
+                const driftState = driftStates?.[source.id];
+                if (!driftState) {
+                  return null;
+                }
+
+                const hasDrift =
+                  driftState.drift.missing.length > 0 ||
+                  driftState.drift.extra.length > 0 ||
+                  driftState.drift.conflicts.length > 0;
+
+                return driftState.schemaChanged || hasDrift ? <ExampleDriftBadge state={driftState} /> : null;
+              })()}
               <Popconfirm
                 title={t('request.deleteDataSourceConfirm')}
                 okText={t('common.delete')}
@@ -213,6 +267,57 @@ export const RequestExamples: React.FC<RequestExamplesProps> = ({
               {activeSource?.name}
             </Typography.Text>
             <div className='flex items-center gap-1'>
+              {(() => {
+                if (!activeSource) {
+                  return null;
+                }
+
+                const driftState = driftStates?.[activeSource.id];
+                if (!driftState) {
+                  return null;
+                }
+
+                const { drift, schemaChanged } = driftState;
+                const safeFixable = drift.missing.length > 0 || drift.extra.length > 0;
+
+                return (
+                  <>
+                    {safeFixable && onMigrateSource && (
+                      <Tooltip title={t('request.driftMigrateTooltip')} placement='bottom'>
+                        <Button
+                          size='small'
+                          type='link'
+                          className='!px-1'
+                          disabled={disabled}
+                          onClick={() => onMigrateSource(activeSourceIndex)}
+                        >
+                          {t('request.driftMigrate')}
+                        </Button>
+                      </Tooltip>
+                    )}
+                    {schemaChanged && !safeFixable && drift.conflicts.length === 0 && onConfirmSourceValid && (
+                      <Tooltip title={t('request.driftConfirmTooltip')} placement='bottom'>
+                        <Button
+                          size='small'
+                          type='link'
+                          className='!px-1'
+                          disabled={disabled}
+                          onClick={() => onConfirmSourceValid(activeSourceIndex)}
+                        >
+                          {t('request.driftConfirmValid')}
+                        </Button>
+                      </Tooltip>
+                    )}
+                    {hasAnyDriftedExample && sources.length > 1 && onMigrateAll && (
+                      <Tooltip title={t('request.driftMigrateAllTooltip')} placement='bottom'>
+                        <Button size='small' type='link' className='!px-1' disabled={disabled} onClick={onMigrateAll}>
+                          {t('request.driftMigrateAll')}
+                        </Button>
+                      </Tooltip>
+                    )}
+                  </>
+                );
+              })()}
               <Tooltip title={t('request.toggleFieldDescriptionsTooltip')} placement='bottomRight'>
                 <Button
                   type='text'

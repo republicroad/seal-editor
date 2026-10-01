@@ -7,22 +7,34 @@ import { saveFile } from '../../../helpers/file-helpers';
 import {
   type RequestContentLike,
   type RequestDefinition,
+  type RequestExampleDrift,
   type RequestExampleSource,
   buildRequestExampleTemplateFromDefinitions,
   collectExampleDataPaths,
+  computeExampleDrift,
+  contractExamplesToSources,
   formatJsonDraft,
   formatRequestExampleSourceName,
   getPathValue,
   getRequestExampleDataDefinitionConflicts,
-  getRequestExampleSources,
+  hasExampleDrift,
   isRecord,
   mergeRequestExampleDefaultsByDefinitions,
+  migrateRequestExampleDataByDefinitions,
   normalizeRequestExampleDataByDefinitions,
-  updateRequestSchemaExamples,
+  readRequestInputContract,
+  requestSchemaFingerprint,
+  writeRequestInputContract,
 } from '../../../helpers/request-schema';
 import type { TranslationKey } from '../../../theming/i18n';
 import type { useDecisionGraphActions } from '../context/dg-store.context';
 import { type SimulatorExampleBinding } from '../context/dg-store.context';
+
+export type RequestExampleDriftState = {
+  drift: RequestExampleDrift;
+  /** 指纹 ≠ 当前 schema 指纹（含未锚定的 legacy 示例）——徽标判据 */
+  schemaChanged: boolean;
+};
 
 type UseRequestExamplesEditingParams = {
   id: string;
@@ -33,8 +45,6 @@ type UseRequestExamplesEditingParams = {
   activeGraphTabId?: string;
   simulatorExampleBinding: SimulatorExampleBinding | undefined;
   nodeName?: string;
-  sourceSchemaValue: unknown;
-  updateNodeSchema: (nextSchema: string) => void;
   definitionDrafts: RequestDefinition[];
 };
 
@@ -47,8 +57,6 @@ export const useRequestExamplesEditing = ({
   activeGraphTabId,
   simulatorExampleBinding,
   nodeName,
-  sourceSchemaValue,
-  updateNodeSchema,
   definitionDrafts,
 }: UseRequestExamplesEditingParams) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -59,9 +67,17 @@ export const useRequestExamplesEditing = ({
   const [exampleJsonDirtyBySourceId, setExampleJsonDirtyBySourceId] = useState<Record<string, boolean>>({});
   const [descriptionDrafts, setDescriptionDrafts] = useState<Record<string, string>>({});
 
+  const inputContract = useMemo(
+    () => readRequestInputContract(content).contract,
+    [content?.schema, content?.schemaUI, content?.inputs, content?.inputContract],
+  );
+  const currentSchemaFingerprint = useMemo(
+    () => requestSchemaFingerprint(inputContract.schema),
+    [inputContract.schema],
+  );
   const exampleSources = useMemo(
-    () => getRequestExampleSources(content, { dataLabel: t('request.dataLabel') }),
-    [content, t],
+    () => contractExamplesToSources(inputContract, { dataLabel: t('request.dataLabel') }),
+    [inputContract, t],
   );
   const getExampleSourceName = (index: number) => formatRequestExampleSourceName(index, t('request.dataLabel'));
   const activeSource = exampleSources[activeSourceIndex] ?? null;
@@ -122,6 +138,27 @@ export const useRequestExamplesEditing = ({
       extra,
     };
   }, [activeSource, definitionDrafts, mergedExampleData]);
+  /** 每 example 漂移状态（ADR-013 §2：逐 example 重校验 + 三类清单 + 指纹锚徽标） */
+  const exampleDriftStates = useMemo(() => {
+    const states: Record<string, RequestExampleDriftState> = {};
+
+    inputContract.examples.forEach((example, index) => {
+      states[example.id] = {
+        drift: computeExampleDrift(exampleSources[index]?.data ?? example.data, definitionDrafts),
+        schemaChanged: example.schemaFingerprint !== currentSchemaFingerprint,
+      };
+    });
+
+    return states;
+  }, [currentSchemaFingerprint, definitionDrafts, exampleSources, inputContract.examples]);
+  const hasAnyDriftedExample = useMemo(
+    () =>
+      inputContract.examples.some((example) => {
+        const state = exampleDriftStates[example.id];
+        return Boolean(state && (state.schemaChanged || hasExampleDrift(state.drift)));
+      }),
+    [exampleDriftStates, inputContract.examples],
+  );
   const exampleSourcesSyncSignature = useMemo(
     () => JSON.stringify(exampleSources.map((source) => ({ name: source.name, data: source.data }))),
     [exampleSources],
@@ -307,6 +344,10 @@ export const useRequestExamplesEditing = ({
     });
   };
 
+  /**
+   * 契约写路径（单漏斗）：draft 内新读契约 → 以 nextSources 重建 examples；
+   * 干净 example 戳当前 schema 指纹（漂移徽标熄灭），有漂移的保留原锚。
+   */
   const persistExamples = (
     nextSources: RequestExampleSource[],
     nextActiveIndex = activeSourceIndex,
@@ -318,16 +359,26 @@ export const useRequestExamplesEditing = ({
       ...source,
       data: normalizeExampleData(source.data),
     }));
-    const examplesMeta = normalizedNextSources.map((source) => ({
-      name: source.name,
-      description: source.description,
-    }));
-    const nextSchema = updateRequestSchemaExamples(
-      sourceSchemaValue,
-      normalizedNextSources.map((source) => source.data),
-      examplesMeta,
-    );
-    updateNodeSchema(nextSchema);
+    const nextExamples = normalizedNextSources.map((source, index) => {
+      const isClean = !hasExampleDrift(computeExampleDrift(source.data, definitionDrafts));
+      const storedExample = inputContract.examples[index];
+
+      return {
+        id: source.id || storedExample?.id || crypto.randomUUID(),
+        name: source.name,
+        description: source.description,
+        data: source.data,
+        schemaFingerprint: isClean ? currentSchemaFingerprint : storedExample?.schemaFingerprint,
+      };
+    });
+
+    graphActions.updateNode(id, (draft) => {
+      draft.content ??= {};
+      const contentRecord = draft.content as RequestContentLike & Record<string, any>;
+      const { contract: freshContract } = readRequestInputContract(contentRecord);
+      writeRequestInputContract(contentRecord, { ...freshContract, examples: nextExamples });
+      return draft;
+    });
 
     const safeIndex = Math.max(0, Math.min(nextActiveIndex, normalizedNextSources.length - 1));
     setActiveSourceIndex(safeIndex);
@@ -336,6 +387,46 @@ export const useRequestExamplesEditing = ({
     if (shouldSyncToSimulator) {
       syncExampleToSimulator(normalizedNextSources[safeIndex], safeIndex);
     }
+  };
+
+  /** 安全迁移（ADR-013 §2）：缺值补默认、多余移除、datetime 归一；类型冲突保留待用户决策 */
+  const migrateExample = (index: number) => {
+    const source = exampleSources[index];
+    if (!source) {
+      return;
+    }
+
+    const { data } = migrateRequestExampleDataByDefinitions(source.data, definitionDrafts);
+    persistExamples(
+      exampleSources.map((item, currentIndex) => (currentIndex === index ? { ...item, data } : item)),
+      index,
+      { syncToSimulator: false },
+    );
+  };
+
+  const migrateAllExamples = () => {
+    if (exampleSources.length === 0) {
+      return;
+    }
+
+    persistExamples(
+      exampleSources.map((source) => ({
+        ...source,
+        data: migrateRequestExampleDataByDefinitions(source.data, definitionDrafts).data,
+      })),
+      activeSourceIndex,
+      { syncToSimulator: false },
+    );
+  };
+
+  /** 确认有效：数据与当前 schema 相容，重新持久化以补戳指纹锚（干净示例全部熄灭徽标） */
+  const confirmExampleValid = (index: number) => {
+    const source = exampleSources[index];
+    if (!source) {
+      return;
+    }
+
+    persistExamples(exampleSources, index, { syncToSimulator: false });
   };
 
   const handleExampleJsonChange = (nextValue: string) => {
@@ -385,7 +476,7 @@ export const useRequestExamplesEditing = ({
       source.id === activeSourceId
         ? {
             ...source,
-            data: parsedValue,
+            data: parsedValue as Record<string, unknown>,
           }
         : source,
     );
@@ -545,7 +636,11 @@ export const useRequestExamplesEditing = ({
   }, [activeSource, getPreparedExampleData, getSafeJsonFileName, t]);
 
   return {
+    inputContract,
+    currentSchemaFingerprint,
     exampleSources,
+    exampleDriftStates,
+    hasAnyDriftedExample,
     activeSourceIndex,
     setActiveSourceIndex,
     editingSourceIndex,
@@ -558,6 +653,9 @@ export const useRequestExamplesEditing = ({
     addExampleSource,
     removeExampleSource,
     persistExamples,
+    migrateExample,
+    migrateAllExamples,
+    confirmExampleValid,
     handleExampleJsonChange,
     commitExampleJson,
     handleDescriptionChange,
