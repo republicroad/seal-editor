@@ -1,9 +1,11 @@
 # ADR-012：输入节点契约统一——InputContract 数据模型与三视图同步机制
 
 ## 状态
-proposed（2026-09-30 seal-editor 起草，**待 jdm-editor 协商裁定**——输入节点是内核
-决策图的核心编辑面，涉及三个视图的合并重构与 simulator 联动协议升级，量级 ~3 天。
-协商方式沿 ADR-010/011 惯例：逐节标注接受/否决/修改，更新本状态行）
+proposed（2026-09-30 seal-editor 起草）→ **reviewed（2026-10-01 jdm-editor 评审：决策
+§1-§4 修改后接受，§3 附实施简化，开放问题 1-5 已表态（#5 判类别错误应删），
+五条补充发现见「评审注记」——首项为改号 ADR-013（编号与 ports 012 冲突）**。
+输入节点是内核决策图的核心编辑面，涉及三个视图的合并重构与 simulator 联动协议
+升级，量级 ~3 天。协商方式沿 ADR-010/011 惯例：逐节标注接受/否决/修改，更新本状态行）
 
 ## 背景
 
@@ -179,6 +181,81 @@ InputContract 整体序列化为自包含 JSON（schema + examples）：
 4. **example 数量上限**：是否设上限（如 20 个）防止 examples 无限膨胀？
 5. **与现有 `;;` 位置绑定的兼容**：旧图的 expressions 是位置绑定格式——
    InputContract 存储后是否自动转具名调用（$call）？
+
+## 评审注记（jdm-editor 仓，2026-10-01）
+
+### 事实核查（四条属实、一条事实修正、两条补充）
+
+1. **三视图现状——属实**：request-definitions.tsx 236 行 / request-examples.tsx
+   281 行 / tab-json-schema.tsx 226 行，三 hook
+   （use-request-{definitions,schema,examples}-editing.ts）逐一核实存在；
+2. **「Schema 变更 examples 不感知/编辑不校验/删字段残留」三问题——属实**
+   （同步链路经 node content 中转，无创作时校验闸）；
+3. **「zen-engine wasm validate（已在包内）」——事实错误（开放问题 2 前提）**：
+   zen-engine-wasm 只导出 `validateExpression`/`validateUnaryExpression`
+   （zen-expression **表达式语法**校验），**没有 JSON Schema 实例校验器**。
+   InputContract 的 instance-vs-schema 校验靠不了它；
+4. **zustand 单 store——与仓内惯例一致，无需论证**：dg-store/dt-store/
+   expression-store 三个既有 store 全是 zustand context 形态，InputContract
+   store 是第四个同构成员；
+5. 补充：ajv 两仓 kernel 均未引入（新依赖确认）；
+6. 补充：zen-udf `runDecisionTests`（fixtures.ts，已导出 DecisionFixture /
+   Expectation / FixtureReport，demo-server `/v1/fixtures/execute` 已包裹）——
+   「examples 即测试用例」在决策层已有现成执行引擎（见 §3 裁定）。
+
+### 逐节裁定
+
+| 节 | 裁定 |
+| --- | --- |
+| 决策 §1 InputContract | **修改后接受**：schema 用标准 JSON Schema、example.data 完整实例、schemaFingerprint 漂移锚三个决策全部成立。修订一条：**序列化信封增 `contractVersion` 字段**（对齐 CONTRACT §8 版本纪律——分享格式无版本号，未来格式演进无升级锚点，一行成本） |
+| 决策 §2 drift 检测 | **接受方向**。「漂移分类（安全批量迁移/不安全逐个决策）」设计健全。实施注记：drift 报告用**逐 example 重校验 + missing/extra/type-mismatch 清单**即可——勿做全量 JSON Schema structural diff（成本高、迁移 UI 消费不了那么多信息） |
+| 决策 §3 Examples 即测试用例 | **接受 + 实施简化**：批量执行与结果矩阵**复用 zen-udf 既有 `runDecisionTests`**（N 个 example 组装 DecisionFixture[] 一次调用，FixtureReport 即结果矩阵）——勿新写 runner。 Run all 的语义与 A5 夹具视图（demo-server /v1/fixtures/execute）天然合流，结果结构一致后两面板可共享组件 |
+| 决策 §4 序列化/分享 | **接受**（并入 contractVersion 修订） |
+| 备选方案 / 实施清单 | **接受**，量级合理。#8 归属 appshell 提醒：appshell 薄层纪律（新能力长在 kernel）——漂移报告对接 ChangeLogPanel 的数据装配放 kernel，appshell 只消费 |
+| UI 配套文档 | 本次不评审，随实施评审 |
+
+### 开放问题表态（1-5）
+
+1. **draft 版本：2020-12**——OpenAPI 3.1 对齐（3.0 是 draft-04 子集，导出会丢
+   表达力）+ ajv v8 的 2020 模块成熟；TypeBox 产出的 keywords 无 $schema 依赖，
+   与 input schema 同形（长期可互认）；
+2. **校验引擎：跟随开放问题 3 分叉**——若支持嵌套（本评审推荐）→ **ajv core +
+   2020 模块**，走仓内 size 预算校准流程（CI 实测口径，预算上调需宿主裁）；
+   若收窄为顶层+受限嵌套 → 手写子集校验器（~200 行零依赖）。**「zen-engine
+   wasm validate」选项作废**（见事实核查 3）；
+3. **复杂度边界：支持嵌套 object/array**——与 ADR-011「仅顶层原始类型」裁定
+   **不冲突**：那是 UDF 位置参数绑定域的约束（位置绑定求值器只吃原始标量）；
+   输入节点是完整 JSON 实例域，递归字段树本就实现了嵌套，决策输入天然嵌套
+   （customer.tier 类）。两域约束各自成立，勿互串；
+4. **数量上限：无硬上限，软提醒**（>20 提示折叠）——examples 即测试用例，
+   存储成本可忽略；硬上限伤「examples ARE test cases」的定位；
+5. **`;;` 位置绑定兼容：类别错误，删除此问**——`;;` 位置绑定是 customNode
+   表达式调用的求值器实现格式；InputContract 的 examples 是完整 JSON 实例
+   （simulator 直接消费），二者不同层面、无转换关系。本 ADR §1 自己已写
+   「位置绑定是表达式求值器实现细节，不泄漏到用户面」——开放问题 5 与之
+   自相矛盾，疑为起草时串了 ADR-011 的上下文。
+
+### 补充发现（五条，前两条为实施前置）
+
+1. **ADR 编号冲突（改号 ADR-013）**：仓内已有
+   `012-zen-udf-ports-layered-design.md`（d10d30c，ADR-011/评审记录/跨仓记忆
+   多处引用「ADR-012=端口层分层设计」）——本文档改号 **013**，ports 012 不动
+   （引用面大的一侧不改号）。改号后实施清单/引用同步；
+2. **图 interchange 兼容（必须补进「后果-约束」）**：InputContract 落 node
+   content 后，同一张图会被两仓 kernel、新旧版本、playground/demo-server 打开
+   ——存储形态 **MUST additive**：InputContract 作为 content 新增子对象（如
+   `content.inputContract`），原 schema/examples 字段保留为 legacy 读取回退，
+   首次编辑时迁移写入（dt 换装的 additive 纪律同款）。**跨仓图分享向前兼容
+   是硬约束**，此条不落则分享格式即 breaking；
+3. **schemaFingerprint 与回放钉扎对称**：输入侧 schema 指纹 + 此前呈报的
+   pack 侧版本钉扎（journal 记 pack version）= 信任链两端的漂移检测同构——
+   建议 ADR 记一笔对称性，verdict 侧将来复用同一指纹纪律；
+4. **drift 迁移与 Y3 回放联动**：example 迁移（补 required 缺省值）后应重算
+   inputHash 并使旧审计事件仍可回放（旧 input + 旧图版本）——迁移不覆盖历史
+   记录，只影响新执行；
+5. **实施清单增补 #0**：InputContract 数据形状 + 序列化信封（含
+   contractVersion）先定稿并入 CONTRACT.md 输入侧一节（或独立小节）——分享
+   格式是跨仓交换物，先立法后实施（ADR-011 契约先行同纪律）。
 
 ## 后果
 
