@@ -142,6 +142,10 @@ InputContract 整体序列化为自包含 JSON（schema + examples）：
 下游消费者：OpenAPI request body、mock server（Prism）、测试夹具、
 **规则分享**——接收方导入后立刻看到"这个规则吃什么输入"。
 
+## UI 层配套
+
+视图形态与交互设计见配套文档：[input-node-ui-redesign.md](../design/input-node-ui-redesign.md)（分屏联动编辑器——Stoplight Studio 范式，reui 组件选型与实施切分）。
+
 ## 备选方案
 
 | 方案 | 优势 | 劣势 |
