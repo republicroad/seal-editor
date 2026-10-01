@@ -2,7 +2,12 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test } from 'vitest';
 
-import { type ChangeLogEntry, ChangeLogPanel, changeLogEntryFromPersistEvent } from '../governance/change-log-panel';
+import {
+  type ChangeLogEntry,
+  ChangeLogPanel,
+  changeLogEntryFromContractEvent,
+  changeLogEntryFromPersistEvent,
+} from '../governance/change-log-panel';
 
 afterEach(cleanup);
 
@@ -61,5 +66,47 @@ describe('ChangeLogPanel（设计时变更日志面板）', () => {
   test('空态', () => {
     render(<ChangeLogPanel entries={[]} />);
     expect(screen.getByTestId('change-log-empty')).toBeDefined();
+  });
+
+  describe('changeLogEntryFromContractEvent（ADR-013 批次三 M2：契约漂移事件映射）', () => {
+    test('detected → drift 条目（名称 + 计数明细）', () => {
+      expect(
+        changeLogEntryFromContractEvent(
+          {
+            at: '2026-10-01T09:00:00.000Z',
+            nodeId: 'in-1',
+            nodeName: 'Request',
+            kind: 'drift-detected',
+            exampleNames: ['GOLD', '边界'],
+            counts: { missing: 2, extra: 1, conflicts: 0, constraints: 3 },
+          },
+          '2026-10-01T09:00:05.000Z',
+        ),
+      ).toEqual({
+        at: '2026-10-01T09:00:00.000Z',
+        kind: 'drift',
+        message: '检测到漂移：Request · GOLD、边界',
+        detail: '缺 2 · 多 1 · 约束 3',
+      });
+    });
+
+    test('confirmed → 无计数则无明细', () => {
+      const entry = changeLogEntryFromContractEvent(
+        { at: '2026-10-01T09:01:00.000Z', nodeId: 'in-1', kind: 'drift-confirmed', exampleNames: ['GOLD'] },
+        'x',
+      );
+      expect(entry.message).toBe('确认有效：in-1 · GOLD');
+      expect(entry.detail).toBeUndefined();
+    });
+
+    test('面板渲染 drift 徽标', () => {
+      const { container } = render(
+        <ChangeLogPanel
+          entries={[{ at: '2026-10-01T09:00:00.000Z', kind: 'drift', message: '检测到漂移：Request · GOLD' }]}
+        />,
+      );
+      expect(screen.getByText('契约漂移')).toBeDefined();
+      expect(container.querySelector('[data-kind=drift]')).not.toBeNull();
+    });
   });
 });

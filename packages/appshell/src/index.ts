@@ -25,10 +25,12 @@ export {
 } from './components/governance/validation-panel';
 export {
   ChangeLogPanel,
+  changeLogEntryFromContractEvent,
   changeLogEntryFromPersistEvent,
   type ChangeLogEntry,
   type ChangeLogKind,
 } from './components/governance/change-log-panel';
+export { createSimulateFixturesRunner } from './shell/fixtures-adapter';
 export type { CatalogFilter, CatalogFilterRef } from './hooks/useCustomNodes';
 export {
   dedicatedFunctionRegistry,

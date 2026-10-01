@@ -22,6 +22,7 @@ import {
   stableStringify,
   useAutoPersist,
 } from '../shell/auto-persist';
+import { createSimulateFixturesRunner } from '../shell/fixtures-adapter';
 import type { GraphPersistenceAdapter } from '../shell/persistence';
 import type { SimulateHandler } from '../shell/types';
 import { mapPanelSlotIds, mapToolbarSlots } from '../skin/layout';
@@ -201,6 +202,13 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
     return [...(props.panels ?? []), simulatorPanel];
   }, [props.panels, simulateHandler, running, simulationFooter]);
 
+  // ADR-013 批次三：Run all 执行槽位——宿主显式传入优先，否则由 simulateHandler
+  // 派生（执行语义与模拟器单源）；两者皆无时 kernel 优雅降级（按钮不渲染）
+  const fixturesRunner = useMemo(
+    () => props.fixturesRunner ?? (simulateHandler ? createSimulateFixturesRunner(simulateHandler) : undefined),
+    [props.fixturesRunner, simulateHandler],
+  );
+
   // S005 P2：右缘面板槽位（VersionHistoryPanel 同款 Sheet 容器）
   const rightSlots = useMemo(() => mapPanelSlotIds(activeSkin?.layout?.panels?.right), [activeSkin]);
   const rightSlotRenders = activeSkin?.layout?.panels?.right?.slots;
@@ -253,6 +261,7 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
       toolbarItems={toolbarItems}
       panels={panels}
       simulate={props.simulate ?? simulation}
+      fixturesRunner={fixturesRunner}
       onChange={autoPersistActive ? handleGraphChange : restProps.onChange}
     />
   );

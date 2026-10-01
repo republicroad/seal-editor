@@ -1,3 +1,4 @@
+import type { ContractDriftEvent } from '@republicroad/seal-editor';
 import React from 'react';
 
 import type { AutoPersistEvent } from '../../shell/auto-persist';
@@ -7,11 +8,12 @@ import { Badge } from '../ui/badge';
  * 设计时变更日志（治理窗批次 4）：谁/何时/发生了什么的设计期审计面。
  *
  * 数据流（存储归宿主的分工裁定）：auto-persist onEvent + migrateGraph 报告 +
- * CONFLICT 裁决 → 宿主聚合成 ChangeLogEntry（可持久化到 GraphRecord.extensions
- * 或宿主自有存储）→ 本面板纯展示。
+ * CONFLICT 裁决 + 输入节点契约漂移事件（ADR-013 批次三，kernel 装配经
+ * onContractEvent 外发）→ 宿主聚合成 ChangeLogEntry（可持久化到
+ * GraphRecord.extensions 或宿主自有存储）→ 本面板纯展示。
  */
 
-export type ChangeLogKind = 'save' | 'conflict' | 'conflict-resolved' | 'migration' | 'restore' | 'error';
+export type ChangeLogKind = 'save' | 'conflict' | 'conflict-resolved' | 'migration' | 'restore' | 'drift' | 'error';
 
 export type ChangeLogEntry = {
   /** ISO 时间戳 */
@@ -28,6 +30,7 @@ const KIND_LABEL: Record<ChangeLogKind, string> = {
   'conflict-resolved': '冲突裁决',
   'migration': '迁移',
   'restore': '恢复',
+  'drift': '契约漂移',
   'error': '错误',
 };
 
@@ -37,7 +40,14 @@ const KIND_CLASS: Record<ChangeLogKind, string> = {
   'conflict-resolved': 'text-[var(--seal-color-warning)]',
   'migration': 'text-[var(--seal-color-info)]',
   'restore': 'text-[var(--seal-color-info)]',
+  'drift': 'text-[var(--seal-color-warning)]',
   'error': 'text-destructive',
+};
+
+const DRIFT_KIND_LABEL: Record<ContractDriftEvent['kind'], string> = {
+  'drift-detected': '检测到漂移',
+  'drift-migrated': '漂移迁移',
+  'drift-confirmed': '确认有效',
 };
 
 /** auto-persist 事件 → 变更日志条目（retry 高频且低价值，不记录） */
@@ -65,6 +75,29 @@ export const changeLogEntryFromPersistEvent = (
     default:
       return null;
   }
+};
+
+/** 输入节点契约漂移事件 → 变更日志条目（ADR-013 批次三 M2；kernel 装配，此处仅映射） */
+export const changeLogEntryFromContractEvent = (
+  event: ContractDriftEvent,
+  at = new Date().toISOString(),
+): ChangeLogEntry => {
+  const counts = event.counts;
+  const detailParts: string[] = [];
+
+  if (counts) {
+    if (counts.missing > 0) detailParts.push(`缺 ${counts.missing}`);
+    if (counts.extra > 0) detailParts.push(`多 ${counts.extra}`);
+    if (counts.conflicts > 0) detailParts.push(`类型 ${counts.conflicts}`);
+    if (counts.constraints > 0) detailParts.push(`约束 ${counts.constraints}`);
+  }
+
+  return {
+    at: event.at || at,
+    kind: 'drift',
+    message: `${DRIFT_KIND_LABEL[event.kind]}：${event.nodeName ?? event.nodeId} · ${event.exampleNames.join('、')}`,
+    detail: detailParts.length > 0 ? detailParts.join(' · ') : undefined,
+  };
 };
 
 export const ChangeLogPanel: React.FC<{

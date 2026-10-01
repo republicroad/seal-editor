@@ -41,6 +41,9 @@ export default defineConfig({
         'zustand',
         /^use-sync-external-store(\/.*)?$/,
         /^@republicroad\/seal-editor(\/.*)?$/,
+        // zen-udf 以 TS 源发布且传递依赖 @gorules/zen-engine（napi，Node-only）——
+        // 内联会把 Node 代码打进浏览器包；正则形式（子路径陷阱，kernel 同款）
+        /^@republicroad\/zen-udf(\/.*)?$/,
       ],
       output: {
         // css 统一命名 style.css，与 publishConfig exports("./dist/style.css") 对齐

@@ -11,6 +11,7 @@ import {
   type ValidationEntry,
   ValidationPanel,
   VersionHistoryPanel,
+  changeLogEntryFromContractEvent,
   changeLogEntryFromPersistEvent,
   createExecuteSimulate,
   createGraphsHttpAdapter,
@@ -390,6 +391,10 @@ export const GraphPlayground: React.FC = () => {
             diffBaseline={diffBase ? (diffBase.content as any) : undefined}
             disabled={diffBase ? true : undefined}
             simulateHandler={createExecuteSimulate(import.meta.env.VITE_DEMO_SERVER_URL ?? 'http://localhost:8787')}
+            onContractEvent={(event) => {
+              // ADR-013 批次三 M2：输入节点契约漂移事件流（kernel 装配）→ 变更日志
+              setChangeLog((l) => [...l, changeLogEntryFromContractEvent(event)]);
+            }}
             autoPersist={
               autoPersistEnabled
                 ? {
