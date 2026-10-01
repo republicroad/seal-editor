@@ -27,6 +27,32 @@ describe('schema', () => {
     });
   });
 
+  it('preserves inputContract through parse and keeps it absent when missing (ADR-013 additive)', () => {
+    const stored = {
+      id: 'in-c',
+      type: NodeKind.Input,
+      name: 'Request',
+      content: {
+        schema: '',
+        inputContract: {
+          contractVersion: 1,
+          schema: { type: 'object' },
+          examples: [{ id: 'ex-1', name: 'Base', data: { customer: 'GOLD' } }],
+        },
+      },
+    };
+    const parsed = nodeSchema.parse(stored);
+
+    expect(parsed.content.inputContract).toEqual({
+      contractVersion: 1,
+      schema: { type: 'object' },
+      examples: [{ id: 'ex-1', name: 'Base', data: { customer: 'GOLD' } }],
+    });
+
+    const legacyParsed = nodeSchema.parse({ id: 'in-l', type: NodeKind.Input, name: 'Legacy', content: {} });
+    expect('inputContract' in legacyParsed.content).toBe(false);
+  });
+
   it('normalizes nullish decision table fields', () => {
     const result = nodeSchema.parse({
       id: 'dt',
@@ -130,6 +156,20 @@ describe('schema', () => {
             expressions: [{ id: 'ie-1', key: 'k', value: 'v', type: 'string' }],
             inputField: 'req',
             outputPath: 'res',
+            inputContract: {
+              contractVersion: 1,
+              schema: { type: 'object', properties: { customer: { type: 'string' } } },
+              examples: [
+                {
+                  id: 'ex-1',
+                  name: 'GOLD',
+                  description: 'gold tier',
+                  data: { customer: 'GOLD' },
+                  schemaFingerprint: '00ff00ff',
+                },
+                { id: 'ex-2', name: '', data: {} },
+              ],
+            },
           },
         },
         {

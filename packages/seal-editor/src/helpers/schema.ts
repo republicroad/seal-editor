@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-import { stringifyRequestSchemaValue } from './request-schema';
+import { parseRequestSchemaValue, stringifyRequestSchemaValue } from './request-schema';
+import { isRecord } from './request-schema/utils';
 
 export const DECISION_GRAPH_CONTENT_TYPE = 'application/vnd.gorules.decision';
 const id = z.string().default(() => crypto.randomUUID());
@@ -96,6 +97,29 @@ export const inputNodeSchema = z
           .nullish()
           .default(null)
           .transform((val) => (val && val.trim().length > 0 ? val : null)),
+        // InputContract（ADR-013）——必须显式声明：safeParse 会剥掉未声明键
+        // （edgeSchema.name 同类事故）。legacy 图无此字段 → 保持缺失（nullish
+        // 不物化键），首次编辑后由契约层写入。
+        inputContract: z
+          .object({
+            contractVersion: z.number().default(1),
+            schema: z
+              .union([z.string(), z.record(z.string(), z.any())])
+              .nullish()
+              .transform((val) => (isRecord(val) ? val : (parseRequestSchemaValue(val) ?? {}))),
+            examples: z
+              .array(
+                z.object({
+                  id: z.string(),
+                  name: z.string().default(''),
+                  description: z.string().nullish(),
+                  data: z.record(z.string(), z.any()).default({}),
+                  schemaFingerprint: z.string().nullish(),
+                }),
+              )
+              .default([]),
+          })
+          .nullish(),
       })
       .default({
         schema: '',

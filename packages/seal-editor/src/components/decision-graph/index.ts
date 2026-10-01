@@ -65,9 +65,20 @@ export {
 } from './dg-types';
 
 export {
+  type InputContract,
+  type InputContractExample,
   type RequestDefinition,
   type RequestDefinitionType,
+  type RequestExampleDrift,
   type RequestExampleSource,
+  INPUT_CONTRACT_VERSION,
+  applySchemaTextToInputContract,
+  computeExampleDrift,
+  contractExamplesToSources,
+  hasExampleDrift,
+  migrateRequestExampleDataByDefinitions,
+  readRequestInputContract,
+  requestSchemaFingerprint,
   getRequestDefinitions,
   getRequestExampleSources,
   getRequestSchemaSourceValue,
@@ -79,6 +90,7 @@ export {
   normalizeRequestDefinitionOrders,
   normalizeRequestFieldKey,
   normalizeRequestJsonKeys,
+  writeRequestInputContract,
 } from '../../helpers/request-schema';
 
 export {

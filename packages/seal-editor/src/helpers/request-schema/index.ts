@@ -1,4 +1,16 @@
 export {
+  INPUT_CONTRACT_VERSION,
+  applySchemaTextToInputContract,
+  computeExampleDrift,
+  contractExamplesToSources,
+  hasExampleDrift,
+  migrateRequestExampleDataByDefinitions,
+  readRequestInputContract,
+  requestSchemaFingerprint,
+  writeRequestInputContract,
+} from './contract';
+export type { RequestExampleDrift } from './contract';
+export {
   buildRequestSchemaFromDefinitions,
   getRequestDefinitions,
   normalizeRequestDefinitionOrders,
@@ -44,6 +56,8 @@ export {
   stringifyResolvedRequestSchemaValue,
 } from './schema-value';
 export type {
+  InputContract,
+  InputContractExample,
   LegacyRequestInput,
   RequestContentLike,
   RequestDefinition,
