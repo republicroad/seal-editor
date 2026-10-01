@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.23.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.22.0...@republicroad/seal-appshell@1.23.0) (2026-10-01)
+
+### Features
+
+- **appshell:** ADR-013 批次三——simulateHandler→fixturesRunner 适配器 + 契约漂移接变更日志 ([9759ace](https://github.com/republicroad/seal-editor/commit/9759aced459be5c08ca8c2c2051c6f2427bf15a6))
+
 # [1.22.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.21.0...@republicroad/seal-appshell@1.22.0) (2026-10-01)
 
 **Note:** Version bump only for package @republicroad/seal-appshell

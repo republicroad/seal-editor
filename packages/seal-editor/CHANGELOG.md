@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.16.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.15.0...@republicroad/seal-editor@1.16.0) (2026-10-01)
+
+### Bug Fixes
+
+- **request-node:** ajv 校验服务注册 ajv-formats——format 关键字缺失致整 schema 约束校验静默降级 ([d3b09fc](https://github.com/republicroad/seal-editor/commit/d3b09fc38fcd553fff781d4bc75e1f908e82d860))
+
+### Features
+
+- **request-node:** ADR-013 批次三 kernel——Run all + 结果矩阵 + 漂移事件流 ([cb668c2](https://github.com/republicroad/seal-editor/commit/cb668c21f1cb37ede3d936040ad190c819792a51)), closes [#6](https://github.com/republicroad/seal-editor/issues/6) [#8](https://github.com/republicroad/seal-editor/issues/8)
+- **request-node:** ADR-013 批次二——ajv 懒加载约束校验 + 契约信封导入导出 + 用例列表软折叠 ([cf0771e](https://github.com/republicroad/seal-editor/commit/cf0771e612112d6056c8a4095fed34b8485a25e9)), closes [#5](https://github.com/republicroad/seal-editor/issues/5) [#7](https://github.com/republicroad/seal-editor/issues/7)
+- **request-node:** InputContract 契约层——additive 双写存储 + schemaFingerprint + 漂移引擎（ADR-013 批次一 1/3） ([324668f](https://github.com/republicroad/seal-editor/commit/324668f88ca18f78c1e43060d6f82a89a371d9e3))
+- **request-node:** 三视图与模拟器写路径统一切换契约层 + Examples 漂移徽标/迁移/确认（ADR-013 批次一 2/3） ([48c8aab](https://github.com/republicroad/seal-editor/commit/48c8aab58e7b03d48aa0184fa92b9a154fa9fcad))
+
 # [1.15.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.14.0...@republicroad/seal-editor@1.15.0) (2026-10-01)
 
 **Note:** Version bump only for package @republicroad/seal-editor
