@@ -136,8 +136,8 @@ importers:
   apps/demo-server:
     dependencies:
       '@republicroad/zen-udf':
-        specifier: ^0.12.2
-        version: 0.12.2(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(@opentelemetry/api@1.9.1)
+        specifier: ^0.13.0
+        version: 0.13.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(@opentelemetry/api@1.9.1)
       hono:
         specifier: ^4.6.0
         version: 4.13.9
@@ -273,6 +273,9 @@ importers:
       '@republicroad/seal-editor':
         specifier: workspace:^1.15.0
         version: link:../seal-editor
+      '@republicroad/zen-udf':
+        specifier: ^0.13.0
+        version: 0.13.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(@opentelemetry/api@1.9.1)
       '@tanstack/react-virtual':
         specifier: 'catalog:'
         version: 3.14.13(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -2249,8 +2252,8 @@ packages:
       react: '>= 18'
       react-dom: '>= 18'
 
-  '@republicroad/zen-udf@0.12.2':
-    resolution: {integrity: sha512-RpSiV7QFT+WC8Q+gMLA2+iQSWB9ay0Cd2/5rDMEv1W5eZwpY2qoVq8ist0PizXZoJGIelCEC3rjSslx9NZ9CtQ==}
+  '@republicroad/zen-udf@0.13.0':
+    resolution: {integrity: sha512-4IdI72B/AYkwUsKeXxPwH6oYZp83z8Fn1QcRpGwSGHr8lG6hIXzqN3vCGab5hOqo49R47ttTNl0HEZiPwfGoWw==}
     peerDependencies:
       '@opentelemetry/api': ^1.0.0
     peerDependenciesMeta:
@@ -10503,7 +10506,7 @@ snapshots:
       - vest
       - yup
 
-  '@republicroad/zen-udf@0.12.2(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(@opentelemetry/api@1.9.1)':
+  '@republicroad/zen-udf@0.13.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(@opentelemetry/api@1.9.1)':
     dependencies:
       '@gorules/zen-engine': 2.1.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
       '@sinclair/typebox': 0.34.38
