@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.22.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.21.0...@republicroad/seal-appshell@1.22.0) (2026-10-01)
+
+**Note:** Version bump only for package @republicroad/seal-appshell
+
 # [1.21.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.20.0...@republicroad/seal-appshell@1.21.0) (2026-09-30)
 
 **Note:** Version bump only for package @republicroad/seal-appshell
