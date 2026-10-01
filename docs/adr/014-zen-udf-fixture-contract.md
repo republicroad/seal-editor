@@ -2,12 +2,13 @@
 
 ## 状态
 proposed（2026-10-01 seal-editor 起草——zen-udf 单一源与发布方在 jdm-editor 仓
-（ruling 12），目标版本 **0.13.0**，旧形态 1.0 移除。本 ADR 起因于 ADR-013 批次
-三「Run all 复用 runDecisionTests，勿新写 runner」的复用诉求与 kernel 引擎无关
-架构的张力。）→ **reviewed（2026-10-01 jdm-editor 评审：定位公理接受、决策
-§1-§5 全部接受（§4 附 A.4 蓝图 bug 修正一处）、开放问题 1-5 表态、五条补充
-发现见「评审注记」——实施清单增补 jdm demo-server 迁移项后即可开工）**
-（待 jdm 协商裁定：逐节标注接受/否决/修改，更新本状态行）
+（ruling 12），目标版本 **0.13.0**，旧形态 1.0 移除）→ reviewed（2026-10-01
+jdm-editor 评审：定位公理 + 决策 §1-§5 全部接受，开放问题 1-5 全部同意，
+评审注记见文末）→ **accepted（2026-10-01 seal-editor 调整落档，协商环闭合）**：
+§4 附 A.4 蓝图 bug 依评审修正（expression 求值器上下文 `{ result: data }`），
+实施清单增补 #6（jdm demo-server fixtures-route 迁移，归属 jdm-editor 仓）。
+执行时序：#1/#2（zen-udf 0.13.0 + CONTRACT 测试侧）归属 jdm-editor，待宿主
+口令启动；#3-#5（seal 侧批次三 M1'）随之。
 
 ## 背景
 
@@ -133,14 +134,20 @@ fixtures 形状是跨仓交换物（verdict 存库、seal-editor 消费）——
 | 3 | Run all UI + `fixturesRunner` 槽位（kernel 保持零 zen-udf 依赖） | seal-editor kernel（ADR-013 批次三 M1） | ~0.5 天 |
 | 4 | zen-udf 依赖 + 参考适配器（simulateHandler→executor：图快照闭包 + Simulation.trace→traceHits）注入槽位 | seal-editor appshell | ~0.5 天 |
 | 5 | demo-server `/v1/fixtures/execute` 迁移 createRuntimeExecutor（字面同款验证） | seal-editor demo-server | ~0.25 天 |
+| 6 | jdm 仓 demo-server `apps/demo-server/src/fixtures-route.ts` 迁移 createRuntimeExecutor（签名 `Parameters<typeof runDecisionTests>[0]` 随形态变更）——评审补充发现 2 增补 | jdm-editor | ~0.25 天 |
+
+验收口径（评审补充发现 5）：现 fixtures.test.ts 套件迁移新形态全绿 + jdm/seal
+两侧 demo-server 字面同款验证 + 新增四组用例（smoke 语义 / expression 断言 /
+outcome 三分 / `__fixtures__:` 键隔离——最后一条以「宿主键不被覆盖」断言）。
 
 ## 开放问题（逐条协商）
 
 1. **旧形态处置**：`(runtime, optionsWithModel)` 0.13.0 直接替换还是双轨
    deprecated？建议**直接替换**（0.x 破坏许可内，消费方仅 demo-server/verdict
    两处，迁移机械）；
-2. **FixtureReport 契约版本**：夹具文档存库/跨端时是否带 `contractVersion`？
-   建议加（对齐 CONTRACT §8——verdict 登记页是第一个存库消费者）；
+2. **FixtureReport 契约版本** → **已裁定（jdm 同意 + 精确化落点）**：版本落在
+   **存库的信封层**（verdict 登记页存的夹具文档）；运行时 `FixtureReport`
+   返回值不携带——其形状随包版本走，加版本无升级语义；
 3. **expression 断言求值上下文**：仅 `result` 根绑定，还是暴露 `fixture.input`？
    建议仅 result（输入上下文属 v2）；
 4. **traceHits 归属**：executor 上报（建议）还是 runner 从结果提取？建议
@@ -323,9 +330,11 @@ export const createRuntimeExecutor = (
   };
 };
 
-/** Node 世界便利工厂（@gorules/zen-engine 的 evaluateExpression 封装） */
+/** Node 世界便利工厂（@gorules/zen-engine 的 evaluateExpression 封装）。
+ *  依 jdm 评审 §4 修正（2026-10-01）：input 传对象非 JSON 字符串；上下文按
+ *  开放问题 3 裁定为 `{ result: data }` 根绑定。 */
 export const createZenExpressionEvaluator = (): ExpressionEvaluator =>
-  (source, data) => evaluateExpressionSync(source, JSON.stringify(data ?? {})) !== false;
+  (source, data) => evaluateExpressionSync(source, { result: data }) !== false;
 ```
 
 要点：现实现第 97-101 行的登记与 103-132 行的逐夹具 ExecContext/journal/replay
@@ -351,6 +360,10 @@ seal-appshell 参考适配器（批次三 M1'）则以 simulateHandler 构造 ex
 `Object.keys(simulation.result.trace) → traceHits`——zen-udf 零浏览器代码。
 
 ## 评审注记（jdm-editor 仓——zen-udf 源仓，2026-10-01）
+
+> **落档**：以上裁定已于 2026-10-01 并入正文——状态转 accepted；§4 附 A.4
+> 求值器 bug 依裁定修正（`{ result: data }` 上下文）；实施清单增 #6；
+> 开放问题 2 记录落点精确化。协商环闭合。
 
 ### 事实核查（四缺陷全部属实；一处行数勘误；一处消费面勘误）
 
