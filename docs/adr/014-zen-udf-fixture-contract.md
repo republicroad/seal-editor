@@ -211,6 +211,33 @@ outcome 三分 / `__fixtures__:` 键隔离——最后一条以「宿主键不�
 - 边界公理：zen-udf 服务端定位 + wasm 出局（宿主裁定 2026-10-01）——将来
   浏览器本地引擎 = 新工件 + 多租户重设计，不经由、也不预留于本 ADR。
 
+## 包面注记（2026-10-02，verdict 浏览器消费发现）——runner 子路径导出提案
+
+verdict 升级 appshell 1.23 后 **web 构建（rolldown）失败**，暴露一个包形态
+问题（与本 ADR 决策无关，executor 反转本身是对的）：
+
+- **现象**：appshell `import { runDecisionTests } from "@republicroad/zen-udf"`
+  走的是根包——根 index 首行 `import "./reference.ts"` 是副作用导入（参考域
+  注册）+ engine.ts 全量再导出，服务端 @gorules/zen-engine 2.1.0 被拖进浏览器
+  包。其 browser 构建缺 native 导出面（`ZenDecisionContent` 等 MISSING_EXPORT，
+  4 处）且平台可选包 `zen-engine-wasm32-wasi` 被 bun 按宿主平台跳过 → 解析失败。
+- **边界澄清**：依赖**成立**——executor 反转后 runner 零引擎语义依赖，浏览器
+  消费（appshell Run all，执行经 simulateHandler 适配器回宿主服务端）是本 ADR
+  明示的合法形态，且不触犯「zen-udf 服务端定位」公理（执行仍回宿主）。
+  **包形态不成立**——根包副作用链让"只想要 runner"的导入无法不携带服务端树。
+- **提案（zen-udf 侧，一次发版两件事）**：
+  1. **runner 子路径导出**：`@republicroad/zen-udf/runner`（内容 = fixtures.ts
+     单文件，零引擎 import）；appshell 改一行 `from "@republicroad/zen-udf/runner"`；
+  2. ** fixtures.ts 去掉仅存的引擎 import**：首行
+     `import { evaluateExpressionSync } from '@gorules/zen-engine'` 只作缺省
+     expression 求值器（runner 内 line 254）——改为「未注入求值器 = 断言
+     不通过」（与 ADR-014 注入纪律一致，去掉引擎兜底），runner 文件即真
+     零依赖，可直接进浏览器包。
+- **verdict 临时解**（垫片，拆除条件 = 子路径导出发布）：vite 正则精确别名
+  `@republicroad/zen-udf` → runner 面垫片（只 re-export fixtures.ts）+
+  `@gorules/zen-engine` → 浏览器桩（未注入求值器按不通过处理）。appshell 与
+  verdict 代码均已在此形态下验证（web build + 运行时全绿）。
+
 ## 附 A · fixtures.ts 修改蓝图（实现级）
 
 > 现文件 140 行（Y7）。改造四步：契约类型 → runner 重写 → createRuntimeExecutor
