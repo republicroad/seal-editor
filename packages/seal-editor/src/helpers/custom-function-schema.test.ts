@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildInstanceViews,
   computeFunctionArgsDrift,
   editorValueToNamedCall,
   fillMissingFunctionArgs,
+  findDuplicateKeys,
   namedCallToEditorValue,
+  summarizeInstanceDrift,
 } from './custom-function-schema';
 
 describe('computeFunctionArgsDrift / fillMissingFunctionArgs（兜底 tab 参数漂移带）', () => {
@@ -131,5 +134,83 @@ describe('ADR-015 规范形（{$call, kwargs}）双向转换', () => {
     expect(drift).toHaveLength(1);
     expect(drift[0].missing.map((m) => m.name)).toEqual(['version', 'legacy_flag']);
     expect(drift[0].unrecognized).toEqual(['extra']);
+  });
+});
+
+const funcDefDrift = {
+  name: 'roster',
+  parameters: {
+    type: 'object',
+    properties: {
+      tenant: { type: 'string' },
+      version: { type: 'number' },
+    },
+  },
+};
+
+describe('多实例视图（ADR-015 增补 P1 骨架）', () => {
+  const instance = (overrides: Record<string, unknown>) => ({
+    id: overrides.id as string,
+    key: (overrides.key as string) ?? '',
+    type: 'function',
+    value: overrides.value ?? ['roster', 'acme'],
+    ...(overrides.dependsOn ? { dependsOn: overrides.dependsOn } : {}),
+  });
+
+  it('buildInstanceViews：fn/key/seq 全量投影，同函数多实例 seq 递增', () => {
+    const views = buildInstanceViews([
+      instance({ id: 'r1', key: 'best', value: ['roster', 'acme'] }),
+      instance({ id: 'r2', key: 'score', value: ['scorer', 9] }),
+      instance({ id: 'r3', key: 'backup', value: ['roster', 'other'] }),
+    ]);
+
+    expect(views).toHaveLength(3);
+    // 展示序 = 字典序（fn→key）：backup < best
+    expect(views.map((view) => view.key)).toEqual(['backup', 'best', 'score']);
+    expect(views[0]).toMatchObject({ fn: 'roster', seq: 2 });
+    expect(views[1]).toMatchObject({ fn: 'roster', seq: 1 });
+  });
+
+  it('buildInstanceViews：按函数名→输出键字典序排序（集合观，不暗示执行序）', () => {
+    const views = buildInstanceViews([
+      instance({ id: 'r1', key: 'z', value: ['scorer'] }),
+      instance({ id: 'r2', key: 'a', value: ['roster'] }),
+    ]);
+
+    expect(views.map((view) => view.fn)).toEqual(['roster', 'scorer']);
+    expect(views.map((view) => view.key)).toEqual(['a', 'z']);
+  });
+
+  it('buildInstanceViews：dependsOn additive 透传 + 未解析行 fn=null', () => {
+    const views = buildInstanceViews([
+      instance({ id: 'r1', key: 'k', value: ['roster'], dependsOn: ['a', 'b'] }),
+      { id: 'r2', key: 'free', value: 'plain-text' },
+    ]);
+
+    expect(views[0].fn).toBeNull();
+    expect(views[1].dependsOn).toEqual(['a', 'b']);
+    expect(views[1].fn).toBe('roster');
+  });
+
+  it('findDuplicateKeys：输出键重复检出，空白键忽略', () => {
+    expect(
+      findDuplicateKeys([
+        { id: 'a', key: 'best' },
+        { id: 'b', key: 'best' },
+        { id: 'c', key: '  ' },
+        { id: 'd', key: 'other' },
+      ]),
+    ).toEqual(['best']);
+    expect(findDuplicateKeys([{ id: 'a', key: 'only' }])).toEqual([]);
+  });
+
+  it('summarizeInstanceDrift：按 rowId 聚合三类计数', () => {
+    const drift = computeFunctionArgsDrift(
+      [{ id: 'r1', key: 'best', type: 'function', value: { $call: 'roster', kwargs: { tenant: 'a', extra: 1 } } }],
+      { mode: 'scoped' as const, functions: [funcDefDrift] },
+    );
+
+    const summary = summarizeInstanceDrift(drift);
+    expect(summary.r1).toEqual({ missing: 1, unrecognized: 1 });
   });
 });

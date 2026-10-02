@@ -405,3 +405,121 @@ export const namedCallToEditorValue = (call: unknown, funcDef?: { parameters?: u
 
   return [fn, ...positional, ...overflow];
 };
+
+/**
+ * ADR-015 增补（P1 骨架）：多实例视图模型——主从式（Master-Detail）的纯函数层。
+ * 并行执行语义（Promise.all 逐条隔离）下实例集合无序：展示按字典序（集合观，
+ * 不暗示执行序）；依赖声明（dependsOn）为 additive 预留字段（编辑器暂不渲染）。
+ */
+
+/** 实例视图模型（主从列表项） */
+export type FunctionInstanceView = {
+  id: string;
+  /** 函数调用名（规范形 $call；未解析行 = null，列表显示占位） */
+  fn: string | null;
+  /** 输出绑定键（并行结果归集标签；重复 = error 级） */
+  key: string;
+  /** ADR-015 增补：显式依赖声明（additive 预留，编辑器暂不渲染） */
+  dependsOn?: string[];
+  /** 同函数多实例序号（从 1 起；异函数实例为 1） */
+  seq: number;
+};
+
+/** 实例级漂移三类计数（复用 computeFunctionArgsDrift 的行结果聚合） */
+export type InstanceDriftSummary = {
+  missing: number;
+  unrecognized: number;
+};
+
+/** 展示序：函数名 → 输出键 字典序（集合观，不暗示执行序） */
+export const compareInstances = (left: FunctionInstanceView, right: FunctionInstanceView): number => {
+  const fn = (left.fn ?? '').localeCompare(right.fn ?? '');
+  if (fn !== 0) {
+    return fn;
+  }
+
+  return left.key.localeCompare(right.key);
+};
+
+/** 行数组 → 实例视图列表（展示序；同函数实例按出现序编 seq） */
+export const buildInstanceViews = (expressions: any, _scope?: FunctionScope): FunctionInstanceView[] => {
+  if (!Array.isArray(expressions)) {
+    return [];
+  }
+
+  const seqByFn = new Map<string, number>();
+  const views = expressions.map((expression: any) => {
+    let fn: string | null = null;
+    let kwargs: Record<string, unknown> | null = null;
+
+    if (isRecord(expression?.value)) {
+      fn = typeof expression.value.$call === 'string' ? expression.value.$call : null;
+      kwargs = isRecord(expression.value.kwargs) ? expression.value.kwargs : null;
+    } else if (isFunctionExpression(expression)) {
+      fn = getFunctionNameFromValue(expression.value);
+    }
+
+    let seq = 1;
+    if (fn) {
+      seq = (seqByFn.get(fn) ?? 0) + 1;
+      seqByFn.set(fn, seq);
+    }
+
+    const view: FunctionInstanceView = {
+      id: String(expression?.id ?? ''),
+      fn,
+      key: String(expression?.key ?? ''),
+      seq: fn ? seq : 1,
+    };
+
+    // dependsOn additive 预留：存量带此字段的行透传（编辑器暂不渲染）
+    if (isRecord(expression) && Array.isArray(expression.dependsOn)) {
+      view.dependsOn = expression.dependsOn.map(String);
+    }
+    void kwargs;
+
+    return view;
+  });
+
+  return views.sort(compareInstances);
+};
+
+/** 输出键重复检测（并行归集覆盖 + 变量重声明双风险，error 级） */
+export const findDuplicateKeys = (expressions: any): string[] => {
+  if (!Array.isArray(expressions)) {
+    return [];
+  }
+
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+
+  expressions.forEach((expression: any) => {
+    const key = String(expression?.key ?? '').trim();
+    if (!key) {
+      return;
+    }
+
+    if (seen.has(key)) {
+      duplicates.add(key);
+    }
+
+    seen.add(key);
+  });
+
+  return [...duplicates];
+};
+
+/** 实例级漂移汇总（rowId → 计数，供列表点标） */
+export const summarizeInstanceDrift = (drift: FunctionArgsDriftEntry[]): Record<string, InstanceDriftSummary> => {
+  const summary: Record<string, InstanceDriftSummary> = {};
+
+  drift.forEach((entry) => {
+    const current = summary[entry.rowId] ?? { missing: 0, unrecognized: 0 };
+    summary[entry.rowId] = {
+      missing: current.missing + entry.missing.length,
+      unrecognized: current.unrecognized + entry.unrecognized.length,
+    };
+  });
+
+  return summary;
+};
