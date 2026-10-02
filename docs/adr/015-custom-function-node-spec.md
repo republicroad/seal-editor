@@ -381,3 +381,24 @@ type FunctionCallExpression = {
 **裁定汇总：增补提案全案接受（A-F + F1-F4 建议照案），三条精化（失败传播
 语义立法/解析器单源硬约束/零边快路径）+ 三条补充发现入实施考量。挂起状态
 维持——实施窗口=独立 0.15（宿主口令后），不影响主体 #3。**
+
+### 增补实施回执（2026-10-02，jdm-editor）——实例依赖调度随 zen-udf@0.15.0 发布
+
+- **已发布且 registry 实证可见**（feat 4178e61b + release cce28d58；validate
+  success）：DAG 调度器（默认并行维持+声明依赖才串行，混合合法）、
+  `$.key` 自动建图 ∪ dependsOn 并集、静默引用不建边、DUPLICATE_OUTPUT/
+  CYCLE_DETECTED/INVALID_DEPENDENCY 三错误码（CONTRACT §5 表增补）、
+  失败传播级联、零边快路径、CONTRACT §11.5 立法（调度器单源/回放拓扑序
+  /命名与语义均按评审裁定落地）；
+- **验收**：九组新测（串行链/混合拓扑/环/自引用/重声明/悬空/遮蔽/失败传播/
+  零边回归）全过，全量 1100 绿 + tsc 干净；
+- **三条精化全部落地**：失败传播语义立法（INVALID_DEPENDENCY 结构化错误进
+  §5 表）/解析器单源（extractInstanceRefs 与执行同源 normalizeOperatorCall
+  路径）/零边快路径（单层直通原语义）；
+- **附带存量缺陷修复**：normalizeUdfSchema 扁平派生把 JSON Schema 联合类型
+  （type 数组）归 'null' 致绑定值一律 null——改派生 'any' 透传，
+  JsonSchemaProperty.type 放宽 string | string[]（ADR-015 评审事实 6 的
+  integer 第七型同源问题的根修）；
+- **编辑面衔接（seal 侧）**：实例级 `dependsOn` 字段 additive 透传（UI-D
+  P1 预留位）；漂移带第四类（悬空引用检测）数据源=引擎建图所拒的悬空键
+  （extractInstanceRefs ∩ 非实例键可复算）。
