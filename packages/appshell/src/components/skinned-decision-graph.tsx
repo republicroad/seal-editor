@@ -3,11 +3,12 @@ import {
   type DecisionGraphProps,
   type DecisionGraphRef,
   type DecisionGraphType,
+  FixturesPanel,
   GraphSimulator,
   type Simulation,
   type ToolbarItem,
 } from '@republicroad/seal-editor';
-import { PanelRightIcon } from 'lucide-react';
+import { FlaskConicalIcon, PanelRightIcon } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useTheme } from '../context/theme.provider';
@@ -199,7 +200,16 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
         />
       ),
     };
-    return [...(props.panels ?? []), simulatorPanel];
+    // ADR-013 批次三 / 分屏范式 §1.2：Run all 图级执行面（与 simulator 对称），
+    // 渲染 kernel FixturesPanel（读 fixturesRunner 槽位，作用于唯一 inputNode）
+    const fixturesPanel: PanelItem = {
+      id: 'fixtures',
+      title: 'Fixtures',
+      icon: <FlaskConicalIcon className='size-4' />,
+      hideHeader: true,
+      renderPanel: () => <FixturesPanel />,
+    };
+    return [...(props.panels ?? []), simulatorPanel, fixturesPanel];
   }, [props.panels, simulateHandler, running, simulationFooter]);
 
   // ADR-013 批次三：Run all 执行槽位——宿主显式传入优先，否则由 simulateHandler
