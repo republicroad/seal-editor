@@ -498,3 +498,21 @@ seal-appshell 参考适配器（批次三 M1'）则以 simulateHandler 构造 ex
 
 **裁定汇总：全部接受（§4 附一处必改），实施清单增补 #6 后即可开工——
 #1/#2（zen-udf 0.13.0 + CONTRACT 测试侧）归属 jdm-editor，待宿主口令启动。**
+
+### 包面注记回执（2026-10-02，jdm-editor）——runner 子路径已发布
+
+- **zen-udf@0.13.1 已发布且 registry 实证可见**（jdm 2286add3 + release
+  0e0688e8）：`@republicroad/zen-udf/runner` 子路径（纯 runner）+ 三文件拆分
+  （fixtures.ts 零运行时 import / runtime-executor.ts 服务端适配器 /
+  expression-evaluator.ts 求值器工厂）；根包消费方零改动（index 再导出同型）；
+- **消费方冒烟**：npm tarball 安装后 `import ... from "@republicroad/zen-udf/runner"`
+  实跑 runDecisionTests 通过；根包 createRuntimeExecutor/createZenExpressionEvaluator
+  仍在；
+- **分歧点已按 jdm 方案落地**：包面注记只点名引擎 import，实现发现
+  `runWithExecContext` 的 `node:async_hooks` 同样不能进浏览器文件——纯 runner
+  与服务端适配器分文件才是彻底解；
+- **verdict/seal 垫片拆除条件满足**：appshell `import { runDecisionTests }
+  from "@republicroad/zen-udf/runner"` 一行替换即可拆垫片（附带拆
+  `@gorules/zen-engine` 浏览器桩）；
+- CI 附注：npm 索引延迟连续两次 10-35 分钟（0.13.0/0.13.1 实测），jdm 侧
+  传播门禁窗口已调 30 分钟（10 分钟档两次如实判 fail——门禁行为正确）。
