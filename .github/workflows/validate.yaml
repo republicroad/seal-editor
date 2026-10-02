@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   build:
-    # ubuntu-latest 自 2026-10-19 起迁移 Ubuntu 26——显式钉 24.04 保持体积/行为
+    # ubuntu-latest 自 2026-10-19 起迁移 Ubuntu 26——显式钉 24.04 保持体积/行为基线稳定（迁移计划见 docs/design/ubuntu-26-migration.md，暂不开启）
     # 基线稳定；迁移 26 单独立校准任务处理（体积预算需重测）。
     runs-on: ubuntu-24.04
     name: Validate
