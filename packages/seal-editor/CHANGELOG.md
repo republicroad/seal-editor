@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.19.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.18.0...@republicroad/seal-editor@1.19.0) (2026-10-02)
+
+### Features
+
+- **custom-node:** P1 多实例骨架 helpers——实例视图/排序/键重复/漂移汇总（ADR-015 增补 D 落地） ([e5aaf00](https://github.com/republicroad/seal-editor/commit/e5aaf0090e2d72e22ce3907141336ca175a7b08e))
+- **custom-node:** typed input 万能值输入立项——设计规格 + 控件原语（缺口 D 立项） ([9e810f0](https://github.com/republicroad/seal-editor/commit/9e810f0fae9f5631b6724d02a7c85c8791c3421c))
+- **custom-node:** 实例概览条——并行集合观 + 键重复 + 实例级漂移点标（ADR-015 增补 P1 UI 层） ([8153589](https://github.com/republicroad/seal-editor/commit/815358934c6a30e45e5b122add88d3e69504daa1))
+
 # [1.18.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.17.0...@republicroad/seal-editor@1.18.0) (2026-10-02)
 
 ### Features
