@@ -261,3 +261,15 @@ type FunctionCallExpression = {
    平面参数错绑（新读旧可以、旧读新不行）；verdict 侧升级排期纳入本项前置核对；
 3. **迁移优先级**：位置数组最急（中插盲区所在），平面具名最缓（本就有名字，
    归一后三类检测即可）——漂移带实现按此排检测深度。
+
+### 0.14.1 发版回执（2026-10-02，jdm-editor）——#3 依赖面就绪
+
+- **zen-udf@0.14.1 已发布并三重实证**（release 1e307e97；validate success）：
+  registry 可见 + tarball 200 + dist-tags latest=0.14.1——歧义检测器
+  `detectKwargsEnvelopeAmbiguity` 与 CONTRACT §11 行为变化警示/写路径切换前置
+  随包；**#3 依赖面就绪**（写路径切换前置条款=消费 kernel ≥0.14 自本版可满足）；
+- CI 传播门禁定性收尾（连续三次发版的滞后观测）：滞后有两源——npm CLI 按 job
+  元数据缓存（0.13.1/0.14.0，已修=fresh cache + prefer-online）与 **runner
+  侧 registry edge 的独立滞后**（0.14.1：npm 受理+外网可见，runner 轮询 404
+  整窗）——双通道轮询已落（npm CLI ∥ 直连 registry API，任一可见即过）。
+  发版权威判据=npm 受理行（+ pkg@ver），门禁仅防下游 smoke 与 CDN 竞速。
