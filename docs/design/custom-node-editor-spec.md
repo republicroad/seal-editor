@@ -4,6 +4,7 @@
 - 状态：**规格（legislative）+ 评估（UI 层为评估非裁定）**
 - 上位：ADR-011（parametersSchema 唯一规范表示）、ADR-013 批次三（drift 模式
   第二次复用——参数漂移带）、[dedicated-node-registry-design.md](./dedicated-node-registry-design.md)（三级降级阶梯）
+- 调用格式演进（位置数组→具名字典）已立法为 [ADR-015](../adr/015-custom-function-node-spec.md)
 
 ## 1 · 模型层意图：`content.config = z.any()` 是特性
 
