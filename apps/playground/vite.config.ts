@@ -32,6 +32,11 @@ export default defineConfig({
     alias: {
       '@republicroad/seal-editor': fileURLToPath(new URL('../../packages/seal-editor/src/index.ts', import.meta.url)),
       '@republicroad/seal-appshell': fileURLToPath(new URL('../../packages/appshell/src/index.ts', import.meta.url)),
+      // zen-engine 是 napi（Node-only）：appshell 的 fixtures 适配器链（appshell →
+      // zen-udf → zen-engine）会把它拖进浏览器打包图——其 browser.js 还要解析
+      // 未安装的 @gorules/zen-engine-wasm32-wasi。浏览器零执行引擎（ADR-014
+      // 定位公理），别名到空 stub；上游拆分纯 runner 模块后移除。
+      '@gorules/zen-engine': fileURLToPath(new URL('./src/vendor-stubs/zen-engine-empty.ts', import.meta.url)),
     },
   },
   optimizeDeps: {
