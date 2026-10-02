@@ -5,7 +5,12 @@ proposed（2026-10-02 seal-editor 起草——决策引擎与编辑器的**绝�
 定义侧多为 ADR-011 既有裁定的汇总确认；**调用侧为本 ADR 核心新增裁定提案**：
 调用表达式从平坦位置数组迁移至具名字典。zen-udf 单一源与发布方在 jdm-editor 仓
 （ruling 12），目标版本 zen-udf 0.14 候选。待 jdm 协商裁定：逐节标注接受/否决/
-修改，更新本状态行）
+）
+→ **accepted（2026-10-02 jdm 评审全部接受 + seal 对齐落档，协商环闭合）**：
+§1 三处对齐已改（语义三元/deprecated 对象形/integer 第七型）、记法定案
+`{$call, kwargs}`（引擎 0.10.x 起三形态同吃，#1 缩量为纯格式裁定+校验面）、
+实施清单缩量（#1 归属 jdm-editor 待宿主口令；#3 停写零风险减负；0.14 先行、
+seal 随 minor）。评审注记见文末。
 
 ## 0 · 定位（宿主宣言）
 
@@ -55,17 +60,18 @@ type CustomFunctionDefinition = {
     required?: string[];
   };
   returns?: JSONSchema;          // 返回值 schema（缺失 = any，见 §3-R3）
-  semantics?: 'read' | 'act';    // UdfPackMeta 语义声明
+  semantics?: 'query' | 'observe' | 'act'; // 语义三元不可折叠（MCP annotations 评审同款结论）
   idempotent?: boolean;
-  deprecated?: boolean;
+  deprecated?: { since?: string; note?: string }; // A4 契约对象形（目录警示卡/补全 ⚠️ 行消费）
 };
 ```
 
 - `parametersSchema` 是声明侧**唯一规范表示**（ADR-011），flat parameters 弃用
   维持；conformance fixtures 为定义合规验收口径；
-- **类型枚举标准化（新增确认）**：`string | number | boolean | object | array |
-  datetime` 六型——与 inputNode 字段定义、dt 列类型三处对齐，新类型需三处同步
-  立法（datetime 以 `format: 'date-time'` 表达）；
+- **类型枚举标准化（新增确认；jdm 评审事实 6 补第七型）**：`string | number |
+  integer | boolean | object | array | datetime` 七型——与 inputNode 字段定义、
+  dt 列类型三处对齐，新类型需三处同步立法（datetime 以 `format: 'date-time'`
+  表达；integer 立法为向 number 归一的注记——zen-udf 既有 demo/夹具在用）；
 - 返回值：`returns` schema 经 `normalizeFunctionReturns` 归一（缺失 = any），
   是 debug trace 类型推断与下游校验的依据。
 
@@ -79,8 +85,8 @@ type FunctionCallExpression = {
   key: string;                     // 输出绑定键
   type: 'function';
   call: {
-    fn: string;                    // 函数调用名
-    args: Record<string, unknown>; // 具名参数（键 = parameters.properties 键）
+    $call: string;                 // 函数调用名（$ 前缀 = 信封保留字，与参数键永不碰撞）
+    kwargs: Record<string, unknown>; // 具名参数（键 = parameters.properties 键，嵌套于 kwargs）
   };
 };
 ```
@@ -92,8 +98,10 @@ type FunctionCallExpression = {
 3. **手写简写保留（创作层）**：表达式编辑器继续接受 `roster('acme', 1)` 位置
    语法，保存时归一化为规范形——平坦数组当初的手写便利动机由 parse 层继承，
    存储不再承担；
-4. **`expr_asts` 退役**：规范形落地后 value 即结构化形态，`expr_asts`（同构
-   镜像）写入停止、读取兼容保留——三键收敛为一，写路径简化为单漏斗；
+4. **`expr_asts` 退役（jdm 评审事实 3 修正：引擎派生物，停写零风险）**：
+   `expr_asts` 是**引擎从 expressions.value 派生的执行缓存**（引擎自写），非
+   编辑器双写的冗余镜像——退役 = 编辑器停写**零风险**（引擎派生链自足），
+   三键收敛为一，写路径简化为单漏斗；
 5. **`arg_exprs` 随之退役**：`call.args` 即具名参数本体；
 6. **漂移带升级**：位置盲区（中插检测）消除；重命名场景 = 未识别旧键 + 缺失
    新键成对出现，可提示按名映射（migrateGraph rebinder 同源语义）；
@@ -128,22 +136,26 @@ type FunctionCallExpression = {
 4. **部分接管**：专用 Tab 内嵌兜底容器补覆盖盲区（Unity DrawDefaultInspector
    同构）；显示提示中间层维持客户端 hints（ADR-009 meta-minimization 张力不碰）。
 
-## 实施清单（分归属）
+## 实施清单（分归属；jdm 评审修订版）
 
 | # | 项 | 归属 | 量级 |
 | --- | --- | --- | --- |
-| 1 | 引擎双读（规范字典 + 位置/字符串兼容归一）+ args 按名校验 | jdm（zen-udf 0.14 候选） | ~1-1.5 天 |
-| 2 | CONTRACT 调用形态节（规范形/兼容形/简写解析/弃用表） | jdm | ~0.25 天 |
-| 3 | 写路径切规范字典（persistExpressions/buildDefaultFunctionExpression）+ expr_asts/arg_exprs 退役 + 漂移带全量按名检测 | seal kernel | ~1 天 |
+| 1 | positional→named 归一化工具 + `validateNamedArgs` 校验面暴露 + CONTRACT 调用形态节（合并原 #2；**引擎面零改造**——normalizeOperatorCall 三形态同吃已是现状） | jdm（zen-udf 0.14 候选） | ~0.5-0.75 天 |
+| 3 | 写路径切规范字典（persistExpressions/buildDefaultFunctionExpression）+ expr_asts 停写（零风险——引擎派生自足）+ 漂移带全量按名检测 | seal kernel | ~0.75 天 |
 | 4 | Windmill 双模式 + typed input 立项评估 | seal（另起设计文档） | 另批 |
+| 时序 | **0.14 独立先行**（调用契约先冻结，1.0 移除批不受牵连）→ seal 写路径切换随下一 minor（0.14 编号空闲已确认） | 双仓 | — |
 
-## 开放问题（逐条协商）
+## 开放问题（已裁定，2026-10-02 jdm 评审，见文末表态）
 
 1. **引擎具名调用现状**：ADR-011 的 `{$call, kwargs}` 是已实现还是目标态？
    决定 #1 是引擎改造还是纯格式裁定（seal 侧可先起步：写规范形 + 引擎双读前
    保持位置兼容由引擎现状吸收）；
-2. **字典键名约定**：`{fn, args}` vs `{$call, kwargs}` 记法——建议对齐 zen-udf
-   既有语汇；
+2. **字典键名约定 → 定稿 `{$call, kwargs}`**（OQ1 答案：引擎 0.10.x 起
+   normalizeOperatorCall 三形态同吃，记法已在用——`{fn, args}` 反对成立）：
+   `$` 前缀 = 信封保留字约定，参数嵌套于 kwargs 与信封键永不碰撞
+   （`{fn, args}` 的兄弟键信封会被名为 fn/args 的参数撞车）；对齐
+   json-logic/json-e/MongoDB 的 `$` 标签对象行业约定与 ADR-011 既有语汇，
+   不发明第三种记法；
 3. **位置简写保留边界**：仅编辑器 parse 层（建议），还是引擎长期双读（本 ADR
    取后者——旧图存续义务）；
 4. **required 缺参语义**：执行错误（建议）vs 默认填充——编辑面漂移带的填充
@@ -161,6 +173,10 @@ type FunctionCallExpression = {
   是决策引擎与编辑器的绝对重点——本 ADR 后续演进沿此轴。
 
 ## 评审注记（jdm-editor 仓——zen-udf 源仓，2026-10-02）
+
+> **落档**：以上裁定已并入正文——§1 三处对齐（语义三元/deprecated 对象形/
+> integer 第七型）、§2 记法定案与 expr_asts 退役修正（引擎派生物停写零风险）、
+> 实施清单缩量采纳、状态转 accepted。协商环闭合。
 
 ### 事实核查（六条：两条账实修正、三条对齐错误、一条清单增补）
 
