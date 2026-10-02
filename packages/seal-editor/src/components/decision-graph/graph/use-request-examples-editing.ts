@@ -28,9 +28,9 @@ import {
   writeRequestInputContract,
 } from '../../../helpers/request-schema';
 import type { TranslationKey } from '../../../theming/i18n';
-import { type SimulatorExampleBinding, useDecisionGraphRaw, useDecisionGraphState } from '../context/dg-store.context';
+import { type SimulatorExampleBinding } from '../context/dg-store.context';
 import type { useDecisionGraphActions } from '../context/dg-store.context';
-import type { ContractDriftEvent, ExampleRunReport } from './fixtures-runner';
+import type { ContractDriftEvent } from './fixtures-runner';
 
 export type RequestExampleDriftState = {
   drift: RequestExampleDrift;
@@ -52,12 +52,6 @@ type UseRequestExamplesEditingParams = {
   definitionDrafts: RequestDefinition[];
 };
 
-export type RunAllState = {
-  status: 'idle' | 'running' | 'done' | 'error';
-  report?: ExampleRunReport;
-  error?: string;
-};
-
 export const useRequestExamplesEditing = ({
   id,
   content,
@@ -76,9 +70,6 @@ export const useRequestExamplesEditing = ({
   const [exampleJsonDrafts, setExampleJsonDrafts] = useState<Record<string, string>>({});
   const [exampleJsonDirtyBySourceId, setExampleJsonDirtyBySourceId] = useState<Record<string, boolean>>({});
   const [descriptionDrafts, setDescriptionDrafts] = useState<Record<string, string>>({});
-  const { stateStore } = useDecisionGraphRaw();
-  const fixturesRunner = useDecisionGraphState((s) => s.fixturesRunner);
-  const [runAll, setRunAll] = useState<RunAllState>({ status: 'idle' });
 
   const inputContract = useMemo(
     () => readRequestInputContract(content).contract,
@@ -577,35 +568,6 @@ export const useRequestExamplesEditing = ({
     persistExamples(exampleSources, index, { syncToSimulator: false });
   };
 
-  // ── Run all（ADR-013 批次三 M1 / ADR-014）：执行经宿主注入的 fixturesRunner，
-  // kernel 不认识引擎；宿主未注入（槽位为空）时按钮不渲染，此函数不会被调用
-  const runAllExamples = async () => {
-    if (!fixturesRunner || runAll.status === 'running' || exampleSources.length === 0) {
-      return;
-    }
-
-    setRunAll({ status: 'running' });
-    try {
-      const { decisionGraph } = stateStore.getState();
-      const report = await fixturesRunner(
-        decisionGraph,
-        exampleSources.map((source, index) => ({
-          name: source.name.trim() || formatRequestExampleSourceName(index, t('request.dataLabel')),
-          input: getPreparedExampleData(source.data),
-        })),
-      );
-      setRunAll({ status: 'done', report });
-    } catch (error: any) {
-      console.warn('[request-node] run all failed', { nodeId: id, error });
-      setRunAll({ status: 'error', error: error?.message ?? String(error) });
-    }
-  };
-
-  // 切节点即弃用上一节点的运行报告（矩阵是节点会话态）
-  useEffect(() => {
-    setRunAll({ status: 'idle' });
-  }, [id]);
-
   const handleExampleJsonChange = (nextValue: string) => {
     const activeSourceId = activeExampleSourceIdRef.current ?? activeSource?.id;
     if (!activeSourceId) {
@@ -818,9 +780,6 @@ export const useRequestExamplesEditing = ({
     exampleSources,
     exampleDriftStates,
     hasAnyDriftedExample,
-    fixturesRunner,
-    runAll,
-    runAllExamples,
     activeSourceIndex,
     setActiveSourceIndex,
     editingSourceIndex,

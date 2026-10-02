@@ -1,3 +1,4 @@
+import { DeleteOutlined, DownOutlined } from '#icons';
 import InformationIcon from '#reui/icons/animated/outline/information';
 import type { DragDropManager } from 'dnd-core';
 import type { editor } from 'monaco-editor';
@@ -13,12 +14,11 @@ import {
   writeRequestInputContract,
 } from '../../../helpers/request-schema';
 import { useT } from '../../../theming/i18n';
-import { Tabs, Tooltip } from '../../primitives';
+import { Button, Popconfirm, Tooltip } from '../../primitives';
 import { useDecisionGraphActions, useDecisionGraphState } from '../context/dg-store.context';
-import { RequestDefinitions } from './request-definitions';
-import { RequestExamples } from './request-examples';
 import { RequestSchemaEditor } from './request-schema-editor';
 import { useRequestSessionDraftSerializer } from './request-session-draft';
+import { SplitEditor } from './request-split-editor';
 import { SchemaToolbarActions, useThemedSchemaEditorOptions } from './schema-editor-shared';
 import { useRequestDefinitionsEditing } from './use-request-definitions-editing';
 import { useRequestExamplesEditing } from './use-request-examples-editing';
@@ -31,16 +31,17 @@ export type TabRequestProps = {
   type?: string;
 };
 
-enum RequestTabKey {
-  Definitions = 'definitions',
-  Examples = 'examples',
-  Schema = 'schema',
-}
+type RequestEditorMode = 'design' | 'code';
+
+/** 旧会话草稿 activeTab → 新模式映射（legacy：schema→Code，其余→Design） */
+const toEditorMode = (raw: string): RequestEditorMode => (raw === 'schema' || raw === 'code' ? 'code' : 'design');
 
 export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   const t = useT();
   const graphActions = useDecisionGraphActions();
-  const [activeTab, setActiveTab] = useState<RequestTabKey>(RequestTabKey.Definitions);
+  const [mode, setMode] = useState<RequestEditorMode>('design');
+  const [selectedFieldPath, setSelectedFieldPath] = useState<string | null>(null);
+  const [examplesOpen, setExamplesOpen] = useState(false);
   const schemaEditorRef = useRef<editor.IStandaloneCodeEditor | undefined>(undefined);
   const exampleJsonEditorRef = useRef<editor.IStandaloneCodeEditor | undefined>(undefined);
   const contractFileInputRef = useRef<HTMLInputElement>(null);
@@ -53,15 +54,30 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     activePanel,
     activeGraphTabId,
     simulatorExampleBinding,
-  } = useDecisionGraphState(({ disabled, decisionGraph, panels, activePanel, activeTab, simulatorExampleBinding }) => ({
-    disabled,
-    content: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content,
-    nodeName: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.name ?? t('request'),
-    panels,
-    activePanel,
-    activeGraphTabId: activeTab,
-    simulatorExampleBinding,
-  }));
+    fixturesRunner,
+    fixturesRun,
+  } = useDecisionGraphState(
+    ({
+      disabled,
+      decisionGraph,
+      panels,
+      activePanel,
+      activeTab,
+      simulatorExampleBinding,
+      fixturesRunner,
+      fixturesRun,
+    }) => ({
+      disabled,
+      content: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content,
+      nodeName: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.name ?? t('request'),
+      panels,
+      activePanel,
+      activeGraphTabId: activeTab,
+      simulatorExampleBinding,
+      fixturesRunner,
+      fixturesRun,
+    }),
+  );
   const disabled = disabledRaw ?? false;
 
   const {
@@ -80,8 +96,6 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     definitionChildrenMap,
     rootDefinitions,
     definitionTypeOptions,
-    collapsedDefinitionPaths,
-    toggleDefinitionCollapsed,
     addDefinition,
     addChildDefinition,
     removeDefinition,
@@ -101,14 +115,8 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   const {
     exampleSources,
     exampleDriftStates,
-    hasAnyDriftedExample,
-    fixturesRunner,
-    runAll,
-    runAllExamples,
     activeSourceIndex,
     setActiveSourceIndex,
-    editingSourceIndex,
-    setEditingSourceIndex,
     activeSource,
     activeExampleJsonDraft,
     activeDescriptionDraft,
@@ -140,19 +148,18 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     definitionDrafts,
   });
 
-  // UI 会话草稿快照：捕获 700ms 防抖窗口内的在途编辑（schema/示例/描述/页签），
-  // 随 {graph, tabs} 快照入库——保存/重开零丢失
+  // UI 会话草稿快照：activeTab 字段承载 mode（旧草稿 schema→Code，其余→Design 降级映射）
   useRequestSessionDraftSerializer(
     id,
     {
-      activeTab,
+      activeTab: mode,
       schemaDraft,
       activeSourceIndex,
       activeExampleJsonDraft,
       activeDescriptionDraft,
     },
     {
-      setActiveTab: (tab) => setActiveTab(tab as RequestTabKey),
+      setActiveTab: (tab) => setMode(toEditorMode(tab)),
       setSchemaDraft: handleSchemaDraftChange,
       setActiveExampleJsonDraft: handleExampleJsonChange,
       setActiveDescriptionDraft: handleDescriptionChange,
@@ -160,8 +167,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     },
   );
 
-  // 契约信封导入/导出（ADR-013 清单 #7）：导入采用信封（schema + examples），
-  // 与既有 id 冲突时重铸；导出不携带指纹锚（接收方按自己的校验时点重新戳记）
+  // 契约信封导入/导出（ADR-013 清单 #7）
   const hasContract = Object.keys(contract.schema ?? {}).length > 0 || contract.examples.length > 0;
 
   const handleExportContract = () => {
@@ -201,7 +207,6 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
 
       graphActions.updateNode(id, (draft) => {
         draft.content ??= {};
-        // 导入 = 整体采用信封（schema + examples），无需在 draft 上预读契约
         writeRequestInputContract(draft.content as RequestContentLike & Record<string, any>, {
           ...result.contract,
           examples,
@@ -217,28 +222,29 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     }
   };
 
-  const renderTabBarExtraContent = () => {
-    if (activeTab === RequestTabKey.Examples) {
-      return (
-        <SchemaToolbarActions
-          tab='examples'
-          disabled={disabled}
-          onAddSource={addExampleSource}
-          onUploadJson={() => fileInputRef.current?.click()}
-          onDownloadJson={handleDownloadJson}
-          hasActiveSource={Boolean(activeSource)}
-          onImportContract={() => contractFileInputRef.current?.click()}
-          onExportContract={handleExportContract}
-          hasContract={hasContract}
-          onRunAll={fixturesRunner ? runAllExamples : undefined}
-          runAllRunning={runAll.status === 'running'}
-          onSimulate={openSimulatorPanel}
-          simulateDisabled={activePanel === 'simulator'}
-        />
-      );
-    }
+  const themedEditorOptions = useThemedSchemaEditorOptions();
+  const activeDriftState = activeSource ? exampleDriftStates[activeSource.id] : undefined;
+  const activeDriftCount = activeDriftState
+    ? activeDriftState.drift.missing.length +
+      activeDriftState.drift.extra.length +
+      activeDriftState.drift.conflicts.length +
+      activeDriftState.constraintIssues.length
+    : 0;
+  const hasAnyDriftedExample = exampleSources.some((source) => {
+    const state = exampleDriftStates[source.id];
+    return Boolean(
+      state &&
+      (state.schemaChanged ||
+        state.drift.missing.length +
+          state.drift.extra.length +
+          state.drift.conflicts.length +
+          state.constraintIssues.length >
+          0),
+    );
+  });
 
-    if (activeTab === RequestTabKey.Schema) {
+  const renderToolbar = () => {
+    if (mode === 'code') {
       return (
         <SchemaToolbarActions
           tab='schema'
@@ -252,141 +258,163 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
       );
     }
 
-    return null;
+    return (
+      <SchemaToolbarActions
+        tab='examples'
+        disabled={disabled}
+        onUploadJson={() => fileInputRef.current?.click()}
+        onDownloadJson={handleDownloadJson}
+        hasActiveSource={Boolean(activeSource)}
+        onImportContract={() => contractFileInputRef.current?.click()}
+        onExportContract={handleExportContract}
+        hasContract={hasContract}
+        onRunAll={fixturesRunner ? () => graphActions.runFixtures() : undefined}
+        runAllRunning={fixturesRun?.status === 'running'}
+        onSimulate={openSimulatorPanel}
+        simulateDisabled={activePanel === 'simulator'}
+      />
+    );
   };
-
-  const themedEditorOptions = useThemedSchemaEditorOptions();
 
   return (
     <div className='relative box-border flex h-full flex-col overflow-hidden bg-[var(--card)]'>
-      <div className='flex shrink-0 items-center border-b border-b-border px-3'>
-        <Tabs
-          size='small'
-          className='w-full'
-          activeKey={activeTab}
-          onChange={(nextKey) => {
-            setActiveTab(nextKey as RequestTabKey);
-          }}
-          items={[
-            { key: RequestTabKey.Definitions, label: t('request.definitionsTab') },
-            { key: RequestTabKey.Examples, label: t('request.examplesTab') },
-            {
-              key: RequestTabKey.Schema,
-              label: (
-                <span>
-                  {t('request.schema')}
-                  <Tooltip title={t('request.schemaPriorityTooltip')}>
-                    <span className='ml-1 inline-flex align-super opacity-50 [&_svg]:block'>
-                      <InformationIcon className='size-2.5' />
-                    </span>
-                  </Tooltip>
-                </span>
-              ),
-            },
-          ]}
-          tabBarExtraContent={renderTabBarExtraContent()}
-        />
+      {/* 顶栏：模式切换 + Examples 切换器 + 工具栏 */}
+      <div className='flex shrink-0 items-center gap-2 border-b border-b-border px-3 py-1.5'>
+        <div className='flex items-center rounded-md border border-border p-0.5'>
+          <Tooltip title={t('request.designModeTooltip')}>
+            <Button
+              type='text'
+              size='small'
+              className={`!px-2 ${mode === 'design' ? 'bg-primary/10' : 'opacity-60'}`}
+              onClick={() => setMode('design')}
+            >
+              {t('request.modeDesign')}
+            </Button>
+          </Tooltip>
+          <Tooltip title={t('request.schemaPriorityTooltip')}>
+            <Button
+              type='text'
+              size='small'
+              className={`!px-2 ${mode === 'code' ? 'bg-primary/10' : 'opacity-60'}`}
+              onClick={() => setMode('code')}
+            >
+              {t('request.modeCode')}
+              <InformationIcon className='ml-1 size-2.5 opacity-50 [&_svg]:block' />
+            </Button>
+          </Tooltip>
+        </div>
+
+        {mode === 'design' && (
+          <div className='relative'>
+            <Button type='text' size='small' className='!px-2' onClick={() => setExamplesOpen((open) => !open)}>
+              <span className='max-w-[140px] truncate'>{activeSource?.name ?? t('request.examplesSwitcherLabel')}</span>
+              {activeDriftCount > 0 && <span className='ml-1 inline-block size-1.5 rounded-full bg-amber-500' />}
+              <DownOutlined style={{ fontSize: 10 }} className='ml-1 opacity-60' />
+            </Button>
+            {examplesOpen && (
+              <>
+                <div className='fixed inset-0 z-20' onClick={() => setExamplesOpen(false)} />
+                <div className='absolute left-0 top-full z-30 mt-1 w-64 rounded-lg border border-border bg-[var(--card)] shadow-md'>
+                  <div className='max-h-56 overflow-y-auto py-1'>
+                    {exampleSources.map((source, index) => {
+                      const driftState = exampleDriftStates[source.id];
+                      const driftCount = driftState
+                        ? driftState.drift.missing.length +
+                          driftState.drift.extra.length +
+                          driftState.drift.conflicts.length +
+                          driftState.constraintIssues.length
+                        : 0;
+
+                      return (
+                        <div
+                          key={source.id}
+                          role='button'
+                          tabIndex={0}
+                          className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs transition-colors ${
+                            index === activeSourceIndex ? 'bg-primary/10' : 'hover:bg-muted/60'
+                          }`}
+                          onClick={() => {
+                            setActiveSourceIndex(index);
+                            syncExampleToSimulator(source, index);
+                            setExamplesOpen(false);
+                          }}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault();
+                              setActiveSourceIndex(index);
+                              setExamplesOpen(false);
+                            }
+                          }}
+                        >
+                          <span className='min-w-0 flex-1 truncate'>{source.name}</span>
+                          {driftCount > 0 && (
+                            <span className='inline-block size-1.5 shrink-0 rounded-full bg-amber-500' />
+                          )}
+                          <Popconfirm
+                            title={t('request.deleteDataSourceConfirm')}
+                            okText={t('common.delete')}
+                            cancelText={t('common.cancel')}
+                            onConfirm={() => {
+                              removeExampleSource(index);
+                              setExamplesOpen(false);
+                            }}
+                          >
+                            <Button
+                              danger
+                              type='text'
+                              size='small'
+                              className='!h-5 !w-5 !p-0'
+                              disabled={disabled}
+                              icon={<DeleteOutlined />}
+                              onClick={(event) => event.stopPropagation()}
+                            />
+                          </Popconfirm>
+                        </div>
+                      );
+                    })}
+                    {exampleSources.length === 0 && (
+                      <div className='px-2.5 py-2 text-xs opacity-60'>{t('request.noDataSources')}</div>
+                    )}
+                  </div>
+                  <div className='flex items-center justify-between border-t border-border px-2 py-1.5'>
+                    <Button
+                      type='link'
+                      size='small'
+                      className='!px-1'
+                      disabled={disabled}
+                      onClick={() => {
+                        addExampleSource();
+                        setExamplesOpen(false);
+                      }}
+                    >
+                      {t('request.addDataSource')}
+                    </Button>
+                    {hasAnyDriftedExample && exampleSources.length > 0 && (
+                      <Button
+                        type='link'
+                        size='small'
+                        className='!px-1'
+                        disabled={disabled}
+                        onClick={() => {
+                          migrateAllExamples();
+                          setExamplesOpen(false);
+                        }}
+                      >
+                        {t('request.driftMigrateAll')}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        <div className='ml-auto'>{renderToolbar()}</div>
       </div>
+
       <div className='flex min-h-0 flex-1 flex-col overflow-hidden p-3'>
-        {activeTab === RequestTabKey.Definitions && (
-          <RequestDefinitions
-            rootDefinitions={rootDefinitions}
-            childrenMap={definitionChildrenMap}
-            collapsedPaths={collapsedDefinitionPaths}
-            disabled={disabled}
-            definitionTypeOptions={definitionTypeOptions}
-            onAdd={addDefinition}
-            onUpdateName={updateDefinitionName}
-            onUpdateType={updateDefinitionType}
-            onUpdateDescription={updateDefinitionDescription}
-            onUpdateDefaultValue={updateDefinitionDefaultValue}
-            onAddChild={addChildDefinition}
-            onRemove={removeDefinition}
-            onToggleCollapse={toggleDefinitionCollapsed}
-            getDefinitionIndex={getDefinitionIndex}
-          />
-        )}
-
-        {activeTab === RequestTabKey.Examples && (
-          <React.Fragment>
-            <input
-              hidden
-              accept='application/json'
-              type='file'
-              ref={fileInputRef}
-              onChange={handleUploadJson}
-              onClick={(event) => {
-                (event.target as HTMLInputElement).value = '';
-              }}
-            />
-            <input
-              hidden
-              accept='application/json'
-              type='file'
-              ref={contractFileInputRef}
-              onChange={handleImportContractFile}
-              onClick={(event) => {
-                (event.target as HTMLInputElement).value = '';
-              }}
-            />
-            <RequestExamples
-              sources={exampleSources}
-              activeSourceIndex={activeSourceIndex}
-              editingSourceIndex={editingSourceIndex}
-              activeSource={activeSource}
-              activeDescriptionDraft={activeDescriptionDraft}
-              activeJsonDraft={activeExampleJsonDraft}
-              disabled={disabled}
-              definitionDrafts={definitionDrafts}
-              onSourceSelect={(index) => {
-                setActiveSourceIndex(index);
-                syncExampleToSimulator(exampleSources[index], index);
-              }}
-              onSourceAdd={addExampleSource}
-              onSourceRemove={removeExampleSource}
-              onSourceRename={(index, name) => {
-                const trimmedName = name.trim();
-                if (trimmedName) {
-                  persistExamples(
-                    exampleSources.map((item, currentIndex) =>
-                      currentIndex === index ? { ...item, name: trimmedName } : item,
-                    ),
-                    index,
-                    { syncToSimulator: false },
-                  );
-                }
-              }}
-              onEnterEditing={(index) => setEditingSourceIndex(index)}
-              onSourceRenameExit={() => setEditingSourceIndex(null)}
-              onDescriptionChange={handleDescriptionChange}
-              onDescriptionCommit={commitDescription}
-              onJsonChange={handleExampleJsonChange}
-              onJsonCommit={commitExampleJson}
-              onFormat={() => {
-                const formatAction = exampleJsonEditorRef.current?.getAction?.('editor.action.formatDocument');
-                formatAction?.run();
-              }}
-              onJsonEditorMount={(instance) => {
-                exampleJsonEditorRef.current = instance;
-              }}
-              summary={exampleFieldSummary}
-              getDefinitionTypeLabel={getDefinitionTypeLabel}
-              editorOptions={themedEditorOptions}
-              driftStates={exampleDriftStates}
-              hasAnyDriftedExample={hasAnyDriftedExample}
-              onMigrateSource={migrateExample}
-              onConfirmSourceValid={confirmExampleValid}
-              onMigrateAll={migrateAllExamples}
-              runAll={runAll}
-              onRunResultSelect={(index) => {
-                setActiveSourceIndex(index);
-                syncExampleToSimulator(exampleSources[index], index);
-              }}
-            />
-          </React.Fragment>
-        )}
-
-        {activeTab === RequestTabKey.Schema && (
+        {mode === 'code' ? (
           <RequestSchemaEditor
             schemaDraft={schemaDraft}
             disabled={disabled}
@@ -401,8 +429,82 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
             editorOptions={themedEditorOptions}
             nodeId={id}
           />
+        ) : (
+          <React.Fragment>
+            <input
+              hidden
+              accept='application/json'
+              type='file'
+              ref={fileInputRef}
+              onChange={handleUploadJson}
+              onClick={(event) => {
+                (event.target as HTMLInputElement).value = '';
+              }}
+            />
+            <SplitEditor
+              disabled={disabled}
+              rootDefinitions={rootDefinitions}
+              childrenMap={definitionChildrenMap}
+              definitionTypeOptions={definitionTypeOptions}
+              selectedPath={selectedFieldPath}
+              onSelectField={setSelectedFieldPath}
+              onAddField={addDefinition}
+              onAddChild={addChildDefinition}
+              onUpdateName={updateDefinitionName}
+              onUpdateType={updateDefinitionType}
+              onUpdateDefaultValue={updateDefinitionDefaultValue}
+              onUpdateDescription={updateDefinitionDescription}
+              onRemoveField={removeDefinition}
+              getDefinitionIndex={getDefinitionIndex}
+              exampleSources={exampleSources}
+              activeExampleIndex={activeSourceIndex}
+              activeExampleJsonDraft={activeExampleJsonDraft}
+              activeDescriptionDraft={activeDescriptionDraft}
+              exampleFieldSummary={exampleFieldSummary}
+              driftStates={exampleDriftStates}
+              onDescriptionChange={handleDescriptionChange}
+              onDescriptionCommit={commitDescription}
+              onExampleJsonChange={handleExampleJsonChange}
+              onExampleJsonCommit={commitExampleJson}
+              onFormatExample={() => {
+                const formatAction = exampleJsonEditorRef.current?.getAction?.('editor.action.formatDocument');
+                formatAction?.run();
+              }}
+              onExampleJsonEditorMount={(instance) => {
+                exampleJsonEditorRef.current = instance;
+              }}
+              onMigrateActive={() => migrateExample(activeSourceIndex)}
+              onConfirmActive={() => confirmExampleValid(activeSourceIndex)}
+              onRenameActive={(nextName) => {
+                const trimmed = nextName.trim();
+                if (!trimmed) {
+                  return;
+                }
+                persistExamples(
+                  exampleSources.map((source, index) =>
+                    index === activeSourceIndex ? { ...source, name: trimmed } : source,
+                  ),
+                  activeSourceIndex,
+                  { syncToSimulator: false },
+                );
+              }}
+              getDefinitionTypeLabel={getDefinitionTypeLabel}
+              exampleEditorOptions={themedEditorOptions}
+            />
+          </React.Fragment>
         )}
       </div>
+
+      <input
+        hidden
+        accept='application/json'
+        type='file'
+        ref={contractFileInputRef}
+        onChange={handleImportContractFile}
+        onClick={(event) => {
+          (event.target as HTMLInputElement).value = '';
+        }}
+      />
     </div>
   );
 };

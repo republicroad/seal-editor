@@ -18,7 +18,8 @@ import type { JdmUiMode } from '../../decision-table/context/dt-store.context';
 import type { DecisionEdge, DecisionGraphType, DecisionNode } from '../dg-types';
 import { privateSymbol } from '../dg-types';
 import { mapToGraphEdge, mapToGraphEdges, mapToGraphNode, mapToGraphNodes } from '../dg-util';
-import type { ContractDriftEvent, FixturesRunner } from '../graph/fixtures-runner';
+import { buildContractFixtures, listInputNodes, runFixturesForNode } from '../graph/fixtures-run';
+import type { ContractDriftEvent, ExampleRunReport, FixturesRunner } from '../graph/fixtures-runner';
 import type { useGraphClipboard } from '../hooks/use-graph-clipboard';
 import type { CustomNodeSpecification } from '../nodes/custom-node';
 import { NodeKind, type NodeSpecification } from '../nodes/specifications/specification-types';
@@ -97,6 +98,15 @@ export type DecisionGraphStoreType = {
     /** ADR-013 批次三：Run all 执行槽位——宿主注入（appshell = simulateHandler 适配），未注入时 Run all 不渲染 */
     fixturesRunner?: FixturesRunner | null;
 
+    /** 分屏范式 §1.2：Fixtures 面板图级运行状态（跨页签存续） */
+    fixturesRun?: {
+      nodeId: string;
+      status: 'running' | 'done' | 'error';
+      report?: ExampleRunReport;
+      error?: string;
+    } | null;
+    /** 域约束：规则图至多一个 inputNode——面板直接作用于它，无绑定概念 */
+
     compactMode?: boolean;
 
     dictionaries?: DictionaryMap;
@@ -156,6 +166,8 @@ export type DecisionGraphStoreType = {
     setSimulatorRequest: (req: string) => void;
     setSimulatorExampleBinding: (binding?: SimulatorExampleBinding) => void;
     setFixturesRunner: (runner: FixturesRunner | null) => void;
+    /** Fixtures 面板/节点页签共用运行入口：作用于图内唯一 inputNode；打开面板 + 图级状态机驱动 */
+    runFixtures: () => Promise<void>;
     /** 漂移事件外发：经 listeners.onContractEvent 投递（无订阅者时静默） */
     emitContractEvent: (event: ContractDriftEvent) => void;
 
@@ -219,6 +231,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         panels: [],
         user: '',
         fixturesRunner: null,
+        fixturesRun: null,
         compactMode: localStorage.getItem('jdm-compact-mode') === 'true',
         nodeTypes: {},
         globalType: {},
@@ -724,6 +737,46 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       },
       setFixturesRunner: (runner) => {
         stateStore.setState({ fixturesRunner: runner });
+      },
+      runFixtures: async () => {
+        const { fixturesRunner, decisionGraph, panels } = stateStore.getState();
+
+        if (!fixturesRunner) {
+          return;
+        }
+
+        // 域约束：图至多一个 inputNode——面板直接作用于它
+        const inputNode = listInputNodes(decisionGraph)[0];
+        if (!inputNode) {
+          stateStore.setState({ fixturesRun: { nodeId: '', status: 'error', error: 'no-input-node' } });
+          return;
+        }
+        const nodeId = inputNode.id;
+
+        // 注意力跟随动作：打开/聚焦 Fixtures 面板
+        const fixturesPanel = panels?.find((panel) => panel.id === 'fixtures');
+        if (fixturesPanel) {
+          stateStore.setState({ activePanel: fixturesPanel.id });
+        }
+
+        if (!buildContractFixtures(decisionGraph, nodeId)) {
+          stateStore.setState({ fixturesRun: { nodeId, status: 'error', error: 'no-examples' } });
+          return;
+        }
+
+        stateStore.setState({ fixturesRun: { nodeId, status: 'running' } });
+        try {
+          const report = await runFixturesForNode(decisionGraph, nodeId, fixturesRunner);
+          stateStore.setState({
+            fixturesRun: report
+              ? { nodeId, status: 'done', report }
+              : { nodeId, status: 'error', error: 'no-examples' },
+          });
+        } catch (error: any) {
+          stateStore.setState({
+            fixturesRun: { nodeId, status: 'error', error: error?.message ?? String(error) },
+          });
+        }
       },
       emitContractEvent: (event) => {
         listenerStore.getState().onContractEvent?.(event);
