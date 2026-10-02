@@ -233,6 +233,9 @@ export const en = {
   'cf.argsDriftMissing': 'missing',
   'cf.argsDriftUnrecognized': 'unrecognized',
   'cf.argsFillMissing': 'Fill missing defaults',
+  'cf.instanceOverview': 'Instances',
+  'cf.parallelHint': 'runs in parallel',
+  'cf.duplicateKeyError': 'Duplicate output key — parallel results will overwrite',
   'request.noDefinitions': 'No field definitions',
   'request.schemaPriorityTooltip':
     'Schema has the highest priority. Definitions and example data sync into schema, but schema remains the source of truth.',

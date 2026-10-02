@@ -4,10 +4,13 @@ import type { z } from 'zod';
 
 import { resolveFunctionScope } from '../../../helpers/custom-function-schema';
 import {
+  buildInstanceViews,
   computeFunctionArgsDrift,
   editorValueToNamedCall,
   fillMissingFunctionArgs,
+  findDuplicateKeys,
   namedCallToEditorValue,
+  summarizeInstanceDrift,
 } from '../../../helpers/custom-function-schema';
 import type { GetNodeDataResult } from '../../../helpers/node-data';
 import { getNodeData } from '../../../helpers/node-data';
@@ -18,7 +21,7 @@ import { isWasmAvailable } from '../../../helpers/wasm';
 import { useT } from '../../../theming/i18n';
 import { CustomFunction } from '../../custom-function-table';
 import type { ExpressionPermission } from '../../custom-function-table/context/expression-store.context';
-import { Button } from '../../primitives';
+import { Button, Tooltip, Typography } from '../../primitives';
 import { useDecisionGraphActions, useDecisionGraphState } from '../context/dg-store.context';
 import type { SimulationTrace, SimulationTraceDataExpression } from '../simulator/simulation.types';
 
@@ -70,6 +73,11 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
   const driftRowCount = argsDrift.length;
   const driftMissingCount = argsDrift.reduce((sum, entry) => sum + entry.missing.length, 0);
   const driftUnrecognizedCount = argsDrift.reduce((sum, entry) => sum + entry.unrecognized.length, 0);
+
+  // ADR-015 增补 P1：实例概览数据（并行集合观 + 键重复 + 实例级漂移）
+  const duplicateKeys = useMemo(() => findDuplicateKeys(expressions), [expressions]);
+  const instanceViews = useMemo(() => buildInstanceViews(expressions, functionScope), [expressions, functionScope]);
+  const driftByRowId = useMemo(() => summarizeInstanceDrift(argsDrift), [argsDrift]);
 
   // 编辑器视图：规范形行（{$call, kwargs}）→ 位置数组（CustomFunction 按位编辑；
   // 额外键在写路径从 priorKwargs 并回，圆往返保真）
@@ -160,6 +168,58 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', boxSizing: 'border-box' }}>
+      {/* ADR-015 增补 P1：实例概览条——并行集合观 + 键重复 + 实例级漂移点标 */}
+      {instanceViews.length > 0 && (
+        <div data-testid='instance-overview' className='mx-3 mt-3 rounded-md border border-border bg-card px-3 py-2'>
+          <div className='flex items-center justify-between gap-2'>
+            <Typography.Text strong className='text-xs'>
+              {t('cf.instanceOverview')}
+            </Typography.Text>
+            <Typography.Text className='text-[10px] opacity-60'>{t('cf.parallelHint')}</Typography.Text>
+          </div>
+          <div className='mt-1.5 flex flex-wrap gap-1.5'>
+            {instanceViews.map((view) => {
+              const drift = driftByRowId[view.id];
+              const isDup = duplicateKeys.includes(view.key);
+              return (
+                <Tooltip
+                  key={`${view.fn}-${view.key}-${view.id}`}
+                  title={
+                    isDup
+                      ? t('cf.duplicateKeyError')
+                      : drift
+                        ? `${t('cf.argsDriftMissing')} ${drift.missing} · ${t('cf.argsDriftUnrecognized')} ${drift.unrecognized}`
+                        : undefined
+                  }
+                >
+                  <span
+                    data-testid='instance-chip'
+                    data-key={view.key}
+                    className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs ${
+                      isDup
+                        ? 'border-destructive/40 bg-destructive/10 text-destructive'
+                        : drift
+                          ? 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400'
+                          : 'border-border bg-muted/40'
+                    }`}
+                  >
+                    <span className='font-medium'>{view.fn}</span>
+                    {view.seq > 1 && <span className='opacity-50'>#{view.seq}</span>}
+                    <span className='opacity-50'>→ {view.key}</span>
+                    {isDup && <span aria-label={t('cf.duplicateKeyError')}>⚠</span>}
+                    {drift && !isDup && <span className='inline-block size-1.5 rounded-full bg-amber-500' />}
+                  </span>
+                </Tooltip>
+              );
+            })}
+          </div>
+          {duplicateKeys.length > 0 && (
+            <div className='mt-1.5 text-xs text-destructive'>
+              {t('cf.duplicateKeyError')}: {duplicateKeys.join(', ')}
+            </div>
+          )}
+        </div>
+      )}
       {driftRowCount > 0 && (
         <div
           data-testid='args-drift-band'
