@@ -236,6 +236,9 @@ export const en = {
   'cf.instanceOverview': 'Instances',
   'cf.parallelHint': 'runs in parallel',
   'cf.duplicateKeyError': 'Duplicate output key — parallel results will overwrite',
+  'cf.modeTable': 'Table',
+  'cf.modeCode': 'Code',
+  'cf.codeInvalidJson': 'Invalid JSON',
   'request.noDefinitions': 'No field definitions',
   'request.schemaPriorityTooltip':
     'Schema has the highest priority. Definitions and example data sync into schema, but schema remains the source of truth.',

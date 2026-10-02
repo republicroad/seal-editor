@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { resolveFunctionScope } from '../../../helpers/custom-function-schema';
 import {
@@ -105,6 +105,39 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
     });
   };
 
+  // ADR-015 增补 P2（Windmill 双模式）：表格 ↔ 代码切换
+  const [editMode, setEditMode] = useState<'table' | 'code'>('table');
+  const [codeDraft, setCodeDraft] = useState<string | null>(null);
+  const [codeError, setCodeError] = useState<string | null>(null);
+
+  const switchToCode = () => {
+    setCodeDraft(JSON.stringify(expressions ?? [], null, 2));
+    setCodeError(null);
+    setEditMode('code');
+  };
+
+  const applyCode = () => {
+    if (codeDraft === null) return;
+    try {
+      const parsed = JSON.parse(codeDraft);
+      if (!Array.isArray(parsed)) {
+        setCodeError('Expected an array');
+        return;
+      }
+      setEditMode('table');
+      setCodeError(null);
+      persistExpressions(parsed);
+    } catch {
+      setCodeError('Invalid JSON');
+    }
+  };
+
+  const switchToTable = () => {
+    setEditMode('table');
+    setCodeDraft(null);
+    setCodeError(null);
+  };
+
   return (
     <div style={{ height: '100%', overflowY: 'auto', boxSizing: 'border-box' }}>
       {/* ADR-015 增补 P1：实例概览条——并行集合观 + 键重复 + 实例级漂移点标 */}
@@ -159,41 +192,84 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
           )}
         </div>
       )}
-      {driftRowCount > 0 && (
-        <div
-          data-testid='args-drift-band'
-          className='mx-3 mt-3 flex items-center justify-between gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs'
-        >
-          <span className='text-amber-700 dark:text-amber-400'>
-            {t('cf.argsDriftTitle')} · {driftRowCount} {t('cf.argsDriftRows')} · {t('cf.argsDriftMissing')}{' '}
-            {driftMissingCount} · {t('cf.argsDriftUnrecognized')} {driftUnrecognizedCount}
-          </span>
-          {driftMissingCount > 0 && (
-            <Button
-              size='small'
-              type='link'
-              className='!px-1'
-              disabled={disabled}
-              onClick={() => {
-                const healed = fillMissingFunctionArgs(expressions, argsDrift, functionScope);
-                if (healed) {
-                  persistExpressions(healed);
-                }
-              }}
-            >
-              {t('cf.argsFillMissing')}
-            </Button>
+      {/* Windmill 双模式：表格 ↔ 代码切换 */}
+      <div className='mx-3 mt-3 flex items-center justify-between gap-2'>
+        <div className='flex items-center gap-1'>
+          <Button
+            size='small'
+            type={editMode === 'table' ? 'primary' : 'default'}
+            className='!px-2'
+            onClick={() => switchToTable()}
+          >
+            {t('cf.modeTable')}
+          </Button>
+          <Button
+            size='small'
+            type={editMode === 'code' ? 'primary' : 'default'}
+            className='!px-2'
+            onClick={switchToCode}
+          >
+            {t('cf.modeCode')}
+          </Button>
+        </div>
+      </div>
+      {editMode === 'code' && (
+        <div className='mx-3 mt-2 flex flex-1 flex-col overflow-hidden rounded-md border border-border'>
+          <textarea
+            data-testid='function-code-editor'
+            className='min-h-0 flex-1 resize-none bg-[var(--card)] p-3 font-mono text-xs text-foreground'
+            value={codeDraft ?? JSON.stringify(expressions ?? [], null, 2)}
+            onChange={(e) => setCodeDraft(e.target.value)}
+            onBlur={applyCode}
+            disabled={disabled}
+            spellCheck={false}
+          />
+          {codeError && (
+            <div className='border-t border-destructive/40 bg-destructive/10 px-3 py-1 text-xs text-destructive'>
+              {codeError}
+            </div>
           )}
         </div>
       )}
-      <div style={{ paddingTop: driftRowCount > 0 ? 8 : 0 }}>
-        <InstanceEditor
-          instances={instances}
-          functionScope={functionScope}
-          disabled={disabled}
-          onChange={handleInstancesChange}
-        />
-      </div>
+      {editMode === 'table' && (
+        <>
+          {driftRowCount > 0 && (
+            <div
+              data-testid='args-drift-band'
+              className='mx-3 mt-3 flex items-center justify-between gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs'
+            >
+              <span className='text-amber-700 dark:text-amber-400'>
+                {t('cf.argsDriftTitle')} · {driftRowCount} {t('cf.argsDriftRows')} · {t('cf.argsDriftMissing')}{' '}
+                {driftMissingCount} · {t('cf.argsDriftUnrecognized')} {driftUnrecognizedCount}
+              </span>
+              {driftMissingCount > 0 && (
+                <Button
+                  size='small'
+                  type='link'
+                  className='!px-1'
+                  disabled={disabled}
+                  onClick={() => {
+                    const healed = fillMissingFunctionArgs(expressions, argsDrift, functionScope);
+                    if (healed) {
+                      persistExpressions(healed);
+                    }
+                  }}
+                >
+                  {t('cf.argsFillMissing')}
+                </Button>
+              )}
+            </div>
+          )}
+          <div style={{ paddingTop: driftRowCount > 0 ? 8 : 0 }}>
+            <InstanceEditor
+              instances={instances}
+              functionScope={functionScope}
+              disabled={disabled}
+              onChange={handleInstancesChange}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 };
