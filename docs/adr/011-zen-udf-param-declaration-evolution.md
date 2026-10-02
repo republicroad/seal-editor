@@ -363,3 +363,22 @@ verdict 本地镜像已额外禁 default（消费注记在案）。裁决：
   本仓需随 1 发版回退特例；
 - 协商方式：jdm-editor 仓在本文档逐节标注（接受/否决/修改），裁定后更新
   状态行；实施随 zen-udf 0.11.0，本仓侧联动项见实施清单 #3。
+
+## 收官（2026-10-02，zen-udf@1.0.0 已发布——本 ADR 全链完成）
+
+- **1.0.0 已发布且 registry 实证**（release 926e0064；validate success；dist-tags
+  latest=1.0.0 + tarball 200）：五项移除生效（遗留四态 API+旧 defineTool /
+  createUdfRegistry 旧名 / ToolCallContext 旧名 / 扁平 parameters 声明 /
+  'default' 命名空间〔入保留清单〕）+ configureHttpUdf 移除（组合根 getPorts
+  单源，评审注记未列入清单的第六项随档）+ 批次 A 契约面随车（journal 哈希链
+  +journalDigest+journalVersion / toMcpTool 派生视图 / CONTRACT §7 一致性档位
+  Profile A/B/C / deprecated.replacement 指针 / CONTRACT.md 随包分发）+
+  dt months anniversary（fe34fd3a 随车）+ 0.14 调用规范 + 0.15 实例依赖调度；
+- CONTRACT.md 升 **1.0.0 冻结**（§7 档位=验收基准：Profile A 核心 / B 信任链 /
+  C 服务端全量）；**CONTRACT.md 随包分发**（files 修正）；
+- 验收：全量 1102 绿 + tsc 干净 + 扁平移除行为锁 fixtures（1.0 行为锁：
+  扁平声明不合成 parametersSchema）；
+- verdict/seal 消费方：**直接锚 ^1.0.0**（0.12-0.15 中转窗口关闭）。
+
+本 ADR 自提案（0.11.0 演进）至 1.0.0 冻结全链完成——参数声明统一/调用规范/
+测试夹具契约/编辑面策略四件套构成的自定义函数节点规范族收官。
