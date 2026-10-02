@@ -315,6 +315,10 @@ export const customNodeSchema = z
     type: z.literal(CustomKind),
     content: z.object({
       kind: z.string(),
+      // z.any() 是特性不是疏忽（自定义节点编辑面规格 §1）：config 的形状由
+      // pack 的 parametersSchema 定义（运行时契约），编辑器 zod 刻意无感知——
+      // 收紧成严格 schema 会重引 safeParse 剥键事故（pack 自有键丢失）。
+      // 键主权与写手纪律见 docs/design/custom-node-config-spec.md。
       config: z.any(),
     }),
   })
