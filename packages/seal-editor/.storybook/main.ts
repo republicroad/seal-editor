@@ -44,11 +44,6 @@ const config: StorybookConfig = {
     // outdated node code (missing buttons, empty i18n) while tests stay green.
     config.resolve.alias ??= {};
     config.resolve.alias['@republicroad/seal-editor'] = fileURLToPath(new URL('../src/index.ts', import.meta.url));
-    // zen-engine 是 napi（Node-only）：appshell 的 fixtures 适配器链（appshell →
-    // zen-udf → zen-engine）经本配置打包的 appshell stories 拖进浏览器打包图。
-    // 浏览器零执行引擎（ADR-014 定位公理）——别名到显式 stub；上游拆分纯
-    // runner 模块后与 playground 的同款 stub 一并移除。
-    config.resolve.alias['@gorules/zen-engine'] = fileURLToPath(new URL('./zen-engine-stub.ts', import.meta.url));
     config.optimizeDeps ??= {};
     config.optimizeDeps.exclude = [...(config.optimizeDeps.exclude ?? []), '@gorules/zen-engine-wasm'];
     // GitHub Pages serves the static build from a project sub-path — asset

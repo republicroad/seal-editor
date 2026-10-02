@@ -1,5 +1,5 @@
 import type { ContractFixture, DecisionGraphType, ExampleRunReport, FixturesRunner } from '@republicroad/seal-editor';
-import { runDecisionTests } from '@republicroad/zen-udf';
+import { runDecisionTests } from '@republicroad/zen-udf/runner';
 
 import type { SimulateHandler } from './types';
 
