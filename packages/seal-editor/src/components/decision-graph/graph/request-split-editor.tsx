@@ -50,6 +50,8 @@ const FieldTree: React.FC<{
           <div
             role='button'
             tabIndex={0}
+            data-testid='field-tree-node'
+            data-path={definition.path}
             className={`flex items-center gap-1 rounded px-1.5 py-1 text-xs transition-colors ${
               selectedPath === definition.path ? 'bg-primary/10' : 'hover:bg-muted/60'
             }`}
@@ -146,7 +148,7 @@ const ContextEditor: React.FC<{
   return (
     <div className='min-h-0 flex-1 overflow-y-auto p-3'>
       <div className='flex items-center justify-between gap-2'>
-        <Typography.Text strong className='truncate text-xs'>
+        <Typography.Text strong data-testid='context-editor-path' className='truncate text-xs'>
           {definition.path}
         </Typography.Text>
         <Popconfirm
@@ -201,7 +203,7 @@ const ContextEditor: React.FC<{
       </div>
 
       {definition.type === 'object' && (
-        <div className='mt-3 rounded-lg border border-border p-2'>
+        <div data-testid='object-children' className='mt-3 rounded-lg border border-border p-2'>
           <div className='flex items-center justify-between'>
             <Typography.Text className='text-xs opacity-70'>
               {t('request.objectChildrenHint')}（{hasChildren ? childDefinitions.length : 0}）
@@ -291,7 +293,7 @@ const ExamplePreviewStrip: React.FC<{
   );
 
   return (
-    <div className='flex shrink-0 flex-col gap-1.5 border-t border-border pt-2'>
+    <div data-testid='example-preview-strip' className='flex shrink-0 flex-col gap-1.5 border-t border-border pt-2'>
       <div className='flex items-center justify-between gap-2'>
         <div className='flex min-w-0 items-center gap-1.5'>
           <Typography.Text strong className='shrink-0 text-xs'>
@@ -422,9 +424,15 @@ export type SplitEditorProps = {
 /** 分屏体（Design 模式）：左栏字段树 + 右栏上下文编辑器 + 底部 Example Preview 条 */
 export const SplitEditor: React.FC<SplitEditorProps> = (props) => {
   const t = useT();
+  // 选中查找走全量定义（子字段不在 rootDefinitions 里——story 抓出的真 bug）
+  const allDefinitions = useMemo(() => {
+    const all = [...props.rootDefinitions];
+    props.childrenMap.forEach((children) => all.push(...children));
+    return all;
+  }, [props.childrenMap, props.rootDefinitions]);
   const selectedDefinition = useMemo(
-    () => props.rootDefinitions.find((definition) => definition.path === props.selectedPath) ?? null,
-    [props.rootDefinitions, props.selectedPath],
+    () => allDefinitions.find((definition) => definition.path === props.selectedPath) ?? null,
+    [allDefinitions, props.selectedPath],
   );
   const childDefinitions = useMemo(
     () => (selectedDefinition ? (props.childrenMap.get(selectedDefinition.path) ?? []) : []),
