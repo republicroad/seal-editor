@@ -115,3 +115,43 @@ badge。
 - 约束：TabRequest 重构是本批最大 diff（旧三视图组件退役）；会话草稿形状
   变更需降级兼容；两仓编辑器可能分叉（jdm 显式表态）；
 - 协商：本仓先行实施，jdm 评审并行、随到随落（ADR-013 批次同款节奏）。
+
+## 6 · jdm 评审注记（2026-10-02，并行评审）
+
+### 账实核对（四点全实证）
+
+- 批次一~三全落地（cb668c2 kernel Run all/结果矩阵/漂移事件流 + 9759ace
+  appshell fixturesRunner 适配器/变更日志）+ kernel 1.16.0 已发版——本档 §0
+  校准表与代码一致（前次验收的「1.16.0 勘误」已被批次二/三合版解决）；
+- `syncExampleToSimulator`/`simulatorExampleBinding`/`fixturesRunner`/
+  `onContractEvent` 消费点逐一核实存在；
+- UI-5 消解正确回溯 ADR-013 OQ5 裁定（类别错误），真正的 legacy 兼容
+  （内嵌回退+首编辑迁移）已随批次一验收；
+- 「contract 模块+单写漏斗」偏差沿用批次一验收裁定的接受结论。
+
+### 逐节裁定
+
+| 节 | 裁定 |
+| --- | --- |
+| §1.1 取代语义 | **接受**——一次性取代、全部有归宿、数据层零改动可整体回退，风险面控制正确。**一处「无功能删除」声称未闭合**：原 Schema 页签的 **diff 对比历史 / 格式化 / JSON→Schema 转换**三件能力去向未声明——Code 模式须继承（monaco 工具栏三钮）或在 UI-B 显式退役+迁移注记，勿静默丢失。入 UI-B 验收清单 |
+| §1.2 多示例集合 | **接受**——Fixtures 升图级抽屉与 simulator 对称成立；「传选择不传状态」联动原则正确；批量结果不灌模拟器的两个理由成立。**一处精确化**：「失败必然复现」依赖 executor 的图快照闭包——「调试→」深链在图已编辑后复现的是**快照时点**而非当前图，建议面板行显示快照时点（或运行前刷新闭包），防「明明改好了还报旧错」的困惑 |
+| §1.3 OQ1-4 | **接受**——array 的 Design 只读+Code 编辑引导是正确边界；undo/redo 经 updateNode 免费成立 |
+| §3 reui 选型 | **接受**——「轻量递归树先行、reui tree 后置 vendoring」与两仓裁定史一致（P-2：request-definitions 是编辑器非只读树，headless-tree 不适配）；**替换单前实读目标组件**的纪律保持 |
+| §4 实施切分 | 量级合理（UI-B 2 天为最大 diff，会话草稿降级映射已在案） |
+
+### jdm 表态（§1.1 明确要求）
+
+**暂缓跟进，自觉分叉入档**。理由：①双仓定位——seal 产品线先行实施+Storybook
+走查，jdm 创新线择需移植（同面三视图在 jdm kernel 仍服务现状，无实际问题
+驱动冒险）；②UI-B 是 3 天级大 diff，两仓并行重写徒增移植税；③移植链路保持
+开放——seal 走查通过后按跨仓移植惯例评估（L6/Excel 先例）。此表态即 §1.1
+「不默认发生」的显式化。
+
+### 附带：ADR-014 包面注记已实施（jdm 侧，2286add3）
+
+verdict web 构建阻塞的 runner 子路径导出已落地——三文件拆分（fixtures.ts
+纯 runner **零运行时 import** / runtime-executor.ts 服务端适配器 /
+expression-evaluator.ts 求值器工厂）+ exports 子路径图。**分歧点声明**：包面
+注记只点名引擎 import，但 `runWithExecContext` 的 `node:async_hooks` 同样
+不能进浏览器文件——纯 runner 与服务端适配器分文件才是彻底解（垫片拆除条件
+=0.13.1 发版，待宿主口令）。Fixtures 面板（UI-A）的浏览器依赖面自此就绪。
