@@ -2,8 +2,8 @@ import React, { useMemo, useState } from 'react';
 
 import type { FunctionScope } from '../../../helpers/custom-function-schema';
 import { useT } from '../../../theming/i18n';
-import { Button, Select, Typography } from '../../primitives';
-import { TypedInput } from './typed-input';
+import { Button, Input, Select, Tag, Tooltip, Typography } from '../../primitives';
+import { TypedInput, coerceToTypedValue } from './typed-input';
 import type { TypedValue } from './typed-input';
 
 /** 函数实例（规范形一行） */
@@ -17,16 +17,32 @@ export type FunctionInstance = {
   dependsOn?: string[];
 };
 
+export type InstanceDriftSummary = { missing: number; unrecognized: number };
+
 type InstanceEditorProps = {
   instances: FunctionInstance[];
   functionScope: FunctionScope;
   disabled?: boolean;
+  /** 引用模式字段路径（输入节点 InputContract 字段树投影；空 = 引用模式隐藏） */
+  fieldPaths?: string[];
+  /** 实例级参数漂移（行 id → 缺参/未识别计数），供列表点标 */
+  driftByInstance?: Record<string, InstanceDriftSummary>;
+  /** 重复输出键清单（并行归集覆盖警告） */
+  duplicateKeys?: string[];
   onChange: (instances: FunctionInstance[]) => void;
 };
 
 /** 主从编辑器：左栏实例列表 + 右侧单实例编辑器（TypedInput 三模式）。
  *  自管理 selectedId（内部 useState），不需外部 selectedId prop。 */
-export const InstanceEditor: React.FC<InstanceEditorProps> = ({ instances, functionScope, disabled, onChange }) => {
+export const InstanceEditor: React.FC<InstanceEditorProps> = ({
+  instances,
+  functionScope,
+  disabled,
+  fieldPaths,
+  driftByInstance,
+  duplicateKeys,
+  onChange,
+}) => {
   const t = useT();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -66,14 +82,38 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({ instances, funct
     () => (selectedFn ? Object.keys(selectedFn.parameters?.properties ?? {}) : []),
     [selectedFn],
   );
+  const requiredParams = useMemo(
+    () => new Set((selectedFn?.parameters?.required as string[] | undefined) ?? []),
+    [selectedFn],
+  );
+  const selectedDrift = selected ? driftByInstance?.[selected.id] : undefined;
+  const selectedIsDup = selected ? (duplicateKeys?.includes(selected.key) ?? false) : false;
 
   return (
-    <div className='flex min-h-[320px] flex-1 gap-3 overflow-hidden'>
-      {/* 左栏：实例列表 */}
-      <div className='flex w-52 shrink-0 flex-col overflow-hidden rounded-lg border border-border'>
-        <div className='min-h-0 flex-1 overflow-y-auto py-1'>
+    <div className='flex min-h-[320px] flex-1 gap-3 overflow-hidden px-3 pb-3'>
+      {/* 左栏：实例列表（卡片 + 双行行项 + 漂移/重复点标 + 悬停删除） */}
+      <div className='flex w-56 shrink-0 flex-col overflow-hidden rounded-lg border border-border bg-card'>
+        <div className='flex shrink-0 items-center justify-between border-b border-border px-2.5 py-1.5'>
+          <Typography.Text className='text-[11px] font-medium uppercase tracking-wide opacity-60'>
+            {t('cf.instanceOverview')} · {instances.length}
+          </Typography.Text>
+          <Button
+            size='small'
+            type='link'
+            className='!px-1 !py-0'
+            disabled={disabled}
+            onClick={addInstance}
+            aria-label={t('cf.addInstance')}
+          >
+            + {t('cf.addInstance')}
+          </Button>
+        </div>
+        <div className='min-h-0 flex-1 overflow-y-auto p-1.5'>
           {instances.map((inst) => {
             const fn = functions.find((f: any) => f.name === inst.call.$call);
+            const drift = driftByInstance?.[inst.id];
+            const isDup = duplicateKeys?.includes(inst.key) ?? false;
+            const isSelected = selected?.id === inst.id;
             return (
               <div
                 key={inst.id}
@@ -81,9 +121,12 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({ instances, funct
                 tabIndex={0}
                 data-testid='instance-list-item'
                 data-id={inst.id}
-                className={`flex items-center gap-1 rounded px-1.5 py-1 text-xs transition-colors ${
-                  selected?.id === inst.id ? 'bg-primary/10' : 'hover:bg-muted/60'
-                } ${disabled ? 'cursor-default opacity-60' : 'cursor-pointer'}`}
+                aria-selected={isSelected}
+                className={`group relative mb-1 cursor-pointer rounded-md border px-2 py-1.5 transition-colors ${
+                  isSelected
+                    ? 'border-primary/40 bg-primary/10'
+                    : 'border-transparent hover:border-border hover:bg-muted/60'
+                } ${disabled ? 'cursor-default opacity-60' : ''}`}
                 onClick={() => setSelectedId(inst.id)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
@@ -92,81 +135,177 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({ instances, funct
                   }
                 }}
               >
-                <span className='min-w-0 flex-1 truncate font-medium'>{fn?.name ?? inst.call.$call}</span>
-                <span className='shrink-0 opacity-50'>→ {inst.key}</span>
-                {!disabled && instances.length > 1 && (
-                  <button
-                    type='button'
-                    className='shrink-0 text-[10px] opacity-40 hover:opacity-80'
-                    aria-label='remove'
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeInstance(inst.id);
-                    }}
-                  >
-                    ✕
-                  </button>
-                )}
+                <div className='flex items-center gap-1.5'>
+                  <span className='min-w-0 flex-1 truncate text-xs font-medium'>{fn?.name ?? inst.call.$call}</span>
+                  {isDup ? (
+                    <Tooltip title={t('cf.duplicateKeyError')}>
+                      <span
+                        data-testid='instance-dup-dot'
+                        aria-label={t('cf.duplicateKeyError')}
+                        className='inline-block size-1.5 shrink-0 rounded-full bg-destructive'
+                      />
+                    </Tooltip>
+                  ) : drift ? (
+                    <Tooltip
+                      title={`${t('cf.argsDriftMissing')} ${drift.missing} · ${t('cf.argsDriftUnrecognized')} ${drift.unrecognized}`}
+                    >
+                      <span
+                        data-testid='instance-drift-dot'
+                        className='inline-block size-1.5 shrink-0 rounded-full bg-amber-500'
+                      />
+                    </Tooltip>
+                  ) : null}
+                </div>
+                <div className='mt-0.5 flex items-center gap-1'>
+                  <span className='min-w-0 flex-1 truncate text-[10px] opacity-50'>→ {inst.key}</span>
+                  {!disabled && (
+                    <button
+                      type='button'
+                      className='shrink-0 text-[10px] opacity-0 transition-opacity hover:opacity-100 focus:opacity-100 group-hover:opacity-60'
+                      aria-label='remove'
+                      data-testid='instance-remove'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeInstance(inst.id);
+                      }}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
               </div>
             );
           })}
           {instances.length === 0 && (
-            <div className='p-2 text-xs text-[var(--muted-foreground)]'>{t('cf.instanceEmpty')}</div>
+            <div className='px-2 py-6 text-center text-xs opacity-50'>{t('cf.instanceEmpty')}</div>
           )}
-        </div>
-        <div className='shrink-0 border-t border-border p-1.5'>
-          <Button type='link' size='small' className='!pl-1' disabled={disabled} onClick={addInstance}>
-            {t('cf.addInstance')}
-          </Button>
         </div>
       </div>
 
-      {/* 右栏：选中实例的参数绑定编辑器 */}
-      <div className='min-h-0 min-w-0 flex-1 overflow-y-auto p-3'>
+      {/* 右栏：选中实例的参数绑定编辑器（头部 + 键 + 参数区） */}
+      <div className='min-h-0 min-w-0 flex-1 overflow-y-auto rounded-lg border border-border bg-card'>
         {selected && selectedFn ? (
-          <div className='flex flex-col gap-2'>
-            <div className='grid grid-cols-[88px_minmax(0,1fr)] items-center gap-2'>
-              <Typography.Text className='text-xs opacity-70'>{t('cf.paramFn')}</Typography.Text>
-              <Select
-                disabled={disabled}
-                value={selected.call.$call}
-                onChange={(v: string) => updateInstance(selected.id, { call: { $call: v, kwargs: {} } })}
-                options={fnOptions}
-              />
-            </div>
-            {paramNames.map((name) => {
-              const paramDef = selectedFn.parameters?.properties?.[name];
-              const paramType = typeof paramDef?.type === 'string' ? paramDef.type : 'string';
-              const argValue = selected.call.kwargs[name];
-              const typed: TypedValue =
-                argValue !== null && typeof argValue === 'object' && 'mode' in (argValue as Record<string, unknown>)
-                  ? (argValue as TypedValue)
-                  : { mode: 'literal', value: argValue };
-
-              return (
-                <div key={name} className='grid grid-cols-[88px_minmax(0,1fr)] items-center gap-2'>
-                  <Typography.Text className='text-xs opacity-70'>{name}</Typography.Text>
-                  <TypedInput
-                    parameterType={paramType}
-                    value={typed}
+          <div className='flex flex-col gap-4 p-3.5'>
+            {/* 头部：函数选择 + 描述 + 输出键 */}
+            <div className='flex flex-col gap-2.5'>
+              <div className='grid grid-cols-[120px_minmax(0,1fr)] items-center gap-2'>
+                <Typography.Text className='text-xs opacity-70'>{t('cf.function')}</Typography.Text>
+                <Select
+                  disabled={disabled}
+                  value={selected.call.$call}
+                  onChange={(v: string) => updateInstance(selected.id, { call: { $call: v, kwargs: {} } })}
+                  options={fnOptions}
+                />
+              </div>
+              {typeof selectedFn.description === 'string' && selectedFn.description && (
+                <div className='pl-[122px] text-[11px] leading-relaxed opacity-50'>{selectedFn.description}</div>
+              )}
+              <div className='grid grid-cols-[120px_minmax(0,1fr)] items-center gap-2'>
+                <Typography.Text className='text-xs opacity-70'>{t('cf.paramKey')}</Typography.Text>
+                <div className='flex flex-col gap-1'>
+                  <Input
                     disabled={disabled}
-                    fieldPaths={[]}
-                    onChange={(tv: TypedValue) =>
-                      updateInstance(selected.id, {
-                        call: { ...selected.call, kwargs: { ...selected.call.kwargs, [name]: tv.value } },
-                      })
+                    data-testid='instance-key-input'
+                    value={selected.key}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      updateInstance(selected.id, { key: e.target.value })
                     }
                   />
+                  {selectedIsDup && (
+                    <Typography.Text data-testid='instance-key-dup' className='text-[11px] text-destructive'>
+                      {t('cf.duplicateKeyError')}
+                    </Typography.Text>
+                  )}
                 </div>
-              );
-            })}
+              </div>
+              {(selected.dependsOn?.length ?? 0) > 0 && (
+                <div className='grid grid-cols-[120px_minmax(0,1fr)] items-center gap-2'>
+                  <Typography.Text className='text-xs opacity-70'>{t('cf.dependsOn')}</Typography.Text>
+                  <div className='flex flex-wrap gap-1'>
+                    {selected.dependsOn!.map((dep) => (
+                      <Tag key={dep} className='border border-border bg-muted/60 font-mono text-[10px]'>
+                        {dep}
+                      </Tag>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 参数区：声明序参数行（名称 + 必填星 + 类型标）× TypedInput */}
+            {paramNames.length > 0 && (
+              <>
+                <div className='border-t border-border pt-3'>
+                  <Typography.Text className='text-[11px] font-medium uppercase tracking-wide opacity-60'>
+                    {t('cf.paramSection')}
+                  </Typography.Text>
+                </div>
+                <div className='flex flex-col gap-2.5'>
+                  {paramNames.map((name) => {
+                    const paramDef = selectedFn.parameters?.properties?.[name];
+                    const paramType = typeof paramDef?.type === 'string' ? paramDef.type : 'string';
+                    const typed: TypedValue = coerceToTypedValue(selected.call.kwargs[name]);
+
+                    return (
+                      <div key={name} className='grid grid-cols-[120px_minmax(0,1fr)] items-center gap-2'>
+                        <div className='flex min-w-0 items-center gap-1'>
+                          <Typography.Text className='truncate text-xs opacity-70' ellipsis>
+                            {name}
+                          </Typography.Text>
+                          {requiredParams.has(name) && (
+                            <span className='shrink-0 text-destructive' title={t('cf.paramRequired')}>
+                              *
+                            </span>
+                          )}
+                          <Tag className='shrink-0 border border-border bg-muted/40 text-[9px] uppercase opacity-60'>
+                            {paramType}
+                          </Tag>
+                        </div>
+                        <TypedInput
+                          parameterType={paramType}
+                          value={typed}
+                          disabled={disabled}
+                          fieldPaths={fieldPaths}
+                          onChange={(tv: TypedValue) =>
+                            updateInstance(selected.id, {
+                              call: {
+                                ...selected.call,
+                                kwargs: {
+                                  ...selected.call.kwargs,
+                                  // 字面量存裸值（引擎直读兼容）；表达式/引用存信封保模式
+                                  [name]: tv.mode === 'literal' ? tv.value : tv,
+                                },
+                              },
+                            })
+                          }
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
             {paramNames.length === 0 && (
               <Typography.Text className='text-xs opacity-50'>{t('cf.noParams')}</Typography.Text>
             )}
+            {selectedDrift && (
+              <Typography.Text
+                data-testid='instance-drift-hint'
+                className='text-[11px] text-amber-700 dark:text-amber-400'
+              >
+                {t('cf.argsDriftTitle')}: {t('cf.argsDriftMissing')} {selectedDrift.missing} ·{' '}
+                {t('cf.argsDriftUnrecognized')} {selectedDrift.unrecognized}
+              </Typography.Text>
+            )}
           </div>
         ) : (
-          <div className='flex flex-1 items-center justify-center p-4'>
+          <div className='flex h-full flex-col items-center justify-center gap-2 p-6 text-center'>
             <Typography.Text className='text-xs opacity-50'>{t('cf.selectInstance')}</Typography.Text>
+            {!disabled && (
+              <Button size='small' type='link' onClick={addInstance}>
+                + {t('cf.addInstance')}
+              </Button>
+            )}
           </div>
         )}
       </div>

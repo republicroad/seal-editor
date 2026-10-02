@@ -1,8 +1,8 @@
 # Typed Input 万能值输入——参数值三模式显式化（缺口 D 立项）
 
 - 日期：2026-10-02
-- 状态：**设计走查 · 立项**（typed input 控件原语 + 存储协议 + 接线方案；
-  Node-RED 模式出处，参数值「字面量/表达式/引用」三分类显式化）
+- 状态：**已实施 · 走查收口**（控件原语 + 存储协议 + 兜底 tab 接线全落地；
+  P2 走查 6 项缺口收口记录见 §7）
 - 上位：[custom-node-editor-spec.md](./custom-node-editor-spec.md) §4（缺口 D）、
   ADR-015 §4（typed input 候选）、[ADR-013](../adr/013-input-contract-design.md)
   （InputContract 字段树 = 引用模式数据源）
@@ -117,3 +117,26 @@ CustomFunction 的参数值列 → TypedInput 替换（值编辑层升级）。
 - 约束：存储形状变更（additive 双写过渡）；CustomFunction 组件需感知
   TypedValue 形态（读旧写新）；新 primitives 文件；
 - 键主权：`config.expressions[].value` 的形状演进登记到编辑面规格 §2。
+
+## 7 · 实施走查记录（2026-10-02 P2 收口）
+
+初版实施与规格的 6 处偏差，本批全部收口：
+
+| # | 走查发现 | 收口 |
+| --- | --- | --- |
+| 1 | **存储违约**：InstanceEditor 写入只落 `tv.value`，模式信息丢弃（表达式串重读降级 literal） | 写路径修正：literal 存裸值（引擎直读兼容），非字面量存 `{mode, value}` 信封；读取侧 `coerceToTypedValue` 双形态兼容 |
+| 2 | §2.3 切换备忘缺失 | `previousByMode` ref：切换留存各模式旧值，切回恢复；新模式空值起步（不做内容自动推断） |
+| 3 | §3 引用模式恒可见 | `fieldPaths` 为空时模式下拉隐藏引用项；信封停在 reference 而路径源被移除时降级显示 literal（存储不动，下次切换自愈） |
+| 4 | `fieldPaths={[]}` 硬编码 | 兜底 tab 接线：首个输入节点 content → `getRequestDefinitions` 字段树 → 点路径清单 |
+| 5 | 模式标签硬编码中文 | i18n 化（`cf.modeLiteral/modeExpression/modeReference`）+ 补齐 InstanceEditor 5 个缺失键（此前渲染裸键名） |
+| 6 | number 参数用文本 Input + 强转 | `InputNumber` 原语（integer 同路）；boolean Switch 不变 |
+
+**存储协议修正（§2.1 增补）**：字面量恒存裸值——它是旧数据规范形，读取推断
+零损耗且引擎直读兼容；仅非字面量带信封。全量信封化（规格原文「新写入始终
+输出 TypedValue 形态」）待执行边界全铺开后另行收紧。
+
+**执行边界（信封展开）**：demo-server `expandTypedValues`（src/typed-values.ts，
+纯函数深走 + 窄识别：自有键恰为 {mode, value} 且 mode 合法）在
+/v1/execute · /v1/validate · /v1/shadow · /v1/functions/:name/execute 四口
+模型进门时展开——零 zen-udf 改动（custom-node-editor-spec §5 推荐起步方式）。
+其他宿主直连引擎执行存图时需自行展开（信封语义写入 CONTRACT 待办）。

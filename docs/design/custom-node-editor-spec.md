@@ -42,6 +42,14 @@
 
 InstanceEditor 根容器设 'min-h-[320px]'——无实例/空态时不因内容塌缩为单行。
 
+### 主从编辑器深化（2026-10-02 P2 走查收口）
+
+InstanceEditor 视觉重设计 + 功能补全：双卡片列（实例列表 / 参数编辑）、
+列表行双行化（函数名 + →输出键）与悬停删除、漂移/重复点标进列表、右栏
+输出键可编辑（重复即时警告）、函数描述行、必填星 + 类型标、dependsOn 只读
+标签、fieldPaths 透传（引用模式三态）。参数值写入经 typed-input 协议
+（literal 裸值 / 非字面量信封）——见 [typed-input-spec.md](./typed-input-spec.md) §7。
+
 
 ## 3 · `expr_asts` 权威性（zen-udf 澄清项 · 待提）
 

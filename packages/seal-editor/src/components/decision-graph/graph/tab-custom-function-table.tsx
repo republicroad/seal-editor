@@ -9,6 +9,7 @@ import {
   findDuplicateKeys,
   summarizeInstanceDrift,
 } from '../../../helpers/custom-function-schema';
+import { getRequestDefinitions } from '../../../helpers/request-schema';
 import { useT } from '../../../theming/i18n';
 import { Button, Tooltip, Typography } from '../../primitives';
 import { useDecisionGraphActions, useDecisionGraphState } from '../context/dg-store.context';
@@ -22,9 +23,11 @@ export type TabCustomFunctionProps = {
 
 export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user, customFunctions }) => {
   const graphActions = useDecisionGraphActions();
-  const { disabled, content } = useDecisionGraphState(({ disabled, decisionGraph }) => ({
+  const { disabled, content, inputContent } = useDecisionGraphState(({ disabled, decisionGraph }) => ({
     disabled,
     content: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content,
+    // 引用模式数据源：首个输入节点的 InputContract/Schema 字段树（typed-input 规格 §2.4）
+    inputContent: (decisionGraph?.nodes ?? []).find((node) => node?.type === 'inputNode')?.content,
   }));
 
   const functionScope = useMemo(
@@ -43,6 +46,8 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
   const duplicateKeys = useMemo(() => findDuplicateKeys(expressions), [expressions]);
   const instanceViews = useMemo(() => buildInstanceViews(expressions, functionScope), [expressions, functionScope]);
   const driftByRowId = useMemo(() => summarizeInstanceDrift(argsDrift), [argsDrift]);
+  // 引用模式字段路径：输入节点 InputContract/Schema 字段树 → 点路径清单（嵌套 a.b 原样）
+  const fieldPaths = useMemo(() => getRequestDefinitions(inputContent as never).map((def) => def.path), [inputContent]);
 
   // ADR-015 #3：写路径归一为规范形 {$call, kwargs}（编辑器位置数组经声明序
   // 映射；priorKwargs 并回保非位置额外键）；expr_asts 停写（引擎派生，零风险）
@@ -265,6 +270,9 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
               instances={instances}
               functionScope={functionScope}
               disabled={disabled}
+              fieldPaths={fieldPaths}
+              driftByInstance={driftByRowId}
+              duplicateKeys={duplicateKeys}
               onChange={handleInstancesChange}
             />
           </div>
