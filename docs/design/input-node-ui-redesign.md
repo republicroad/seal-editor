@@ -1,145 +1,117 @@
 # 输入节点 UI 重设计——从三页签独立到分屏联动编辑器
 
-- 日期：2026-09-30
-- 状态：**UI 范式提案 · 待裁定**（[ADR-013](../adr/013-input-contract-design.md) 的 UI 层配套设计；ADR 定义数据模型与同步机制，本文档定义视图形态）
-- 前置：[ADR-013](../adr/013-input-contract-design.md) InputContract 契约对象
+- 日期：2026-09-30 起草 · 2026-10-02 校准（对照 ADR-013 批次一~三已交付现实）
+- 状态：**已裁定 · 实施中**（2026-10-02 宿主裁定：分屏范式**一次性取代**三页签，
+  不留长期双轨；本仓先行实施，jdm 评审并行——协商方式沿 ADR-013 惯例，评审
+  注记随到随落）。数据层（ADR-013 批次一~三）已全量上线并随 1.16.0 发版；
+  本文档只管视图组合。
 
-## 0. 现状与痛点
+## 0. 现状校准（2026-10-02，对照原实施切分）
 
-输入节点编辑面板使用**三页签独立**模式：字段定义 / 用例数据 / Schema 各占一个页签，
-页签间切换 = 上下文断裂。
-
-| 痛点 | 具体表现 |
+| 原阶段 | 状态 |
 | --- | --- |
-| 上下文断裂 | 编辑 Schema 时看不到 Examples 是否受影响；必须切页签确认 |
-| 编辑反馈延迟 | Examples 里的字段与 Definitions 定义不一致时，无创作时提示——运行时才暴露 |
-| 导航成本 | 字段多时，Definitions 的递归树 + Examples 的源列表需要来回切换对齐 |
-| 无实时校验 | 三视图均无内联的 schema 约束校验（required 缺失 / 类型不匹配） |
+| UI-1 契约 store + drift 检测 | ✅ 已交付——**契约模块 + 单写漏斗形态**（jdm 批次一验收接受的偏差，非 zustand 字面 store）+ drift 三类清单 + ajv 懒加载约束校验 |
+| UI-4 漂移徽标 + 迁移 + 变更日志 | ✅ 已交付——Examples 视图徽标/迁移/确认（批次一）+ `onContractEvent` 事件流接 ChangeLogPanel（批次三） |
+| UI-5 旧图兼容（`;;`→具名调用） | ☠️ **消解**——`;;` 兼容被 ADR-013 评审判类别错误删除（OQ5）；真正的 legacy 兼容（内嵌 examples 读取回退 + 首编辑迁移写入）已随批次一交付 |
+| **UI-2 Field Tree + Context Editor** | ⬜ 本批 |
+| **UI-3 Code/Design 双模式 + Example 内联 + Fixtures 面板** | ⬜ 本批（量级修正 ~1.5 天，见 §4） |
 
-## 1. 业界三种编辑范式
+## 1 · 已裁定决策
 
-### 范式 1 · 三页签独立（当前模式）
+### 1.1 取代语义
 
-Postman 旧版、多数 IDE。页签间切换 = 上下文断裂，编辑 Schema 时看不到 Example 影响。
+分屏编辑器**一次性取代**输入节点的三页签（Definitions/Examples/Schema 页签
+消失），不留长期双轨：
 
-### 范式 2 · 分屏联动（业界金标准——Stoplight Studio）
+- 三个页签**全部有归宿、无功能删除**：字段定义 → 左栏树 + 右栏编辑器（同一套
+  BlurCommitInput/Select 控件语义）；Schema → Code 模式（同一 monaco 换挂载点）；
+  用例数据 → 顶栏 Examples 下拉 + 底部 Example Preview 条；
+- **数据层一行不动**：契约模块、drift、ajv、Run all 槽位、漂移事件流全部视图
+  无关，替换风险面只在视图组合层，git 可整体回退；
+- 会话草稿兼容：旧草稿的 `activeTab` 降级映射（schema→Code 模式，其余→Design）；
+- jdm 若跟进 adopting 则两仓编辑器同构，不跟进则为「seal 创新线 / jdm 择需
+  移植」的自觉分叉——由 jdm 评审**显式表态**，不默认发生。
 
-```
-┌─────────────┬──────────────────────────────────┐
-│ Field Tree   │  Selected Field Editor           │
-│ (常驻导航)    │  (form or code, per type)       │
-│              │                                   │
-│ ▼ customer   │  Name: [customer____]            │
-│   tier  str  │  Type: [string ▼]                │
-│   weight num │  Required: [✓]                   │
-│ ▼ cart       │  Description: [________]         │
-│   weight num │                                  │
-│              │  ── Example Preview ──           │
-│ [+ Add field]│  { "tier": "GOLD", ... }        │
-└─────────────┴──────────────────────────────────┘
-```
-
-**关键设计**：
-- **左栏持久 field tree**——不是页签，是常驻导航（永远看得见结构）
-- **右栏上下文感知编辑**——选中字段后右侧变为该字段的专属编辑器
-- **Example Preview 内嵌在右栏底部**——不是独立页签，是当前字段的实时预览
-- **Top bar 切换 Design/Code 模式**——Design = 结构化表单，Code = 原始 JSON Schema
-
-代表：Stoplight Studio（金标准）、Swagger Editor、Insomnia。
-
-### 范式 3 · Schema-driven 自动表单
-
-Schema 定义后自动生成表单——用户永远不直接编辑 schema。低代码平台（Retool/Appsmith/react-jsonschema-form）的模式。适合简单场景，但复杂嵌套/约束的表达力不足。
-
-## 2. 业界收敛出的核心交互模式
-
-| # | 模式 | 来源 | 说明 |
-|---|---|---|---|
-| 1 | **字段树常驻导航** | Stoplight/Postman v10 | 树不是页签——是常驻的结构导航，选中节点后右侧变为该节点的编辑器 |
-| 2 | **类型驱动编辑器切换** | Stoplight | 字段类型从 `string` 改为 `object` → 编辑器从文本框变为嵌套子字段列表 |
-| 3 | **Schema ↔ Example 双向校验** | Postman/Swagger | 编辑 example 时，右侧内联显示 schema 约束的校验结果（required 缺失 / type 不匹配 / enum 越界）——不切页签 |
-| 4 | **Design / Code 双模式** | Stoplight/Swagger Editor | 结构化表单 ↔ 原始 JSON Schema，一键切换，双向同步 |
-| 5 | **Example as executable doc** | Postman/Insomnia | 每个示例一键执行——不只是文档，是可运行的活文档 |
-| 6 | **Migrate 而非静默改** | DB migration 同型 | schema 变更后 examples 不被自动修改，而是标记 drifted + 提供显式迁移操作 |
-
-## 3. 推荐范式：分屏联动编辑器
-
-### 3.1 布局
+### 1.2 多示例集合的归宿（原开放问题 5，宿主采纳修订版）
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│ ┌────────────┐  ┌───────────────────────────────────────┐│
-│ │ Field Tree  │  │  Context Editor                       ││
-│ │ (reui Tree) │  │                                       ││
-│ │             │  │  ┌─ Design ─┐  ┌─ Code ─┐            ││
-│ │ ▼ customer  │  │  └──────────┘  └────────┘            ││
-│ │   tier  str │  │                                       ││
-│ │   weight num│  │  Name: [________]                     ││
-│ │ ▼ cart      │  │  Type: [string ▼]                     ││
-│ │   weight num│  │  Default: [________]                  ││
-│ │             │  │  Description: [________]              ││
-│ │ [+ Add]     │  │                                       ││
-│ │             │  │  ── Example ────────────────────      ││
-│ │             │  │  { "tier": "GOLD", ... }             ││
-│ └────────────┘  └───────────────────────────────────────┘│
-│                    [SchemaToolbarActions]                  │
-└──────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────┐
+│ [Design|Code]  [Examples: 正常GOLD ●▾] [▶ 全部运行] [工具栏] │ ← 顶栏
+├──────────────┬─────────────────────────────────────────────┤
+│ Field Tree   │  选中字段的上下文编辑器                        │
+│ ▼ customer   │  Name/Type/Default/Description               │
+│   tier  str  │  （object → 子字段列表 + 添加子字段）          │
+│ ▼ cart       │                                              │
+│   weight num │  ┌─ Example Preview ──────────────────┐      │
+│ [+ Add]      │  │ 可编辑 JSON（compact monaco）       │      │
+│              │  │ ⚠ 缺 1 · 约束 2      [迁移] [确认]  │      │
+└──────────────┴──┴────────────────────────────────────┴──────┘
+╞═ Fixtures 面板（底部抽屉，与 simulator 对称，图级）═══════════╡
+│ 目标节点: Request ▾   [▶ 运行 3 个用例]    上次: 2/3 通过     │
+│ ✓ 通过  正常GOLD用户  12ms          ✗ 断言… 边界:零金额  [调试→]│
+╞═ Simulator 抽屉（单例调试，现状不变）═════════════════════════╡
 ```
 
-### 3.2 组成
+- **顶栏 Examples 下拉**：具名示例集合的唯一管理入口——每项 = 名称 + 漂移
+  点标（hover 三类计数），选中即切换活动示例；增删改名进下拉（新建页脚 +
+  悬停动作）；>20 软折叠迁移为下拉页脚「显示全部」；
+- **右栏底部 Example Preview 条**：活动示例 JSON **可编辑**（compact monaco，
+  保留 700ms 会话草稿 + blur-commit 语义）；**全量 JSON** 而非字段切片（选中
+  字段高亮定位）；本示例漂移三类计数 + ajv 约束违例 + 迁移/确认动作内联；
+- **图级 Fixtures 面板（取代原「运行报告页」提案）**：Run all 从节点页签附属
+  条升格为与 simulator 对称的底部抽屉——批量是图的属性不是节点的属性；全宽
+  矩阵（名称/结论/耗时/错误/命中节点五列）；报告状态升 dg-store（图级，切
+  节点不丢）；`simulateHandler` 存在时由 appshell 注册（与 simulator 同款），
+  kernel 渲染组件、读 `fixturesRunner` 槽位——**zen-udf runDecisionTests
+  字面复用不变**；
+- **联动原则：传选择，不传状态**：面板/下拉的选择经既有 `syncExampleToSimulator`
+  串到模拟器；面板行「调试→」= 选中 + 打开 simulator 抽屉（浅联动）；批量
+  结果不灌入模拟器面板（模型不匹配 + executor 契约不搬运完整 trace），执行
+  语义单源（同一 simulateHandler）保证失败必然复现；
+- 输入节点页签「全部运行」按钮 = 打开/聚焦 Fixtures 面板 + 以本节点示例集
+  触发运行（注意力跟随动作）；面板绑定「最近活动的输入节点页签」（复用
+  simulatorExampleBinding 绑定模式；多输入节点时面板内提供选择器）。
 
-| 区域 | reui 组件 | 说明 |
-| --- | --- | --- |
-| **Field Tree（左栏）** | `tree`（已在 backlog row 5 落地） | 常驻结构导航；namespace→field 两级 |
-| **Context Editor（右栏）** | `field` + `input` + `select` + `switch` + `textarea` | 选中字段的专属编辑器（Design 模式）|
-| **Code Editor（右栏）** | `code-block`（Shiki 高亮，已 vendored） | Code 模式：原始 JSON Schema |
-| **Example Preview（右栏底部）** | `code-block`（JSON 高亮） | 当前字段的 example 实时预览 |
-| **Toolbar** | `SchemaToolbarActions`（已提取） | 格式化/导入/仿真联动 |
-| **Drift 徽标** | `badge` | drifted examples 的视觉警示 |
+### 1.3 开放问题 1-4 答案
 
-### 3.3 交互规则
+1. **类型驱动控件映射**：string/number/datetime → 文本输入（datetime 带格式
+   提示）；boolean → switch；object → 子字段列表 + 添加子字段；array → Design
+   模式只读展示，编辑引导进 Code 模式；
+2. **嵌套深度**：递归树（headless-tree 语义），不设硬深度，折叠解决展示；
+3. **与 dt 一致性**：共享控件**语义**不共享组件（同 ListPanel 裁定逻辑——
+   dt 字段带 enum/ref，input 字段带 default/description，强行抽件过度抽象）；
+4. **undo/redo**：免费获得——契约写入全走 `updateNode`，既有 undo 快照自动
+   覆盖字段增删。
 
-| 操作 | 效果 |
-| --- | --- |
-| Tree 选中 namespace | 右栏显示该 namespace 的字段列表（Design 模式）|
-| Tree 选中字段 | 右栏显示该字段的编辑器（type 驱动控件切换）|
-| 右栏编辑 | → contract store 更新 → 其余视图同步 |
-| 右栏 [Code] 切换 | → 显示原始 JSON Schema（只读或编辑）|
-| Tree 右键 → 删除 | → 字段移除 + examples 漂移标记 |
-| [+ Add field] | → 在当前 namespace 下新增字段 |
+## 2 · 业界参照（保留原文要点）
 
-### 3.4 reui 组件选型
+分屏联动（Stoplight Studio 金标准）：字段树常驻导航 / 类型驱动编辑器切换 /
+schema↔example 双向校验不切页签 / Design-Code 双模式 / example 可执行 /
+migrate 而非静默改。三页签（现状）= 上下文断裂；schema-driven 自动表单 = 表达
+力不足。六条交互模式全部由已上线数据层支撑，本批补齐视图。
 
-| 区域 | reui 组件 | 说明 |
-| --- | --- | --- |
-| Field Tree | `tree`（已在 backlog row 5 落地） | headless-tree syncDataLoader |
-| Field Row | `field` + `input` + `select` + `switch` + `textarea` | 统一 label/control/description 模式 |
-| Code Editor | `code-block`（Shiki 高亮，已 vendored） | JSON Schema 编辑/预览 |
-| Panel Shell | `frame`（已在用） | `spacing='xs'` 档 + `dense` 适配窄面板 |
-| Drift 徽标 | `badge` | severity 色标（error/warning）|
-| 面板容器 | `sheet` 或 `tabs` | 与 simulator/治理面板统一挂载模式 |
+## 3 · reui 组件选型
 
-## 4. 实施切分
+Field Tree = kernel 内轻量递归树（先行，复用 DefinitionCard 的折叠/徽标语义；
+reui tree 若后续需要再 vendoring）；Context Editor = BlurCommitInput + Select +
+现有 primitives；Code = 既有 monaco schema 编辑器；Preview = compact monaco；
+Fixtures 面板矩阵 = 批次三 RunAllMatrix 迁移复用；Drift = 既有琥珀点标 +
+badge。
 
-| 阶段 | 内容 | 量级 | 前置 |
+## 4 · 实施切分（修订）
+
+| 批 | 内容 | 归属 | 量级 |
 | --- | --- | --- | --- |
-| **UI-1** | InputContract store（合并三 hook → 单 store + drift 检测）| kernel | ~1 天 |
-| **UI-2** | Field Tree + Context Editor（reui Tree + field 原语） | kernel | ~1.5 天 |
-| **UI-3** | Code/Design 双模式切换 + Example Preview 内联 | kernel | ~1 天 |
-| **UI-4** | Drift 徽标 + 迁移按钮（对接 ChangeLogPanel）| appshell | ~0.5 天 |
-| **UI-5** | 旧图兼容（;; 位置绑定 → 具名调用自动迁移） | kernel | ~0.5 天 |
+| 校准稿 | 本文档 + 提 jdm | docs | ✅ |
+| **UI-A** | kernel：fixtures-run 纯函数（节点示例集 → ContractFixture[]）+ dg-store `fixturesRun` 图级状态 + `runFixtures` action + FixturesPanel 组件 | kernel | ~0.5 天 |
+| **UI-B** | kernel：TabRequest 重写——顶栏（Design/Code 切换 + Examples 下拉 + 工具栏）+ 分屏体（FieldTree/ContextEditor/Preview 条）+ Code 模式 + 会话草稿兼容 + 旧三视图组件退役 | kernel | ~2 天 |
+| **UI-C** | appshell：注册 fixtures 面板 + 透传；Storybook/交互测试更新 | appshell | ~0.5 天 |
 
-总量 ~4.5 天，可拆两个 PR（UI-1~3 为一个，UI-4~5 为一个）。
+## 5 · 后果
 
-## 5. 开放问题
-
-1. **Type-driven 控件映射**：`type: 'string'` → Input / `type: 'object'` → 嵌套 Tree / `type: 'array'` → ??? 每种类型用什么控件？
-2. **嵌套字段深度**：`object` 内嵌 `object` 的编辑——递归 Tree 还是平铺？
-3. **与 dt 编辑器的一致性**：dt 的字段编辑（BlurCommitInput + Select）与 input node 的字段编辑是否共享控件？
-4. **树操作与 undo/redo 的集成**：字段添加/删除是否进 undo 栈？
-
-## 6. 后果
-
-- 正面：消除页签上下文断裂；创作时 quality gate（schema ↔ example 实时校验）；字段树常驻导航降低认知负荷；Examples 升级为可执行测试用例；
-- 约束：UI-2~3 是 kernel renderSettings 的重构（InputContract store + 视图迁移，总量最大）；ajv 依赖需评估体积预算；树形嵌套编辑的 UX 需设计走查；
-- 协商方式：jdm-editor 在本文档逐节标注（接受/否决/修改），裁定后更新状态行；实施随内核 minor 发版。
+- 正面：消除页签上下文断裂；quality gate 落在编辑现场；结构/实例分离（树管
+  结构、下拉管实例）；Run all 升图级面板与 simulator 对称，矩阵获得全宽空间，
+  报告跨页签存续；数据层零改动、可整体回退；
+- 约束：TabRequest 重构是本批最大 diff（旧三视图组件退役）；会话草稿形状
+  变更需降级兼容；两仓编辑器可能分叉（jdm 显式表态）；
+- 协商：本仓先行实施，jdm 评审并行、随到随落（ADR-013 批次同款节奏）。
