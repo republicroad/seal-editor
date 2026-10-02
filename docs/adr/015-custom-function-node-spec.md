@@ -122,8 +122,9 @@ type FunctionCallExpression = {
 3. **加强 UI 范式候选（评估态，非本批裁定）**：
    - **Windmill 双模式**：schema 生成表单 ↔ 代码视图（inputNode Design/Code
      的函数版范式）；
-   - **typed input 万能值输入**（Node-RED 模式，缺口 D）：字面量/表达式/引用
-     显式三分类，存储协议前置协调见编辑面规格 §5；
+   - **typed input 万能值输入**（Node-RED 模式，缺口 D）：一控件 + 类型切换
+     （字面量/表达式/引用），值 = 类型 + 内容两元组——参数值三分类显式化的
+     业界鼻祖，存储协议前置协调见编辑面规格 §5 + §4 业界参照表；
 4. **部分接管**：专用 Tab 内嵌兜底容器补覆盖盲区（Unity DrawDefaultInspector
    同构）；显示提示中间层维持客户端 hints（ADR-009 meta-minimization 张力不碰）。
 
