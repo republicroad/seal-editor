@@ -1,5 +1,9 @@
 import { smartSplit } from './utility';
 
+/** 局部 record 守卫（与 request-schema/utils.isRecord 同义；helper 顶层不引子目录模块） */
+const isRecord = (value: unknown): value is Record<string, any> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
 export const emptyCustomFunctionReturnSchema = {};
 
 export const normalizeFunctionReturns = (returns?: any) => {
@@ -141,6 +145,157 @@ export const healExpressionsForScope = (expressions: any, scope?: FunctionScope)
 
     changed = true;
     return { ...expression, ...buildDefaultFunctionExpression(primaryFunction) };
+  });
+
+  return changed ? healed : null;
+};
+
+/**
+ * 函数参数级漂移（兜底 tab 漂移带，分屏范式 drift 模式的第二次复用）：
+ * 行的函数调用 args vs 该函数现行 parameters.properties 声明——
+ * 缺参（声明有、行未传）与未识别键（行有、声明无）。
+ * 仅 scoped 档评估（free/legacy 无单一契约可对照）。
+ */
+export type FunctionArgsDriftEntry = {
+  rowId: string;
+  rowKey: string;
+  functionName: string;
+  /** 函数已声明但本行未传的参数（附声明默认值） */
+  missing: Array<{ name: string; default?: unknown }>;
+  /** 本行携带但函数未声明的具名键 */
+  unrecognized: string[];
+};
+
+const getScopeFunction = (scope: FunctionScope | undefined, functionName: string | null) => {
+  if (!scope || scope.mode !== 'scoped' || !functionName) {
+    return undefined;
+  }
+
+  return scope.functions.find((func: any) => func?.name === functionName);
+};
+
+export const computeFunctionArgsDrift = (expressions: any, scope?: FunctionScope): FunctionArgsDriftEntry[] => {
+  if (!scope || scope.mode !== 'scoped' || !Array.isArray(expressions)) {
+    return [];
+  }
+
+  const entries: FunctionArgsDriftEntry[] = [];
+
+  expressions.forEach((expression: any) => {
+    if (!isFunctionExpression(expression)) {
+      return;
+    }
+
+    const functionName = getFunctionNameFromValue(expression.value);
+    if (!functionName) {
+      return;
+    }
+
+    const funcDef = getScopeFunction(scope, functionName);
+    if (!funcDef) {
+      return;
+    }
+
+    const properties = isRecord(funcDef.parameters) ? (funcDef.parameters.properties ?? {}) : {};
+    const declared = Object.keys(properties);
+    const argExprs = isRecord(expression.arg_exprs) ? expression.arg_exprs : null;
+    const positionalArgs = Array.isArray(expression.value) ? expression.value.slice(1) : [];
+
+    if (argExprs) {
+      const namedKeys = Object.keys(argExprs);
+      const missing = declared
+        .filter((name) => !namedKeys.includes(name))
+        .map((name) => ({ name, default: properties[name]?.default }));
+      const unrecognized = namedKeys.filter((name) => !declared.includes(name));
+
+      if (missing.length > 0 || unrecognized.length > 0) {
+        entries.push({
+          rowId: expression.id,
+          rowKey: expression.key ?? '',
+          functionName,
+          missing,
+          unrecognized,
+        });
+      }
+
+      return;
+    }
+
+    // 纯位置形态（无具名镜像）：按声明数对比位数，缺尾报缺（不识别中插——位置绑定的固有盲区，迁移链负责）
+    const missingCount = Math.max(declared.length - positionalArgs.length, 0);
+    if (missingCount > 0) {
+      entries.push({
+        rowId: expression.id,
+        rowKey: expression.key ?? '',
+        functionName,
+        missing: declared
+          .slice(declared.length - missingCount)
+          .map((name) => ({ name, default: properties[name]?.default })),
+        unrecognized: [],
+      });
+    }
+  });
+
+  return entries;
+};
+
+/**
+ * 缺参修复（只增不删——圆往返保真）：按声明序重建规范形
+ * value = [funcName, ...声明序参数] + arg_exprs 全量镜像；
+ * 既有值保留（具名优先、位置次之、默认兜底），未识别键不动。
+ * 无可修内容返回 null。
+ */
+export const fillMissingFunctionArgs = (
+  expressions: any,
+  drift: FunctionArgsDriftEntry[] | undefined,
+  scope?: FunctionScope,
+): any[] | null => {
+  if (!scope || scope.mode !== 'scoped' || !Array.isArray(expressions) || !Array.isArray(drift) || drift.length === 0) {
+    return null;
+  }
+
+  const driftByRow = new Map(drift.filter((entry) => entry.missing.length > 0).map((entry) => [entry.rowId, entry]));
+
+  if (driftByRow.size === 0) {
+    return null;
+  }
+
+  let changed = false;
+  const healed = expressions.map((expression: any) => {
+    const entry = driftByRow.get(expression?.id);
+    if (!entry) {
+      return expression;
+    }
+
+    const funcDef = getScopeFunction(scope, entry.functionName);
+    const properties = funcDef && isRecord(funcDef.parameters) ? (funcDef.parameters.properties ?? {}) : {};
+    const declared = funcDef ? Object.keys(properties) : [];
+    if (declared.length === 0) {
+      return expression;
+    }
+
+    const argExprs = isRecord(expression.arg_exprs) ? { ...expression.arg_exprs } : {};
+    const positionalArgs = Array.isArray(expression.value) ? expression.value.slice(1) : [];
+
+    declared.forEach((name, index) => {
+      if (name in argExprs) {
+        return;
+      }
+
+      const positional = positionalArgs[index];
+      argExprs[name] = positional !== undefined ? positional : (properties[name]?.default ?? '');
+      changed = true;
+    });
+
+    changed =
+      changed ||
+      declared.some((name) => !Object.keys(isRecord(expression.arg_exprs) ? expression.arg_exprs : {}).includes(name));
+
+    return {
+      ...expression,
+      arg_exprs: argExprs,
+      value: [entry.functionName, ...declared.map((name) => argExprs[name] ?? '')],
+    };
   });
 
   return changed ? healed : null;

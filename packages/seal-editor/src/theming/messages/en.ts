@@ -228,6 +228,11 @@ export const en = {
   'request.fixturesNoInputNode': 'No input node in this graph',
   'request.fixturesNoExamples': 'The input node has no examples yet',
   'request.fixturesRunning': 'Running…',
+  'cf.argsDriftTitle': 'Function argument drift',
+  'cf.argsDriftRows': 'row(s)',
+  'cf.argsDriftMissing': 'missing',
+  'cf.argsDriftUnrecognized': 'unrecognized',
+  'cf.argsFillMissing': 'Fill missing defaults',
   'request.noDefinitions': 'No field definitions',
   'request.schemaPriorityTooltip':
     'Schema has the highest priority. Definitions and example data sync into schema, but schema remains the source of truth.',
