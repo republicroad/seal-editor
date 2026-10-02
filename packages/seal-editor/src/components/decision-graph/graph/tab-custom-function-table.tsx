@@ -1,6 +1,4 @@
 import React, { useMemo } from 'react';
-import { P, match } from 'ts-pattern';
-import type { z } from 'zod';
 
 import { resolveFunctionScope } from '../../../helpers/custom-function-schema';
 import {
@@ -9,21 +7,12 @@ import {
   editorValueToNamedCall,
   fillMissingFunctionArgs,
   findDuplicateKeys,
-  namedCallToEditorValue,
   summarizeInstanceDrift,
 } from '../../../helpers/custom-function-schema';
-import type { GetNodeDataResult } from '../../../helpers/node-data';
-import { getNodeData } from '../../../helpers/node-data';
-import { useNodeType } from '../../../helpers/node-type';
-import type { customNodeSchema } from '../../../helpers/schema';
-import { get } from '../../../helpers/utility';
-import { isWasmAvailable } from '../../../helpers/wasm';
 import { useT } from '../../../theming/i18n';
-import { CustomFunction } from '../../custom-function-table';
-import type { ExpressionPermission } from '../../custom-function-table/context/expression-store.context';
 import { Button, Tooltip, Typography } from '../../primitives';
 import { useDecisionGraphActions, useDecisionGraphState } from '../context/dg-store.context';
-import type { SimulationTrace, SimulationTraceDataExpression } from '../simulator/simulation.types';
+import { type FunctionInstance, InstanceEditor } from './instance-editor';
 
 export type TabCustomFunctionProps = {
   id: string;
@@ -33,34 +22,10 @@ export type TabCustomFunctionProps = {
 
 export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user, customFunctions }) => {
   const graphActions = useDecisionGraphActions();
-  const nodeType = useNodeType(id, { attachGlobals: false });
-  const { disabled, content, globalType } = useDecisionGraphState(({ disabled, decisionGraph, globalType }) => ({
+  const { disabled, content } = useDecisionGraphState(({ disabled, decisionGraph }) => ({
     disabled,
     content: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content,
-    globalType,
   }));
-
-  const { nodeTrace, inputData, nodeSnapshot, viewConfig } = useDecisionGraphState(
-    ({ simulate, decisionGraph, viewConfig }) => ({
-      nodeTrace: match(simulate)
-        .with(
-          { result: P.nonNullable },
-          ({ result }) => result.trace[id] as SimulationTrace<SimulationTraceDataExpression>,
-        )
-        .otherwise(() => null),
-      inputData: match(simulate)
-        .with({ result: P.nonNullable }, ({ result }) => getNodeData(id, { trace: result.trace, decisionGraph }))
-        .otherwise(() => null),
-      nodeSnapshot: match(simulate)
-        .with(
-          { result: P.nonNullable },
-          ({ result }) =>
-            result.snapshot?.nodes?.find((n) => n.id === id)?.content as z.infer<typeof customNodeSchema>['content'],
-        )
-        .otherwise(() => null),
-      viewConfig,
-    }),
-  );
 
   const functionScope = useMemo(
     () => resolveFunctionScope((content as { kind?: string } | undefined)?.kind, customFunctions),
@@ -78,22 +43,6 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
   const duplicateKeys = useMemo(() => findDuplicateKeys(expressions), [expressions]);
   const instanceViews = useMemo(() => buildInstanceViews(expressions, functionScope), [expressions, functionScope]);
   const driftByRowId = useMemo(() => summarizeInstanceDrift(argsDrift), [argsDrift]);
-
-  // 编辑器视图：规范形行（{$call, kwargs}）→ 位置数组（CustomFunction 按位编辑；
-  // 额外键在写路径从 priorKwargs 并回，圆往返保真）
-  const editorExpressions = useMemo(
-    () =>
-      (expressions ?? []).map((expr: any) => {
-        if (!expr || typeof expr.value !== 'object' || Array.isArray(expr.value)) {
-          return expr;
-        }
-
-        const funcDef = functionScope.functions.find((func: any) => func?.name === expr.value.$call);
-        const arrayForm = namedCallToEditorValue(expr.value, funcDef);
-        return arrayForm ? { ...expr, value: arrayForm } : expr;
-      }),
-    [expressions, functionScope.functions],
-  );
 
   // ADR-015 #3：写路径归一为规范形 {$call, kwargs}（编辑器位置数组经声明序
   // 映射；priorKwargs 并回保非位置额外键）；expr_asts 停写（引擎派生，零风险）
@@ -123,48 +72,38 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
     });
   };
 
-  const inputVariableType = useMemo(() => {
-    if (!nodeType) {
-      return undefined;
-    }
+  // ADR-015 增补 P2：expressions → FunctionInstance[]（InstanceEditor 读态）
+  const instances: FunctionInstance[] = useMemo(
+    () =>
+      (expressions ?? []).map((expr: any) => ({
+        id: expr?.id ?? '',
+        key: expr?.key ?? '',
+        call:
+          expr?.value !== null && typeof expr?.value === 'object' && !Array.isArray(expr.value)
+            ? expr.value
+            : { $call: '', kwargs: {} },
+        ...(expr?.dependsOn ? { dependsOn: expr.dependsOn } : {}),
+      })),
+    [expressions],
+  );
 
-    let scopedType = nodeType.clone();
-    if (content?.config?.inputField) {
-      scopedType = scopedType.calculateType(content.config.inputField);
-    }
-
-    if (content?.config?.executionMode === 'loop') {
-      scopedType = scopedType.arrayItem();
-    }
-
-    Object.entries(globalType ?? {}).forEach(([key, value]) => scopedType.set(key, value));
-
-    return scopedType;
-  }, [nodeType, content?.config?.inputField, content?.config?.executionMode, globalType]);
-
-  const debug = useMemo(() => {
-    if (!nodeTrace || !inputData || !nodeSnapshot) {
-      return undefined;
-    }
-
-    if (!isWasmAvailable()) {
-      return { trace: nodeTrace, snapshot: nodeSnapshot.config };
-    }
-
-    const $data = Object.fromEntries(
-      Object.entries(nodeTrace.traceData || {}).map(([k, v]) => [k, safeJson(v.result)]),
-    );
-    const extendedInputData: GetNodeDataResult = {
-      ...inputData,
-      $: $data,
-    };
-
-    if (content?.config?.inputField) {
-      extendedInputData.data = get(extendedInputData.data, content.config.inputField, {});
-    }
-
-    return { trace: nodeTrace, inputData: extendedInputData, snapshot: nodeSnapshot.config };
-  }, [nodeTrace, nodeSnapshot, inputData]);
+  // InstanceEditor onChange → 规范形 expressions（写路径经键主权单漏斗）
+  const handleInstancesChange = (newInstances: FunctionInstance[]) => {
+    graphActions.updateNode(id, (draft) => {
+      draft.content.config.expressions = newInstances.map((inst) => ({
+        id: inst.id,
+        key: inst.key,
+        type: 'function',
+        value: inst.call,
+        ...(inst.dependsOn ? { dependsOn: inst.dependsOn } : {}),
+      }));
+      draft.content.config.meta = {
+        user: user ?? '',
+        proj: user ?? '',
+      };
+      return draft;
+    });
+  };
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', boxSizing: 'border-box' }}>
@@ -248,27 +187,13 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
         </div>
       )}
       <div style={{ paddingTop: driftRowCount > 0 ? 8 : 0 }}>
-        <CustomFunction
-          value={editorExpressions}
-          disabled={disabled}
-          permission={(viewConfig?.enabled ? viewConfig?.permissions?.[id] : 'edit:full') as ExpressionPermission}
-          customFunctions={customFunctions}
+        <InstanceEditor
+          instances={instances}
           functionScope={functionScope}
-          debug={debug as any}
-          inputVariableType={inputVariableType}
-          onChange={(val: any) => {
-            persistExpressions(val);
-          }}
+          disabled={disabled}
+          onChange={handleInstancesChange}
         />
       </div>
     </div>
   );
-};
-
-const safeJson = (data: string): unknown => {
-  try {
-    return JSON.parse(data);
-  } catch {
-    return null;
-  }
 };
