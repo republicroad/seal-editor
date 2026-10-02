@@ -237,6 +237,10 @@ verdict 升级 appshell 1.23 后 **web 构建（rolldown）失败**，暴露一�
   `@republicroad/zen-udf` → runner 面垫片（只 re-export fixtures.ts）+
   `@gorules/zen-engine` → 浏览器桩（未注入求值器按不通过处理）。appshell 与
   verdict 代码均已在此形态下验证（web build + 运行时全绿）。
+  **✅ 已拆除（2026-10-02）**：0.13.1 发布 `/runner` 纯子路径（提案两件全落），
+  appshell 1.25.0 切换 `zen-udf/runner` 子路径导入——verdict 垫片/别名/
+  浏览器桩/apps/web 显式依赖五处全删，web 构建零垫片通过；verdict 存量图
+  （位置数组形态）在新栈（zen-udf 0.14.1，ADR-015 双读）实测原样执行。
 
 ## 附 A · fixtures.ts 修改蓝图（实现级）
 
