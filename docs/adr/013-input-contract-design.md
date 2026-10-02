@@ -160,7 +160,7 @@ InputContract 整体序列化为自包含 JSON（**信封带 `contractVersion`**
 
 ## UI 层配套
 
-视图形态与交互设计见配套文档：[input-node-ui-redesign.md](../design/input-node-ui-redesign.md)（分屏联动编辑器——Stoplight Studio 范式，reui 组件选型与实施切分）。
+视图形态与交互设计见配套文档：[input-node-ui-redesign.md](../archive/plans/input-node-ui-redesign.md)（分屏联动编辑器——Stoplight Studio 范式，reui 组件选型与实施切分）。
 
 ## 备选方案
 

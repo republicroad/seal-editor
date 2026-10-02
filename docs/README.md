@@ -77,7 +77,7 @@ English files are canonical; `.zh-CN.md` files are translations kept in sync.
 | [`design/repl-panel-plan.md`](./design/repl-panel-plan.md) | ✅ 已实施(appshell 1.16.0) | A3 REPL 面板 + demo-server 单函数执行端点:参数校验/绑定分离、冷启动标注、catalog 试运行衔接;~1.25 天 |
 | [`design/graph-panel-recon.md`](./design/graph-panel-recon.md) | 🔵 侦察完成待裁定 | graph 面板区形态统一侦察:精确重复点(monaco options/工具栏组/添加钮三形态)+ ListPanel 提取两步走提案 |
 | [`design/custom-node-editor-spec.md`](./design/custom-node-editor-spec.md) | 🟢 规格立法 + UI 评估 | 自定义节点编辑面:config 键主权表/z.any() 模型意图/expr_asts 权威性澄清项(zen-udf)/reui 适配评估(核心交互无对口,外围已填)+ Windmill 双模式等业界参照 |
-| [`design/input-node-ui-redesign.md`](./design/input-node-ui-redesign.md) | 🔵 UI 范式提案待裁定 | 输入节点 UI 重设计:三页签→分屏联动编辑器(Stoplight Studio 范式)+ reui 组件选型;ADR-013 的 UI 层配套 |
+| [`design/input-node-ui-redesign.md`](./archive/plans/input-node-ui-redesign.md) | 🔵 UI 范式提案待裁定 | 输入节点 UI 重设计:三页签→分屏联动编辑器(Stoplight Studio 范式)+ reui 组件选型;ADR-013 的 UI 层配套 |
 | [`design/input-contract-spec.md`](./design/input-contract-spec.md) | 🟢 立法文档 | InputContract 数据形状/contractVersion 信封/additive 双写存储纪律/漂移协议;ADR-013 清单 #0,批次一已实施 |
 | [`design/upstream-contribution-plan.md`](./design/upstream-contribution-plan.md) | ✅ | 上游贡献治理裁决:贡献线由宿主手动执行,本仓不回馈上游 |
 
