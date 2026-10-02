@@ -38,6 +38,11 @@
 
 新增写手（如 typed input 存储迁移）接入 = 在本表登记 + 单漏斗收编 + 往返测试。
 
+### 编辑器最小高度
+
+InstanceEditor 根容器设 'min-h-[320px]'——无实例/空态时不因内容塌缩为单行。
+
+
 ## 3 · `expr_asts` 权威性（zen-udf 澄清项 · 待提）
 
 `expr_asts` 是 `expressions` 的派生缓存（`toOperatorExprArray` 存储化）——

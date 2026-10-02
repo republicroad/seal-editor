@@ -68,7 +68,7 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({ instances, funct
   );
 
   return (
-    <div className='flex min-h-0 flex-1 gap-3 overflow-hidden'>
+    <div className='flex min-h-[320px] flex-1 gap-3 overflow-hidden'>
       {/* 左栏：实例列表 */}
       <div className='flex w-52 shrink-0 flex-col overflow-hidden rounded-lg border border-border'>
         <div className='min-h-0 flex-1 overflow-y-auto py-1'>

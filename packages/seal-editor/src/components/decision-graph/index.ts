@@ -52,6 +52,7 @@ export { computeGraphDiff, type GraphDiff, type GraphNodeChange } from './diff/c
 
 export { TabRequest, type TabRequestProps } from './graph/tab-request';
 export { FixturesPanel } from './graph/fixtures-panel';
+export { InstanceEditor, type FunctionInstance } from './graph/instance-editor';
 export type {
   ContractDriftEvent,
   ContractDriftEventKind,
