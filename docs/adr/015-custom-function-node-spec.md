@@ -227,3 +227,25 @@ type FunctionCallExpression = {
 
 **裁定汇总：核心提案（具名字典化）全部接受；§1 三处对齐必改；记法定案
 `{$call, kwargs}`；实施清单缩量后 #1 归属 jdm-editor 待宿主口令。**
+
+## 实施回执（2026-10-02，jdm-editor）——#1 完成，zen-udf@0.14.0
+
+- **已发布且 registry 实证可见**（feat cc7706d0 + release 86e9ce88）：
+  ①引擎双读——`{$call, kwargs}` 嵌套信封（canonical）优先于 legacy 平面形态
+  （kwargs 键为 Record 时信封胜出，歧义形态迁移规范形即消除）；
+  ②`normalizeNamedCall` 静态工具——三形态归一（与执行语义同源经
+  normalizeOperatorCall），位置数组按 properties 键序映射，**结构归一值不造**
+  （多余位置值/无 schema 可依全量收进保留键 `$positional`，漂移带按 extra
+  检出；纯类型导入编译期擦除不破坏该性质），不可解析返回 null；
+  ③`validateNamedArgs`——missing/extra/typeMismatch 三类结构化清单（与漂移带
+  同构，编辑时孪生）；
+  ④CONTRACT.md §11 调用形态立法（记法定案/规范形/兼容形/弃用表——写入弃用
+  随 0.14、读取永久/按名校验两层语义言明）；
+- **验收**：新测 11 例（双读等价/信封优先 INVALID_PARAM 证据/三形态归一/
+  $positional/按名三类/runner 端到端）全过，全量 1089 绿 + tsc 干净；
+- **编辑面注记**：normalizeNamedCall 的对象/数组两形态归一是纯数据映射
+  （编辑器保存归一可镜像实现）；字符串形态归一与执行同源（parseOperatorExpr
+  需引擎）——浏览器保存归一建议先覆盖对象/数组两形态（存储形态本就是结构化
+  的，字符串仅手写简写暂存态）；
+- 清单 #3（seal 写路径切规范形 + expr_asts 停写 + 漂移带全量按名检测，~0.75 天）
+  随本版就绪，归 seal 会话。
