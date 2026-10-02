@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { computeFunctionArgsDrift, fillMissingFunctionArgs } from './custom-function-schema';
+import {
+  computeFunctionArgsDrift,
+  editorValueToNamedCall,
+  fillMissingFunctionArgs,
+  namedCallToEditorValue,
+} from './custom-function-schema';
 
 describe('computeFunctionArgsDrift / fillMissingFunctionArgs（兜底 tab 参数漂移带）', () => {
   const funcDef = {
@@ -81,5 +86,50 @@ describe('computeFunctionArgsDrift / fillMissingFunctionArgs（兜底 tab 参数
     const rows = [expr({ arg_exprs: { tenant: 'a', version: 1, legacy_flag: false } })];
     expect(fillMissingFunctionArgs(rows, [], scope)).toBeNull();
     expect(fillMissingFunctionArgs(rows, undefined, scope)).toBeNull();
+  });
+});
+
+describe('ADR-015 规范形（{$call, kwargs}）双向转换', () => {
+  const funcDef = {
+    name: 'roster',
+    parameters: {
+      type: 'object',
+      properties: {
+        tenant: { type: 'string', default: 'default' },
+        version: { type: 'number', default: 1 },
+        legacy_flag: { type: 'boolean' },
+      },
+    },
+  };
+  const scope = { mode: 'scoped' as const, functions: [funcDef] };
+
+  it('editorValueToNamedCall：位置数组按声明序映射为 kwargs', () => {
+    const named = editorValueToNamedCall(['roster', 'acme', 2], funcDef);
+    expect(named).toEqual({ $call: 'roster', kwargs: { tenant: 'acme', version: 2 } });
+  });
+
+  it('editorValueToNamedCall：溢出位置值收进 $positional 保留键', () => {
+    const named = editorValueToNamedCall(['roster', 'acme', 2, 'x', 'y'], funcDef);
+    // 3 个声明参数吃掉 acme/2/x（legacy_flag），仅 'y' 溢出
+    expect(named!.kwargs.$positional).toEqual(['y']);
+  });
+
+  it('namedCallToEditorValue：声明序取 kwargs + $positional 追加', () => {
+    const array = namedCallToEditorValue(
+      { $call: 'roster', kwargs: { version: 9, tenant: 'a', $positional: ['x'] } },
+      funcDef,
+    );
+    // legacy_flag 槽位无值 → 空串占位（声明序），$positional 追加在后
+    expect(array).toEqual(['roster', 'a', 9, '', 'x']);
+  });
+
+  it('computeFunctionArgsDrift 支持规范形行（kwargs 键对比 + $positional 不算未识别）', () => {
+    const drift = computeFunctionArgsDrift(
+      [{ id: 'r', key: 'k', value: { $call: 'roster', kwargs: { tenant: 'a', extra: 1 } } }],
+      scope,
+    );
+    expect(drift).toHaveLength(1);
+    expect(drift[0].missing.map((m) => m.name)).toEqual(['version', 'legacy_flag']);
+    expect(drift[0].unrecognized).toEqual(['extra']);
   });
 });

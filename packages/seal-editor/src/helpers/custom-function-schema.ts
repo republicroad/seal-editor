@@ -182,6 +182,34 @@ export const computeFunctionArgsDrift = (expressions: any, scope?: FunctionScope
   const entries: FunctionArgsDriftEntry[] = [];
 
   expressions.forEach((expression: any) => {
+    // 规范形（ADR-015 §2）：value = {$call, kwargs}——直接按 kwargs 键对比
+    if (isRecord(expression.value) && typeof expression.value.$call === 'string') {
+      const funcDef = getScopeFunction(scope, expression.value.$call);
+      if (!funcDef) {
+        return;
+      }
+
+      const properties = isRecord(funcDef.parameters) ? (funcDef.parameters.properties ?? {}) : {};
+      const declared = Object.keys(properties);
+      const kwargs = isRecord(expression.value.kwargs) ? expression.value.kwargs : {};
+      const missing = declared
+        .filter((name) => !(name in kwargs))
+        .map((name) => ({ name, default: properties[name]?.default }));
+      const unrecognized = Object.keys(kwargs).filter((name) => !declared.includes(name) && name !== '$positional');
+
+      if (missing.length > 0 || unrecognized.length > 0) {
+        entries.push({
+          rowId: expression.id,
+          rowKey: expression.key ?? '',
+          functionName: expression.value.$call,
+          missing,
+          unrecognized,
+        });
+      }
+
+      return;
+    }
+
     if (!isFunctionExpression(expression)) {
       return;
     }
@@ -299,4 +327,81 @@ export const fillMissingFunctionArgs = (
   });
 
   return changed ? healed : null;
+};
+
+/**
+ * ADR-015 调用规范（CONTRACT §11 canonical）：`{$call, kwargs}` 具名字典。
+ * 双向转换纯助手——存储为规范形，编辑器（CustomFunctionTable）继续以
+ * 位置数组形态编辑（价值：表达式构造器按位求值），转换在读写两缘发生。
+ */
+
+/** 规范调用形（CONTRACT §11）：{$call: 函数名, kwargs: 具名参数} */
+export type NamedFunctionCall = {
+  $call: string;
+  kwargs: Record<string, unknown>;
+};
+
+/** 声明序参数键（funcDef.parameters.properties 的键序即位置序） */
+const declaredArgNames = (funcDef?: { parameters?: unknown }): string[] =>
+  funcDef && isRecord(funcDef.parameters) && isRecord(funcDef.parameters.properties)
+    ? Object.keys(funcDef.parameters.properties)
+    : [];
+
+/**
+ * 编辑器位置数组 → 规范字典：位置位按声明序映射为参数键；
+ * 超出声明位的溢出值收进保留键 `$positional`（0.14 同款约定，供漂移带按
+ * extra 检出）；priorKwargs 中的非位置键原样并回（圆往返保真）。
+ */
+export const editorValueToNamedCall = (
+  value: unknown,
+  funcDef?: { parameters?: unknown },
+  priorKwargs?: Record<string, unknown> | null,
+): NamedFunctionCall | null => {
+  if (!Array.isArray(value) || value.length === 0) {
+    return null;
+  }
+
+  const declared = declaredArgNames(funcDef);
+  const fn = String(value[0] ?? '').trim();
+  if (!fn) {
+    return null;
+  }
+
+  const kwargs: Record<string, unknown> = { ...(priorKwargs ?? {}) };
+  declared.forEach((name, index) => {
+    if (value[index + 1] !== undefined) {
+      kwargs[name] = value[index + 1];
+    }
+  });
+  const overflow = value.slice(declared.length + 1);
+  if (overflow.length > 0) {
+    kwargs.$positional = overflow;
+  } else {
+    delete kwargs.$positional;
+  }
+
+  return { $call: fn, kwargs };
+};
+
+/**
+ * 规范字典 → 编辑器位置数组（声明序取 kwargs，`$positional` 溢出按原序追加；
+ * kwargs 中编辑器无法表达的额外键不进数组——由写路径从 priorKwargs 并回）。
+ * 不可转换返回 null（该行走只读/原样保真）。
+ */
+export const namedCallToEditorValue = (call: unknown, funcDef?: { parameters?: unknown }): string[] | null => {
+  if (!isRecord(call)) {
+    return null;
+  }
+
+  const fn = typeof call.$call === 'string' ? call.$call.trim() : '';
+  if (!fn) {
+    return null;
+  }
+
+  const kwargs = isRecord(call.kwargs) ? call.kwargs : {};
+  const declared = declaredArgNames(funcDef);
+  const positional = declared.map((name) => (kwargs[name] !== undefined ? kwargs[name] : ''));
+  const overflow = Array.isArray(kwargs.$positional) ? kwargs.$positional : [];
+
+  return [fn, ...positional, ...overflow];
 };

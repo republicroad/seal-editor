@@ -3,12 +3,17 @@ import { P, match } from 'ts-pattern';
 import type { z } from 'zod';
 
 import { resolveFunctionScope } from '../../../helpers/custom-function-schema';
-import { computeFunctionArgsDrift, fillMissingFunctionArgs } from '../../../helpers/custom-function-schema';
+import {
+  computeFunctionArgsDrift,
+  editorValueToNamedCall,
+  fillMissingFunctionArgs,
+  namedCallToEditorValue,
+} from '../../../helpers/custom-function-schema';
 import type { GetNodeDataResult } from '../../../helpers/node-data';
 import { getNodeData } from '../../../helpers/node-data';
 import { useNodeType } from '../../../helpers/node-type';
 import type { customNodeSchema } from '../../../helpers/schema';
-import { get, toOperatorExprArray } from '../../../helpers/utility';
+import { get } from '../../../helpers/utility';
 import { isWasmAvailable } from '../../../helpers/wasm';
 import { useT } from '../../../theming/i18n';
 import { CustomFunction } from '../../custom-function-table';
@@ -66,15 +71,41 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
   const driftMissingCount = argsDrift.reduce((sum, entry) => sum + entry.missing.length, 0);
   const driftUnrecognizedCount = argsDrift.reduce((sum, entry) => sum + entry.unrecognized.length, 0);
 
-  const persistExpressions = (val: any) => {
-    graphActions.updateNode(id, (draft) => {
-      draft.content.config.expressions = val;
+  // 编辑器视图：规范形行（{$call, kwargs}）→ 位置数组（CustomFunction 按位编辑；
+  // 额外键在写路径从 priorKwargs 并回，圆往返保真）
+  const editorExpressions = useMemo(
+    () =>
+      (expressions ?? []).map((expr: any) => {
+        if (!expr || typeof expr.value !== 'object' || Array.isArray(expr.value)) {
+          return expr;
+        }
 
-      draft.content.config.expr_asts = (val ?? []).map((expr: any) => ({
-        id: expr?.id,
-        key: expr?.key,
-        value: expr?.value ? toOperatorExprArray(expr.value) : [''],
-      }));
+        const funcDef = functionScope.functions.find((func: any) => func?.name === expr.value.$call);
+        const arrayForm = namedCallToEditorValue(expr.value, funcDef);
+        return arrayForm ? { ...expr, value: arrayForm } : expr;
+      }),
+    [expressions, functionScope.functions],
+  );
+
+  // ADR-015 #3：写路径归一为规范形 {$call, kwargs}（编辑器位置数组经声明序
+  // 映射；priorKwargs 并回保非位置额外键）；expr_asts 停写（引擎派生，零风险）
+  const persistExpressions = (val: any) => {
+    const previousById = new Map(((expressions ?? []) as any[]).map((expr: any) => [expr?.id, expr]));
+    const canonical = (val ?? []).map((expr: any) => {
+      const functionName = Array.isArray(expr?.value)
+        ? expr.value[0]
+        : typeof expr?.value?.$call === 'string'
+          ? expr.value.$call
+          : undefined;
+      const funcDef = functionScope.functions.find((func: any) => func?.name === functionName);
+      const prior = previousById.get(expr?.id)?.value;
+      const priorKwargs = prior && typeof prior === 'object' && !Array.isArray(prior) ? (prior.kwargs ?? null) : null;
+      const named = editorValueToNamedCall(expr?.value, funcDef, priorKwargs);
+      return named ? { ...expr, value: named } : expr;
+    });
+
+    graphActions.updateNode(id, (draft) => {
+      draft.content.config.expressions = canonical;
 
       draft.content.config.meta = {
         user: user ?? '',
@@ -158,7 +189,7 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
       )}
       <div style={{ paddingTop: driftRowCount > 0 ? 8 : 0 }}>
         <CustomFunction
-          value={content?.config?.expressions}
+          value={editorExpressions}
           disabled={disabled}
           permission={(viewConfig?.enabled ? viewConfig?.permissions?.[id] : 'edit:full') as ExpressionPermission}
           customFunctions={customFunctions}
