@@ -9,6 +9,8 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { createHash } from 'node:crypto';
 
+import { expandTypedValues } from './typed-values';
+
 export type ExecuteBody = {
   model?: unknown;
   input?: unknown;
@@ -259,7 +261,8 @@ export const createApp = () => {
   app.post('/v1/functions/:name/execute', async (c) => {
     const name = c.req.param('name');
     const body = await c.req.json().catch(() => ({}) as { args?: unknown[] });
-    const args = Array.isArray(body?.args) ? (body!.args as unknown[]) : [];
+    // Typed Input 信封展开：REPL 面板可能透传编辑器原始值
+    const args = Array.isArray(body?.args) ? expandTypedValues(body!.args as unknown[]) : [];
 
     const known = runtime.registry
       .udfFunctionSchemaNamespaces()
@@ -307,7 +310,7 @@ export const createApp = () => {
     }
 
     try {
-      runtime.createDecision(body).validate();
+      runtime.createDecision(expandTypedValues(body)).validate();
       return c.json({ ok: true });
     } catch (err) {
       return c.json({ error: 'invalid model', details: String(err).slice(0, 300) } satisfies ApiError, 400);
@@ -331,17 +334,19 @@ export const createApp = () => {
     }
 
     try {
-      const cacheKey = modelCacheKey(model);
+      // Typed Input 信封展开（{mode,value} → 裸值/表达式串）后再编译
+      const expanded = expandTypedValues(model);
+      const cacheKey = modelCacheKey(expanded);
       const decisionId =
         'req-' +
         createHash('sha256')
-          .update(JSON.stringify([model, body?.input, Date.now(), Math.random()]))
+          .update(JSON.stringify([expanded, body?.input, Date.now(), Math.random()]))
           .digest('hex')
           .slice(0, 16);
       const outcome = await runWithExecContext({ tenantId: DEMO_TENANT, tenantExempt: true, decisionId }, async () => {
         if (!runtime.getDecisionCache(cacheKey)) {
           try {
-            runtime.createDecisionWithCacheKey(cacheKey, model);
+            runtime.createDecisionWithCacheKey(cacheKey, expanded);
           } catch {
             // 并发同模型重复登记：已有同哈希编译产物，直接复用
           }
@@ -420,14 +425,17 @@ export const createApp = () => {
 
     try {
       // 内容哈希 → rev 别名：stateless demo 由调用方携带两个版本的模型
-      const prodRev = 'p' + createHash('sha256').update(JSON.stringify(prodModel)).digest('hex').slice(0, 16);
-      const shadowRev = 's' + createHash('sha256').update(JSON.stringify(shadowModel)).digest('hex').slice(0, 16);
+      // Typed Input 信封展开后再编译（与 /v1/execute 同一执行边界语义）
+      const expandedProd = expandTypedValues(prodModel);
+      const expandedShadow = expandTypedValues(shadowModel);
+      const prodRev = 'p' + createHash('sha256').update(JSON.stringify(expandedProd)).digest('hex').slice(0, 16);
+      const shadowRev = 's' + createHash('sha256').update(JSON.stringify(expandedShadow)).digest('hex').slice(0, 16);
       const input = (body?.input ?? {}) as Record<string, unknown>;
 
       const shadow = await runWithExecContext({ tenantId: DEMO_TENANT, tenantExempt: true }, async () => {
         for (const [rev, model] of [
-          [prodRev, prodModel],
-          [shadowRev, shadowModel],
+          [prodRev, expandedProd],
+          [shadowRev, expandedShadow],
         ] as const) {
           const cacheKey = `shadow-demo:${rev}`;
           if (!runtime.getDecisionCache(cacheKey)) {
