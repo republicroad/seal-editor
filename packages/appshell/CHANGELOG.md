@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.25.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.24.0...@republicroad/seal-appshell@1.25.0) (2026-10-02)
+
+### Bug Fixes
+
+- **appshell:** peer floor 上调 ^1.10.0→^1.17.0——1.24.0 的 FixturesPanel/onContractEvent 依赖 kernel 1.17.0 新面 ([e5b860d](https://github.com/republicroad/seal-editor/commit/e5b860d2a77924174812154a2dedf8a9f6c0ad20))
+
+### Features
+
+- **custom-node:** ADR-015 [#3](https://github.com/republicroad/seal-editor/issues/3)——写路径切规范形 {$call, kwargs} + expr_asts 停写 + 漂移带全量按名（zen-udf ^0.14.0） ([7fd7a83](https://github.com/republicroad/seal-editor/commit/7fd7a83ae16ac8b70696c1c218b89754e39504bc)), closes [#1](https://github.com/republicroad/seal-editor/issues/1)
+
 # [1.24.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.23.0...@republicroad/seal-appshell@1.24.0) (2026-10-02)
 
 ### Features

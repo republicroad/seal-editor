@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.18.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.17.0...@republicroad/seal-editor@1.18.0) (2026-10-02)
+
+### Features
+
+- **custom-node:** ADR-015 [#3](https://github.com/republicroad/seal-editor/issues/3)——写路径切规范形 {$call, kwargs} + expr_asts 停写 + 漂移带全量按名（zen-udf ^0.14.0） ([7fd7a83](https://github.com/republicroad/seal-editor/commit/7fd7a83ae16ac8b70696c1c218b89754e39504bc)), closes [#1](https://github.com/republicroad/seal-editor/issues/1)
+
 # [1.17.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.16.0...@republicroad/seal-editor@1.17.0) (2026-10-02)
 
 ### Bug Fixes
