@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.17.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.16.0...@republicroad/seal-editor@1.17.0) (2026-10-02)
+
+### Bug Fixes
+
+- **storybook:** zen-engine 浏览器 stub（playground 同款）——kernel Storybook 打包 appshell stories 触发 napi 引擎链 ([d5f2a0b](https://github.com/republicroad/seal-editor/commit/d5f2a0b20089801490d4d4047da42406b5f7e32e))
+
+### Features
+
+- **custom-node:** 兜底 tab 参数漂移带——drift 模式第二次复用（input-node-ui-redesign 缺口 B） ([2d8ec32](https://github.com/republicroad/seal-editor/commit/2d8ec32260bc9c94335815f8aa833bd93a477386))
+- **request-node:** 分屏联动编辑器——UI-2/UI-3 落地（input-node-ui-redesign 校准稿 UI-A/UI-B） ([2021153](https://github.com/republicroad/seal-editor/commit/2021153e4dd6f3bcbfe1250d82d46fea274c60d5))
+
 # [1.16.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.15.0...@republicroad/seal-editor@1.16.0) (2026-10-01)
 
 ### Bug Fixes

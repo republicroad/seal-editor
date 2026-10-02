@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.24.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.23.0...@republicroad/seal-appshell@1.24.0) (2026-10-02)
+
+### Features
+
+- **appshell:** 注册 Fixtures 面板——Run all 图级执行面（与 simulator 对称） ([4199224](https://github.com/republicroad/seal-editor/commit/4199224982d580bedf9772dc946a303e7b2104de))
+
 # [1.23.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.22.0...@republicroad/seal-appshell@1.23.0) (2026-10-01)
 
 ### Features
