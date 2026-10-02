@@ -249,3 +249,15 @@ type FunctionCallExpression = {
   的，字符串仅手写简写暂存态）；
 - 清单 #3（seal 写路径切规范形 + expr_asts 停写 + 漂移带全量按名检测，~0.75 天）
   随本版就绪，归 seal 会话。
+
+### #3 开工检查单（2026-10-02 jdm 补充——遗留平面面注意点）
+
+1. **漂移带 MUST 消费歧义检测器**：`DecisionRuntime.detectKwargsEnvelopeAmbiguity(value, parametersSchema)`
+   ——「平面调用向名为 kwargs 的参数传 Record」是 0.14 双读的唯一行为变化点
+   （0.13 前成功绑定/0.14 起按信封解释→INVALID_PARAM）；检出即提示迁移规范形
+   `{$call, kwargs: { kwargs: {...} }}`（CONTRACT §11 行为变化警示已立法）；
+2. **写路径切换前置（硬时序）**：切规范形写入前，全部图消费 kernel（verdict
+   引擎面/旧版 seal 包）MUST ≥ 0.14——规范形信封在 0.13 引擎按名为 kwargs 的
+   平面参数错绑（新读旧可以、旧读新不行）；verdict 侧升级排期纳入本项前置核对；
+3. **迁移优先级**：位置数组最急（中插盲区所在），平面具名最缓（本就有名字，
+   归一后三类检测即可）——漂移带实现按此排检测深度。
