@@ -84,6 +84,7 @@ export const SimulatorRequestToolbar: React.FC<SimulatorRequestToolbarProps> = (
                 size='small'
                 type='primary'
                 shape='circle'
+                data-testid='simulator-run'
                 loading={loading}
                 icon={<PlayCircleOutlined />}
                 disabled={!hasInputNode}

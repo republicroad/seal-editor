@@ -347,7 +347,8 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
                     key={panel.id}
                     type='text'
                     icon={panel.icon}
-                    style={{ background: isActive ? 'rgba(0, 0, 0, 0.1)' : undefined }}
+                    className={isActive ? 'bg-primary/10 text-primary' : undefined}
+                    aria-pressed={isActive}
                     onClick={() => {
                       if (panel?.onClick) return panel.onClick();
                       if (panel?.renderPanel) setActivePanel(isActive ? undefined : panel.id);

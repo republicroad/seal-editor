@@ -1,6 +1,6 @@
 import { CloseOutlined } from '#icons';
 import { Resizable } from 're-resizable';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 
 import { useT } from '../../theming/i18n';
 import { Button, Tooltip, Typography } from '../primitives';
@@ -23,6 +23,18 @@ export const GraphPanel: React.FC = () => {
   const defaultHeight = useMemo(() => {
     return Number.parseFloat(localStorage.getItem(heightKey) ?? '') ?? 300;
   }, [activePanel]);
+
+  // Esc 关闭抽屉（业界面板惯例：X / 触发钮再点 / Esc 三路冗余）
+  useEffect(() => {
+    if (!activePanel) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        graphActions.setActivePanel(undefined);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [activePanel, graphActions]);
 
   if (!activePanel) return null;
 

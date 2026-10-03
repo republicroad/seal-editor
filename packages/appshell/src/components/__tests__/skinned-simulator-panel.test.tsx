@@ -78,10 +78,11 @@ describe('SkinnedDecisionGraph simulator panel', () => {
       </ThemeContextProvider>,
     );
 
-    // Run 按钮是模拟器工具栏中唯一的 primary 图标按钮（无文本）
+    // Run 按钮 = 模拟器工具栏的播放图标钮（稳定 testid；class*="primary" 会被
+    // 侧栏面板开关的激活态 bg-primary/10 抢先匹配）
     const runButton = await waitFor(
       () => {
-        const button = container.querySelector('button[class*="primary"]');
+        const button = container.querySelector('[data-testid="simulator-run"]');
         if (!button) throw new Error('run button not mounted yet');
         return button;
       },
