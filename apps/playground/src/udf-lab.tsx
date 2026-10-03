@@ -33,6 +33,13 @@ const UdfLabBody: React.FC = () => {
   const [serverUp, setServerUp] = useState<boolean | null>(null);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [replToolName, setReplToolName] = useState<string | undefined>(undefined);
+  // 底部 Trust/REPL 面板：默认收起（画布满屏）；抽屉方案另议，先以收起条保功能可达
+  const [trustOpen, setTrustOpen] = useState<boolean>(() => localStorage.getItem('pg-trust-open') === 'true');
+  const toggleTrust = () =>
+    setTrustOpen((open) => {
+      localStorage.setItem('pg-trust-open', String(!open));
+      return !open;
+    });
 
   // demo-server 健康探针：schema 拉取失败会在 appshell 内静默回退内置样例，
   // 这里显式探测可达性，避免"面板有节点但一执行就失败"的困惑
@@ -164,36 +171,50 @@ const UdfLabBody: React.FC = () => {
             simulateHandler={runSimulate}
           />
         </div>
-        <div className='pg-split-trust'>
-          {/* key = 夹具 id：切换夹具时重挂载面板，默认输入随夹具走 */}
-          <Tabs defaultValue='trust' className='pg-monitor-tabs'>
-            <div style={{ padding: '8px 12px 0', maxHeight: 200, overflow: 'auto' }}>
-              <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 4 }}>函数目录树（点击工具插入画布）</div>
-              <CatalogTree schema={schema ?? []} onPick={(tool) => insertTool(tool)} />
-            </div>
-            <div style={{ padding: '8px 12px 0' }}>
-              <TabsList>
-                <TabsTrigger value='trust'>Trust Chain</TabsTrigger>
-                <TabsTrigger value='monitor'>Run Monitor</TabsTrigger>
-                <TabsTrigger value='repl'>REPL</TabsTrigger>
-              </TabsList>
-            </div>
-            <TabsContent value='trust' className='pg-monitor-tabpane'>
-              <TrustChainPanel key={activeFixture} model={graph} defaultInput={currentFixture?.inputText} />
-            </TabsContent>
-            <TabsContent value='monitor' className='pg-monitor-tabpane'>
-              <RunMonitor key={activeFixture} model={graph} defaultInput={currentFixture?.inputText ?? '{}'} />
-            </TabsContent>
-            <TabsContent value='repl' className='pg-monitor-tabpane'>
-              <FunctionRepl
-                schema={schema ?? []}
-                execute={replExecute}
-                initialToolName={replToolName}
-                renderResult={replResultRenderer}
-              />
-            </TabsContent>
-          </Tabs>
-        </div>
+        {trustOpen ? (
+          <div className='pg-split-trust'>
+            <button type='button' className='pg-split-trust-handle' onClick={toggleTrust} title='收起——画布满屏'>
+              ▼ Trust Chain · Run Monitor · REPL
+            </button>
+            {/* key = 夹具 id：切换夹具时重挂载面板，默认输入随夹具走 */}
+            <Tabs defaultValue='trust' className='pg-monitor-tabs'>
+              <div style={{ padding: '8px 12px 0', maxHeight: 200, overflow: 'auto' }}>
+                <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 4 }}>函数目录树（点击工具插入画布）</div>
+                <CatalogTree schema={schema ?? []} onPick={(tool) => insertTool(tool)} />
+              </div>
+              <div style={{ padding: '8px 12px 0' }}>
+                <TabsList>
+                  <TabsTrigger value='trust'>Trust Chain</TabsTrigger>
+                  <TabsTrigger value='monitor'>Run Monitor</TabsTrigger>
+                  <TabsTrigger value='repl'>REPL</TabsTrigger>
+                </TabsList>
+              </div>
+              <TabsContent value='trust' className='pg-monitor-tabpane'>
+                <TrustChainPanel key={activeFixture} model={graph} defaultInput={currentFixture?.inputText} />
+              </TabsContent>
+              <TabsContent value='monitor' className='pg-monitor-tabpane'>
+                <RunMonitor key={activeFixture} model={graph} defaultInput={currentFixture?.inputText ?? '{}'} />
+              </TabsContent>
+              <TabsContent value='repl' className='pg-monitor-tabpane'>
+                <FunctionRepl
+                  schema={schema ?? []}
+                  execute={replExecute}
+                  initialToolName={replToolName}
+                  renderResult={replResultRenderer}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
+        ) : (
+          <button
+            type='button'
+            className='pg-split-trust-handle'
+            onClick={toggleTrust}
+            title='展开 Trust Chain / Run Monitor / REPL'
+          >
+            ▲ Trust Chain · Run Monitor · REPL
+          </button>
+        )}
       </div>
       <FunctionCatalog
         schema={schema}

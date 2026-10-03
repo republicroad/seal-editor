@@ -1,7 +1,7 @@
 /**
  * Custom Nodes 实例（udf.html）的演示夹具：含 customNode (kind:UDF) 的样例图 + 配套决策输入。
- * 表达式契约：`udf名;;参数表达式...`——参数表达式按位置绑定到 UDF schema 参数序
- * （roster 参数序 = [roster, value]）。roster 夹具依赖 demo-server 注册的 demo 租户名单。
+ * 表达式契约：规范形 {$call, kwargs}（ADR-015）——kwargs 值为 zen 表达式
+ * （按声明参数名绑定；引号包裹 = 字面量）。roster 夹具依赖 demo-server 注册的 demo 租户名单。
  */
 
 export type UdfFixture = {
@@ -27,7 +27,7 @@ const currentDateModel = {
       name: '当前日期',
       content: {
         kind: 'UDF',
-        config: { expressions: [{ id: 'e1', key: 'today', value: 'current_date' }] },
+        config: { expressions: [{ id: 'e1', key: 'today', value: { $call: 'current_date', kwargs: {} } }] },
       },
     },
     { id: 'out-1', type: 'outputNode', position: { x: 680, y: 160 }, name: 'Response' },
@@ -47,7 +47,11 @@ const rosterModel = {
       name: '名单核验',
       content: {
         kind: 'UDF',
-        config: { expressions: [{ id: 'e1', key: 'hit', value: 'roster;;roster;;value' }] },
+        config: {
+          expressions: [
+            { id: 'e1', key: 'hit', value: { $call: 'roster', kwargs: { roster: 'roster', value: 'value' } } },
+          ],
+        },
       },
     },
     { id: 'out-1', type: 'outputNode', position: { x: 680, y: 160 }, name: 'Response' },
@@ -55,7 +59,7 @@ const rosterModel = {
   edges: [edge('g1', 'in-1', 'udf-1'), edge('g2', 'udf-1', 'out-1')],
 };
 
-/** 夹具 C：crypto 摘要——字符串字面量参数（;; 分隔符引号感知） */
+/** 夹具 C：crypto 摘要——字符串字面量参数（引号包裹 = 字面量，不取输入字段） */
 const cryptoModel = {
   name: 'crypto-demo',
   nodes: [
@@ -67,7 +71,11 @@ const cryptoModel = {
       name: '摘要计算',
       content: {
         kind: 'UDF',
-        config: { expressions: [{ id: 'e1', key: 'digest', value: 'crypto;;text;;"sha256"' }] },
+        config: {
+          expressions: [
+            { id: 'e1', key: 'digest', value: { $call: 'crypto', kwargs: { input: 'text', algorithm: '"sha256"' } } },
+          ],
+        },
       },
     },
     { id: 'out-1', type: 'outputNode', position: { x: 680, y: 160 }, name: 'Response' },

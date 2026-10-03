@@ -201,6 +201,11 @@ body,
 .pg-main {
   flex: 1;
   min-height: 0;
+  /* flex 容器：编辑器子树（.seal-dg height:100%）才有定高可解——block 下
+     Components 目录 content 高会沿 grid auto 最小尺寸把整个画布行撑爆，
+     底部 simulator 按钮被推到视口外（udf 分栏同理） */
+  display: flex;
+  flex-direction: column;
 }
 
 /* udf 实例：画布 / Trust Chain 上下分栏 */
@@ -211,6 +216,19 @@ body,
   flex-direction: column;
 }
 
+/* udf 工作台壳层限高：pg-main 必须是 flex 容器，pg-split 的 flex:1 才生效
+   （此前 pg-main 为 block，分栏高度纯内容驱动——graph 页签被 react-flow 锁定
+   像素高撑爆、函数 renderTab 内容少时塌缩）。限高断链后 renderTab 与主
+   graph 画布同一视口预算，kernel 伸展包裹负责填满。 */
+.pg-main:has(.pg-split) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.pg-split {
+  overflow: hidden;
+}
+
 .pg-split-canvas {
   flex: 1 1 55%;
   min-height: 0;
@@ -218,8 +236,44 @@ body,
 
 .pg-split-trust {
   flex: 0 0 45%;
-  overflow: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   border-top: 1px solid #e5e7eb;
+}
+
+/* 底部面板收起条：默认收起（画布满屏），点击展开/收回。
+   抽屉方案后续另议——此条仅保 Trust/REPL 功能可达 */
+.pg-split-trust-handle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  flex: none;
+  height: 26px;
+  padding: 0 12px;
+  font-size: 11px;
+  color: #6b7280;
+  background: #f9fafb;
+  border: 0;
+  border-top: 1px solid #e5e7eb;
+  cursor: pointer;
+  text-align: left;
+}
+
+.pg-split-trust-handle:hover {
+  color: #2563eb;
+}
+
+.dark .pg-split-trust-handle {
+  color: var(--muted-foreground);
+  background: var(--card);
+  border-top-color: var(--border);
+}
+
+.dark .pg-split-trust-handle:hover {
+  color: var(--primary);
 }
 
 .dark .pg-split-trust {
@@ -242,7 +296,8 @@ body,
 .pg-monitor-tabs {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .pg-monitor-tabpane {
