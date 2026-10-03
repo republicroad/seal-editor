@@ -19,6 +19,20 @@ export type FunctionInstance = {
 
 export type InstanceDriftSummary = { missing: number; unrecognized: number };
 
+/** 实例返回值预览：截断单行 + 完整 JSON tooltip（error 形态红显） */
+export const resultPreview = (value: unknown, max = 42): string => {
+  let text: string;
+  try {
+    text = typeof value === 'string' ? value : (JSON.stringify(value) ?? 'null');
+  } catch {
+    text = String(value);
+  }
+  return text.length > max ? `${text.slice(0, max)}…` : text;
+};
+
+export const isErrorResult = (value: unknown): boolean =>
+  value !== null && typeof value === 'object' && !Array.isArray(value) && 'error' in (value as Record<string, unknown>);
+
 type InstanceEditorProps = {
   instances: FunctionInstance[];
   functionScope: FunctionScope;
@@ -29,6 +43,8 @@ type InstanceEditorProps = {
   driftByInstance?: Record<string, InstanceDriftSummary>;
   /** 重复输出键清单（并行归集覆盖警告） */
   duplicateKeys?: string[];
+  /** 上次仿真的实例返回值（key → value；trace.output 投影，run-scoped） */
+  outputsByKey?: Record<string, unknown>;
   onChange: (instances: FunctionInstance[]) => void;
 };
 
@@ -41,6 +57,7 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
   fieldPaths,
   driftByInstance,
   duplicateKeys,
+  outputsByKey,
   onChange,
 }) => {
   const t = useT();
@@ -78,6 +95,18 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
   };
 
   const selectedFn = selected ? functions.find((f: any) => f.name === selected.call.$call) : undefined;
+  // 孤儿容器降级（可见集放大 = UX 供给非安全围栏，授权在服务端 registry）
+  const orphanKind = functionScope.orphanKind;
+  // 函数缺失态：$call 未登记（作用域为空或名称失配）——右栏仍须渲染可编辑控件，
+  // 否则新增实例后右侧一片空白（作用域空时 addInstance 只能落 $call: ''）
+  const selectedFnMissing = !!selected && !selectedFn;
+  // 未登记的 $call 以合成选项回显在下拉里（可读原名而非空选择）
+  const fnDisplayOptions = useMemo(() => {
+    if (!selected || !selected.call.$call || fnOptions.some((option) => option.value === selected.call.$call)) {
+      return fnOptions;
+    }
+    return [{ value: selected.call.$call, label: selected.call.$call }, ...fnOptions];
+  }, [fnOptions, selected]);
   const paramNames = useMemo(
     () => (selectedFn ? Object.keys(selectedFn.parameters?.properties ?? {}) : []),
     [selectedFn],
@@ -158,6 +187,21 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
                 </div>
                 <div className='mt-0.5 flex items-center gap-1'>
                   <span className='min-w-0 flex-1 truncate text-[10px] opacity-50'>→ {inst.key}</span>
+                  {outputsByKey && inst.key in outputsByKey && (
+                    <Tooltip title={t('cf.lastRunHint')}>
+                      <span
+                        data-testid='instance-result-chip'
+                        className={`max-w-24 truncate rounded px-1 font-mono text-[10px] ${
+                          isErrorResult(outputsByKey[inst.key])
+                            ? 'bg-destructive/10 text-destructive'
+                            : 'bg-muted/70 text-muted-foreground'
+                        }`}
+                      >
+                        {isErrorResult(outputsByKey[inst.key]) ? '⚠ ' : ''}
+                        {resultPreview(outputsByKey[inst.key], 24)}
+                      </span>
+                    </Tooltip>
+                  )}
                   {!disabled && (
                     <button
                       type='button'
@@ -182,9 +226,10 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
         </div>
       </div>
 
-      {/* 右栏：选中实例的参数绑定编辑器（头部 + 键 + 参数区） */}
+      {/* 右栏：选中实例的参数绑定编辑器（头部 + 键 + 参数区）。
+          selectedFn 缺失（未登记函数/作用域空）仍渲染——函数可重选、键可改 */}
       <div className='min-h-0 min-w-0 flex-1 overflow-y-auto rounded-lg border border-border bg-card'>
-        {selected && selectedFn ? (
+        {selected ? (
           <div className='flex flex-col gap-4 p-3.5'>
             {/* 头部：函数选择 + 描述 + 输出键 */}
             <div className='flex flex-col gap-2.5'>
@@ -192,12 +237,29 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
                 <Typography.Text className='text-xs opacity-70'>{t('cf.function')}</Typography.Text>
                 <Select
                   disabled={disabled}
-                  value={selected.call.$call}
+                  value={selected.call.$call || undefined}
+                  placeholder={t('cf.function')}
                   onChange={(v: string) => updateInstance(selected.id, { call: { $call: v, kwargs: {} } })}
-                  options={fnOptions}
+                  options={fnDisplayOptions}
                 />
               </div>
-              {typeof selectedFn.description === 'string' && selectedFn.description && (
+              {selectedFnMissing && (
+                <Typography.Text
+                  data-testid='instance-fn-missing'
+                  className='pl-[122px] text-[11px] text-amber-700 dark:text-amber-400'
+                >
+                  {functions.length === 0 ? t('cf.noFunctionsInScope') : t('cf.unknownFunction')}
+                </Typography.Text>
+              )}
+              {orphanKind && (
+                <Typography.Text
+                  data-testid='instance-orphan-hint'
+                  className='pl-[122px] text-[11px] text-amber-700 dark:text-amber-400'
+                >
+                  {t('cf.orphanScopeHint', { kind: orphanKind })}
+                </Typography.Text>
+              )}
+              {selectedFn && typeof selectedFn.description === 'string' && selectedFn.description && (
                 <div className='pl-[122px] text-[11px] leading-relaxed opacity-50'>{selectedFn.description}</div>
               )}
               <div className='grid grid-cols-[120px_minmax(0,1fr)] items-center gap-2'>
@@ -231,6 +293,25 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
                 </div>
               )}
             </div>
+
+            {/* 返回值：上次仿真的实例结果（run-scoped；error 形态红显） */}
+            {outputsByKey && selected.key in outputsByKey && (
+              <div className='flex flex-col gap-1.5' data-testid='instance-result-section'>
+                <div className='flex items-baseline justify-between gap-2'>
+                  <Typography.Text className='text-xs opacity-70'>{t('cf.result')}</Typography.Text>
+                  <Typography.Text className='text-[10px] opacity-40'>{t('cf.lastRunHint')}</Typography.Text>
+                </div>
+                <pre
+                  className={`max-h-40 overflow-auto rounded-md border px-2.5 py-2 font-mono text-[11px] leading-relaxed ${
+                    isErrorResult(outputsByKey[selected.key])
+                      ? 'border-destructive/40 bg-destructive/10 text-destructive'
+                      : 'border-border bg-muted/40'
+                  }`}
+                >
+                  {resultPreview(outputsByKey[selected.key], 2000)}
+                </pre>
+              </div>
+            )}
 
             {/* 参数区：声明序参数行（名称 + 必填星 + 类型标）× TypedInput */}
             {paramNames.length > 0 && (
@@ -285,7 +366,7 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
                 </div>
               </>
             )}
-            {paramNames.length === 0 && (
+            {selectedFn && paramNames.length === 0 && (
               <Typography.Text className='text-xs opacity-50'>{t('cf.noParams')}</Typography.Text>
             )}
             {selectedDrift && (

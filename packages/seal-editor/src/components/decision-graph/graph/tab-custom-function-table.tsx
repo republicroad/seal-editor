@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { P, match } from 'ts-pattern';
 
 import { resolveFunctionScope } from '../../../helpers/custom-function-schema';
 import {
@@ -7,6 +8,8 @@ import {
   editorValueToNamedCall,
   fillMissingFunctionArgs,
   findDuplicateKeys,
+  getFunctionNameFromValue,
+  legacyValueToNamedCall,
   summarizeInstanceDrift,
 } from '../../../helpers/custom-function-schema';
 import { getRequestDefinitions } from '../../../helpers/request-schema';
@@ -23,12 +26,23 @@ export type TabCustomFunctionProps = {
 
 export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user, customFunctions }) => {
   const graphActions = useDecisionGraphActions();
-  const { disabled, content, inputContent } = useDecisionGraphState(({ disabled, decisionGraph }) => ({
-    disabled,
-    content: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content,
-    // 引用模式数据源：首个输入节点的 InputContract/Schema 字段树（typed-input 规格 §2.4）
-    inputContent: (decisionGraph?.nodes ?? []).find((node) => node?.type === 'inputNode')?.content,
-  }));
+  const { disabled, content, inputContent, instanceOutputs } = useDecisionGraphState(
+    ({ simulate, disabled, decisionGraph }) => ({
+      disabled,
+      content: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content,
+      // 引用模式数据源：首个输入节点的 InputContract/Schema 字段树（typed-input 规格 §2.4）
+      inputContent: (decisionGraph?.nodes ?? []).find((node) => node?.type === 'inputNode')?.content,
+      // 运行时仿真：上次运行的实例级返回值（trace.output 按 key 归集，passThrough
+      // 输入混在里面——按实例 key 取值即纯净结果；表达式节点 traceData 同款读法）
+      instanceOutputs: match(simulate)
+        .with({ result: P.nonNullable }, ({ result }) => {
+          const output = (result.trace as Record<string, { output?: Record<string, unknown> }> | undefined)?.[id]
+            ?.output;
+          return output && typeof output === 'object' ? (output as Record<string, unknown>) : undefined;
+        })
+        .otherwise(() => undefined),
+    }),
+  );
 
   const functionScope = useMemo(
     () => resolveFunctionScope((content as { kind?: string } | undefined)?.kind, customFunctions),
@@ -77,19 +91,27 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
     });
   };
 
-  // ADR-015 增补 P2：expressions → FunctionInstance[]（InstanceEditor 读态）
+  // ADR-015 增补 P2：expressions → FunctionInstance[]（InstanceEditor 读态）。
+  // 旧格式（;; 字符串/位置数组/裸函数名）经 legacyValueToNamedCall 读时转换——
+  // 否则读成 {$call:''}，任何写回都会损毁旧实例（引擎拒收空 $call）
   const instances: FunctionInstance[] = useMemo(
     () =>
-      (expressions ?? []).map((expr: any) => ({
-        id: expr?.id ?? '',
-        key: expr?.key ?? '',
-        call:
-          expr?.value !== null && typeof expr?.value === 'object' && !Array.isArray(expr.value)
-            ? expr.value
-            : { $call: '', kwargs: {} },
-        ...(expr?.dependsOn ? { dependsOn: expr.dependsOn } : {}),
-      })),
-    [expressions],
+      (expressions ?? []).map((expr: any) => {
+        const fnName = getFunctionNameFromValue(expr?.value);
+        const funcDef = functionScope.functions.find((func: any) => func?.name === fnName);
+        const legacy = legacyValueToNamedCall(expr?.value, funcDef);
+        return {
+          id: expr?.id ?? '',
+          key: expr?.key ?? '',
+          call:
+            legacy ??
+            (expr?.value !== null && typeof expr?.value === 'object' && !Array.isArray(expr.value)
+              ? expr.value
+              : { $call: '', kwargs: {} }),
+          ...(expr?.dependsOn ? { dependsOn: expr.dependsOn } : {}),
+        };
+      }),
+    [expressions, functionScope],
   );
 
   // InstanceEditor onChange → 规范形 expressions（写路径经键主权单漏斗）
@@ -144,7 +166,9 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
   };
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', boxSizing: 'border-box' }}>
+    // 根被 dg-wrapper 伸展包裹拉满面板高度；编辑区 flex-1 同吃剩余空间——
+    // table/code 内容少时不再塌缩（与主 graph 画布同一高度预算）
+    <div className='flex h-full flex-col overflow-hidden' style={{ boxSizing: 'border-box' }}>
       {/* ADR-015 增补 P1：实例概览条——并行集合观 + 键重复 + 实例级漂移点标 */}
       {instanceViews.length > 0 && (
         <div data-testid='instance-overview' className='mx-3 mt-3 rounded-md border border-border bg-card px-3 py-2'>
@@ -219,7 +243,7 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
         </div>
       </div>
       {editMode === 'code' && (
-        <div className='mx-3 mt-2 flex flex-1 flex-col overflow-hidden rounded-md border border-border'>
+        <div className='mx-3 mt-2 flex min-h-[320px] flex-1 flex-col overflow-hidden rounded-md border border-border'>
           <textarea
             data-testid='function-code-editor'
             className='min-h-0 flex-1 resize-none bg-[var(--card)] p-3 font-mono text-xs text-foreground'
@@ -265,7 +289,7 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
               )}
             </div>
           )}
-          <div style={{ paddingTop: driftRowCount > 0 ? 8 : 0 }}>
+          <div className='flex min-h-0 flex-1 flex-col' style={{ paddingTop: driftRowCount > 0 ? 8 : 0 }}>
             <InstanceEditor
               instances={instances}
               functionScope={functionScope}
@@ -273,6 +297,7 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
               fieldPaths={fieldPaths}
               driftByInstance={driftByRowId}
               duplicateKeys={duplicateKeys}
+              outputsByKey={instanceOutputs}
               onChange={handleInstancesChange}
             />
           </div>

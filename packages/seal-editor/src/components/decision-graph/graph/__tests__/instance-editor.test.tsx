@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { FunctionScope } from '../../../../helpers/custom-function-schema';
 import type { FunctionInstance, InstanceDriftSummary } from '../instance-editor';
 import { InstanceEditor } from '../instance-editor';
 
@@ -42,19 +43,22 @@ const INSTANCES: FunctionInstance[] = [
 /** 受控回写 harness */
 const Harness: React.FC<{
   initialValue: FunctionInstance[];
+  scope?: FunctionScope;
   fieldPaths?: string[];
   driftByInstance?: Record<string, InstanceDriftSummary>;
   duplicateKeys?: string[];
   onChange?: (next: FunctionInstance[]) => void;
-}> = ({ initialValue, fieldPaths, driftByInstance, duplicateKeys, onChange }) => {
+  outputsByKey?: Record<string, unknown>;
+}> = ({ initialValue, scope = SCOPE, fieldPaths, driftByInstance, duplicateKeys, outputsByKey, onChange }) => {
   const [instances, setInstances] = useState(initialValue);
   return (
     <InstanceEditor
       instances={instances}
-      functionScope={SCOPE}
+      functionScope={scope}
       fieldPaths={fieldPaths}
       driftByInstance={driftByInstance}
       duplicateKeys={duplicateKeys}
+      outputsByKey={outputsByKey}
       onChange={(next) => {
         onChange?.(next);
         setInstances(next);
@@ -186,6 +190,68 @@ describe('InstanceEditor（主从编辑器深化）', () => {
     expect(screen.getAllByTestId('instance-dup-dot')).toHaveLength(1);
     expect(screen.getByTestId('instance-key-dup').textContent).toContain('Duplicate output key');
     expect(screen.getByTestId('instance-drift-hint').textContent).toContain('missing 1');
+  });
+
+  it('未登记 $call：右栏仍渲染函数下拉与键输入，并给出缺失提示', async () => {
+    const user = userEvent.setup();
+    render(<Harness initialValue={[{ id: 'ix', key: 'k1', call: { $call: 'ghost_fn', kwargs: {} } }]} />);
+
+    // 键输入可用（此前 selectedFn 缺失整栏塌成空态）
+    expect(screen.getByTestId('instance-key-input')).toBeTruthy();
+    // 缺失提示（作用域非空 → unknownFunction）
+    expect(screen.getByTestId('instance-fn-missing').textContent).toContain('Function not in scope');
+    // 原名以合成选项回显：展开函数下拉可见 ghost_fn
+    const fnTrigger = (screen.getByText('Function').closest('.grid') as HTMLElement).querySelector(
+      '[data-slot="select-trigger"]',
+    ) as HTMLElement;
+    await user.click(fnTrigger);
+    const options = [...document.querySelectorAll('[role="option"]')].map((o) => o.textContent);
+    expect(options).toContain('ghost_fn');
+    expect(options).toContain('fraud_score');
+  });
+
+  it('空作用域：新增实例右栏仍渲染并提示宿主补函数目录', async () => {
+    const user = userEvent.setup();
+    const emptyScope = { mode: 'scoped' as const, functions: [] };
+    render(<Harness initialValue={[]} scope={emptyScope} />);
+
+    await user.click(screen.getAllByText(/Add instance/)[0]);
+    expect(screen.getByTestId('instance-key-input')).toBeTruthy();
+    expect(screen.getByTestId('instance-fn-missing').textContent).toContain('No functions in scope');
+  });
+
+  it('运行时仿真：列表 chip + 右栏返回值区，error 形态红显', () => {
+    render(
+      <Harness
+        initialValue={INSTANCES}
+        outputsByKey={{ score: { risk: 0.87 }, echo: { error: { code: 'INVALID_PARAM' } } }}
+      />,
+    );
+
+    // 列表行尾 chip：截断预览 + error 前缀
+    const chips = screen.getAllByTestId('instance-result-chip');
+    expect(chips).toHaveLength(2);
+    expect(chips[0].textContent).toContain('0.87');
+    expect(chips[1].textContent).toContain('⚠');
+    expect(chips[1].className).toContain('text-destructive');
+
+    // 右栏返回值区（选中首个实例）
+    const section = screen.getByTestId('instance-result-section');
+    expect(section.textContent).toContain('Result');
+    expect(section.textContent).toContain('"risk":0.87');
+  });
+
+  it('无返回值时不渲染 chip 与返回值区', () => {
+    render(<Harness initialValue={INSTANCES} />);
+    expect(screen.queryAllByTestId('instance-result-chip')).toHaveLength(0);
+    expect(screen.queryByTestId('instance-result-section')).toBeNull();
+  });
+
+  it('孤儿容器：右栏挂降级提示（原命名空间已下线，可选全部函数）', () => {
+    const orphanScope = { mode: 'free' as const, functions: SCOPE.functions, orphanKind: 'rate-window' };
+    render(<Harness initialValue={INSTANCES} scope={orphanScope} />);
+    expect(screen.getByTestId('instance-orphan-hint').textContent).toContain('rate-window');
+    expect(screen.getByTestId('instance-orphan-hint').textContent).toContain('all functions are selectable');
   });
 
   it('无实例空态渲染引导文案', () => {

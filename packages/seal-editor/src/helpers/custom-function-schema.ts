@@ -58,6 +58,47 @@ export const getFunctionNameFromValue = (value?: unknown): string | null => {
   return trimmedFunctionName ? trimmedFunctionName : null;
 };
 
+/**
+ * 旧格式函数值 → 规范形 {$call, kwargs}（读时转换，存储不动）。
+ * 旧格式 = `fn;;args...` 字符串（引号感知切分）/ 位置数组 / 裸函数名——
+ * 不转换就读成 {$call:'', kwargs:{}}，任何写回都会把旧实例损毁成
+ * 引擎报错对象（'named call requires a string "$call" key'）。
+ * 位置实参按 funcDef 声明序映射为 kwargs 键；超声明序的落 argN 兜位。
+ * 已是规范形（非空对象）返回 null（调用方直用原值）。
+ */
+export const legacyValueToNamedCall = (
+  value: unknown,
+  funcDef?: { parameters?: unknown } | null,
+): { $call: string; kwargs: Record<string, unknown> } | null => {
+  if (isRecord(value)) {
+    return null;
+  }
+
+  const fnName = getFunctionNameFromValue(value);
+  if (!fnName) {
+    return null;
+  }
+
+  const args: unknown[] = Array.isArray(value)
+    ? value.slice(1)
+    : typeof value === 'string' && value.includes(';;')
+      ? smartSplit(value).slice(1)
+      : [];
+
+  const properties =
+    funcDef && isRecord(funcDef.parameters) && isRecord(funcDef.parameters.properties)
+      ? funcDef.parameters.properties
+      : {};
+  const declaredOrder = Object.keys(properties);
+
+  const kwargs: Record<string, unknown> = {};
+  args.forEach((arg, index) => {
+    kwargs[declaredOrder[index] ?? `arg${index + 1}`] = arg;
+  });
+
+  return { $call: fnName, kwargs };
+};
+
 export const findCustomFunctionDefinition = (customFunctions: any[], functionName?: string | null) => {
   if (!functionName) {
     return undefined;
@@ -73,6 +114,12 @@ export type FunctionScopeMode = 'scoped' | 'legacy' | 'free';
 export type FunctionScope = {
   mode: FunctionScopeMode;
   functions: any[];
+  /**
+   * 孤儿容器标记：kind 有容器语义（非空、非 UDF）但目录中无对应命名空间——
+   * 命名空间被租户过滤/下线的旧图降级。mode 恒为 free（不白块），调用方据此
+   * 挂降级提示（可见集放大是 UX 供给非安全围栏，授权在服务端 registry）。
+   */
+  orphanKind?: string;
 };
 
 /**
@@ -96,7 +143,7 @@ export const resolveFunctionScope = (kind?: string | null, customFunctions?: any
     return { mode: 'scoped', functions: normalizeCustomFunctions([namespaceContainer]) };
   }
 
-  return { mode: 'free', functions: allFunctions };
+  return { mode: 'free', functions: allFunctions, orphanKind: kind };
 };
 
 export const buildDefaultFunctionExpression = (funcDef: any) => {

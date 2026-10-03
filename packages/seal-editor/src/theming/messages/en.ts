@@ -250,6 +250,11 @@ export const en = {
   'cf.instanceEmpty': 'No instances yet',
   'cf.selectInstance': 'Select an instance on the left to edit',
   'cf.noParams': 'This function declares no parameters',
+  'cf.unknownFunction': 'Function not in scope — pick one from the catalog',
+  'cf.result': 'Result',
+  'cf.lastRunHint': 'From the last simulation run — re-run after edits to refresh',
+  'cf.noFunctionsInScope': 'No functions in scope — host must provide a function catalog (customFunctions/schema)',
+  'cf.orphanScopeHint': 'Original namespace offline ({{kind}}) — all functions are selectable',
   'request.noDefinitions': 'No field definitions',
   'request.schemaPriorityTooltip':
     'Schema has the highest priority. Definitions and example data sync into schema, but schema remains the source of truth.',

@@ -136,14 +136,17 @@ export const TypedInput: React.FC<TypedInputProps> = ({
   return (
     <div className='flex w-full items-center gap-1'>
       <div className='min-w-0 flex-1'>{editors[displayMode]}</div>
-      <Select
-        className='w-[5.5rem] shrink-0'
-        size='small'
-        disabled={disabled}
-        value={displayMode}
-        onChange={(v: TypedValueMode) => setMode(v)}
-        options={modeOptions}
-      />
+      {/* 定宽容器承载模式切换：kernel Select 根节点恒 w-full（className 只落到
+          trigger），直接给 Select 传宽度约束不会生效，编辑区会被挤成 0 */}
+      <div className='w-[5.5rem] shrink-0'>
+        <Select
+          size='small'
+          disabled={disabled}
+          value={displayMode}
+          onChange={(v: TypedValueMode) => setMode(v)}
+          options={modeOptions}
+        />
+      </div>
     </div>
   );
 };

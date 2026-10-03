@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildDefaultFunctionExpression,
   healExpressionsForScope,
+  legacyValueToNamedCall,
   resolveFunctionScope,
 } from '../custom-function-schema';
 
@@ -42,10 +43,52 @@ const namespaces = [
   },
 ];
 
+describe('legacyValueToNamedCall（旧格式读时转换，防写回损毁）', () => {
+  const rosterDef = {
+    parameters: { type: 'object', properties: { roster: { type: 'string' }, value: { type: 'string' } } },
+  };
+
+  it(';; 字符串按声明序映射 kwargs（引号感知）', () => {
+    expect(legacyValueToNamedCall('roster;;roster;;value', rosterDef)).toEqual({
+      $call: 'roster',
+      kwargs: { roster: 'roster', value: 'value' },
+    });
+    // 引号字面量保留原样（含引号 = 字面量，引擎侧语义）
+    expect(
+      legacyValueToNamedCall('crypto;;text;;"sha256"', {
+        parameters: { type: 'object', properties: { input: { type: 'string' }, algorithm: { type: 'string' } } },
+      }),
+    ).toEqual({
+      $call: 'crypto',
+      kwargs: { input: 'text', algorithm: '"sha256"' },
+    });
+  });
+
+  it('裸函数名 → 空 kwargs；位置数组 → 声明序映射；超序落 argN', () => {
+    expect(legacyValueToNamedCall('current_date', rosterDef)).toEqual({ $call: 'current_date', kwargs: {} });
+    expect(legacyValueToNamedCall(['roster', 'a', 'b'], rosterDef)).toEqual({
+      $call: 'roster',
+      kwargs: { roster: 'a', value: 'b' },
+    });
+    expect(legacyValueToNamedCall(['f', 'x'], { parameters: { type: 'object', properties: {} } })).toEqual({
+      $call: 'f',
+      kwargs: { arg1: 'x' },
+    });
+  });
+
+  it('规范形对象返回 null（调用方直用原值）；空值返回 null', () => {
+    const canonical = { $call: 'roster', kwargs: { roster: 'a' } };
+    expect(legacyValueToNamedCall(canonical, rosterDef)).toBeNull();
+    expect(legacyValueToNamedCall(undefined, rosterDef)).toBeNull();
+    expect(legacyValueToNamedCall('', rosterDef)).toBeNull();
+  });
+});
+
 describe('resolveFunctionScope', () => {
   it('returns free scope without kind', () => {
     const scope = resolveFunctionScope(undefined, namespaces);
     expect(scope.mode).toBe('free');
+    expect(scope.orphanKind).toBeUndefined();
     expect(scope.functions.map((f) => f.name)).toEqual([
       'inout',
       'func_without_args',
@@ -53,6 +96,20 @@ describe('resolveFunctionScope', () => {
       'group_distinct_1h',
       'phone_number_info',
     ]);
+  });
+
+  it('未知 kind → free + orphanKind（孤儿容器降级，不白块）', () => {
+    const scope = resolveFunctionScope('rate-window', namespaces);
+    expect(scope.mode).toBe('free');
+    expect(scope.orphanKind).toBe('rate-window');
+    // free 全集可见（UX 供给非安全围栏，授权在服务端 registry）
+    expect(scope.functions.length).toBe(5);
+  });
+
+  it('legacy UDF 与命名空间命中不挂孤儿标', () => {
+    expect(resolveFunctionScope('UDF', namespaces).orphanKind).toBeUndefined();
+    expect(resolveFunctionScope('debug', namespaces).orphanKind).toBeUndefined();
+    expect(resolveFunctionScope('debug', namespaces).mode).toBe('scoped');
   });
 
   it('returns legacy scope for UDF kind with all functions', () => {
