@@ -23,8 +23,10 @@ import {
   stableStringify,
   useAutoPersist,
 } from '../shell/auto-persist';
+import { useOptionalEditorShell } from '../shell/editor-shell.context';
 import { createSimulateFixturesRunner } from '../shell/fixtures-adapter';
 import type { GraphPersistenceAdapter } from '../shell/persistence';
+import { resolveShellCustomFunctions } from '../shell/shell-custom-functions';
 import type { SimulateHandler } from '../shell/types';
 import { mapPanelSlotIds, mapToolbarSlots } from '../skin/layout';
 import type { SkinHeaderSlots, SkinSlotHostContext } from '../skin/types';
@@ -61,8 +63,7 @@ export type SkinnedDecisionGraphProps = DecisionGraphProps & {
    */
   simulateHandler?: SimulateHandler;
   /** ADR-008 L1：宿主头部槽位注入——与 activeSkin 槽位浅合并（宿主优先） */
-  headerSlots?: SkinHeaderSlots;
-  /**
+  headerSlots?: SkinHeaderSlots; /**
    * 模式 D 自动持久化：拦截 onChange 喂控制器（防抖连续保存 + 乐观锁 + CONFLICT 停轮），
    * 外部 value 注入（load/adopt）自动重置基线；宿主未提供 right 槽时自动注入同步徽标
    * （Saving…/Saved/Conflict）。未传则行为完全不变。
@@ -88,7 +89,8 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
   SkinnedDecisionGraphProps & React.RefAttributes<DecisionGraphRef>
 > = React.forwardRef<DecisionGraphRef, SkinnedDecisionGraphProps>((props, ref) => {
   const { activeSkin } = useTheme();
-  const { simulateHandler, headerSlots, autoPersist, simulationFooter, ...restProps } = props;
+  const { simulateHandler, headerSlots, autoPersist, simulationFooter, customFunctions, ...restProps } = props;
+  const shell = useOptionalEditorShell();
   const internalRef = useRef<DecisionGraphRef | null>(null);
   const [mounted, setMounted] = useState(false);
   const [simulation, setSimulation] = useState<Simulation | undefined>(undefined);
@@ -184,7 +186,6 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
       id: 'simulator',
       title: 'Simulator',
       icon: <PlayCircleIcon className='size-4' />,
-      hideHeader: true,
       renderPanel: () => (
         <GraphSimulator
           defaultRequest={'{\n  \n}'}
@@ -206,7 +207,6 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
       id: 'fixtures',
       title: 'Fixtures',
       icon: <FlaskConicalIcon className='size-4' />,
-      hideHeader: true,
       renderPanel: () => <FixturesPanel />,
     };
     return [...(props.panels ?? []), simulatorPanel, fixturesPanel];
@@ -264,6 +264,10 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
     }
     restProps.onChange?.(val);
   };
+  // 兜底 tab 函数作用域缺省接线（InstanceEditor 函数下拉/参数行数据源）：
+  // 宿主显式 customFunctions 优先（宿主优先原则），否则取 shell schema——
+  // EditorShellProvider 场景零接线；无 Provider（stories 直用）行为不变
+  const effectiveCustomFunctions = resolveShellCustomFunctions(customFunctions, shell?.schema);
   const decisionGraph = (
     <DecisionGraph
       {...restProps}
@@ -272,6 +276,7 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
       panels={panels}
       simulate={props.simulate ?? simulation}
       fixturesRunner={fixturesRunner}
+      customFunctions={effectiveCustomFunctions}
       onChange={autoPersistActive ? handleGraphChange : restProps.onChange}
     />
   );

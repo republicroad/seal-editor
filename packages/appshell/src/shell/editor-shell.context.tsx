@@ -48,3 +48,6 @@ export const useEditorShell = (): EditorShellContextValue => {
   }
   return value;
 };
+
+/** 可空读取：SkinnedDecisionGraph 等壳层组件在无 Provider 时（stories 直用）静默降级 */
+export const useOptionalEditorShell = (): EditorShellContextValue | null => useContext(EditorShellContext);

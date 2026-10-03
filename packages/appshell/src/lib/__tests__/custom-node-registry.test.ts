@@ -1,9 +1,21 @@
-import { describe, expect, test } from 'vitest';
+// @vitest-environment jsdom
+// schemaToCustomNodes 引 seal-editor 全量（monaco/wasm 侧效应）——与退役的
+// schema-container-tab.test.tsx 同款 mock 前导
+import { describe, expect, test, vi } from 'vitest';
 
 import fallbackSchema from '../../assets/custom-node-schema.json';
 import { EMPTY_EXPRESSIONS_CONFIG, LEGACY_UDF_KIND, legacyUdfPlan, schemaToNodePlans } from '../custom-node-plans';
+import { schemaToCustomNodes } from '../custom-node-registry';
 import { fetchCustomNodeSchema, parseCustomNodeSchemaPayload } from '../custom-node-schema-source';
 import type { CustomNodeNamespace } from '../custom-node-types';
+
+vi.mock('@gorules/zen-engine-wasm', () => {
+  class VariableType {}
+  const init = Object.assign(() => Promise.resolve(), { isReady: () => false });
+  return { default: init, isReady: init.isReady, VariableType };
+});
+
+vi.mock('monaco-editor', () => ({}));
 
 const FALLBACK_SCHEMA = fallbackSchema as CustomNodeNamespace[];
 
@@ -168,6 +180,18 @@ describe('schemaToNodePlans', () => {
     expect(kinds).not.toContain('inout');
     expect(kinds).not.toContain('current_date');
     expect(plans.every((plan) => plan.group === '自定义函数')).toBe(true);
+  });
+});
+
+describe('schemaToCustomNodes（容器退役专用面板后）', () => {
+  test('容器不携带 renderTab——页签回落 kernel 兜底（InstanceEditor）', () => {
+    const nodes = schemaToCustomNodes(FALLBACK_SCHEMA);
+    expect(nodes.length).toBeGreaterThan(0);
+    expect(nodes.every((node) => node.renderTab === undefined)).toBe(true);
+    // 画布字段仍在（kind/displayName/seed）
+    const debug = nodes.find((node) => node.kind === 'debug');
+    expect(debug).toBeTruthy();
+    expect(typeof debug?.generateNode).toBe('function');
   });
 });
 

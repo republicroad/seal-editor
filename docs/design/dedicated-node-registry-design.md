@@ -89,7 +89,7 @@ fetchCustomNodeSchema(schemaSource)          ← 服务端已按租户过滤（�
 | 场景 | 行为 |
 | --- | --- |
 | namespace 在载荷 + tester 匹配 | **可创建**：专属节点（专属 Tab） |
-| namespace 在载荷 + tester 不匹配 | **可创建**：通用容器（SchemaContainerTab） |
+| namespace 在载荷 + tester 不匹配 | **可创建**：通用容器（kernel 兜底 tab / InstanceEditor——SchemaContainerTab 已退役收编，2026-10） |
 | namespace 不在载荷 | **不可创建**：面板/补全/REPL 均不出现 |
 | 旧图已有节点 + namespace 已被关 | **只读渲染**：按 kind 降级为通用只读容器 + 运行期错误就地显示（不白块） |
 

@@ -1,7 +1,6 @@
 import { type CustomNodeSpecification, createJdmNode } from '@republicroad/seal-editor';
 
 import css from '../components/custom-node/custom-node.module.css';
-import { SchemaContainerTab } from '../components/custom-node/schema-container-tab';
 import CodeIcon from '../components/icons/code';
 import FlashCircleIcon from '../components/icons/flash-circle';
 import { type CustomNodePlan, legacyUdfPlan, schemaToNodePlans } from './custom-node-plans';
@@ -51,11 +50,11 @@ const planToJdmNode = (plan: CustomNodePlan): ReturnType<typeof createJdmNode> =
     icon: kindIcons[plan.kind] ?? defaultIcon,
     generateNode: plan.seed,
   };
-  const tools = plan.tools ?? [];
-  // 命名空间带工具集 → 挂 schema 感知编辑面板（key 可编辑 + 函数下拉 + 位置参数）
-  return tools.length > 0
-    ? createSpecNode({ ...base, renderTab: ({ id }) => <SchemaContainerTab id={id} tools={tools} /> })
-    : createJdmNode(base);
+  // 容器不再挂专用编辑面板（SchemaContainerTab 已退役，2026-10 收编）：
+  // 页签回落 kernel 兜底 tab（InstanceEditor 主从式），其工具集限定由
+  // resolveFunctionScope 按 kind=命名空间名提供；写路径归 kernel 单漏斗
+  // （旧面板整配置替换会丢 pack 自有键——编辑面规格 §2 键主权）
+  return createJdmNode(base);
 };
 
 /** 每个命名空间生成一个集合容器节点(kind = 命名空间名) */
