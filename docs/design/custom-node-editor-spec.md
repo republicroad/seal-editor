@@ -38,6 +38,34 @@
 
 新增写手（如 typed input 存储迁移）接入 = 在本表登记 + 单漏斗收编 + 往返测试。
 
+## 2.5 · 函数可见性语义（2026-10-03 立法）
+
+**节点内可见的函数集 = 节点形态的声明语义**，单一事实源是
+`resolveFunctionScope(kind, customFunctions)`——任何编辑面（InstanceEditor
+函数下拉、补全、REPL）都从它取集，不另造第二套过滤。
+
+| 节点形态 | 可见函数集 | scope.mode |
+| --- | --- | --- |
+| 专用节点（http_request / roster…） | 仅自身（tab 即该函数编辑器，无下拉概念） | —（不经 resolveFunctionScope） |
+| 容器节点（kind = 命名空间名） | 该命名空间 tools | scoped |
+| 旧版自由 UDF（kind = UDF） | 全集 | legacy |
+| 孤儿容器（命名空间被租户过滤/下线） | 全集 + `orphanKind` 降级提示（琥珀语义：原命名空间已下线） | free + orphanKind |
+
+三条边界原则：
+
+1. **创建面与使用面分离**（ADR-010 延伸）：调色板 `catalogFilter` 管「能创建
+   哪些节点」；节点内 resolveFunctionScope 管「该实例能调哪些函数」。租户过滤
+   后：调色板不再出现该容器（创建面），已存在实例降级为 free + 漂移标记（使用面），
+   不直接消失；
+2. **软作用域**：scoped 下拉是交互过滤不是安全围栏——表达式模式手写 `$.` 调用
+   任意函数不硬拦（显式优于隐式）；真正授权在服务端（zen-udf registry 按租户装配）；
+3. **降级必须可见**：孤儿容器不白块但用户须知降级——函数下拉区挂琥珀提示，
+   已存实例按漂移标「未识别函数」。
+
+业界对照：容器 scoped = Zapier/Make 模块化；专用节点 = n8n node=operation；
+自由 UDF = Windmill 全库可选；tester 接管 = JSON Forms。业界无一做
+「容器里看所有命名空间」的混合作用域——跨域用自由 UDF 或另建容器（组合而非聚合）。
+
 ### 编辑器最小高度
 
 InstanceEditor 根容器设 'min-h-[320px]'——无实例/空态时不因内容塌缩为单行。
@@ -49,6 +77,15 @@ InstanceEditor 视觉重设计 + 功能补全：双卡片列（实例列表 / �
 输出键可编辑（重复即时警告）、函数描述行、必填星 + 类型标、dependsOn 只读
 标签、fieldPaths 透传（引用模式三态）。参数值写入经 typed-input 协议
 （literal 裸值 / 非字面量信封）——见 [typed-input-spec.md](./typed-input-spec.md) §7。
+
+### 运行时仿真内联（2026-10-03 增补）
+
+主从编辑器接入实例级仿真结果（表达式节点 traceData 行尾值显示的同款范式，
+业界出处 VS Code inline debug values / n8n test-step / Windmill 行内 chip）：
+tab 读 `simulate.result.trace[id].output`（按实例 key 归集，passThrough 输入
+混于其中按 key 取值即纯净结果）→ `outputsByKey` 下传；列表行尾截断 chip +
+右栏 Result JSON 区，`{error:...}` 形态红显 + ⚠；结果 run-scoped——标注
+「上次仿真结果，图变更后重新运行以刷新」。
 
 
 ## 3 · `expr_asts` 权威性（zen-udf 澄清项 · 待提）
