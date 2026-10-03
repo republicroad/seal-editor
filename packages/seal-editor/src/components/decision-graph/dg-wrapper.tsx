@@ -147,32 +147,36 @@ const TabContents: React.FC<{ customFunctions?: any }> = React.memo(({ customFun
             activeNodeId === node?.id ? 'flex flex-col' : 'hidden',
           ])}
         >
-          {match(node?.type)
-            .with(NodeKind.DecisionTable, () => decisionTableSpecification?.renderTab?.({ id: node?.id, user }))
-            .with(NodeKind.Function, () => functionSpecification?.renderTab?.({ id: node?.id, user }))
-            .with(NodeKind.Expression, () => expressionSpecification?.renderTab?.({ id: node?.id, user }))
-            .with(NodeKind.Input, () => inputSpecification?.renderTab?.({ id: node?.id, user }))
-            .with(NodeKind.Output, () => outputSpecification?.renderTab?.({ id: node?.id, user }))
+          {/* 伸展包裹：列向 + 子级拉满——renderTab 根无论自带 height:100%
+              与否都占满面板块（行向会让子元素主轴按内容宽收缩，右栏被拽窄） */}
+          <div className='flex min-h-0 w-full flex-1 flex-col overflow-hidden [&>*]:h-full'>
+            {match(node?.type)
+              .with(NodeKind.DecisionTable, () => decisionTableSpecification?.renderTab?.({ id: node?.id, user }))
+              .with(NodeKind.Function, () => functionSpecification?.renderTab?.({ id: node?.id, user }))
+              .with(NodeKind.Expression, () => expressionSpecification?.renderTab?.({ id: node?.id, user }))
+              .with(NodeKind.Input, () => inputSpecification?.renderTab?.({ id: node?.id, user }))
+              .with(NodeKind.Output, () => outputSpecification?.renderTab?.({ id: node?.id, user }))
 
-            .otherwise(() => {
-              const component = components.find((cmp) => cmp.type === node.type);
-              if (component) {
-                return component?.renderTab?.({ id: node.id, user, customFunctions });
-              }
-
-              const kind = (node as { kind?: unknown })?.kind;
-              if (kind) {
-                const customSpec = customNodes?.find((n) => n.kind === kind);
-                if (customSpec?.renderTab) {
-                  return customSpec.renderTab({ id: node.id, user, customFunctions });
+              .otherwise(() => {
+                const component = components.find((cmp) => cmp.type === node.type);
+                if (component) {
+                  return component?.renderTab?.({ id: node.id, user, customFunctions });
                 }
-                // 无自定义 renderTab 的 kind 节点（容器/旧版 UDF）回退到
-                // 自定义函数表格——与 zrule 行为一致
-                return <CustomFunctionTable id={node.id} user={user} customFunctions={customFunctions} />;
-              }
 
-              return null;
-            })}
+                const kind = (node as { kind?: unknown })?.kind;
+                if (kind) {
+                  const customSpec = customNodes?.find((n) => n.kind === kind);
+                  if (customSpec?.renderTab) {
+                    return customSpec.renderTab({ id: node.id, user, customFunctions });
+                  }
+                  // 无自定义 renderTab 的 kind 节点（容器/旧版 UDF）回退到
+                  // 自定义函数表格——与 zrule 行为一致
+                  return <CustomFunctionTable id={node.id} user={user} customFunctions={customFunctions} />;
+                }
+
+                return null;
+              })}
+          </div>
         </div>
       ))}
     </div>
