@@ -212,3 +212,27 @@ literal 绕过 inputField）为实施必读；#1（zen-udf 1.1.0）待宿主口�
 关于「可惜了没进 1.0」：时序上放进 1.0 反而是错的——信封的价值以 seal
 Typed Input 编辑面落地为前提（编辑器写入三模式才有信封图），而编辑面批次
 晚于 1.0 冻结窗口；1.0 冻结已裁定面、信封走 1.1 minor 正是 semver 的用法。
+
+## 实施回执（2026-10-04，jdm-editor）——#1 完成，zen-udf@1.1.0 已发布
+
+- **已发布且 registry 实证**（feat 89f10469 + release 04bab6ad；validate success）：
+  ①信封窄识别 `asTypedValueEnvelope`（单源：恰 mode+value 二键 + mode 枚举 +
+  **value 原始类型**——literal 允许 string/number/boolean〔OQ2 前半〕，
+  expression/reference 要求字符串；object/array value = 非信封按现状对象字面量
+  透传，validateNamedArgs 报类型不符〔OQ2 后半以类型不符形态落地〕）；
+  ②三模式求值：literal 原样绑定（**绕过 inputField 拼接与求值**——评审精化 2
+  落地）；expression ≡ 裸字符串；reference 首期 ≡ 裸路径（OQ1，standalone
+  绑定 `$.` 非属性访问故不加前缀——与替换后上下文等价）；③**替换器/提取器
+  信封感知**（评审精化 1 落地）：literal 整体跳过（防 `$.` 字面量静默变语义，
+  防回归锚测试在案）；expression 信封 value 内 `$.refs` 照常提取替换；
+  **reference 信封取路径根段建依赖边**（tier.v → tier）；④`validateNamedArgs`
+  mode 感知（literal 按声明类型直校/缺失按声明参数集判定——评审中发现并
+  修正的遍历缺陷）/非信封对象字面量 vs 声明类型报不符；
+  ⑤`$positional` 元素信封同批（OQ5）；⑥CONTRACT §11.6 立法（窄识别
+  normative/嵌套禁止/保留字 mode+value 二键）；
+- **验收**：11 例新测（literal 无引号仪式/引号共存/expression 显式版/
+  reference 路径/$positional/嵌套透传/保留字碰撞/mode 感知校验/**literal 含
+  `$.` 防回归锚**）全过；全量 **1113 绿** + tsc 干净；
+- **seal 侧衔接就绪**（清单步骤 2-4）：写收紧（字面量也写信封）可随
+  seal-editor minor 落地；`expandTypedValues` 退役前置=执行宿主全部 ≥1.1.0
+  （本版发布即满足 zen-udf 侧；钉版断言建议照评审补充发现 1）。
