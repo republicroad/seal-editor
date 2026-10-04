@@ -1,6 +1,10 @@
 import { createApp } from './app';
+import { assertZenUdfEnvelopeSupport, installedZenUdfVersion } from './typed-values';
 
 const port = Number(process.env.PORT ?? 8787);
+
+// Typed Input 信封语义最低引擎版 fail fast（ADR-016 评审补充发现 1）
+assertZenUdfEnvelopeSupport(installedZenUdfVersion());
 
 const server = Bun.serve({
   port,

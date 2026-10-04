@@ -7,8 +7,29 @@
  * 1.1.0 下反而有害（会把引擎已正确绑定的字面量剥成裸值，重新踩
  * 「长得像表达式的字面量」歧义坑）。
  */
+import { readFileSync } from 'node:fs';
 
 const TYPED_MODES = new Set(['literal', 'expression', 'reference']);
+
+/**
+ * 运行时版本断言（ADR-016 评审补充发现 1）：Typed Input 信封语义要求引擎
+ * ≥ 1.1.0（literal/reference 原生拆包）——低版本引擎拿到 literal 信封会静默
+ * 求值出错。demo-server 启动时 fail fast；其他宿主执行存图前应做同款断言。
+ */
+export const assertZenUdfEnvelopeSupport = (installedVersion: string): void => {
+  const [major, minor] = installedVersion.split('.').map(Number);
+  if (!(major > 1 || (major === 1 && minor >= 1))) {
+    throw new Error(
+      `[typed-values] zen-udf >= 1.1.0 required for Typed Input envelope semantics; found ${installedVersion}`,
+    );
+  }
+};
+
+/** 读取本包安装的 zen-udf 版本（bun/node 的 node_modules 解析，src 相对上探一层） */
+export const installedZenUdfVersion = (): string => {
+  const url = new URL('../node_modules/@republicroad/zen-udf/package.json', import.meta.url);
+  return String((JSON.parse(readFileSync(url, 'utf8')) as { version: string }).version);
+};
 
 const expand = (node: unknown): unknown => {
   // 仅 expression 信封需要拆（引擎未实现）；literal/reference 引擎原生，透传

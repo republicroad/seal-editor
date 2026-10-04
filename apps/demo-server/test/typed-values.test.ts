@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 
-import { expandTypedValues } from '../src/typed-values';
+import { assertZenUdfEnvelopeSupport, expandTypedValues } from '../src/typed-values';
 
 describe('expandTypedValues（expression 信封展开——literal/reference 引擎原生透传）', () => {
   const CALL = '$call';
@@ -82,5 +82,17 @@ describe('expandTypedValues（expression 信封展开——literal/reference 引
     }) as any;
     expect(expanded.payload).toEqual({ mode: 'literal' });
     expect(expanded.nested).toEqual({ mode: 'note', value: 'keep' });
+  });
+});
+
+describe('assertZenUdfEnvelopeSupport（运行时版本断言）', () => {
+  it('>= 1.1.0 通过', () => {
+    expect(() => assertZenUdfEnvelopeSupport('1.1.0')).not.toThrow();
+    expect(() => assertZenUdfEnvelopeSupport('1.2.3')).not.toThrow();
+    expect(() => assertZenUdfEnvelopeSupport('2.0.0')).not.toThrow();
+  });
+  it('< 1.1.0 fail fast', () => {
+    expect(() => assertZenUdfEnvelopeSupport('1.0.9')).toThrow(/1.1.0/);
+    expect(() => assertZenUdfEnvelopeSupport('0.14.0')).toThrow();
   });
 });
