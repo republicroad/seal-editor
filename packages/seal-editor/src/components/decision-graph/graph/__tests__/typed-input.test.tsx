@@ -54,7 +54,7 @@ const modeTrigger = () => [...document.querySelectorAll('[data-slot="select-trig
 describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', () => {
   it('string 字面量编辑回传裸值', async () => {
     const onChange = vi.fn();
-    const user = userEvent.setup();
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     render(<Harness parameterType='string' initialValue={{ mode: 'literal', value: 'GOLD' }} onChange={onChange} />);
 
     const input = screen.getByDisplayValue('GOLD') as HTMLInputElement;
@@ -77,7 +77,7 @@ describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', 
 
   it('boolean 字面量渲染 Switch', async () => {
     const onChange = vi.fn();
-    const user = userEvent.setup();
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     render(<TypedInput parameterType='boolean' value={{ mode: 'literal', value: false }} onChange={onChange} />);
 
     await user.click(screen.getByRole('switch'));
@@ -86,7 +86,7 @@ describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', 
 
   it('二分切换备忘：值 ↔ 表达式各留旧值，切回恢复', async () => {
     const onChange = vi.fn();
-    const user = userEvent.setup();
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     render(<Harness parameterType='string' initialValue={{ mode: 'literal', value: 'GOLD' }} onChange={onChange} />);
 
     // literal → expression：无备忘，空串起步
@@ -109,7 +109,7 @@ describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', 
   });
 
   it('模式下拉恒两项（reference 不再作为顶层选项）', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     render(
       <TypedInput
         parameterType='string'
@@ -126,7 +126,7 @@ describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', 
 
   it('字段选择器：fieldPaths 空时隐藏，非空时可见且点选写 reference', async () => {
     const onChange = vi.fn();
-    const user = userEvent.setup();
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     const { rerender } = render(
       <TypedInput parameterType='string' value={{ mode: 'expression', value: '' }} onChange={onChange} />,
     );
@@ -151,7 +151,7 @@ describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', 
 
   it('非空表达式点选字段 → 拼接写 expression（组合无整值语义）', async () => {
     const onChange = vi.fn();
-    const user = userEvent.setup();
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     render(
       <Harness
         parameterType='string'
