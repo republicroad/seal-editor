@@ -255,6 +255,8 @@ export const en = {
   'cf.lastRunHint': 'From the last simulation run — re-run after edits to refresh',
   'cf.noFunctionsInScope': 'No functions in scope — host must provide a function catalog (customFunctions/schema)',
   'cf.orphanScopeHint': 'Original namespace offline ({{kind}}) — all functions are selectable',
+  'cf.field': 'Field',
+  'cf.fieldInsert': 'Insert field path',
   'request.noDefinitions': 'No field definitions',
   'request.schemaPriorityTooltip':
     'Schema has the highest priority. Definitions and example data sync into schema, but schema remains the source of truth.',

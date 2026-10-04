@@ -241,6 +241,8 @@ export const zhCN: Record<string, string> = {
   'cf.lastRunHint': '上次仿真结果，图变更后重新运行以刷新',
   'cf.noFunctionsInScope': '作用域内无函数——宿主需提供函数目录（customFunctions/schema）',
   'cf.orphanScopeHint': '原命名空间已下线（{{kind}}），当前可选全部函数',
+  'cf.field': '字段',
+  'cf.fieldInsert': '插入字段路径',
   'request.noDefinitions': '暂无字段定义',
   'request.schemaPriorityTooltip': 'Schema 优先级最高。类型定义和用例数据会同步到 Schema。',
   'request.simulateTooltip': '打开模拟器',

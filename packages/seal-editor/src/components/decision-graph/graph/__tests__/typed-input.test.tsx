@@ -51,7 +51,7 @@ const Harness: React.FC<{
 
 const modeTrigger = () => [...document.querySelectorAll('[data-slot="select-trigger"]')].at(-1) as HTMLElement;
 
-describe('TypedInput（typed-input 规格走查收口）', () => {
+describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', () => {
   it('string 字面量编辑回传裸值', async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
@@ -84,7 +84,7 @@ describe('TypedInput（typed-input 规格走查收口）', () => {
     expect(onChange).toHaveBeenLastCalledWith({ mode: 'literal', value: true });
   });
 
-  it('模式切换：非字面量起步为空（不做内容自动推断），切回恢复备忘值', async () => {
+  it('二分切换备忘：值 ↔ 表达式各留旧值，切回恢复', async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
     render(<Harness parameterType='string' initialValue={{ mode: 'literal', value: 'GOLD' }} onChange={onChange} />);
@@ -94,7 +94,6 @@ describe('TypedInput（typed-input 规格走查收口）', () => {
     await pickOption(user, 'Expression');
     expect(onChange).toHaveBeenLastCalledWith({ mode: 'expression', value: '' });
 
-    // 表达式里输入内容
     const exprInput = screen.getByPlaceholderText('${...} / $.path') as HTMLInputElement;
     await user.type(exprInput, '$.customer.tier');
 
@@ -103,59 +102,82 @@ describe('TypedInput（typed-input 规格走查收口）', () => {
     await pickOption(user, 'Value');
     expect(onChange).toHaveBeenLastCalledWith({ mode: 'literal', value: 'GOLD' });
 
-    // literal → expression：表达式备忘 $.customer.tier 恢复（切回不丢值，规格 §2.3）
+    // literal → expression：表达式备忘恢复（切回不丢值）
     await openDropdown(user, modeTrigger());
     await pickOption(user, 'Expression');
     expect(onChange).toHaveBeenLastCalledWith({ mode: 'expression', value: '$.customer.tier' });
   });
 
-  it('fieldPaths 为空时引用模式隐藏，非空时可选', async () => {
-    const onChange = vi.fn();
+  it('模式下拉恒两项（reference 不再作为顶层选项）', async () => {
     const user = userEvent.setup();
-    const { rerender } = render(
-      <TypedInput parameterType='string' value={{ mode: 'literal', value: 'x' }} onChange={onChange} />,
+    render(
+      <TypedInput
+        parameterType='string'
+        value={{ mode: 'literal', value: 'x' }}
+        fieldPaths={['customer.tier']}
+        onChange={vi.fn()}
+      />,
     );
 
     await openDropdown(user, modeTrigger());
-    expect(document.querySelectorAll('[role="option"]')).toHaveLength(2);
-    await user.keyboard('{Escape}');
+    const labels = [...document.querySelectorAll('[role="option"]')].map((o) => o.textContent);
+    expect(labels).toEqual(['Value', 'Expression']);
+  });
+
+  it('字段选择器：fieldPaths 空时隐藏，非空时可见且点选写 reference', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <TypedInput parameterType='string' value={{ mode: 'expression', value: '' }} onChange={onChange} />,
+    );
+    expect(screen.queryByTestId('typed-input-field-picker')).toBeNull();
 
     rerender(
       <TypedInput
         parameterType='string'
-        value={{ mode: 'literal', value: 'x' }}
+        value={{ mode: 'expression', value: '' }}
         fieldPaths={['customer', 'customer.tier']}
         onChange={onChange}
       />,
     );
+    const pickerTrigger = () =>
+      screen.getByTestId('typed-input-field-picker').querySelector('[data-slot="select-trigger"]') as HTMLElement;
+    await user.click(pickerTrigger());
+    await pickOption(user, 'customer.tier');
 
-    await openDropdown(user, modeTrigger());
-    expect(document.querySelectorAll('[role="option"]')).toHaveLength(3);
-    await pickOption(user, 'Reference');
-    expect(onChange).toHaveBeenLastCalledWith({ mode: 'reference', value: undefined });
+    // 空编辑框点选 → 整值绑定写 reference（保字段改名迁移精度）
+    expect(onChange).toHaveBeenLastCalledWith({ mode: 'reference', value: '$.customer.tier' });
   });
 
-  it('引用模式存储可执行形态 $.path（下拉展示裸路径）', async () => {
+  it('非空表达式点选字段 → 拼接写 expression（组合无整值语义）', async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
-    // 挂载即引用模式：避开模式菜单的陈旧 portal 干扰
+    render(
+      <Harness
+        parameterType='string'
+        initialValue={{ mode: 'expression', value: '$.a + ' }}
+        fieldPaths={['b']}
+        onChange={onChange}
+      />,
+    );
+
+    const pickerTrigger = () =>
+      screen.getByTestId('typed-input-field-picker').querySelector('[data-slot="select-trigger"]') as HTMLElement;
+    await user.click(pickerTrigger());
+    await pickOption(user, 'b');
+    expect(onChange).toHaveBeenLastCalledWith({ mode: 'expression', value: '$.a + $.b' });
+  });
+
+  it('reference 信封重开折叠进表达式编辑器（值回显）', () => {
     render(
       <TypedInput
         parameterType='string'
-        value={{ mode: 'reference', value: undefined }}
-        fieldPaths={['customer', 'customer.tier']}
-        onChange={onChange}
+        value={{ mode: 'reference', value: '$.customer.tier' }}
+        fieldPaths={['customer.tier']}
+        onChange={vi.fn()}
       />,
     );
-
-    const refTrigger = [...document.querySelectorAll('[data-slot="select-trigger"]')][0] as HTMLElement;
-    await openDropdown(user, refTrigger);
-    expect([...document.querySelectorAll('[role="option"]')].map((o) => o.textContent)).toEqual([
-      'customer',
-      'customer.tier',
-    ]);
-    await pickOption(user, 'customer.tier');
-    expect(onChange).toHaveBeenLastCalledWith({ mode: 'reference', value: '$.customer.tier' });
+    expect((screen.getByPlaceholderText('${...} / $.path') as HTMLInputElement).value).toBe('$.customer.tier');
   });
 
   it('coerceToTypedValue：裸值推断 literal，信封原样通过', async () => {

@@ -64,6 +64,21 @@ type TypedInputProps = {
 | expression | monaco（紧凑模式，zen-expression 语法） | 表达式编辑 |
 | reference | 下拉字段选择器（fieldPaths 列表） | 从合法路径中选 |
 
+### 2.2.1 · UI 二分呈现（2026-10-04 增补，用户裁定）
+
+**用户心智两分：写死的值 / 算出来的值**——「引用」不设为顶层概念（三概念认知
+负担过重，业界对照 n8n Fixed/Expression 两分 + Excel `=` 心智）：
+
+- **模式下拉恒两项**：`值`（literal）/ `表达式`（expression + reference）——
+  reference **折叠进表达式呈现**，不再作为顶层选项；
+- **表达式模式编辑框旁挂字段选择器**（fieldPaths 非空时出现）：点选字段插入
+  `$.path`——引用降格为表达式的**输入辅助**（消灭手敲路径错字）；
+- **存储三态不变**（用户裁定）：字段点选且编辑框为空 → 写 `reference`（保字段
+  改名的精确迁移精度）；其余表达式编辑 → 写 `expression`；reference 信封重开
+  折叠回表达式编辑器回显；
+- **安全前提**：ADR-016 literal 原样绑定——「值」框内任何内容不求值（长得像
+  表达式的字面量不再需要引号仪式，二分 UI 因此安全）。
+
 ### 2.3 模式切换
 
 右缘类型切换按钮（Node-RED typedInput 同款交互）——切换时保留旧值在

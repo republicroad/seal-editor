@@ -165,16 +165,35 @@ describe('InstanceEditor（主从编辑器深化）', () => {
     expect(last[0].call.kwargs.tier).toEqual({ mode: 'expression', value: '$.tier' });
   });
 
-  it('fieldPaths 透传：引用模式可见（每参数行模式下拉 3 项）', async () => {
+  it('fieldPaths 透传：表达式模式获字段选择器（模式下拉恒二项）', async () => {
     const user = userEvent.setup();
     render(<Harness initialValue={INSTANCES} fieldPaths={['customer.tier']} />);
 
     const tierInput = screen.getByDisplayValue('GOLD') as HTMLInputElement;
-    const modeTrigger = (tierInput.closest('.grid') as HTMLElement).querySelector(
-      '[data-slot="select-trigger"]',
-    ) as HTMLElement;
+    const tierRow = tierInput.closest('.grid') as HTMLElement;
+    // 字面量行无选择器（reference 折叠进表达式呈现——先切表达式）
+    expect(tierRow.querySelector('[data-testid="typed-input-field-picker"]')).toBeNull();
+    const modeTrigger = tierRow.querySelector('[data-slot="select-trigger"]') as HTMLElement;
     await user.click(modeTrigger);
-    expect(document.querySelectorAll('[role="option"]')).toHaveLength(3);
+    const item = await waitFor(() => {
+      const found = [...document.querySelectorAll('[role="option"]')].find((o) => o.textContent === 'Expression');
+      if (!found) throw new Error('option not mounted: Expression');
+      return found;
+    });
+    await user.click(item);
+    await waitFor(() => {
+      if (!tierRow.querySelector('[data-testid="typed-input-field-picker"]')) {
+        throw new Error('field picker not mounted after switch');
+      }
+    });
+    // 模式下拉恒二项
+    await user.click(tierRow.querySelector('[data-slot="select-trigger"]') as HTMLElement);
+    await waitFor(() => {
+      const labels = [...document.querySelectorAll('[role="option"]')].map((o) => o.textContent);
+      if (!(labels.includes('Value') && labels.includes('Expression'))) {
+        throw new Error(`mode options not mounted: ${JSON.stringify(labels)}`);
+      }
+    });
   });
 
   it('漂移/重复点标 + 右栏重复警告', () => {
