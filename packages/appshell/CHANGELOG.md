@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.30.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.29.0...@republicroad/seal-appshell@1.30.0) (2026-10-04)
+
+### Features
+
+- **appshell:** 专用节点写路径规范形收编——四 tab 写器切具名 kwargs + 解析器双读（ADR-015/016 收尾） ([d608620](https://github.com/republicroad/seal-editor/commit/d608620d609dfa4909c44551cfd2520d53716058))
+
 # [1.29.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.28.0...@republicroad/seal-appshell@1.29.0) (2026-10-04)
 
 **Note:** Version bump only for package @republicroad/seal-appshell

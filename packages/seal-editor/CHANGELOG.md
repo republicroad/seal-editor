@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.23.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.22.0...@republicroad/seal-editor@1.23.0) (2026-10-04)
+
+### Features
+
+- **appshell:** 专用节点写路径规范形收编——四 tab 写器切具名 kwargs + 解析器双读（ADR-015/016 收尾） ([d608620](https://github.com/republicroad/seal-editor/commit/d608620d609dfa4909c44551cfd2520d53716058))
+- **seal-editor:** TypedInput 表达式模式编辑器升级——Input → CodeMirror 6 紧凑实例 ([efdcc42](https://github.com/republicroad/seal-editor/commit/efdcc4226d5a3ca260953b506ee900cad2a45447))
+
 # [1.22.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.21.0...@republicroad/seal-editor@1.22.0) (2026-10-04)
 
 ### Features
