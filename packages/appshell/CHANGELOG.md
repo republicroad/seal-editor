@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.27.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.26.0...@republicroad/seal-appshell@1.27.0) (2026-10-04)
+
+### Bug Fixes
+
+- **seal-editor:** 面板抽屉三路关闭——内建头 X / Esc / 侧栏激活态强化 ([b1b9a05](https://github.com/republicroad/seal-editor/commit/b1b9a05a88cf592ca7fce984e3dde36ba457c0e2))
+
+### Features
+
+- **appshell:** customFunctions 自动接线 + SchemaContainerTab 收编退役 ([2278b68](https://github.com/republicroad/seal-editor/commit/2278b684404a3eb313d1e900e41de829061dbe95))
+
 # [1.26.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.25.0...@republicroad/seal-appshell@1.26.0) (2026-10-02)
 
 **Note:** Version bump only for package @republicroad/seal-appshell

@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.20.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.19.0...@republicroad/seal-editor@1.20.0) (2026-10-04)
+
+### Bug Fixes
+
+- **seal-editor:** renderTab 伸展包裹——节点页签与画布同一高度预算 ([23f15a3](https://github.com/republicroad/seal-editor/commit/23f15a3691371e3f6d5431fa4c08a5666f766e56))
+- **seal-editor:** typed input 走查收口——信封存储协议 + 模式备忘/引用隐藏/fieldPaths 接线 ([15b24a2](https://github.com/republicroad/seal-editor/commit/15b24a27a32cddd9dff41d2715ff47d850ebde4e))
+- **seal-editor:** 自定义函数编辑器深化批——右栏硬化/仿真内联/legacy 读转换/可见性语义 ([32ca85f](https://github.com/republicroad/seal-editor/commit/32ca85fefa1c7d35d53d27d6392d7276c8deb3bc))
+- **seal-editor:** 面板抽屉三路关闭——内建头 X / Esc / 侧栏激活态强化 ([b1b9a05](https://github.com/republicroad/seal-editor/commit/b1b9a05a88cf592ca7fce984e3dde36ba457c0e2))
+
+### Features
+
+- **custom-node:** P2 InstanceEditor 主从编辑器——TypedInput 三模式 + 实例列表 + 键重复 + 漂移带 + 最小高度 ([ff1b286](https://github.com/republicroad/seal-editor/commit/ff1b286cdec1522c5600674dc58d9142f2dbe36e))
+- **custom-node:** P2 主从编辑器接入——InstanceEditor 替换 CustomFunction + 兜底 tab 死代码清理 ([69597dd](https://github.com/republicroad/seal-editor/commit/69597ddc0770120fd9e26ec4e170994725cda7c7))
+- **custom-node:** Windmill 双模式——表格 ↔ 代码切换 + 实例概览条 + i18n（ADR-015 增补 P2 完整落地） ([2971f28](https://github.com/republicroad/seal-editor/commit/2971f28bfbfc14c6978ff5451f953e6ed81656b4))
+- **seal-editor:** TypedInput 二分呈现——引用折叠为表达式字段选择器 ([bdcd437](https://github.com/republicroad/seal-editor/commit/bdcd4373578cef57c6205346776e932ab97f5846))
+
 # [1.19.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.18.0...@republicroad/seal-editor@1.19.0) (2026-10-02)
 
 ### Features
