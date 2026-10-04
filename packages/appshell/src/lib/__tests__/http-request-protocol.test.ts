@@ -50,13 +50,25 @@ describe('normalizeMethod', () => {
   });
 });
 
-const exprOf = (value: unknown[]) => ({ id: 'n1', value }) as never;
-
-describe('parseHttpRequest / toHttpRequestValue 变长协议', () => {
-  test('完整 9 位参数解析', () => {
-    const fields = parseHttpRequest(
-      exprOf(['http_request', 'urlExpr', '"POST"', '{ a: 1 }', '', '{ p: 1 }', '5000', '2', '{ type: "basic" }']),
-    );
+describe('parseHttpRequest / toHttpRequestValue 具名 kwargs', () => {
+  test('双读：具名形回填全部字段', () => {
+    const fields = parseHttpRequest({
+      id: 'n1',
+      key: 'k1',
+      value: {
+        $call: 'http_request',
+        kwargs: {
+          url: 'urlExpr',
+          method: { mode: 'literal', value: 'POST' },
+          headers: '{ a: 1 }',
+          body: '$.payload',
+          params: '{ p: 1 }',
+          timeout: '5000',
+          retry: '2',
+          auth: '{ type: "basic" }',
+        },
+      },
+    });
     expect(fields.urlExpr).toBe('urlExpr');
     expect(fields.method).toBe('POST');
     expect(fields.headersExpr).toBe('{ a: 1 }');
@@ -66,8 +78,12 @@ describe('parseHttpRequest / toHttpRequestValue 变长协议', () => {
     expect(fields.authExpr).toBe('{ type: "basic" }');
   });
 
-  test('旧图 5 位参数兼容，可选尾部为空串', () => {
-    const fields = parseHttpRequest(exprOf(['http_request', 'u', '"GET"', '', '']));
+  test('可选尾参缺省回退空串', () => {
+    const fields = parseHttpRequest({
+      id: 'n1',
+      key: 'k1',
+      value: { $call: 'http_request', kwargs: { url: 'u', method: { mode: 'literal', value: 'GET' } } },
+    });
     expect(fields.method).toBe('GET');
     expect(fields.paramsExpr).toBe('');
     expect(fields.authExpr).toBe('');
@@ -109,7 +125,7 @@ describe('parseHttpRequest / toHttpRequestValue 变长协议', () => {
     });
   });
 
-  test('parse→serialize 幂等（具名域稳定）+ legacy 解析后序列化归一具名形', () => {
+  test('parse→serialize 幂等（具名域稳定）', () => {
     const named = {
       $call: 'http_request',
       kwargs: {
@@ -122,9 +138,6 @@ describe('parseHttpRequest / toHttpRequestValue 变长协议', () => {
       },
     };
     expect(toHttpRequestValue(parseHttpRequest({ value: named } as never))).toEqual(named);
-    // legacy 位置数组解析 → 序列化归一具名形（首次编辑迁移语义）
-    const legacy = exprOf(['http_request', 'u', '"DELETE"', '{ h: 1 }', 'body', '{ p: 2 }', '1000']);
-    expect(toHttpRequestValue(parseHttpRequest(legacy))).toEqual(named);
   });
 });
 

@@ -1,5 +1,4 @@
 import type { CustomNodeExpression } from './custom-node-types';
-import { parseOperatorArgs, unquote } from './http-request-protocol';
 
 export const CRYPTO_UDF = 'crypto';
 
@@ -44,36 +43,24 @@ export const isUpperChecked = (expr: string): boolean => expr.trim() === 'true';
 export const parseCrypto = (expr?: CustomNodeExpression): CryptoFields => {
   const isRecord = (value: unknown): value is Record<string, unknown> =>
     value !== null && typeof value === 'object' && !Array.isArray(value);
-  // 具名形（规范形写路径，ADR-015/016）：kwargs 直读——信封解一层取表达式串，
+  // 具名 kwargs（唯一合法形态，ADR-015/016）：信封解一层取表达式串，
   // 缺省尾参回退默认（可选语义由具名天然承载）
-  if (expr && typeof expr.value === 'object' && !Array.isArray(expr.value) && isRecord(expr.value.kwargs)) {
-    const kwargs = expr.value.kwargs as Record<string, unknown>;
-    const readExpr = (key: string): string => {
-      const v = kwargs[key];
-      if (v === null || v === undefined) return '';
-      if (typeof v === 'object' && !Array.isArray(v) && 'value' in v) {
-        return String((v as Record<string, unknown>).value);
-      }
-      return String(v);
-    };
-    return {
-      inputExpr: readExpr('input'),
-      algorithm: normalizeAlgorithm(readExpr('algorithm')),
-      secretExpr: readExpr('secret'),
-      encoding: normalizeEncoding(readExpr('encoding')),
-      upperExpr: readExpr('upper'),
-    };
-  }
-
-  // 旧形态：位置数组 / ;; 串（存量图永久兼容）
-  const args =
-    expr && (typeof expr.value !== 'object' || Array.isArray(expr.value)) ? parseOperatorArgs(expr.value) : [];
+  const kwargs =
+    expr && isRecord(expr.value) && isRecord(expr.value.kwargs) ? (expr.value.kwargs as Record<string, unknown>) : {};
+  const readExpr = (key: string): string => {
+    const v = kwargs[key];
+    if (v === null || v === undefined) return '';
+    if (typeof v === 'object' && !Array.isArray(v) && 'value' in v) {
+      return String(v.value);
+    }
+    return String(v);
+  };
   return {
-    inputExpr: args[1] ?? '',
-    algorithm: normalizeAlgorithm(unquote(args[2] ?? '')),
-    secretExpr: args[3] ?? '',
-    encoding: normalizeEncoding(unquote(args[4] ?? '')),
-    upperExpr: args[5] ?? '',
+    inputExpr: readExpr('input'),
+    algorithm: normalizeAlgorithm(readExpr('algorithm')),
+    secretExpr: readExpr('secret'),
+    encoding: normalizeEncoding(readExpr('encoding')),
+    upperExpr: readExpr('upper'),
   };
 };
 

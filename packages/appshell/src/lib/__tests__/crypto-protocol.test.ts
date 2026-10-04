@@ -9,7 +9,7 @@ import {
   toCryptoValue,
 } from '../crypto-protocol';
 
-const exprOf = (value: unknown[]) => ({ id: 'n1', value }) as never;
+const lit = (value: string) => ({ mode: 'literal', value });
 
 describe('normalizeAlgorithm / normalizeEncoding', () => {
   test('合法值大小写归一', () => {
@@ -61,16 +61,12 @@ describe('parseCrypto / toCryptoValue 规范形（具名 kwargs + literal 信封
     expect((value as any).kwargs.encoding).toEqual({ mode: 'literal', value: 'hex' });
   });
 
-  test('parse→serialize 幂等（具名域稳定）+ legacy 解析后序列化归一具名形', () => {
+  test('parse→serialize 幂等（具名域稳定）', () => {
     const named = {
       $call: 'crypto',
       kwargs: { input: 'input.raw', algorithm: lit('sha1'), secret: '"k"', encoding: lit('base64'), upper: 'true' },
     };
-    // 具名域幂等
     expect(toCryptoValue(parseCrypto({ value: named } as never))).toEqual(named);
-    // legacy 位置数组解析 → 序列化归一具名形（首次编辑迁移语义）
-    const legacy = exprOf(['crypto', 'input.raw', '"sha1"', '"k"', '"base64"', 'true']);
-    expect(toCryptoValue(parseCrypto(legacy))).toEqual(named);
   });
 
   test('空表达式安全解析', () => {
@@ -100,8 +96,15 @@ describe('deriveCryptoMode / applyCryptoMode', () => {
     expect(applyCryptoMode(hmacFields, 'hmac').secretExpr).toBe('env.KEY');
   });
 
-  test('模式归一后序列化与旧图兼容', () => {
-    const fields = parseCrypto(exprOf(['crypto', 'x', '"md5"', '"k"', '"hex"']));
+  test('模式归一后序列化（具名 kwargs）', () => {
+    const fields = parseCrypto({
+      id: 'n1',
+      key: 'k1',
+      value: {
+        $call: 'crypto',
+        kwargs: { input: 'x', algorithm: lit('md5'), secret: '"k"', encoding: lit('hex') },
+      },
+    });
     expect(deriveCryptoMode(fields.secretExpr)).toBe('hmac');
     const cleared = applyCryptoMode(fields, 'plain');
     expect((toCryptoValue(cleared) as any).kwargs).toEqual({
