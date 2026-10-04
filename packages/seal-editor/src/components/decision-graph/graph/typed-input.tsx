@@ -91,17 +91,17 @@ export const TypedInput: React.FC<TypedInputProps> = ({
     [onChange],
   );
 
-  // 字段点选：编辑框为空 → 整值绑定写 reference（保字段改名迁移精度）；
+  // 字段点选：编辑框为空 → 整值绑定写 reference（保字段改名迁移精度；
+  // value = 无 $. 前缀的路径——引擎 reference 语义，ADR-016 实证）；
   // 已有内容 → 以空格拼接写 expression（组合表达式无整值语义）
   const insertField = useCallback(
     (path: string) => {
-      const inserted = `$.${path}`;
       const base = exprText;
       if (base.trim() === '') {
-        onChange({ mode: 'reference', value: inserted });
+        onChange({ mode: 'reference', value: path });
         return;
       }
-      onChange({ mode: 'expression', value: `${base}${base.endsWith(' ') ? '' : ' '}${inserted}` });
+      onChange({ mode: 'expression', value: `${base}${base.endsWith(' ') ? '' : ' '}${path}` });
     },
     [exprText, onChange],
   );

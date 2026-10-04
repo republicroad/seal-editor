@@ -2,17 +2,17 @@ import { describe, expect, it } from 'bun:test';
 
 import { expandTypedValues } from '../src/typed-values';
 
-describe('expandTypedValues（Typed Input 信封展开）', () => {
-  const $call = '$call';
+describe('expandTypedValues（expression 信封展开——literal/reference 引擎原生透传）', () => {
+  const CALL = '$call';
 
-  it('kwargs 中的 {mode,value} 信封展开为裸值/表达式串', () => {
+  it('kwargs：expression 信封拆包，literal/reference 信封透传（1.1.0 原生绑定）', () => {
     const model = {
       nodes: [
         {
           id: 'cn-1',
           type: 'customNode',
-          kind: 'ns',
           content: {
+            kind: 'ns',
             config: {
               expressions: [
                 {
@@ -20,11 +20,12 @@ describe('expandTypedValues（Typed Input 信封展开）', () => {
                   key: 'out1',
                   type: 'function',
                   value: {
-                    $call,
+                    [CALL]: 'fn',
                     kwargs: {
-                      literal: 'GOLD',
+                      lit: { mode: 'literal', value: 'demo_block' },
                       expr: { mode: 'expression', value: '$.customer.tier' },
-                      ref: { mode: 'reference', value: '$.customer.vip' },
+                      ref: { mode: 'reference', value: 'customer.vip' },
+                      plain: 'GOLD',
                     },
                   },
                 },
@@ -36,21 +37,23 @@ describe('expandTypedValues（Typed Input 信封展开）', () => {
       edges: [],
     };
 
-    const expanded = expandTypedValues(structuredClone(model));
-    const kwargs = (expanded as any).nodes[0].content.config.expressions[0].value.kwargs;
-    expect(kwargs).toEqual({
-      literal: 'GOLD',
-      expr: '$.customer.tier',
-      ref: '$.customer.vip',
-    });
-    // 原模型不被修改（纯函数）
-    expect((model as any).nodes[0].content.config.expressions[0].value.kwargs.expr).toEqual({
-      mode: 'expression',
-      value: '$.customer.tier',
-    });
+    const expanded = expandTypedValues(structuredClone(model)) as typeof model;
+    const kwargs = (expanded.nodes[0] as any).content.config.expressions[0].value.kwargs;
+    // literal/reference 透传——1.1.0 引擎原生绑定（实证 2026-10-04）
+    expect(kwargs.lit).toEqual({ mode: 'literal', value: 'demo_block' });
+    expect(kwargs.ref).toEqual({ mode: 'reference', value: 'customer.vip' });
+    expect(kwargs.plain).toBe('GOLD');
+    // 仅 expression 拆成裸串
+    expect(kwargs.expr).toBe('$.customer.tier');
+    // 原模型不被修改（纯函数）+ 幂等（对已展开结构再展开不变）
+    const snapshot = JSON.stringify(model);
+    const first = expandTypedValues(structuredClone(model));
+    const again = expandTypedValues(structuredClone(first));
+    expect(JSON.stringify(again)).toBe(JSON.stringify(first));
+    expect(JSON.stringify(model)).toBe(snapshot);
   });
 
-  it('位置数组 args 中的信封同样展开', () => {
+  it('位置数组 args 中的 expression 信封同样展开', () => {
     const expanded = expandTypedValues({
       nodes: [
         {
@@ -58,29 +61,26 @@ describe('expandTypedValues（Typed Input 信封展开）', () => {
           type: 'customNode',
           content: {
             config: {
-              expressions: [{ id: 'e1', key: 'out1', type: 'function', value: ['fn', { mode: 'literal', value: 7 }] }],
+              expressions: [
+                { id: 'e1', key: 'out1', type: 'function', value: ['fn', { mode: 'expression', value: '$.x' }] },
+              ],
             },
           },
         },
       ],
       edges: [],
-    });
-    const value = (expanded as any).nodes[0].content.config.expressions[0].value;
-    expect(value).toEqual(['fn', 7]);
+    }) as any;
+    expect(expanded.nodes[0].content.config.expressions[0].value).toEqual(['fn', '$.x']);
   });
 
-  it('窄识别：普通双键对象 {mode,value} 之外形状不误伤', () => {
+  it('窄识别：非信封形状不误伤', () => {
     const expanded = expandTypedValues({
-      nodes: [],
-      edges: [],
-      payload: { mode: 'literal' }, // 缺 value 键 → 非信封
-      nested: { mode: 'note', value: 'keep' }, // mode 非法 → 非信封
-    });
-    expect(expanded).toEqual({
       nodes: [],
       edges: [],
       payload: { mode: 'literal' },
       nested: { mode: 'note', value: 'keep' },
-    });
+    }) as any;
+    expect(expanded.payload).toEqual({ mode: 'literal' });
+    expect(expanded.nested).toEqual({ mode: 'note', value: 'keep' });
   });
 });

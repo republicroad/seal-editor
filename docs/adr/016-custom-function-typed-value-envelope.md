@@ -113,6 +113,32 @@ kwargs 值 / `$positional` 数组元素可为信封对象：
   seal 双形态读取长期维持（存量裸值永久合法）；
 - 中性：reference 首期 ≡ expression——输入 schema 校验位预留不实现（OQ1）。
 
+## 8.5 · zen-udf 1.1.0 实证（2026-10-04，宿主发布后 seal 直测）
+
+1.1.0 已随车实现信封识别（引擎源码 adr016-typed-envelope.test.ts + engine.ts
+asTypedValueEnvelope）。seal 直测矩阵（roster 夹具，/v1/execute + 进程内双路）：
+
+| kwargs 表达式形态 | 结果 |
+| --- | --- |
+| 裸标识符 roster | ✓（解析输入字段） |
+| 裸点路径 q.tier | ✓ |
+| 引号字面量 "demo_block" | ✓ |
+| **裸 hBc路径 $.roster** | **✗（0.14 ✓ → 1.x ✗ 行为变更，见下）** |
+| literal 信封 | ✓ 原样绑定（字面量歧义根治已生效） |
+| reference 信封（无 $ 前缀路径） | ✓（嵌套 q.tier 亦 ✓） |
+| expression 信封 + 裸标识符/点路径 | ✓ |
+| expression 信封 + hBc路径 | ✗（同 hBc路径问题，非信封本身缺陷） |
+
+**关键发现（jdm 待答，升格为 OQ7）**：1.x 命名调用 kwargs 求值域**不再绑定
+$/输入根**——裸 $.roster 在 0.14 求值 ✓、1.x ✗；裸标识符/点路径两版皆 ✓。
+涉 I1（表达式兼容）的边界：作者在 kwargs 用 hBc路径表达式将静默失败。
+**编辑面对策已落地**：字段选择器插入裸点路径（无 $ 前缀）；reference 信封
+value 恒无前缀（引擎注释同款语义）。
+
+**OQ6 已答（实证收敛）**：expandTypedValues 收窄为**仅拆 expression 信封**
+（literal/reference 引擎原生，透传）——1.1.0 下全模式展开反而有害（会把引擎
+已正确绑定的字面量剥成裸值重踩歧义）。seal 已实施（demo-server）。
+
 ## 9 · 开放问题（OQ）
 
 1. **reference 首期深度**：≡ expression（加 `$.` 前缀即走），还是首日就对接输入

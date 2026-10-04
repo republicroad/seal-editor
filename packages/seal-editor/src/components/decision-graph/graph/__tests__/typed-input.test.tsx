@@ -95,7 +95,7 @@ describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', 
     expect(onChange).toHaveBeenLastCalledWith({ mode: 'expression', value: '' });
 
     const exprInput = screen.getByPlaceholderText('${...} / $.path') as HTMLInputElement;
-    await user.type(exprInput, '$.customer.tier');
+    await user.type(exprInput, 'customer.tier');
 
     // expression → literal：字面量恢复备忘 GOLD
     await openDropdown(user, modeTrigger());
@@ -105,7 +105,7 @@ describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', 
     // literal → expression：表达式备忘恢复（切回不丢值）
     await openDropdown(user, modeTrigger());
     await pickOption(user, 'Expression');
-    expect(onChange).toHaveBeenLastCalledWith({ mode: 'expression', value: '$.customer.tier' });
+    expect(onChange).toHaveBeenLastCalledWith({ mode: 'expression', value: 'customer.tier' });
   });
 
   it('模式下拉恒两项（reference 不再作为顶层选项）', async () => {
@@ -146,7 +146,7 @@ describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', 
     await pickOption(user, 'customer.tier');
 
     // 空编辑框点选 → 整值绑定写 reference（保字段改名迁移精度）
-    expect(onChange).toHaveBeenLastCalledWith({ mode: 'reference', value: '$.customer.tier' });
+    expect(onChange).toHaveBeenLastCalledWith({ mode: 'reference', value: 'customer.tier' });
   });
 
   it('非空表达式点选字段 → 拼接写 expression（组合无整值语义）', async () => {
@@ -165,19 +165,19 @@ describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', 
       screen.getByTestId('typed-input-field-picker').querySelector('[data-slot="select-trigger"]') as HTMLElement;
     await user.click(pickerTrigger());
     await pickOption(user, 'b');
-    expect(onChange).toHaveBeenLastCalledWith({ mode: 'expression', value: '$.a + $.b' });
+    expect(onChange).toHaveBeenLastCalledWith({ mode: 'expression', value: '$.a + b' });
   });
 
   it('reference 信封重开折叠进表达式编辑器（值回显）', () => {
     render(
       <TypedInput
         parameterType='string'
-        value={{ mode: 'reference', value: '$.customer.tier' }}
+        value={{ mode: 'reference', value: 'customer.tier' }}
         fieldPaths={['customer.tier']}
         onChange={vi.fn()}
       />,
     );
-    expect((screen.getByPlaceholderText('${...} / $.path') as HTMLInputElement).value).toBe('$.customer.tier');
+    expect((screen.getByPlaceholderText('${...} / $.path') as HTMLInputElement).value).toBe('customer.tier');
   });
 
   it('coerceToTypedValue：裸值推断 literal，信封原样通过', async () => {
