@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.21.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.20.0...@republicroad/seal-editor@1.21.0) (2026-10-04)
+
+### Bug Fixes
+
+- **demo-server:** expandTypedValues 收窄——literal/reference 透传，仅拆 expression 信封 ([a44f260](https://github.com/republicroad/seal-editor/commit/a44f26046d2715d74ca3b1b148d07450794a6a52))
+- **seal-editor:** typed-input 测试禁用 pointer-events 检查——CI 动画期 flake ([4176dd5](https://github.com/republicroad/seal-editor/commit/4176dd5232cf2b1658d5f5bb86283db084e7572f))
+
+### Features
+
+- **seal-editor:** TypedInput 二分呈现——引用折叠为表达式字段选择器 + $-作用域对齐 ([5d800c3](https://github.com/republicroad/seal-editor/commit/5d800c328cf55044dfab11482162363a11c90b86))
+- **seal-editor:** 存储全量信封收紧——参数值三模式恒写信封（ADR-016 步骤 2） ([bc65bbe](https://github.com/republicroad/seal-editor/commit/bc65bbe402341e9f304562fb70bc369e16693a9a))
+
 # [1.20.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.19.0...@republicroad/seal-editor@1.20.0) (2026-10-04)
 
 ### Bug Fixes
