@@ -171,3 +171,10 @@ null，字段引用用**裸键/点路径或 reference 信封**；表达式节点
 形态实参`（裸字符串 / expression·reference 信封内 `$.` 前缀——kwargs 域恒
 null）——「运行时静默 null」提前为「编辑时可见警告」+ 一键迁移（剥 `$.`
 前缀为裸路径）；literal 信封不检测（原样绑定是歧义根治语义）。
+
+**随档动作③（扫描工具入库 + verdict 确认无负担，2026-10-04）**：
+`scripts/scan-dollar-form.mjs`（零依赖 CLI，检测语义与 kernel
+findDollarFormRows 同源）——旧图导入场景**先扫后导**：
+`node scripts/scan-dollar-form.mjs graph.json`（发现即 exit 1，可作导入门禁）；
+`--fix` 输出改写后 JSON（报告走 stderr）。verdict 确认数据面迁移对其
+**无负担**。
