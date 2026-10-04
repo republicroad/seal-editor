@@ -16,7 +16,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import { CatalogTree } from './shared/catalog-tree';
 import { InstanceShell } from './shared/instance-shell';
-import { RunMonitor } from './shared/run-monitor';
 import { TrustChainPanel } from './shared/trust-chain-panel';
 import { udfFixtures } from './shared/udf-fixtures';
 
@@ -174,7 +173,7 @@ const UdfLabBody: React.FC = () => {
         {trustOpen ? (
           <div className='pg-split-trust'>
             <button type='button' className='pg-split-trust-handle' onClick={toggleTrust} title='收起——画布满屏'>
-              ▼ Trust Chain · Run Monitor · REPL
+              ▼ Trust Chain · REPL
             </button>
             {/* key = 夹具 id：切换夹具时重挂载面板，默认输入随夹具走 */}
             <Tabs defaultValue='trust' className='pg-monitor-tabs'>
@@ -185,15 +184,11 @@ const UdfLabBody: React.FC = () => {
               <div style={{ padding: '8px 12px 0' }}>
                 <TabsList>
                   <TabsTrigger value='trust'>Trust Chain</TabsTrigger>
-                  <TabsTrigger value='monitor'>Run Monitor</TabsTrigger>
                   <TabsTrigger value='repl'>REPL</TabsTrigger>
                 </TabsList>
               </div>
               <TabsContent value='trust' className='pg-monitor-tabpane'>
                 <TrustChainPanel key={activeFixture} model={graph} defaultInput={currentFixture?.inputText} />
-              </TabsContent>
-              <TabsContent value='monitor' className='pg-monitor-tabpane'>
-                <RunMonitor key={activeFixture} model={graph} defaultInput={currentFixture?.inputText ?? '{}'} />
               </TabsContent>
               <TabsContent value='repl' className='pg-monitor-tabpane'>
                 <FunctionRepl
@@ -212,7 +207,7 @@ const UdfLabBody: React.FC = () => {
             onClick={toggleTrust}
             title='展开 Trust Chain / Run Monitor / REPL'
           >
-            ▲ Trust Chain · Run Monitor · REPL
+            ▲ Trust Chain · REPL
           </button>
         )}
       </div>
