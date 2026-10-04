@@ -94,7 +94,7 @@ describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', 
     await pickOption(user, 'Expression');
     expect(onChange).toHaveBeenLastCalledWith({ mode: 'expression', value: '' });
 
-    const exprInput = screen.getByPlaceholderText('${...} / $.path') as HTMLInputElement;
+    const exprInput = screen.getByPlaceholderText('q.tier / 表达式') as HTMLInputElement;
     await user.type(exprInput, 'customer.tier');
 
     // expression → literal：字面量恢复备忘 GOLD
@@ -177,7 +177,7 @@ describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', 
         onChange={vi.fn()}
       />,
     );
-    expect((screen.getByPlaceholderText('${...} / $.path') as HTMLInputElement).value).toBe('customer.tier');
+    expect((screen.getByPlaceholderText('q.tier / 表达式') as HTMLInputElement).value).toBe('customer.tier');
   });
 
   it('coerceToTypedValue：裸值推断 literal，信封原样通过', async () => {

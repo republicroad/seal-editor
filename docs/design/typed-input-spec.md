@@ -146,12 +146,23 @@ CustomFunction 的参数值列 → TypedInput 替换（值编辑层升级）。
 | 5 | 模式标签硬编码中文 | i18n 化（`cf.modeLiteral/modeExpression/modeReference`）+ 补齐 InstanceEditor 5 个缺失键（此前渲染裸键名） |
 | 6 | number 参数用文本 Input + 强转 | `InputNumber` 原语（integer 同路）；boolean Switch 不变 |
 
-**存储协议修正（§2.1 增补）**：字面量恒存裸值——它是旧数据规范形，读取推断
-零损耗且引擎直读兼容；仅非字面量带信封。全量信封化（规格原文「新写入始终
-输出 TypedValue 形态」）待执行边界全铺开后另行收紧。
+**存储协议（§2.1 原文完整落地，2026-10-04 全量形态化收紧，kernel 1.21.0）**：
+三模式恒写信封——引擎 zen-udf 1.1.0 原生拆包（literal 原样绑定 / reference
+路径解析，实证 ✓），expression 信封由执行边界展开（expandTypedValues 仅拆
+expression，literal/reference 透传）；读取侧 coerceToTypedValue 双形态兼容
+不变（存量裸值永久合法）。
+
+**$ 作用域边界（OQ7 已裁定，jdm dollar-scope-decision.md 立法）**：kwargs
+求值域**从未接通 dollar 作用域**（standalone 绑定无注入）——`$.fieldx` 恒
+null，字段引用用**裸键/点路径或 reference 信封**；表达式节点 / dt 单元格的
+`$` 可用（isolate 已接通）。三面边界表 + 多语言移植 MUST 复现见 jdm 裁定
+文档。编辑面对策已落地：表达式 placeholder 改裸键/点路径指引，字段选择器
+插入无前缀路径。
 
 **执行边界（信封展开）**：demo-server `expandTypedValues`（src/typed-values.ts，
 纯函数深走 + 窄识别：自有键恰为 {mode, value} 且 mode 合法）在
 /v1/execute · /v1/validate · /v1/shadow · /v1/functions/:name/execute 四口
-模型进门时展开——零 zen-udf 改动（custom-node-editor-spec §5 推荐起步方式）。
-其他宿主直连引擎执行存图时需自行展开（信封语义写入 CONTRACT 待办）。
+模型进门时**仅拆 expression 信封**（literal/reference 引擎 1.1.0 原生，
+透传；启动时运行时版本断言 ≥ 1.1.0 fail fast）。
+其他宿主直连引擎执行存图时需自行展开 expression 信封（CONTRACT §11.6
+已立法信封语义）。

@@ -130,7 +130,7 @@ export const TypedInput: React.FC<TypedInputProps> = ({
         <Input
           disabled={disabled}
           className='font-mono text-xs'
-          placeholder={placeholder ?? '${...} / $.path'}
+          placeholder={placeholder ?? 'q.tier / 表达式'}
           value={uiMode === 'expression' ? exprText : undefined}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setExpression(e.target.value)}
         />
