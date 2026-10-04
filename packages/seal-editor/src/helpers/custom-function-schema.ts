@@ -146,6 +146,10 @@ export const resolveFunctionScope = (kind?: string | null, customFunctions?: any
   return { mode: 'free', functions: allFunctions, orphanKind: kind };
 };
 
+/**
+ * @deprecated 位置数组种子产出器（ADR-015 前形态）——规范形写路径下零消费方，
+ * 保留仅为公开 API 兼容；新代码勿用（种子一律 `{$call, kwargs}` 具名形）。
+ */
 export const buildDefaultFunctionExpression = (funcDef: any) => {
   const properties = funcDef?.parameters?.properties ?? {};
   const argExprs: Record<string, string> = {};

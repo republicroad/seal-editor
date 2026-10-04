@@ -44,7 +44,7 @@ const unquote = (value: string): string => {
   return trimmed;
 };
 
-const quote = (value: string): string => JSON.stringify(value);
+// quote() 已退役（ADR-016 literal 信封替代引号仪式），存量图解析仅用 unquote
 
 const useNodeConfig = (id: string): CustomNodeConfig | undefined =>
   useDecisionGraphState(({ decisionGraph }) => {
@@ -81,16 +81,36 @@ const useRosterOptions = (search: string): { options: RosterOption[]; loading: b
 };
 
 const parseExpr = (expr?: CustomNodeExpression): { roster: string; valueExpr: string } => {
-  // legacy `;;`/数组形态按序取参；命名形态（对象）无位置语义，回退空面板待用户重选
+  const isRecord = (value: unknown): value is Record<string, unknown> =>
+    value !== null && typeof value === 'object' && !Array.isArray(value);
+  // 具名形（规范形写路径，ADR-015/016）：kwargs 直读——信封解一层取值
+  if (expr && isRecord(expr.value) && isRecord(expr.value.kwargs)) {
+    const kwargs = expr.value.kwargs as Record<string, unknown>;
+    const unwrap = (v: unknown): string => {
+      if (v !== null && typeof v === 'object' && 'value' in (v as Record<string, unknown>)) {
+        return String((v as Record<string, unknown>).value);
+      }
+      return v === null || v === undefined ? '' : String(v);
+    };
+    return { roster: unwrap(kwargs.roster), valueExpr: unwrap(kwargs.value) };
+  }
+  // 旧形态：;; 串 / 位置数组（存量图永久兼容）
   const args =
-    expr && (typeof expr.value !== 'object' || Array.isArray(expr.value)) ? parseOperatorArgs(expr.value) : []; // 仅命名形态（对象）无位置语义，回退空面板
+    expr && (typeof expr.value !== 'object' || Array.isArray(expr.value)) ? parseOperatorArgs(expr.value) : [];
   return {
     roster: args[1] ? unquote(args[1]) : '',
     valueExpr: args[2] ?? '',
   };
 };
 
-const toExprValue = (roster: string, valueExpr: string): string[] => ['roster', quote(roster), valueExpr];
+/** 规范形写器（ADR-015/016）：名单名 = literal 信封（引号仪式退役），value = 表达式串 */
+const toExprValue = (roster: string, valueExpr: string): CustomNodeExpression['value'] => ({
+  $call: 'roster',
+  kwargs: {
+    roster: { mode: 'literal', value: roster },
+    value: valueExpr,
+  },
+});
 
 const nextExprKey = (list: CustomNodeExpression[]): string => {
   const used = new Set(list.map((item) => item.key));

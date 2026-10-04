@@ -205,8 +205,35 @@ export const serializeObjectLiteralRows = (rows: KeyValueRow[]): string => {
 };
 
 export const parseHttpRequest = (expr?: CustomNodeExpression): HttpRequestFields => {
+  const isRecord = (value: unknown): value is Record<string, unknown> =>
+    value !== null && typeof value === 'object' && !Array.isArray(value);
+  // 具名形（规范形写路径，ADR-015/016）：kwargs 直读——信封解一层取表达式串，
+  // 缺省尾参回退默认（可选语义由具名天然承载，无位置尾裁）
+  if (expr && typeof expr.value === 'object' && !Array.isArray(expr.value) && isRecord(expr.value.kwargs)) {
+    const kwargs = expr.value.kwargs as Record<string, unknown>;
+    const readExpr = (key: string): string => {
+      const v = kwargs[key];
+      if (v === null || v === undefined) return '';
+      if (typeof v === 'object' && !Array.isArray(v) && 'value' in (v as Record<string, unknown>)) {
+        return String((v as Record<string, unknown>).value);
+      }
+      return String(v);
+    };
+    return {
+      urlExpr: readExpr('url'),
+      method: normalizeMethod(readExpr('method')),
+      headersExpr: readExpr('headers'),
+      bodyExpr: readExpr('body'),
+      paramsExpr: readExpr('params'),
+      timeoutExpr: readExpr('timeout'),
+      retryExpr: readExpr('retry'),
+      authExpr: readExpr('auth'),
+    };
+  }
+
+  // 旧形态：位置数组 / ;; 串（存量图永久兼容）
   const args =
-    expr && (typeof expr.value !== 'object' || Array.isArray(expr.value)) ? parseOperatorArgs(expr.value) : []; // 仅命名形态（对象）无位置语义，回退空面板 // 命名形态无位置语义，回退空面板
+    expr && (typeof expr.value !== 'object' || Array.isArray(expr.value)) ? parseOperatorArgs(expr.value) : [];
   return {
     urlExpr: args[1] ?? '',
     method: normalizeMethod(unquote(args[2] ?? '')),
@@ -220,16 +247,22 @@ export const parseHttpRequest = (expr?: CustomNodeExpression): HttpRequestFields
 };
 
 /**
- * 变长序列化：可选尾部参数(params/timeout/retry/auth)按位置占位，末尾连续空值截断省略；
- * 中段空值保留空串占位以保证后续参数位置正确，后端对空串回退默认值。
+ * 规范形写器（ADR-015/016）：具名 kwargs + literal 信封（method 引号仪式退役）。
+ * 可选尾参（params/timeout/retry/auth）空则省键——具名形态无位置占位需求；
+ * maxBytes 引擎默认，UI 不写。
  */
-export const toHttpRequestValue = (fields: HttpRequestFields): string[] => {
-  const tail = [fields.paramsExpr, fields.timeoutExpr, fields.retryExpr, fields.authExpr];
-  let end = tail.length;
-  while (end > 0 && tail[end - 1].trim() === '') {
-    end -= 1;
-  }
-  return [UDF_FUNC, fields.urlExpr, quote(fields.method), fields.headersExpr, fields.bodyExpr, ...tail.slice(0, end)];
+export const toHttpRequestValue = (fields: HttpRequestFields): CustomNodeExpression['value'] => {
+  const kwargs: Record<string, string | { mode: 'literal'; value: string }> = {
+    url: fields.urlExpr,
+    method: { mode: 'literal', value: fields.method },
+    headers: fields.headersExpr,
+    body: fields.bodyExpr,
+  };
+  if (fields.paramsExpr.trim()) kwargs.params = fields.paramsExpr;
+  if (fields.timeoutExpr.trim()) kwargs.timeout = fields.timeoutExpr;
+  if (fields.retryExpr.trim()) kwargs.retry = fields.retryExpr;
+  if (fields.authExpr.trim()) kwargs.auth = fields.authExpr;
+  return { $call: UDF_FUNC, kwargs };
 };
 
 /** 解析 auth 表达式为结构化状态；非对象字面量或无法识别的 type 返回 null(交由界面提示保留原文) */

@@ -1,5 +1,5 @@
 import type { CustomNodeExpression } from './custom-node-types';
-import { parseOperatorArgs, quote, unquote } from './http-request-protocol';
+import { parseOperatorArgs, unquote } from './http-request-protocol';
 
 export const CRYPTO_UDF = 'crypto';
 
@@ -42,8 +42,32 @@ export const normalizeEncoding = (value: string): CryptoEncoding => {
 export const isUpperChecked = (expr: string): boolean => expr.trim() === 'true';
 
 export const parseCrypto = (expr?: CustomNodeExpression): CryptoFields => {
+  const isRecord = (value: unknown): value is Record<string, unknown> =>
+    value !== null && typeof value === 'object' && !Array.isArray(value);
+  // 具名形（规范形写路径，ADR-015/016）：kwargs 直读——信封解一层取表达式串，
+  // 缺省尾参回退默认（可选语义由具名天然承载）
+  if (expr && typeof expr.value === 'object' && !Array.isArray(expr.value) && isRecord(expr.value.kwargs)) {
+    const kwargs = expr.value.kwargs as Record<string, unknown>;
+    const readExpr = (key: string): string => {
+      const v = kwargs[key];
+      if (v === null || v === undefined) return '';
+      if (typeof v === 'object' && !Array.isArray(v) && 'value' in v) {
+        return String((v as Record<string, unknown>).value);
+      }
+      return String(v);
+    };
+    return {
+      inputExpr: readExpr('input'),
+      algorithm: normalizeAlgorithm(readExpr('algorithm')),
+      secretExpr: readExpr('secret'),
+      encoding: normalizeEncoding(readExpr('encoding')),
+      upperExpr: readExpr('upper'),
+    };
+  }
+
+  // 旧形态：位置数组 / ;; 串（存量图永久兼容）
   const args =
-    expr && (typeof expr.value !== 'object' || Array.isArray(expr.value)) ? parseOperatorArgs(expr.value) : []; // 仅命名形态（对象）无位置语义，回退空面板 // 命名形态无位置语义，回退空面板
+    expr && (typeof expr.value !== 'object' || Array.isArray(expr.value)) ? parseOperatorArgs(expr.value) : [];
   return {
     inputExpr: args[1] ?? '',
     algorithm: normalizeAlgorithm(unquote(args[2] ?? '')),
@@ -54,14 +78,17 @@ export const parseCrypto = (expr?: CustomNodeExpression): CryptoFields => {
 };
 
 /**
- * 变长序列化：固定前缀 [crypto, input, "algorithm"]，可选尾参(secret/encoding/upper)
- * 末尾连续空值截断省略，中段空串占位保证槽位对齐；后端对缺省/空值回退默认。
+ * 规范形写器（ADR-015/016）：具名 kwargs + literal 信封（algorithm/encoding
+ * 引号仪式退役）。可选尾参（secret/encoding/upper）空则省键；
+ * upper 由 UI 布尔开关产出 'true'/'' 表达式串。
  */
-export const toCryptoValue = (fields: CryptoFields): string[] => {
-  const tail = [fields.secretExpr, quote(fields.encoding), fields.upperExpr.trim() === 'true' ? 'true' : ''];
-  let end = tail.length;
-  while (end > 0 && tail[end - 1].trim() === '') {
-    end -= 1;
-  }
-  return [CRYPTO_UDF, fields.inputExpr, quote(fields.algorithm), ...tail.slice(0, end)];
+export const toCryptoValue = (fields: CryptoFields): CustomNodeExpression['value'] => {
+  const kwargs: Record<string, string | { mode: 'literal'; value: string }> = {
+    input: fields.inputExpr,
+    algorithm: { mode: 'literal', value: fields.algorithm },
+  };
+  if (fields.secretExpr.trim()) kwargs.secret = fields.secretExpr;
+  if (fields.encoding.trim()) kwargs.encoding = { mode: 'literal', value: fields.encoding };
+  if (fields.upperExpr.trim()) kwargs.upper = fields.upperExpr;
+  return { $call: CRYPTO_UDF, kwargs };
 };

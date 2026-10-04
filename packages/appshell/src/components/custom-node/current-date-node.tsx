@@ -142,7 +142,8 @@ export const currentDateNode = createSpecNode({
       inputField: null,
       outputPath: null,
       passThrough: true,
-      expressions: [{ id: uid(), key: 'result', value: [KIND] }],
+      // 规范形具名 kwargs（ADR-015/016）；current_date 零参
+      expressions: [{ id: uid(), key: 'result', value: { $call: KIND, kwargs: {} } }],
     },
   }),
   renderTab: ({ id }) => <CurrentDateTab id={id} />,

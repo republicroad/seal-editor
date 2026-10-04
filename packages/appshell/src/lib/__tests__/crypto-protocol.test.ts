@@ -3,7 +3,6 @@ import { describe, expect, test } from 'vitest';
 import {
   applyCryptoMode,
   deriveCryptoMode,
-  isUpperChecked,
   normalizeAlgorithm,
   normalizeEncoding,
   parseCrypto,
@@ -25,68 +24,60 @@ describe('normalizeAlgorithm / normalizeEncoding', () => {
   });
 });
 
-describe('parseCrypto / toCryptoValue 变长协议', () => {
-  test('完整 6 槽解析', () => {
-    const fields = parseCrypto(exprOf(['crypto', 'input.phone', '"md5"', '"secret"', '"base64"', 'true']));
-    expect(fields.inputExpr).toBe('input.phone');
-    expect(fields.algorithm).toBe('md5');
-    expect(fields.secretExpr).toBe('"secret"');
-    expect(fields.encoding).toBe('base64');
-    expect(isUpperChecked(fields.upperExpr)).toBe(true);
-  });
+describe('parseCrypto / toCryptoValue 规范形（具名 kwargs + literal 信封）', () => {
+  const lit = (value: string) => ({ mode: 'literal', value });
 
-  test('最小图(仅 input+algorithm)兼容，可选尾参为空', () => {
-    const fields = parseCrypto(exprOf(['crypto', 'input.id', '"sha256"']));
-    expect(fields.secretExpr).toBe('');
-    expect(fields.encoding).toBe('hex');
-    expect(isUpperChecked(fields.upperExpr)).toBe(false);
-  });
-
-  test('非法算法/编码槽位回退默认', () => {
-    const fields = parseCrypto(exprOf(['crypto', 'x', '"sm3"', '', '"rot13"']));
-    expect(fields.algorithm).toBe('sha256');
-    expect(fields.encoding).toBe('hex');
-  });
-
-  test('末尾连续空值截断；中段空串占位保留', () => {
+  test('写器：尾空省键（可选语义由具名承载，无位置占位）', () => {
     const base = { inputExpr: 'x', algorithm: 'sha256' as const, secretExpr: '', encoding: 'hex' as const };
-    expect(toCryptoValue({ ...base, upperExpr: '' })).toEqual(['crypto', 'x', '"sha256"', '', '"hex"']);
-    expect(toCryptoValue({ ...base, secretExpr: '', encoding: 'base64url', upperExpr: '' })).toEqual([
-      'crypto',
-      'x',
-      '"sha256"',
-      '',
-      '"base64url"',
-    ]);
-    expect(toCryptoValue({ ...base, secretExpr: 'env.KEY', encoding: 'hex', upperExpr: '' })).toEqual([
-      'crypto',
-      'x',
-      '"sha256"',
-      'env.KEY',
-      '"hex"',
-    ]);
-    expect(toCryptoValue({ ...base, secretExpr: '', encoding: 'hex', upperExpr: 'true' })).toEqual([
-      'crypto',
-      'x',
-      '"sha256"',
-      '',
-      '"hex"',
-      'true',
-    ]);
+    expect(toCryptoValue({ ...base, upperExpr: '' })).toEqual({
+      $call: 'crypto',
+      kwargs: { input: 'x', algorithm: lit('sha256'), encoding: lit('hex') },
+    });
+    expect(
+      (toCryptoValue({ ...base, secretExpr: 'env.KEY', encoding: 'base64url', upperExpr: '' }) as any).kwargs,
+    ).toEqual({
+      input: 'x',
+      algorithm: lit('sha256'),
+      secret: 'env.KEY',
+      encoding: lit('base64url'),
+    });
+    expect((toCryptoValue({ ...base, secretExpr: '', encoding: 'hex', upperExpr: 'true' }) as any).kwargs).toEqual({
+      input: 'x',
+      algorithm: lit('sha256'),
+      encoding: lit('hex'),
+      upper: 'true',
+    });
   });
 
-  test('upper 非法字面量不序列化、解析为未勾选', () => {
-    const fields = parseCrypto(exprOf(['crypto', 'x', '"sha256"', '', '"hex"', '"true"']));
-    expect(isUpperChecked(fields.upperExpr)).toBe(false);
+  test('写器：algorithm/encoding 恒 literal 信封（引号仪式退役）', () => {
+    const value = toCryptoValue({
+      inputExpr: '$.text',
+      algorithm: 'sha256',
+      secretExpr: '',
+      encoding: 'hex',
+      upperExpr: '',
+    });
+    expect((value as any).kwargs.algorithm).toEqual({ mode: 'literal', value: 'sha256' });
+    expect((value as any).kwargs.encoding).toEqual({ mode: 'literal', value: 'hex' });
   });
 
-  test('parse→serialize 往返稳定', () => {
-    const original = ['crypto', 'input.raw', '"sha1"', '"k"', '"base64"', 'true'];
-    expect(toCryptoValue(parseCrypto(exprOf(original)))).toEqual(original);
+  test('parse→serialize 幂等（具名域稳定）+ legacy 解析后序列化归一具名形', () => {
+    const named = {
+      $call: 'crypto',
+      kwargs: { input: 'input.raw', algorithm: lit('sha1'), secret: '"k"', encoding: lit('base64'), upper: 'true' },
+    };
+    // 具名域幂等
+    expect(toCryptoValue(parseCrypto({ value: named } as never))).toEqual(named);
+    // legacy 位置数组解析 → 序列化归一具名形（首次编辑迁移语义）
+    const legacy = exprOf(['crypto', 'input.raw', '"sha1"', '"k"', '"base64"', 'true']);
+    expect(toCryptoValue(parseCrypto(legacy))).toEqual(named);
   });
 
   test('空表达式安全解析', () => {
-    expect(toCryptoValue(parseCrypto(undefined))).toEqual(['crypto', '', '"sha256"', '', '"hex"']);
+    expect(toCryptoValue(parseCrypto(undefined))).toEqual({
+      $call: 'crypto',
+      kwargs: { input: '', algorithm: lit('sha256'), encoding: lit('hex') },
+    });
   });
 });
 
@@ -113,6 +104,52 @@ describe('deriveCryptoMode / applyCryptoMode', () => {
     const fields = parseCrypto(exprOf(['crypto', 'x', '"md5"', '"k"', '"hex"']));
     expect(deriveCryptoMode(fields.secretExpr)).toBe('hmac');
     const cleared = applyCryptoMode(fields, 'plain');
-    expect(toCryptoValue(cleared)).toEqual(['crypto', 'x', '"md5"', '', '"hex"']);
+    expect((toCryptoValue(cleared) as any).kwargs).toEqual({
+      input: 'x',
+      algorithm: { mode: 'literal', value: 'md5' },
+      encoding: { mode: 'literal', value: 'hex' },
+    });
+  });
+});
+
+describe('parseCrypto / toCryptoValue 规范形（具名 kwargs + literal 信封）', () => {
+  test('写器产出具名 kwargs（algorithm/encoding = literal 信封；空尾参省键）', () => {
+    const value = toCryptoValue({
+      inputExpr: '$.text',
+      algorithm: 'sha256',
+      secretExpr: '',
+      encoding: 'hex',
+      upperExpr: '',
+    });
+    expect(value).toEqual({
+      $call: 'crypto',
+      kwargs: {
+        input: '$.text',
+        algorithm: { mode: 'literal', value: 'sha256' },
+        encoding: { mode: 'literal', value: 'hex' },
+      },
+    });
+  });
+
+  test('双读：具名形回填字段；非字符串参数值解信封', () => {
+    const fields = parseCrypto({
+      id: 'n1',
+      key: 'k1',
+      value: {
+        $call: 'crypto',
+        kwargs: {
+          input: { mode: 'expression', value: '$.text' },
+          algorithm: { mode: 'literal', value: 'md5' },
+          upper: 'true',
+        },
+      },
+    });
+    expect(fields).toEqual({
+      inputExpr: '$.text',
+      algorithm: 'md5',
+      secretExpr: '',
+      encoding: 'hex',
+      upperExpr: 'true',
+    });
   });
 });

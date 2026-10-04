@@ -73,39 +73,58 @@ describe('parseHttpRequest / toHttpRequestValue 变长协议', () => {
     expect(fields.authExpr).toBe('');
   });
 
-  test('末尾连续空值截断；中段空值占位保留', () => {
+  test('写器：尾空省键（可选语义由具名承载，无位置占位）；method = literal 信封', () => {
     const base = { urlExpr: 'u', method: 'GET' as const, headersExpr: '', bodyExpr: '' };
-    expect(toHttpRequestValue({ ...base, paramsExpr: '', timeoutExpr: '', retryExpr: '', authExpr: '' })).toEqual([
-      'http_request',
-      'u',
-      '"GET"',
-      '',
-      '',
-    ]);
-    expect(toHttpRequestValue({ ...base, paramsExpr: '', timeoutExpr: '5000', retryExpr: '', authExpr: '' })).toEqual([
-      'http_request',
-      'u',
-      '"GET"',
-      '',
-      '',
-      '',
-      '5000',
-    ]);
+    expect(toHttpRequestValue({ ...base, paramsExpr: '', timeoutExpr: '', retryExpr: '', authExpr: '' })).toEqual({
+      $call: 'http_request',
+      kwargs: { url: 'u', method: { mode: 'literal', value: 'GET' }, headers: '', body: '' },
+    });
     expect(
-      toHttpRequestValue({
-        ...base,
-        paramsExpr: '{ q: 1 }',
-        timeoutExpr: '',
-        retryExpr: '1',
-        authExpr: '{ type: "bearer", token: t }',
-      }),
-    ).toEqual(['http_request', 'u', '"GET"', '', '', '{ q: 1 }', '', '1', '{ type: "bearer", token: t }']);
+      (toHttpRequestValue({ ...base, paramsExpr: '', timeoutExpr: '5000', retryExpr: '', authExpr: '' }) as any).kwargs,
+    ).toEqual({
+      url: 'u',
+      method: { mode: 'literal', value: 'GET' },
+      headers: '',
+      body: '',
+      timeout: '5000',
+    });
+    expect(
+      (
+        toHttpRequestValue({
+          ...base,
+          paramsExpr: '{ q: 1 }',
+          timeoutExpr: '',
+          retryExpr: '1',
+          authExpr: '{ type: "bearer", token: t }',
+        }) as any
+      ).kwargs,
+    ).toEqual({
+      url: 'u',
+      method: { mode: 'literal', value: 'GET' },
+      headers: '',
+      body: '',
+      params: '{ q: 1 }',
+      retry: '1',
+      auth: '{ type: "bearer", token: t }',
+    });
   });
 
-  test('parse→serialize 往返稳定', () => {
-    const original = ['http_request', 'u', '"DELETE"', '{ h: 1 }', 'body', '{ p: 2 }', '1000'];
-    const fields = parseHttpRequest(exprOf(original));
-    expect(toHttpRequestValue(fields)).toEqual(original);
+  test('parse→serialize 幂等（具名域稳定）+ legacy 解析后序列化归一具名形', () => {
+    const named = {
+      $call: 'http_request',
+      kwargs: {
+        url: 'u',
+        method: { mode: 'literal', value: 'DELETE' },
+        headers: '{ h: 1 }',
+        body: 'body',
+        params: '{ p: 2 }',
+        timeout: '1000',
+      },
+    };
+    expect(toHttpRequestValue(parseHttpRequest({ value: named } as never))).toEqual(named);
+    // legacy 位置数组解析 → 序列化归一具名形（首次编辑迁移语义）
+    const legacy = exprOf(['http_request', 'u', '"DELETE"', '{ h: 1 }', 'body', '{ p: 2 }', '1000']);
+    expect(toHttpRequestValue(parseHttpRequest(legacy))).toEqual(named);
   });
 });
 
@@ -187,5 +206,54 @@ describe('parseAuthState / serializeAuthExpr', () => {
 
   test('none 序列化为空串', () => {
     expect(serializeAuthExpr(EMPTY_AUTH)).toBe('');
+  });
+});
+
+describe('parseHttpRequest / toHttpRequestValue 规范形（具名 kwargs + literal 信封）', () => {
+  test('写器产出具名 kwargs（method = literal 信封；空尾参省键）', () => {
+    const value = toHttpRequestValue({
+      urlExpr: '$.endpoint',
+      method: 'POST',
+      headersExpr: '{ "X": "1" }',
+      bodyExpr: '$.body',
+      paramsExpr: '',
+      timeoutExpr: '',
+      retryExpr: '',
+      authExpr: '',
+    });
+    expect(value).toEqual({
+      $call: 'http_request',
+      kwargs: {
+        url: '$.endpoint',
+        method: { mode: 'literal', value: 'POST' },
+        headers: '{ "X": "1" }',
+        body: '$.body',
+      },
+    });
+  });
+
+  test('双读：具名形回填字段；非字符串参数值解信封', () => {
+    const fields = parseHttpRequest({
+      id: 'n1',
+      key: 'k1',
+      value: {
+        $call: 'http_request',
+        kwargs: {
+          url: { mode: 'expression', value: '$.endpoint' },
+          method: { mode: 'literal', value: 'GET' },
+          timeout: '3000',
+        },
+      },
+    });
+    expect(fields).toEqual({
+      urlExpr: '$.endpoint',
+      method: 'GET',
+      headersExpr: '',
+      bodyExpr: '',
+      paramsExpr: '',
+      timeoutExpr: '3000',
+      retryExpr: '',
+      authExpr: '',
+    });
   });
 });
