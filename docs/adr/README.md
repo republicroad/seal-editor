@@ -22,7 +22,7 @@
 | [ADR-013](./013-input-contract-design.md) | 输入节点契约统一：InputContract 数据模型 + 三视图同步 + Examples 即测试用例（原 ADR-012，与 ports 012 编号冲突改号；jdm 评审调整已落档） | accepted | 2026-10 |
 | [ADR-014](./014-zen-udf-fixture-contract.md) | zen-udf 测试夹具契约：executor 反转 + smoke 语义 + 报告增强（0.13.1 已发布，§6 同步面 jdm 接受） | implemented | 2026-10 |
 | [ADR-015](./015-custom-function-node-spec.md) | 自定义函数节点规范：定义/调用（位置数组→具名字典）/入参返回值标准化/编辑面兜底策略（zen-udf 0.14 提案；引擎与编辑器绝对重点面） | proposed | 2026-10 |
-| [ADR-016](./016-custom-function-typed-value-envelope.md) | 自定义函数参数值信封（TypedValue）：模式显式化 + 字面量歧义根治（zen-udf 1.1.0 提案；裸字符串恒按表达式求值不变） | proposed | 2026-10 |
+| [ADR-016](./016-custom-function-typed-value-envelope.md) | 自定义函数参数值信封（TypedValue）：模式显式化 + 字面量歧义根治（zen-udf 1.1.0 已实现；OQ 表态对账 §9.1，OQ7 挂 jdm 议程） | accepted | 2026-10 |
 
 ## 状态定义
 

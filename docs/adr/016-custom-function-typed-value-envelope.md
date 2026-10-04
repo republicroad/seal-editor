@@ -1,8 +1,9 @@
 # ADR-016: 自定义函数参数值信封（TypedValue）——模式显式化与字面量歧义根治
 
 - 日期：2026-10-04
-- 状态：**proposed 待 zen-udf / jdm 协商**（宿主已定方向：功能重要，考虑引擎原生支持）
-- 目标版本：zen-udf **1.1.0 候选**（minor，判证见 §6）
+- 状态：**accepted（jdm 已实现并发布 zen-udf 1.1.0；OQ 表态以实现 + CONTRACT §11.6
+  立法形式落地，逐条对账见 §9.1；OQ7 挂 jdm 议程）**
+- 目标版本：zen-udf 1.1.0（**已发布**，minor 判证见 §6）
 - 上位：[ADR-015](./015-custom-function-node-spec.md)（调用规范 `{$call, kwargs}`）、
   [ADR-011](./011-zen-udf-param-declaration-evolution.md)（参数声明/顶层原始类型）、
   seal [typed-input-spec](../design/typed-input-spec.md) §7（存储协议与信封来龙去脉）、
@@ -140,6 +141,21 @@ value 恒无前缀（引擎注释同款语义）。
 已正确绑定的字面量剥成裸值重踩歧义）。seal 已实施（demo-server）。
 
 ## 9 · 开放问题（OQ）
+
+### 9.1 · jdm 表态对账（2026-10-04，评审以 zen-udf 1.1.0 实现 + CONTRACT §11.6 立法形式落地）
+
+| OQ | seal 推荐 | jdm 表态 | 依据 |
+| --- | --- | --- | --- |
+| OQ1 reference 首期深度 | ≡ expression 加 `$.` 前缀 | ✅ 接受（首期 ≡ expression 加 `$.` 前缀） | 实现提交 + §11.6 |
+| OQ2 literal 非字符串 | 禁止（校验报错） | 🔶 修改后接受：literal 的 object/array = **非信封透传**（按对象字面量过校验面报类型不符），非信封层报错 | §11.6「literal 的 object/array value = 非信封透传（OQ2）」 |
+| OQ3 mode 枚举保留位 | 枚举校验放注册表，留扩展位 | 🔶 基本按推荐：窄识别（normative）锁三枚举 + `mode`/`value` 二键保留字立法；扩展位未明文（隐含于枚举校验处） | §11.6 窄识别条 |
+| OQ4 expression 静态校验 | 引擎执行期不跑 | ✅ 接受（「expression 静态校验不做，执行错误语义覆盖」） | §11.6 明示 OQ4 |
+| OQ5 `$positional` 元素 | 首批同支持 | ✅ 接受（同批实现） | 实现提交 + §11.6 |
+| OQ6 expandTypedValues 退役 | 钉 1.1.0 即拆 | ✅ 已由 seal 实证回写（§8.5）：literal/reference 引擎原生透传、仅拆 expression——`a44f260` 实施 | 2026-10-04 直测矩阵 |
+| **OQ7 $-路径 kwargs 求值域**（实证升格新增） | — | **⚠️ 未表态——挂 jdm 议程**：1.x 命名调用 kwargs 求值域不绑定 `$/输入根`（裸 `$.roster` 0.14 ✓ → 1.x ✗），涉 I1 的 $-路径子集；编辑面已落地对策（字段选择器/reference 信封恒无 `$.` 前缀） | §8.5 实证矩阵 |
+
+jdm 评审最大发现与本 ADR 立论同源：「评审最重要发现的落地 = literal 信封跳过
+`$.dep` 替换（防字面量静默变语义）」——字面量歧义根治双向确认。
 
 1. **reference 首期深度**：≡ expression（加 `$.` 前缀即走），还是首日就对接输入
    schema 做字段存在性校验（依赖 ADR-013 InputContract 进引擎？目前不进）——推荐前者；
