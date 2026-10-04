@@ -5,7 +5,7 @@
     "": {
       "name": "@republicroad/demo-server",
       "dependencies": {
-        "@republicroad/zen-udf": "^1.1.0",
+        "@republicroad/zen-udf": "^1.2.0",
         "hono": "^4.6.0",
       },
       "devDependencies": {
@@ -41,7 +41,7 @@
 
     "@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@1.2.4", "", { "dependencies": { "@tybys/wasm-util": "^0.10.3" }, "peerDependencies": { "@emnapi/core": "^1.7.1 || ^2.0.0-alpha.4", "@emnapi/runtime": "^1.7.1 || ^2.0.0-alpha.4" } }, "sha512-AJxoUD2/15ESHbvpcyjU274nsAPLuOtPHCk0vKJM5pj//Fg/B1FXNWjPnXTT9PymCYYiHo4zPj0ZomXBKhoy7g=="],
 
-    "@republicroad/zen-udf": ["@republicroad/zen-udf@1.1.0", "", { "dependencies": { "@gorules/zen-engine": "2.1.0", "@sinclair/typebox": "0.34.38" }, "peerDependencies": { "@opentelemetry/api": "^1.0.0" }, "optionalPeers": ["@opentelemetry/api"] }, "sha512-aMadNty9yuu6CdLex71jGpcd0Z9nEPrMl5AADRtN5R0784UhRwY+2/RbJGlzAqzEG8rPFDrGw39lJ9VENBmWow=="],
+    "@republicroad/zen-udf": ["@republicroad/zen-udf@1.2.0", "", { "dependencies": { "@gorules/zen-engine": "2.1.0", "@sinclair/typebox": "0.34.38" }, "peerDependencies": { "@opentelemetry/api": "^1.0.0" }, "optionalPeers": ["@opentelemetry/api"] }, "sha512-gXuySBbDcqk07w3URsK8mAiJPI7srRc37ImMzJZjEs9f/BCcucdSSuV+v5/Ed9iYaqamO4diEkKrWyF/SwNGPg=="],
 
     "@sinclair/typebox": ["@sinclair/typebox@0.34.38", "", {}, "sha512-HpkxMmc2XmZKhvaKIZZThlHmx1L0I/V1hWK1NubtlFnr6ZqdiOpV72TKudZUNQjZNsyDBay72qFEhEvb+bcwcA=="],
 
