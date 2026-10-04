@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.22.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.21.0...@republicroad/seal-editor@1.22.0) (2026-10-04)
+
+### Features
+
+- **seal-editor:** $-路径形态实参检测与一键迁移——ADR-016 OQ7 随档动作② ([89efc54](https://github.com/republicroad/seal-editor/commit/89efc54c8d16a282bd815745ca65342ef789c612))
+
 # [1.21.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.20.0...@republicroad/seal-editor@1.21.0) (2026-10-04)
 
 ### Bug Fixes
