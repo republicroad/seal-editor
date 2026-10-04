@@ -7,9 +7,11 @@ import {
   computeFunctionArgsDrift,
   editorValueToNamedCall,
   fillMissingFunctionArgs,
+  findDollarFormRows,
   findDuplicateKeys,
   getFunctionNameFromValue,
   legacyValueToNamedCall,
+  migrateDollarFormArgs,
   summarizeInstanceDrift,
 } from '../../../helpers/custom-function-schema';
 import { getRequestDefinitions } from '../../../helpers/request-schema';
@@ -62,6 +64,9 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
   const driftByRowId = useMemo(() => summarizeInstanceDrift(argsDrift), [argsDrift]);
   // 引用模式字段路径：输入节点 InputContract/Schema 字段树 → 点路径清单（嵌套 a.b 原样）
   const fieldPaths = useMemo(() => getRequestDefinitions(inputContent as never).map((def) => def.path), [inputContent]);
+  // $-路径形态实参（OQ7 随档动作②）：kwargs 域 dollar 不接通——恒 null，检测 + 一键迁移
+  const dollarRows = useMemo(() => findDollarFormRows(expressions), [expressions]);
+  const dollarParamCount = useMemo(() => dollarRows.reduce((sum, row) => sum + row.params.length, 0), [dollarRows]);
 
   // ADR-015 #3：写路径归一为规范形 {$call, kwargs}（编辑器位置数组经声明序
   // 映射；priorKwargs 并回保非位置额外键）；expr_asts 停写（引擎派生，零风险）
@@ -262,6 +267,32 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
       )}
       {editMode === 'table' && (
         <>
+          {dollarRows.length > 0 && (
+            <div
+              data-testid='dollar-form-band'
+              className='mx-3 mt-3 flex items-center justify-between gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs'
+            >
+              <span className='text-amber-700 dark:text-amber-400'>
+                {t('cf.dollarFormBand')} · {dollarRows.length} {t('cf.argsDriftRows')} · {dollarParamCount}{' '}
+                {t('cf.argsDriftUnrecognized')}
+              </span>
+              <Button
+                size='small'
+                type='link'
+                className='!px-1'
+                disabled={disabled}
+                data-testid='dollar-form-migrate'
+                onClick={() => {
+                  const migrated = migrateDollarFormArgs(expressions, dollarRows);
+                  if (migrated) {
+                    persistExpressions(migrated);
+                  }
+                }}
+              >
+                {t('cf.dollarFormMigrate')}
+              </Button>
+            </div>
+          )}
           {driftRowCount > 0 && (
             <div
               data-testid='args-drift-band'

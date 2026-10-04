@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildDefaultFunctionExpression,
+  findDollarFormRows,
   healExpressionsForScope,
   legacyValueToNamedCall,
+  migrateDollarFormArgs,
   resolveFunctionScope,
 } from '../custom-function-schema';
 
@@ -42,6 +44,57 @@ const namespaces = [
     tools: [{ name: 'phone_number_info', parameters: { type: 'object', properties: { phone: {} } } }],
   },
 ];
+
+describe('findDollarFormRows / migrateDollarFormArgs（OQ7 随档动作②：$-形态检测与一键迁移）', () => {
+  const row = (kwargs: Record<string, unknown>, id = 'r1', key = 'out1') => ({
+    id,
+    key,
+    type: 'function',
+    value: { $call: 'fn', kwargs },
+  });
+
+  it('检测：裸 $. 字符串 / expression·reference 信封内 $-路径，literal 信封与普通值不报', () => {
+    const expressions = [
+      row({
+        bad: '$.customer.tier',
+        envExpr: { mode: 'expression', value: '$.a' },
+        envRef: { mode: 'reference', value: '$.customer' },
+        litEnv: { mode: 'literal', value: '$.not.a.path' },
+        plain: 'GOLD',
+        num: 3,
+      }),
+    ];
+    const rows = findDollarFormRows(expressions);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ rowId: 'r1', rowKey: 'out1', params: ['bad', 'envExpr', 'envRef'] });
+  });
+
+  it('非数组/无 $-形态返回空清单', () => {
+    expect(findDollarFormRows(undefined)).toEqual([]);
+    expect(findDollarFormRows([row({ plain: 'GOLD' })])).toEqual([]);
+  });
+
+  it('迁移：剥 $. 前缀为裸路径；literal 信封与普通值不动；幂等', () => {
+    const expressions = [
+      row({
+        bad: '$.customer.tier',
+        env: { mode: 'reference', value: '$.vip' },
+        litEnv: { mode: 'literal', value: '$.keep' },
+      }),
+      row({ plain: 'GOLD' }, 'r2', 'out2'),
+    ];
+    const migrated = migrateDollarFormArgs(expressions);
+    expect(migrated).not.toBeNull();
+    expect((migrated as any[])[0].value.kwargs.bad).toBe('customer.tier');
+    expect((migrated as any[])[0].value.kwargs.env).toEqual({ mode: 'reference', value: 'vip' });
+    // literal 信封原样（$.x 作字面量是 ADR-016 歧义根治语义）
+    expect((migrated as any[])[0].value.kwargs.litEnv).toEqual({ mode: 'literal', value: '$.keep' });
+    expect((migrated as any[])[1].value.kwargs.plain).toBe('GOLD');
+    // 幂等：迁移后再检为空
+    expect(findDollarFormRows(migrated)).toEqual([]);
+    expect(migrateDollarFormArgs(migrated)).toBeNull();
+  });
+});
 
 describe('legacyValueToNamedCall（旧格式读时转换，防写回损毁）', () => {
   const rosterDef = {

@@ -216,6 +216,8 @@ export const zhCN: Record<string, string> = {
   'request.fixturesRunning': '运行中…',
   'cf.argsDriftTitle': '函数参数漂移',
   'cf.argsDriftRows': '行',
+  'cf.dollarFormBand': '检测到 $. 路径形态实参——kwargs 域不解析 hBc路径（恒 null），可迁移为裸路径',
+  'cf.dollarFormMigrate': '迁移 $. 路径',
   'cf.argsDriftMissing': '缺参',
   'cf.argsDriftUnrecognized': '未识别键',
   'cf.argsFillMissing': '补缺失默认值',

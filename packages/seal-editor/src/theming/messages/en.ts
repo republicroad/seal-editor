@@ -230,6 +230,9 @@ export const en = {
   'request.fixturesRunning': 'Running…',
   'cf.argsDriftTitle': 'Function argument drift',
   'cf.argsDriftRows': 'row(s)',
+  'cf.dollarFormBand':
+    '$.-path args detected — kwargs scope never resolves hBcpaths (always null); migrate to bare paths',
+  'cf.dollarFormMigrate': 'Migrate $. paths',
   'cf.argsDriftMissing': 'missing',
   'cf.argsDriftUnrecognized': 'unrecognized',
   'cf.argsFillMissing': 'Fill missing defaults',

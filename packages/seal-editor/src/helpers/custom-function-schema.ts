@@ -315,6 +315,97 @@ export const computeFunctionArgsDrift = (expressions: any, scope?: FunctionScope
 };
 
 /**
+ * $-路径形态实参检测（ADR-016 OQ7 随档动作②，jdm dollar-scope-decision 裁定）：
+ * kwargs 值为 `$.` 开头形态（裸字符串 / expression·reference 信封内路径）时，
+ * 引擎 kwargs 求值域不接通 dollar 作用域——恒 null（jdm 立法语义非回归）。
+ * 检测范围不含 literal 信封（原样绑定是 ADR-016 的歧义根治语义，`$.x`
+ * 作字面量合法）。迁移 = 剥 `$.` 前缀为裸路径（migrateDollarFormArgs）。
+ */
+export type DollarFormEntry = {
+  rowId: string;
+  rowKey: string;
+  /** $-路径形态的参数名清单 */
+  params: string[];
+};
+
+const isDollarFormValue = (value: unknown): boolean => {
+  if (typeof value === 'string') {
+    return value.trim().startsWith('$.');
+  }
+  if (isRecord(value) && typeof value.value === 'string') {
+    return (value.mode === 'expression' || value.mode === 'reference') && value.value.trim().startsWith('$.');
+  }
+  return false;
+};
+
+export const findDollarFormRows = (expressions: any): DollarFormEntry[] => {
+  if (!Array.isArray(expressions)) {
+    return [];
+  }
+
+  const rows: DollarFormEntry[] = [];
+  for (const expression of expressions) {
+    if (!isRecord(expression) || !isRecord(expression.value) || expression.value.$call === undefined) {
+      continue;
+    }
+
+    const kwargs = isRecord(expression.value.kwargs) ? expression.value.kwargs : {};
+    const params = Object.entries(kwargs)
+      .filter(([, v]) => isDollarFormValue(v))
+      .map(([name]) => name);
+    if (params.length > 0) {
+      rows.push({ rowId: String(expression.id ?? ''), rowKey: String(expression.key ?? ''), params });
+    }
+  }
+
+  return rows;
+};
+
+/** 一键迁移：$-路径形态剥 `$.` 前缀为裸路径（裸值与信封 value 同规则）；无可迁移返回 null */
+export const migrateDollarFormArgs = (expressions: any, rows?: DollarFormEntry[]): any[] | null => {
+  const targets = new Set((rows ?? findDollarFormRows(expressions)).map((row) => row.rowId));
+  if (targets.size === 0) {
+    return null;
+  }
+
+  const stripDollar = (value: unknown): unknown => {
+    if (typeof value === 'string' && value.trim().startsWith('$.')) {
+      return value.replace(/^\$\./, '');
+    }
+    if (
+      isRecord(value) &&
+      typeof value.value === 'string' &&
+      (value.mode === 'expression' || value.mode === 'reference') &&
+      value.value.trim().startsWith('$.')
+    ) {
+      return { ...value, value: String(value.value).replace(/^\$\./, '') };
+    }
+    return value;
+  };
+
+  let changed = false;
+  const migrated = (expressions as any[]).map((expression: any) => {
+    if (!isRecord(expression) || !targets.has(String(expression?.id ?? ''))) {
+      return expression;
+    }
+    const value = expression?.value;
+    if (!isRecord(value) || !isRecord(value.kwargs)) {
+      return expression;
+    }
+    changed = true;
+    return {
+      ...expression,
+      value: {
+        ...value,
+        kwargs: Object.fromEntries(Object.entries(value.kwargs).map(([k, v]) => [k, stripDollar(v)])),
+      },
+    };
+  });
+
+  return changed ? migrated : null;
+};
+
+/**
  * 缺参修复（只增不删——圆往返保真）：按声明序重建规范形
  * value = [funcName, ...声明序参数] + arg_exprs 全量镜像；
  * 既有值保留（具名优先、位置次之、默认兜底），未识别键不动。
