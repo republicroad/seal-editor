@@ -159,9 +159,10 @@ describe('InstanceEditor（主从编辑器深化）', () => {
     let last = onChange.mock.calls.at(-1)?.[0] as FunctionInstance[];
     expect(last[0].call.kwargs.tier).toEqual({ mode: 'expression', value: '' });
 
-    // 输入表达式 → 信封带值
-    const exprInput = screen.getByPlaceholderText('q.tier / 表达式') as HTMLInputElement;
-    await user.type(exprInput, '$.tier');
+    // CM6 jsdom 下 DOM 事件不可靠——直派 EditorView transaction
+    const sealCe = document.querySelector('.seal-ce') as any;
+    const view = sealCe?.codeMirror;
+    view?.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: '$.tier' } });
     last = onChange.mock.calls.at(-1)?.[0] as FunctionInstance[];
     expect(last[0].call.kwargs.tier).toEqual({ mode: 'expression', value: '$.tier' });
   });

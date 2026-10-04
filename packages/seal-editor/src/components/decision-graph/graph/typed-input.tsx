@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 
 import { useT } from '../../../theming/i18n';
+import { CodeEditorBase } from '../../code-editor/ce-base';
 import { Input, InputNumber, Select, Switch } from '../../primitives';
 
 export type TypedValueMode = 'literal' | 'expression' | 'reference';
@@ -127,12 +128,16 @@ export const TypedInput: React.FC<TypedInputProps> = ({
   const expressionEditor = (
     <div className='flex w-full items-center gap-1'>
       <div className='min-w-0 flex-1'>
-        <Input
-          disabled={disabled}
-          className='font-mono text-xs'
-          placeholder={placeholder ?? 'q.tier / 表达式'}
+        <CodeEditorBase
           value={uiMode === 'expression' ? exprText : undefined}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setExpression(e.target.value)}
+          onChange={setExpression}
+          disabled={disabled}
+          placeholder={placeholder ?? 'q.tier / 表达式'}
+          maxRows={3}
+          noStyle
+          lint
+          type='standard'
+          className='text-xs'
         />
       </div>
       {hasFields && (fieldPaths?.length ?? 0) > 0 && (

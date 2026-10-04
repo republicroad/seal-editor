@@ -51,6 +51,10 @@ const Harness: React.FC<{
 
 const modeTrigger = () => [...document.querySelectorAll('[data-slot="select-trigger"]')].at(-1) as HTMLElement;
 
+/** CM6 contenteditable 交互助手（非 <input>，标准 type/fill 不适用） */
+const cmContent = () => document.querySelector('.cm-content') as HTMLElement;
+const cmText = () => cmContent()?.textContent ?? '';
+
 describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', () => {
   it('string 字面量编辑回传裸值', async () => {
     const onChange = vi.fn();
@@ -94,8 +98,8 @@ describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', 
     await pickOption(user, 'Expression');
     expect(onChange).toHaveBeenLastCalledWith({ mode: 'expression', value: '' });
 
-    const exprInput = screen.getByPlaceholderText('q.tier / 表达式') as HTMLInputElement;
-    await user.type(exprInput, 'customer.tier');
+    // CM6 jsdom 下 user.keyboard 逐字不稳定——fireEvent.input 直设 textContent
+    fireEvent.input(cmContent(), { target: { textContent: 'customer.tier' } });
 
     // expression → literal：字面量恢复备忘 GOLD
     await openDropdown(user, modeTrigger());
@@ -177,7 +181,7 @@ describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', 
         onChange={vi.fn()}
       />,
     );
-    expect((screen.getByPlaceholderText('q.tier / 表达式') as HTMLInputElement).value).toBe('customer.tier');
+    expect(cmText()).toBe('customer.tier');
   });
 
   it('coerceToTypedValue：裸值推断 literal，信封原样通过', async () => {
