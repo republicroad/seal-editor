@@ -353,8 +353,10 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
                                 ...selected.call,
                                 kwargs: {
                                   ...selected.call.kwargs,
-                                  // 字面量存裸值（引擎直读兼容）；表达式/引用存信封保模式
-                                  [name]: tv.mode === 'literal' ? tv.value : tv,
+                                  // 全量形态化（typed-input-spec §2.1 落地，ADR-016 步骤 2）：
+                                  // 三模式恒写信封——引擎 1.1.0 原生拆包（literal 原样绑定/
+                                  // reference 路径解析），expression 信封由执行边界展开
+                                  [name]: tv,
                                 },
                               },
                             })

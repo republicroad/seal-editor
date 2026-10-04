@@ -124,7 +124,7 @@ describe('InstanceEditor（主从编辑器深化）', () => {
     expect(last).toHaveLength(2);
   });
 
-  it('参数行：必填星 + 类型标 + 字面量存裸值', async () => {
+  it('参数行：必填星 + 类型标 + 字面量存信封（全量形态化）', async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
     render(<Harness initialValue={INSTANCES} onChange={onChange} />);
@@ -136,8 +136,9 @@ describe('InstanceEditor（主从编辑器深化）', () => {
     await user.type(numberInput, '5');
 
     const last = onChange.mock.calls.at(-1)?.[0] as FunctionInstance[];
-    expect(last[0].call.kwargs.amount).toBe(1005);
-    // 字面量恒为裸值（引擎直读兼容）
+    // 已编辑参数写信封（全量形态化）
+    expect(last[0].call.kwargs.amount).toEqual({ mode: 'literal', value: 1005 });
+    // 未触碰参数原样保留（加法语义：legacy 裸值不被改写）
     expect(last[0].call.kwargs.tier).toBe('GOLD');
     // 必填星标在 amount 行
     expect(screen.getByTitle('required')).toBeTruthy();
@@ -159,7 +160,7 @@ describe('InstanceEditor（主从编辑器深化）', () => {
     expect(last[0].call.kwargs.tier).toEqual({ mode: 'expression', value: '' });
 
     // 输入表达式 → 信封带值
-    const exprInput = screen.getByPlaceholderText('${...} / $.path') as HTMLInputElement;
+    const exprInput = screen.getByPlaceholderText('q.tier / 表达式') as HTMLInputElement;
     await user.type(exprInput, '$.tier');
     last = onChange.mock.calls.at(-1)?.[0] as FunctionInstance[];
     expect(last[0].call.kwargs.tier).toEqual({ mode: 'expression', value: '$.tier' });
