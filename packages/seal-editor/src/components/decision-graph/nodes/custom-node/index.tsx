@@ -12,35 +12,6 @@ import { type DecisionNode } from '../../dg-types';
 import { GraphNode } from '../graph-node';
 import type { InferTypeData, MinimalNodeProps, MinimalNodeSpecification } from '../specifications/specification-types';
 
-/** 画布节点执行结果徽标（run-scoped：simulate.result.trace 驱动） */
-const SimulateResultBadge: React.FC<{ nodeId: string }> = ({ nodeId }) => {
-  const trace = useDecisionGraphState(({ simulate }) => {
-    if (!simulate?.result) return undefined;
-    const entry = simulate.result.trace?.[nodeId];
-    if (!entry) return undefined;
-    return entry as { performance?: string; output?: unknown };
-  });
-
-  if (!trace) return null;
-  const isError =
-    trace.output !== null && typeof trace.output === 'object' && !Array.isArray(trace.output)
-      ? Object.values(trace.output as Record<string, unknown>).some(
-          (v) => v !== null && typeof v === 'object' && 'error' in (v as Record<string, unknown>),
-        )
-      : false;
-
-  return (
-    <div
-      data-testid='simulate-result-badge'
-      className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-mono ${
-        isError ? 'bg-destructive/10 text-destructive' : 'bg-muted/60 text-muted-foreground'
-      }`}
-    >
-      {isError ? '✗' : '✓'} {trace.performance ?? ''}
-    </div>
-  );
-};
-
 type CustomDecisionNode<T> = {
   id: string;
   name: string;
@@ -242,7 +213,6 @@ export const createJdmNode = <
                   })}
                 </Form>
               )}
-              <SimulateResultBadge nodeId={id} />
             </GraphNode>
           );
         },
