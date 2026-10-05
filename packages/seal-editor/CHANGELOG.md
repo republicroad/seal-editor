@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.24.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.23.0...@republicroad/seal-editor@1.24.0) (2026-10-05)
+
+### Bug Fixes
+
+- **seal-editor:** jsdom Range.getClientRects polyfill——CM6 measureTextSize 崩溃修复 ([81064aa](https://github.com/republicroad/seal-editor/commit/81064aaf41d4f08422fefdd49ed1ee555638a4af))
+
+### Features
+
+- **seal-editor:** TypedInput 表达式模式 CM6 升级——maxRows 提升 + 布局适配 ([d5e9065](https://github.com/republicroad/seal-editor/commit/d5e906565d37adb14d5c1525aeaca27faeb96607))
+- **seal-editor:** 画布节点执行结果徽标 + 删 Run Monitor——OQ7 编辑器可视化收口 ([f18b6b7](https://github.com/republicroad/seal-editor/commit/f18b6b7896416f227798f7dbff7ebbf0bb2cf34b))
+
 # [1.23.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.22.0...@republicroad/seal-editor@1.23.0) (2026-10-04)
 
 ### Features

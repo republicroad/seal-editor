@@ -1,6 +1,6 @@
 {
   "name": "@republicroad/seal-appshell",
-  "version": "1.30.0",
+  "version": "1.31.0",
   "description": "Application shell for @republicroad/seal-editor — custom node hosting, UI slot overrides and skinning",
   "type": "module",
   "license": "MIT",
@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
-    "@republicroad/seal-editor": "workspace:^1.23.0",
+    "@republicroad/seal-editor": "workspace:^1.24.0",
     "@republicroad/zen-udf": "^1.2.0",
     "@tanstack/react-virtual": "catalog:",
     "axios": "^1.13.5",
