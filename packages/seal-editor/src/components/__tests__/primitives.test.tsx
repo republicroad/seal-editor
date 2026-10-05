@@ -37,7 +37,7 @@ const pickOption = async (user: ReturnType<typeof userEvent.setup>, label: strin
 describe('Select shim value semantics (compat contract)', () => {
   it('emits the raw boolean option value, not the Radix string', async () => {
     const onChange = vi.fn();
-    const user = userEvent.setup();
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     render(
       <Select
         value
@@ -59,7 +59,7 @@ describe('Select shim value semantics (compat contract)', () => {
 
   it('emits the raw number option value', async () => {
     const onChange = vi.fn();
-    const user = userEvent.setup();
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     render(
       <Select
         value={10}
@@ -81,7 +81,7 @@ describe('Select shim value semantics (compat contract)', () => {
   it('passes string option values through unchanged', async () => {
     const onSelect = vi.fn();
     const onChange = vi.fn();
-    const user = userEvent.setup();
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     render(
       <Select
         value='Pending'
@@ -104,7 +104,7 @@ describe('Select shim value semantics (compat contract)', () => {
   it('clear button emits undefined per compat semantics, not empty string', async () => {
     const onClear = vi.fn();
     const onChange = vi.fn();
-    const user = userEvent.setup();
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     render(
       <Select allowClear value='x' onClear={onClear} onChange={onChange} options={[{ value: 'x', label: 'x' }]} />,
     );
@@ -144,7 +144,7 @@ describe('InputNumber shim', () => {
 describe('Switch shim', () => {
   it('emits boolean on toggle', async () => {
     const onChange = vi.fn();
-    const user = userEvent.setup();
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     render(<Switch onChange={onChange} />);
 
     await user.click(screen.getByRole('switch'));
@@ -164,7 +164,7 @@ describe('Switch shim', () => {
 describe('Checkbox shim', () => {
   it('emits compat-style change event with target.checked', async () => {
     const onChange = vi.fn();
-    const user = userEvent.setup();
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     render(<Checkbox onChange={onChange}>Label</Checkbox>);
 
     await user.click(screen.getByText('Label'));
@@ -177,7 +177,7 @@ describe('Checkbox shim', () => {
 describe('Tabs shim', () => {
   it('fires onChange with the selected key and honors activeKey', async () => {
     const onChange = vi.fn();
-    const user = userEvent.setup();
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     render(
       <Tabs
         activeKey='b'
@@ -259,7 +259,7 @@ describe('Modal shim', () => {
   it('renders title/body when open and wires default footer buttons', async () => {
     const onOk = vi.fn();
     const onCancel = vi.fn();
-    const user = userEvent.setup();
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
 
     render(
       <Modal open title='Confirm' onOk={onOk} onCancel={onCancel}>
