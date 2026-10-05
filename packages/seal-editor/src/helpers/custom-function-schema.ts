@@ -665,3 +665,96 @@ export const summarizeInstanceDrift = (drift: FunctionArgsDriftEntry[]): Record<
 
   return summary;
 };
+
+/**
+/**
+ * 实例依赖调度（ADR-015 增补）：Kahn 分层（层内并行/层间串行）。
+ * 依赖边 = 从 kwargs 值中提取 `$.key` 引用（具名 kwargs 的值为表达式串）
+ * ∪ 显式 `dependsOn`，并集。悬空引用不建边（漂移带检出）。
+ * 返回分层调度表或结构化错误。
+ */
+export type InstanceSchedule =
+  | { ok: true; layers: string[][]; hasEdges: boolean; depsByItem: Record<string, string[]> }
+  | { ok: false; error: 'DUPLICATE_OUTPUT' | 'CYCLE_DETECTED'; keys: string[] };
+
+/** 从表达式串中提取 `$.key` 引用 */
+const extractDollarRefs = (expr: string, into: Set<string>): void => {
+  const pattern = /\$\.([A-Za-z_][A-Za-z0-9_.]*)/g;
+  let m: RegExpExecArray | null;
+  while ((m = pattern.exec(expr)) !== null) into.add(m[1]!.split('.')[0]);
+};
+
+/** 递归收集值中所有 $. 引用（含信封解包与 kwargs 遍历） */
+const collectRefs = (value: unknown, into: Set<string>): void => {
+  if (typeof value === 'string') {
+    extractDollarRefs(value, into);
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) collectRefs(item, into);
+    return;
+  }
+  if (isRecord(value)) {
+    for (const v of Object.values(value)) collectRefs(v, into);
+  }
+};
+
+export const computeInstanceSchedule = (expressions: any): InstanceSchedule => {
+  if (!Array.isArray(expressions)) return { ok: true, layers: [], hasEdges: false, depsByItem: {} };
+
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+  for (const expr of expressions) {
+    const key = String(expr?.key ?? '');
+    if (!key) continue;
+    if (seen.has(key)) duplicates.add(key);
+    seen.add(key);
+  }
+  if (duplicates.size > 0) return { ok: false, error: 'DUPLICATE_OUTPUT', keys: [...duplicates] };
+
+  const byKey = new Map<string, any>();
+  for (const expr of expressions) {
+    const key = String(expr?.key ?? '');
+    if (!key) continue;
+    byKey.set(key, expr);
+  }
+
+  const deps = new Map<string, Set<string>>();
+  let hasEdges = false;
+  for (const [key, item] of byKey) {
+    const refs = new Set<string>();
+    const value = item?.value;
+    if (isRecord(value) && isRecord(value.kwargs)) {
+      // 规范形 { $call, kwargs }：扫描 kwargs 值中的 $. 引用
+      for (const v of Object.values(value.kwargs)) collectRefs(v, refs);
+    } else {
+      // 旧形态：整个 value 扫描 $. 引用
+      collectRefs(value, refs);
+    }
+    for (const dep of (item?.dependsOn as string[] | undefined) ?? []) refs.add(dep);
+    const edges = new Set([...refs].filter((ref) => byKey.has(ref)));
+    deps.set(key, edges);
+    if (edges.size > 0) hasEdges = true;
+  }
+
+  const layers: string[][] = [];
+  const remaining = new Map(deps);
+  const emitted = new Set<string>();
+  while (remaining.size > 0) {
+    const layer = [...remaining.entries()]
+      .filter(([, edges]) => [...edges].every((dep) => emitted.has(dep)))
+      .map(([key]) => key)
+      .sort();
+    if (layer.length === 0) return { ok: false, error: 'CYCLE_DETECTED', keys: [...remaining.keys()] };
+    layers.push(layer);
+    for (const key of layer) {
+      emitted.add(key);
+      remaining.delete(key);
+    }
+  }
+
+  const depsByItem: Record<string, string[]> = {};
+  for (const [key, edges] of deps) depsByItem[key] = [...edges];
+
+  return { ok: true, layers, hasEdges, depsByItem };
+};

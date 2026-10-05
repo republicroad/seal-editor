@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildDefaultFunctionExpression,
+  computeInstanceSchedule,
   findDollarFormRows,
   healExpressionsForScope,
   legacyValueToNamedCall,
@@ -255,5 +256,48 @@ describe('healExpressionsForScope', () => {
   it('returns null for empty scope functions', () => {
     const expressions = [{ id: '1', key: 'out', value: ['rate_1h', '1'], type: 'function' }];
     expect(healExpressionsForScope(expressions, { mode: 'scoped', functions: [] })).toBeNull();
+  });
+});
+
+describe('computeInstanceSchedule（实例依赖调度：Kahn 分层）', () => {
+  const expr = (key: string, kwargs: Record<string, unknown>, dependsOn?: string[]) => ({
+    id: 'id-' + key,
+    key,
+    type: 'function',
+    value: { $call: 'fn', kwargs },
+    ...(dependsOn ? { dependsOn } : {}),
+  });
+
+  it('零依赖 → 单层全并行', () => {
+    const result = computeInstanceSchedule([expr('a', {}), expr('b', {})]);
+    expect(result).toMatchObject({ ok: true, hasEdges: false });
+    if (result.ok) expect(result.layers).toEqual([['a', 'b']]);
+  });
+
+  it('依赖序：b 引用 a → a 先于 b', () => {
+    const result = computeInstanceSchedule([expr('b', { val: '$.a' }), expr('a', {})]);
+    expect(result).toMatchObject({ ok: true, hasEdges: true });
+    if (result.ok) expect(result.layers).toEqual([['a'], ['b']]);
+  });
+
+  it('环检测：a→b→a 报 CYCLE_DETECTED', () => {
+    const result = computeInstanceSchedule([expr('a', { val: '$.b' }), expr('b', { val: '$.a' })]);
+    expect(result).toMatchObject({ ok: false, error: 'CYCLE_DETECTED' });
+  });
+
+  it('重复输出键报 DUPLICATE_OUTPUT', () => {
+    const result = computeInstanceSchedule([expr('a', {}), expr('a', {})]);
+    expect(result).toMatchObject({ ok: false, error: 'DUPLICATE_OUTPUT', keys: ['a'] });
+  });
+
+  it('悬空引用不建边（不指向已存在实例键）', () => {
+    const result = computeInstanceSchedule([expr('a', { val: '$.nonexistent' })]);
+    expect(result).toMatchObject({ ok: true, hasEdges: false });
+  });
+
+  it('显式 dependsOn 并集', () => {
+    const result = computeInstanceSchedule([expr('a', {}), expr('b', {}, ['a'])]);
+    expect(result).toMatchObject({ ok: true });
+    if (result.ok) expect(result.layers).toEqual([['a'], ['b']]);
   });
 });
