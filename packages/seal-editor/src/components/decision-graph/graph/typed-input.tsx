@@ -39,8 +39,8 @@ export const coerceToTypedValue = (raw: unknown): TypedValue => {
  * Typed Input 万能值输入（Node-RED 模式，缺口 D 立项）。
  *
  * 呈现层二分（用户心智：写死的值 / 算出来的值）：
- *   值 = 字面量编辑器；表达式 = 等宽编辑框 + 字段选择器（点选插入 `$.path`）。
- * 存储层三态不变（literal 裸值 / expression、reference 信封）——reference 仍单独
+ *   值 = 字面量编辑器；表达式 = CM6 紧凑编辑框 + 字段选择器（点选插入裸路径）。
+ * 存储层三态不变（literal 全量信封 / expression、reference 信封）——reference 仍单独
  * 记录（字段改名的精确迁移依赖它），仅 UI 呈现折叠进表达式：
  *   字段点选且编辑框为空 → 写 reference；其余表达式编辑 → 写 expression。
  * 安全前提：ADR-016 literal 原样绑定——「值」框内任何内容不求值。
@@ -126,14 +126,14 @@ export const TypedInput: React.FC<TypedInputProps> = ({
   );
 
   const expressionEditor = (
-    <div className='flex w-full items-center gap-1'>
+    <div className='flex w-full items-start gap-1'>
       <div className='min-w-0 flex-1'>
         <CodeEditorBase
           value={uiMode === 'expression' ? exprText : undefined}
           onChange={setExpression}
           disabled={disabled}
           placeholder={placeholder ?? 'q.tier / 表达式'}
-          maxRows={3}
+          maxRows={8}
           noStyle
           lint
           type='standard'
@@ -163,7 +163,7 @@ export const TypedInput: React.FC<TypedInputProps> = ({
   );
 };
 
-/** 字段选择器：点选插入 $.path。Select 短生命周期（key 重挂）——保证同项可连点。 */
+/** 字段选择器：点选插入裸路径。Select 短生命周期（key 重挂）——保证同项可连点。 */
 const FieldPicker: React.FC<{
   disabled?: boolean;
   fields: string[];
