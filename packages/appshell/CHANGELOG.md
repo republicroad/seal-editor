@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.32.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.31.0...@republicroad/seal-appshell@1.32.0) (2026-10-06)
+
+### Bug Fixes
+
+- **seal-appshell:** http persistConfig 从整对象替换改 immer 局部写（只写 expressions，pack 自有键不丢）
+
+### Features
+
+- **seal-appshell:** http 节点 url 切 TypedInput 万能值——信封全态直写（literal 原样绑定，裸 URL 引号仪式退役），旧裸串读态保语义映射 expression
+- **seal-appshell:** number-field 原语移植——http 超时/重试真数字语义（步进 + 100–60000/0–5 钳制）
+
 # [1.31.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.30.0...@republicroad/seal-appshell@1.31.0) (2026-10-05)
 
 **Note:** Version bump only for package @republicroad/seal-appshell

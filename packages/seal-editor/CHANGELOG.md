@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.25.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.24.0...@republicroad/seal-editor@1.25.0) (2026-10-06)
+
+### Features
+
+- **seal-editor:** dt 编辑形态升级——剪贴板启用（commitCells 批量出口 + range 选区 + 列 cellEdit）、填充柄（cellFillHandle）、格子 undo/redo（rowId 寻址 + Ctrl+Z/Y + 工具栏按钮）、rejected 格反馈 ([f4746fe](https://github.com/republicroad/seal-editor/commit/f4746fe))
+- **seal-editor:** 自定义函数编辑器深化——实例依赖调度可视化（层徽标 + 环警告带）、empty/alert 原语移植与空态/警告带规范化、TypedInput/TypedValue 公共导出 ([81939c3](https://github.com/republicroad/seal-editor/commit/81939c3))
+- **seal-editor:** 画布执行成功徽标 Motion Icon 接线（check-circle 动效变体，与 error 徽标对称） ([5fbaf98](https://github.com/republicroad/seal-editor/commit/5fbaf98))
+
 # [1.24.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.23.0...@republicroad/seal-editor@1.24.0) (2026-10-05)
 
 ### Bug Fixes
