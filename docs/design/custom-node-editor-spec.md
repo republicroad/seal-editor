@@ -137,6 +137,11 @@ expr_asts** 即静默错执行。需向 jdm 澄清一个事实：
 - 存储为 additive：旧裸值读取时按声明类型推断、新值双写；
 - 接入 = 本表键主权新增一行（`config.expressions[].value` 的形状演进登记）。
 
+**实施记录（2026-10-05，http_request url 试点）**：ADR-016 信封落地后本节前提已满足——
+zen-udf 1.1.0+ 原生认信封（literal 原样绑定 / expression 求值），无需 seal 侧展开。
+`kwargs.url` 已切 TypedInput（值/表达式二分）：信封全态直写，旧裸串读态保语义映射
+expression。详见 typed-input-spec §4 专用节试点；推广位见该节。
+
 ## 6 · 后果
 
 - 正面：键主权显式化终结「谁写谁」的口头约定；`z.any()` 意图防误收紧；

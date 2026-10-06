@@ -115,9 +115,20 @@ export const TypedInput: React.FC<TypedInputProps> = (...);
 CustomFunction 的参数值列 → TypedInput 替换（值编辑层升级）。
 旧裸值读取 → 推断为 literal → 编辑 → 保存 TypedValue 形态。
 
-### 分屏编辑器（前瞻）
+### 分屏编辑器（主从实例编辑器）
 
-主从编辑器（P2 主从骨架的右侧参数绑定区）→ 同一 TypedInput 复用。
+主从编辑器右侧参数绑定区 → 同一 TypedInput 复用（已实施）。
+
+### 专用节点（http_request url 试点，2026-10-05）
+
+`kwargs.url` → TypedInput（值/表达式二分 + 字段选择器），信封全态直写：
+
+- 旧裸串读态映射 expression（保语义——裸串执行面走表达式求值路径）；
+- 「值」模式 = literal 信封原样绑定（zen-udf 1.1.0+），裸 URL 引号仪式退役
+  （旧形态裸 URL 经求值失败落 null 的陷阱一并消除）；
+- 其余结构化字段（headers/params/body/auth）保留各自编辑器，暂不入 TypedInput；
+- 推广位（待触发）：crypto 输入文本、current-date format、timeout——均按同款
+  「保语义读态映射 + 信封直写」模式接入。
 
 ## 5 · 明确不做
 
@@ -166,6 +177,11 @@ null，字段引用用**裸键/点路径或 reference 信封**；表达式节点
 透传；启动时运行时版本断言 ≥ 1.1.0 fail fast）。
 其他宿主直连引擎执行存图时需自行展开 expression 信封（CONTRACT §11.6
 已立法信封语义）。
+
+**E2E 实证（2026-10-05，demo-server pipeline.test.ts）**：三模式信封全矩阵
+过 /v1/execute HTTP 边界 ✓（literal 原样绑定 / expression 展开 / reference
+原生路径）——§7 裸路径立法同轮实证：`user` 命中、`$.user` 恒 null（$ 根
+不绑定节点输入），与上面对策一致。
 
 **随档动作②（编辑器检测，已落地 2026-10-04）**：兜底 tab 漂移带检测 `$-路径
 形态实参`（裸字符串 / expression·reference 信封内 `$.` 前缀——kwargs 域恒
