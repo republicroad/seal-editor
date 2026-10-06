@@ -1,3 +1,5 @@
+import { WarningOutlined } from '#icons';
+import { Alert, AlertAction, AlertTitle } from '#reui/alert';
 import React, { useMemo, useState } from 'react';
 import { P, match } from 'ts-pattern';
 
@@ -5,6 +7,7 @@ import { resolveFunctionScope } from '../../../helpers/custom-function-schema';
 import {
   buildInstanceViews,
   computeFunctionArgsDrift,
+  computeInstanceSchedule,
   editorValueToNamedCall,
   fillMissingFunctionArgs,
   findDollarFormRows,
@@ -67,6 +70,8 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
   // $-路径形态实参（OQ7 随档动作②）：kwargs 域 dollar 不接通——恒 null，检测 + 一键迁移
   const dollarRows = useMemo(() => findDollarFormRows(expressions), [expressions]);
   const dollarParamCount = useMemo(() => dollarRows.reduce((sum, row) => sum + row.params.length, 0), [dollarRows]);
+  // 实例依赖调度（ADR-015 增补）：Kahn 分层 → 列表层徽标 + 环警告带
+  const schedule = useMemo(() => computeInstanceSchedule(expressions), [expressions]);
 
   // ADR-015 #3：写路径归一为规范形 {$call, kwargs}（编辑器位置数组经声明序
   // 映射；priorKwargs 并回保非位置额外键）；expr_asts 停写（引擎派生，零风险）
@@ -268,57 +273,57 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
       {editMode === 'table' && (
         <>
           {dollarRows.length > 0 && (
-            <div
-              data-testid='dollar-form-band'
-              className='mx-3 mt-3 flex items-center justify-between gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs'
-            >
-              <span className='text-amber-700 dark:text-amber-400'>
+            <Alert variant='warning' data-testid='dollar-form-band' className='mx-3 mt-3 gap-x-2 px-3 py-1.5 text-xs'>
+              <WarningOutlined />
+              <AlertTitle className='font-normal leading-5'>
                 {t('cf.dollarFormBand')} · {dollarRows.length} {t('cf.argsDriftRows')} · {dollarParamCount}{' '}
                 {t('cf.argsDriftUnrecognized')}
-              </span>
-              <Button
-                size='small'
-                type='link'
-                className='!px-1'
-                disabled={disabled}
-                data-testid='dollar-form-migrate'
-                onClick={() => {
-                  const migrated = migrateDollarFormArgs(expressions, dollarRows);
-                  if (migrated) {
-                    persistExpressions(migrated);
-                  }
-                }}
-              >
-                {t('cf.dollarFormMigrate')}
-              </Button>
-            </div>
-          )}
-          {driftRowCount > 0 && (
-            <div
-              data-testid='args-drift-band'
-              className='mx-3 mt-3 flex items-center justify-between gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs'
-            >
-              <span className='text-amber-700 dark:text-amber-400'>
-                {t('cf.argsDriftTitle')} · {driftRowCount} {t('cf.argsDriftRows')} · {t('cf.argsDriftMissing')}{' '}
-                {driftMissingCount} · {t('cf.argsDriftUnrecognized')} {driftUnrecognizedCount}
-              </span>
-              {driftMissingCount > 0 && (
+              </AlertTitle>
+              <AlertAction>
                 <Button
                   size='small'
                   type='link'
                   className='!px-1'
                   disabled={disabled}
+                  data-testid='dollar-form-migrate'
                   onClick={() => {
-                    const healed = fillMissingFunctionArgs(expressions, argsDrift, functionScope);
-                    if (healed) {
-                      persistExpressions(healed);
+                    const migrated = migrateDollarFormArgs(expressions, dollarRows);
+                    if (migrated) {
+                      persistExpressions(migrated);
                     }
                   }}
                 >
-                  {t('cf.argsFillMissing')}
+                  {t('cf.dollarFormMigrate')}
                 </Button>
+              </AlertAction>
+            </Alert>
+          )}
+          {driftRowCount > 0 && (
+            <Alert variant='warning' data-testid='args-drift-band' className='mx-3 mt-3 gap-x-2 px-3 py-1.5 text-xs'>
+              <WarningOutlined />
+              <AlertTitle className='font-normal leading-5'>
+                {t('cf.argsDriftTitle')} · {driftRowCount} {t('cf.argsDriftRows')} · {t('cf.argsDriftMissing')}{' '}
+                {driftMissingCount} · {t('cf.argsDriftUnrecognized')} {driftUnrecognizedCount}
+              </AlertTitle>
+              {driftMissingCount > 0 && (
+                <AlertAction>
+                  <Button
+                    size='small'
+                    type='link'
+                    className='!px-1'
+                    disabled={disabled}
+                    onClick={() => {
+                      const healed = fillMissingFunctionArgs(expressions, argsDrift, functionScope);
+                      if (healed) {
+                        persistExpressions(healed);
+                      }
+                    }}
+                  >
+                    {t('cf.argsFillMissing')}
+                  </Button>
+                </AlertAction>
               )}
-            </div>
+            </Alert>
           )}
           <div className='flex min-h-0 flex-1 flex-col' style={{ paddingTop: driftRowCount > 0 ? 8 : 0 }}>
             <InstanceEditor
@@ -329,6 +334,7 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
               driftByInstance={driftByRowId}
               duplicateKeys={duplicateKeys}
               outputsByKey={instanceOutputs}
+              schedule={schedule}
               onChange={handleInstancesChange}
             />
           </div>

@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { FunctionScope } from '../../../../helpers/custom-function-schema';
+import type { FunctionScope, InstanceSchedule } from '../../../../helpers/custom-function-schema';
 import type { FunctionInstance, InstanceDriftSummary } from '../instance-editor';
 import { InstanceEditor } from '../instance-editor';
 
@@ -49,7 +49,17 @@ const Harness: React.FC<{
   duplicateKeys?: string[];
   onChange?: (next: FunctionInstance[]) => void;
   outputsByKey?: Record<string, unknown>;
-}> = ({ initialValue, scope = SCOPE, fieldPaths, driftByInstance, duplicateKeys, outputsByKey, onChange }) => {
+  schedule?: InstanceSchedule;
+}> = ({
+  initialValue,
+  scope = SCOPE,
+  fieldPaths,
+  driftByInstance,
+  duplicateKeys,
+  outputsByKey,
+  schedule,
+  onChange,
+}) => {
   const [instances, setInstances] = useState(initialValue);
   return (
     <InstanceEditor
@@ -59,6 +69,7 @@ const Harness: React.FC<{
       driftByInstance={driftByInstance}
       duplicateKeys={duplicateKeys}
       outputsByKey={outputsByKey}
+      schedule={schedule}
       onChange={(next) => {
         onChange?.(next);
         setInstances(next);
@@ -279,5 +290,49 @@ describe('InstanceEditor（主从编辑器深化）', () => {
     render(<InstanceEditor instances={[]} functionScope={SCOPE} onChange={vi.fn()} />);
     expect(screen.getByText('No instances yet')).toBeTruthy();
     expect(screen.getByText('Select an instance on the left to edit')).toBeTruthy();
+  });
+});
+
+describe('InstanceEditor 依赖调度可视化（ADR-015 增补）', () => {
+  const SCHEDULED: InstanceSchedule = {
+    ok: true,
+    layers: [['echo'], ['score']],
+    hasEdges: true,
+    depsByItem: { echo: [], score: ['echo'] },
+  };
+
+  it('分层徽标：echo=L1、score=L2，徽标随行渲染', () => {
+    render(<Harness initialValue={INSTANCES} schedule={SCHEDULED} />);
+
+    const rows = screen.getAllByTestId('instance-list-item');
+    const echoRow = rows.find((row) => row.getAttribute('data-id') === 'i2')!;
+    const scoreRow = rows.find((row) => row.getAttribute('data-id') === 'i1')!;
+    expect(echoRow.querySelector('[data-testid="instance-layer-badge"]')!.textContent).toBe('L1');
+    expect(scoreRow.querySelector('[data-testid="instance-layer-badge"]')!.textContent).toBe('L2');
+  });
+
+  it('零边快路径：不出层徽标', () => {
+    render(
+      <Harness
+        initialValue={INSTANCES}
+        schedule={{ ok: true, layers: [['score', 'echo']], hasEdges: false, depsByItem: { score: [], echo: [] } }}
+      />,
+    );
+    expect(screen.queryAllByTestId('instance-layer-badge')).toHaveLength(0);
+  });
+
+  it('环依赖：左栏警告带列出环节点', () => {
+    render(
+      <Harness initialValue={INSTANCES} schedule={{ ok: false, error: 'CYCLE_DETECTED', keys: ['score', 'echo'] }} />,
+    );
+    const band = screen.getByTestId('instance-cycle-error');
+    expect(band.textContent).toContain('Circular dependency detected');
+    expect(band.textContent).toContain('score → echo');
+  });
+
+  it('未传 schedule：无徽标无警告带（行为不变）', () => {
+    render(<Harness initialValue={INSTANCES} />);
+    expect(screen.queryAllByTestId('instance-layer-badge')).toHaveLength(0);
+    expect(screen.queryByTestId('instance-cycle-error')).toBeNull();
   });
 });

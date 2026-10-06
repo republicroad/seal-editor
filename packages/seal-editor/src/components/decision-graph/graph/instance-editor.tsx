@@ -1,6 +1,9 @@
+import { PlusSquareOutlined, UnorderedListOutlined } from '#icons';
+import { Alert, AlertTitle } from '#reui/alert';
+import { Empty, EmptyContent, EmptyMedia, EmptyTitle } from '#reui/empty';
 import React, { useMemo, useState } from 'react';
 
-import type { FunctionScope } from '../../../helpers/custom-function-schema';
+import type { FunctionScope, InstanceSchedule } from '../../../helpers/custom-function-schema';
 import { useT } from '../../../theming/i18n';
 import { Button, Input, Select, Tag, Tooltip, Typography } from '../../primitives';
 import { TypedInput, coerceToTypedValue } from './typed-input';
@@ -45,6 +48,8 @@ type InstanceEditorProps = {
   duplicateKeys?: string[];
   /** 上次仿真的实例返回值（key → value；trace.output 投影，run-scoped） */
   outputsByKey?: Record<string, unknown>;
+  /** 实例依赖调度结果（Kahn 分层；tab 由 computeInstanceSchedule 计算） */
+  schedule?: InstanceSchedule;
   onChange: (instances: FunctionInstance[]) => void;
 };
 
@@ -58,6 +63,7 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
   driftByInstance,
   duplicateKeys,
   outputsByKey,
+  schedule,
   onChange,
 }) => {
   const t = useT();
@@ -118,6 +124,20 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
   const selectedDrift = selected ? driftByInstance?.[selected.id] : undefined;
   const selectedIsDup = selected ? (duplicateKeys?.includes(selected.key) ?? false) : false;
 
+  // 依赖调度投影（ADR-015 增补）：分层号 → 列表徽标；环 → 左栏警告带。
+  // DUPLICATE_OUTPUT 不在此呈现（duplicateKeys 通道已覆盖）；零边快路径不出徽标。
+  const scheduleOk = schedule && schedule.ok ? schedule : undefined;
+  const hasEdges = scheduleOk?.hasEdges ?? false;
+  const layerByKey = useMemo(() => {
+    const map: Record<string, number> = {};
+    if (scheduleOk?.hasEdges) {
+      scheduleOk.layers.forEach((layer, i) => {
+        for (const key of layer) map[key] = i + 1;
+      });
+    }
+    return map;
+  }, [scheduleOk]);
+
   return (
     <div className='flex min-h-[320px] flex-1 gap-3 overflow-hidden px-3 pb-3'>
       {/* 左栏：实例列表（卡片 + 双行行项 + 漂移/重复点标 + 悬停删除） */}
@@ -137,11 +157,24 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
             + {t('cf.addInstance')}
           </Button>
         </div>
+        {schedule && !schedule.ok && schedule.error === 'CYCLE_DETECTED' && (
+          <Alert
+            variant='destructive'
+            data-testid='instance-cycle-error'
+            className='shrink-0 gap-x-2 rounded-none border-x-0 border-b-0 border-t px-2.5 py-1.5 text-[11px]'
+          >
+            <AlertTitle className='font-normal leading-snug'>
+              {t('cf.scheduleCycleError', { keys: schedule.keys.join(' → ') })}
+            </AlertTitle>
+          </Alert>
+        )}
         <div className='min-h-0 flex-1 overflow-y-auto p-1.5'>
           {instances.map((inst) => {
             const fn = functions.find((f: any) => f.name === inst.call.$call);
             const drift = driftByInstance?.[inst.id];
             const isDup = duplicateKeys?.includes(inst.key) ?? false;
+            const layer = hasEdges ? layerByKey[inst.key] : undefined;
+            const instDeps = scheduleOk?.depsByItem[inst.key] ?? [];
             const isSelected = selected?.id === inst.id;
             return (
               <div
@@ -187,6 +220,22 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
                 </div>
                 <div className='mt-0.5 flex items-center gap-1'>
                   <span className='min-w-0 flex-1 truncate text-[10px] opacity-50'>→ {inst.key}</span>
+                  {layer !== undefined && (
+                    <Tooltip
+                      title={
+                        instDeps.length > 0
+                          ? `${t('cf.instanceLayerHint', { layer })} · ${t('cf.dependsOn')}: ${instDeps.join(', ')}`
+                          : t('cf.instanceLayerHint', { layer })
+                      }
+                    >
+                      <span
+                        data-testid='instance-layer-badge'
+                        className='shrink-0 rounded bg-muted/70 px-1 font-mono text-[10px] opacity-80'
+                      >
+                        L{layer}
+                      </span>
+                    </Tooltip>
+                  )}
                   {outputsByKey && inst.key in outputsByKey && (
                     <Tooltip title={t('cf.lastRunHint')}>
                       <span
@@ -221,7 +270,12 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
             );
           })}
           {instances.length === 0 && (
-            <div className='px-2 py-6 text-center text-xs opacity-50'>{t('cf.instanceEmpty')}</div>
+            <Empty className='gap-1 border-0 p-3'>
+              <EmptyMedia variant='icon' className='size-7 rounded-md [&_svg:not([class*=size-])]:size-3.5'>
+                <UnorderedListOutlined />
+              </EmptyMedia>
+              <EmptyTitle className='text-xs font-normal opacity-60'>{t('cf.instanceEmpty')}</EmptyTitle>
+            </Empty>
           )}
         </div>
       </div>
@@ -382,14 +436,19 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
             )}
           </div>
         ) : (
-          <div className='flex h-full flex-col items-center justify-center gap-2 p-6 text-center'>
-            <Typography.Text className='text-xs opacity-50'>{t('cf.selectInstance')}</Typography.Text>
+          <Empty className='gap-2 border-0 p-6'>
+            <EmptyMedia variant='icon'>
+              <PlusSquareOutlined />
+            </EmptyMedia>
+            <EmptyTitle className='text-sm font-normal opacity-70'>{t('cf.selectInstance')}</EmptyTitle>
             {!disabled && (
-              <Button size='small' type='link' onClick={addInstance}>
-                + {t('cf.addInstance')}
-              </Button>
+              <EmptyContent>
+                <Button size='small' type='link' onClick={addInstance}>
+                  + {t('cf.addInstance')}
+                </Button>
+              </EmptyContent>
             )}
-          </div>
+          </Empty>
         )}
       </div>
     </div>
