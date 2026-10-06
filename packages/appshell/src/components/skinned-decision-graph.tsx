@@ -10,6 +10,7 @@ import {
 } from '@republicroad/seal-editor';
 import { FlaskConicalIcon, PanelRightIcon } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 import { useTheme } from '../context/theme.provider';
 import PlayCircleIcon from '../reui/icons/animated/outline/play-circle';
@@ -34,6 +35,7 @@ import { ShellHeader } from './shell-header';
 import { SyncStatusBadge } from './sync-status-badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './ui/sheet';
+import { Toaster } from './ui/sonner';
 
 type PanelItem = NonNullable<DecisionGraphProps['panels']>[number];
 
@@ -228,6 +230,20 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
     setOpenSlot((current) => (current && rightSlots?.includes(current) ? current : null));
   }, [rightSlots]);
 
+  // 批 3：仿真完成 toast（kernel 发 seal:simulation-finished 事件桥——kernel 不依赖 sonner）
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ ok: boolean; performance?: string; error?: string }>).detail;
+      if (detail?.ok) {
+        toast.success('Simulation finished' + (detail.performance ? ' · ' + detail.performance : ''));
+      } else {
+        toast.error('Simulation failed' + (detail?.error ? ' · ' + detail.error : ''));
+      }
+    };
+    window.addEventListener('seal:simulation-finished', handler);
+    return () => window.removeEventListener('seal:simulation-finished', handler);
+  }, []);
+
   const slotContext: SkinSlotHostContext = {
     graph: (props.value ?? props.defaultValue) as DecisionGraphType | undefined,
     disabled: props.disabled,
@@ -343,6 +359,7 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
       {headerNode}
       {body}
       {sheetNode}
+      <Toaster position='bottom-right' />
     </div>
   );
 });
