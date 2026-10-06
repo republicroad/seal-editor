@@ -1,12 +1,12 @@
 /**
  * E2E 管线测试（ADR-016 信封线闭环）：TypedValue 信封模型经 /v1/execute
- * HTTP 边界（expandTypedValues → zen-udf 1.1.0+ 原生绑定）→ 实例结果。
+ * HTTP 边界（信封直通引擎，批 9 退役展开层；zen-udf 1.2.0 原生三模式）→ 实例结果。
  * 三模式全矩阵：literal 原样绑定 / expression 展开（服务端）/ reference 原生路径。
  */
 import { describe, expect, test } from 'bun:test';
 
 import { createApp } from './app';
-import { assertZenUdfEnvelopeSupport, expandTypedValues, installedZenUdfVersion } from './typed-values';
+import { assertZenUdfEnvelopeSupport, installedZenUdfVersion } from './typed-values';
 
 const app = createApp();
 
@@ -98,57 +98,15 @@ describe('信封 E2E：/v1/execute 三模式全矩阵', () => {
   });
 });
 
-describe('expandTypedValues（expression-only 展开）', () => {
-  test('literal / reference 透传，expression 拆包', () => {
-    const model = {
-      nodes: [
-        {
-          content: {
-            config: {
-              expressions: [
-                {
-                  value: {
-                    $call: 'f',
-                    kwargs: { a: { mode: 'literal', value: 'x' }, b: { mode: 'expression', value: '$.y' } },
-                  },
-                },
-                { value: { $call: 'g', kwargs: { c: { mode: 'reference', value: 'k' } } } },
-              ],
-            },
-          },
-        },
-      ],
-    };
-    const expanded = expandTypedValues(model) as any;
-    const exprs = expanded.nodes[0].content.config.expressions;
-    expect(exprs[0].value.kwargs.a).toEqual({ mode: 'literal', value: 'x' });
-    expect(exprs[0].value.kwargs.b).toBe('$.y');
-    expect(exprs[1].value.kwargs.c).toEqual({ mode: 'reference', value: 'k' });
-  });
-
-  test('非信封对象字面量与数组元素照常深走', () => {
-    const model = {
-      cfg: {
-        nested: [
-          { mode: 'expression', value: '$.a' },
-          { mode: 'literal', value: 1 },
-        ],
-      },
-    };
-    const expanded = expandTypedValues(model) as any;
-    expect(expanded.cfg.nested[0]).toBe('$.a');
-    expect(expanded.cfg.nested[1]).toEqual({ mode: 'literal', value: 1 });
-  });
-});
-
-describe('zen-udf 版本断言（信封语义 ≥ 1.1.0）', () => {
+describe('zen-udf 版本断言（信封语义 ≥ 1.2.0）', () => {
   test('当前安装版本满足', () => {
     assertZenUdfEnvelopeSupport(installedZenUdfVersion());
   });
 
   test('低版本 fail fast', () => {
-    expect(() => assertZenUdfEnvelopeSupport('1.0.9')).toThrow(/>= 1.1.0/);
-    expect(() => assertZenUdfEnvelopeSupport('1.1.0')).not.toThrow();
+    expect(() => assertZenUdfEnvelopeSupport('1.0.9')).toThrow(/>= 1.2.0/);
+    expect(() => assertZenUdfEnvelopeSupport('1.1.9')).toThrow(/>= 1.2.0/);
+
     expect(() => assertZenUdfEnvelopeSupport('2.0.0')).not.toThrow();
   });
 });

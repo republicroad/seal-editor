@@ -9,8 +9,6 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { createHash } from 'node:crypto';
 
-import { expandTypedValues } from './typed-values';
-
 export type ExecuteBody = {
   model?: unknown;
   input?: unknown;
@@ -262,7 +260,7 @@ export const createApp = () => {
     const name = c.req.param('name');
     const body = await c.req.json().catch(() => ({}) as { args?: unknown[] });
     // Typed Input 信封展开：REPL 面板可能透传编辑器原始值
-    const args = Array.isArray(body?.args) ? expandTypedValues(body!.args as unknown[]) : [];
+    const args = Array.isArray(body?.args) ? (body!.args as unknown[]) : [];
 
     const known = runtime.registry
       .udfFunctionSchemaNamespaces()
@@ -310,7 +308,7 @@ export const createApp = () => {
     }
 
     try {
-      runtime.createDecision(expandTypedValues(body)).validate();
+      runtime.createDecision(body).validate();
       return c.json({ ok: true });
     } catch (err) {
       return c.json({ error: 'invalid model', details: String(err).slice(0, 300) } satisfies ApiError, 400);
@@ -335,7 +333,7 @@ export const createApp = () => {
 
     try {
       // Typed Input 信封展开（{mode,value} → 裸值/表达式串）后再编译
-      const expanded = expandTypedValues(model);
+      const expanded = model;
       const cacheKey = modelCacheKey(expanded);
       const decisionId =
         'req-' +
@@ -426,8 +424,8 @@ export const createApp = () => {
     try {
       // 内容哈希 → rev 别名：stateless demo 由调用方携带两个版本的模型
       // Typed Input 信封展开后再编译（与 /v1/execute 同一执行边界语义）
-      const expandedProd = expandTypedValues(prodModel);
-      const expandedShadow = expandTypedValues(shadowModel);
+      const expandedProd = prodModel;
+      const expandedShadow = shadowModel;
       const prodRev = 'p' + createHash('sha256').update(JSON.stringify(expandedProd)).digest('hex').slice(0, 16);
       const shadowRev = 's' + createHash('sha256').update(JSON.stringify(expandedShadow)).digest('hex').slice(0, 16);
       const input = (body?.input ?? {}) as Record<string, unknown>;
