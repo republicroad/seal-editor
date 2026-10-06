@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.33.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.32.0...@republicroad/seal-appshell@1.33.0) (2026-10-07)
+
+### Features
+
+- **seal-appshell:** crypto 待摘要内容切 TypedInput 万能值（信封全态直写，引号仪式退役）；secret 槽位保留表达式编辑器
+- **seal-appshell:** 仿真完成 toast——seal:simulation-finished 事件桥 + Toaster 挂载（i18n 就绪）
+
 # [1.32.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.31.0...@republicroad/seal-appshell@1.32.0) (2026-10-06)
 
 ### Bug Fixes

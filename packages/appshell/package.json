@@ -1,6 +1,6 @@
 {
   "name": "@republicroad/seal-appshell",
-  "version": "1.32.0",
+  "version": "1.33.0",
   "description": "Application shell for @republicroad/seal-editor — custom node hosting, UI slot overrides and skinning",
   "type": "module",
   "license": "MIT",

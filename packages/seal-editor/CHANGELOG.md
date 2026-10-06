@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.26.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.25.0...@republicroad/seal-editor@1.26.0) (2026-10-07)
+
+### Features
+
+- **seal-editor:** cascader 移植（裁剪版 8 文件 + scroll-area/spinner 前置，懒 chunk 77.5KB 隔离）+ FieldPicker 层级化——树搜索弹层换装，插入语义不变 ([f2d9e818](https://github.com/republicroad/seal-editor/commit/f2d9e818))
+- **seal-editor:** timeline 原语移植 + 仿真 Run 历史时间线（Runs 段，点行展开该次输出回看，不重跑） ([bee3f87e](https://github.com/republicroad/seal-editor/commit/bee3f87e))
+- **seal-editor:** dt 字段绑定浏览选择器——FieldEditPopover 内嵌 cascader（懒 chunk 复用零新增包体），variableTypeToPaths 字段源 ([8dfb2ed1](https://github.com/republicroad/seal-editor/commit/8dfb2ed1))
+
 # [1.25.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.24.0...@republicroad/seal-editor@1.25.0) (2026-10-06)
 
 ### Features
