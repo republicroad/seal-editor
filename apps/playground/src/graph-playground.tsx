@@ -16,6 +16,10 @@ import {
   createExecuteSimulate,
   createGraphsHttpAdapter,
   createIndexedDbAdapter,
+  cryptoNode,
+  currentDateNode,
+  httpRequestNode,
+  queryListNode,
   restoreVersion,
   useTheme,
 } from '@republicroad/seal-appshell';
@@ -388,6 +392,7 @@ export const GraphPlayground: React.FC = () => {
             ref={graphRef}
             value={graph}
             onChange={setGraph}
+            customNodes={[httpRequestNode, queryListNode, cryptoNode, currentDateNode]}
             diffBaseline={diffBase ? (diffBase.content as any) : undefined}
             disabled={diffBase ? true : undefined}
             simulateHandler={createExecuteSimulate(import.meta.env.VITE_DEMO_SERVER_URL ?? 'http://localhost:8787')}
