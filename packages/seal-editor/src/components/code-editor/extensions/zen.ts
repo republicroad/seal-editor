@@ -62,10 +62,12 @@ const hasAutoComplete = (n: SyntaxNode | null): boolean => {
 };
 
 const makeExpressionCompletion = () => {
-  const extendedCompletions = makeExtendedCompletions();
-  const topLevelCompletions = extendedCompletions.filter((c) => c.type && ['variable', 'function'].includes(c.type));
+  // 补全源惰性取用：setUdfCompletions 可能在编辑器创建之后才注入（appshell
+  // useCustomNodes 异步拉 schema）——创建期快照会永远空手
+  const topLevelCompletions = () =>
+    makeExtendedCompletions().filter((c) => c.type && ['variable', 'function'].includes(c.type));
   const methodCompletions = (type: ZenType) => {
-    return extendedCompletions.filter(
+    return makeExtendedCompletions().filter(
       (s) =>
         s.type === 'method' &&
         match(s as unknown)
@@ -96,7 +98,7 @@ const makeExpressionCompletion = () => {
 
         return {
           from,
-          options: [...buildTypeCompletion({ type: 'variable', kind: tField.rootKind }), ...topLevelCompletions],
+          options: [...buildTypeCompletion({ type: 'variable', kind: tField.rootKind }), ...topLevelCompletions()],
           validFor: /\w*/,
         };
       }
