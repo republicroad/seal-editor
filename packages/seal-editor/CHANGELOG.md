@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.27.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.26.0...@republicroad/seal-editor@1.27.0) (2026-10-07)
+
+### Bug Fixes
+
+- **seal-editor:** 表达式补全源惰性取用——UDF schema 晚注入（appshell useCustomNodes 异步）不再被创建期快照挡住，TypedInput 四处消费面补全恢复
+
+### Features
+
+- **seal-editor:** dt 字段绑定浏览选择器——FieldEditPopover 内嵌 cascader（懒 chunk 复用零新增包体），variableTypeToPaths 字段源（与 CM6 补全同源）
+
 # [1.26.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.25.0...@republicroad/seal-editor@1.26.0) (2026-10-07)
 
 ### Features
