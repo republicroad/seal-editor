@@ -1,5 +1,4 @@
 import { CodeBlock } from '#components/reui/code-block/code-block';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs';
 import {
   type CustomFunctionTool,
   EditorShellProvider,
@@ -12,9 +11,9 @@ import {
   createIndexedDbAdapter,
   useEditorShell,
 } from '@republicroad/seal-appshell';
+import { LinkIcon, SquareTerminalIcon } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { CatalogTree } from './shared/catalog-tree';
 import { InstanceShell } from './shared/instance-shell';
 import { TrustChainPanel } from './shared/trust-chain-panel';
 import { udfFixtures } from './shared/udf-fixtures';
@@ -32,13 +31,7 @@ const UdfLabBody: React.FC = () => {
   const [serverUp, setServerUp] = useState<boolean | null>(null);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [replToolName, setReplToolName] = useState<string | undefined>(undefined);
-  // 底部 Trust/REPL 面板：默认收起（画布满屏）；抽屉方案另议，先以收起条保功能可达
-  const [trustOpen, setTrustOpen] = useState<boolean>(() => localStorage.getItem('pg-trust-open') === 'true');
-  const toggleTrust = () =>
-    setTrustOpen((open) => {
-      localStorage.setItem('pg-trust-open', String(!open));
-      return !open;
-    });
+  // 底部 Trust/REPL 已注册为 kernel panels 底部 dock（批 10）——收起条退役
 
   // demo-server 健康探针：schema 拉取失败会在 appshell 内静默回退内置样例，
   // 这里显式探测可达性，避免"面板有节点但一执行就失败"的困惑
@@ -161,56 +154,36 @@ const UdfLabBody: React.FC = () => {
         </>
       }
     >
-      <div className='pg-split'>
-        <div className='pg-split-canvas'>
-          <SkinnedDecisionGraph
-            value={graph}
-            onChange={setGraph}
-            customNodes={ready ? customNodes : []}
-            simulateHandler={runSimulate}
-          />
-        </div>
-        {trustOpen ? (
-          <div className='pg-split-trust'>
-            <button type='button' className='pg-split-trust-handle' onClick={toggleTrust} title='收起——画布满屏'>
-              ▼ Trust Chain · REPL
-            </button>
-            {/* key = 夹具 id：切换夹具时重挂载面板，默认输入随夹具走 */}
-            <Tabs defaultValue='trust' className='pg-monitor-tabs'>
-              <div style={{ padding: '8px 12px 0', maxHeight: 200, overflow: 'auto' }}>
-                <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 4 }}>函数目录树（点击工具插入画布）</div>
-                <CatalogTree schema={schema ?? []} onPick={(tool) => insertTool(tool)} />
-              </div>
-              <div style={{ padding: '8px 12px 0' }}>
-                <TabsList>
-                  <TabsTrigger value='trust'>Trust Chain</TabsTrigger>
-                  <TabsTrigger value='repl'>REPL</TabsTrigger>
-                </TabsList>
-              </div>
-              <TabsContent value='trust' className='pg-monitor-tabpane'>
-                <TrustChainPanel key={activeFixture} model={graph} defaultInput={currentFixture?.inputText} />
-              </TabsContent>
-              <TabsContent value='repl' className='pg-monitor-tabpane'>
-                <FunctionRepl
-                  schema={schema ?? []}
-                  execute={replExecute}
-                  initialToolName={replToolName}
-                  renderResult={replResultRenderer}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
-        ) : (
-          <button
-            type='button'
-            className='pg-split-trust-handle'
-            onClick={toggleTrust}
-            title='展开 Trust Chain / Run Monitor / REPL'
-          >
-            ▲ Trust Chain · REPL
-          </button>
-        )}
-      </div>
+      <SkinnedDecisionGraph
+        value={graph}
+        onChange={setGraph}
+        customNodes={ready ? customNodes : []}
+        simulateHandler={runSimulate}
+        panels={[
+          {
+            id: 'trust',
+            title: 'Trust Chain',
+            icon: <LinkIcon className='size-4' />,
+            renderPanel: () => (
+              // key = 夹具 id：切换夹具时重挂载面板，默认输入随夹具走
+              <TrustChainPanel key={activeFixture} model={graph} defaultInput={currentFixture?.inputText} />
+            ),
+          },
+          {
+            id: 'repl',
+            title: 'REPL',
+            icon: <SquareTerminalIcon className='size-4' />,
+            renderPanel: () => (
+              <FunctionRepl
+                schema={schema ?? []}
+                execute={replExecute}
+                initialToolName={replToolName}
+                renderResult={replResultRenderer}
+              />
+            ),
+          },
+        ]}
+      />
       <FunctionCatalog
         schema={schema}
         open={catalogOpen}
