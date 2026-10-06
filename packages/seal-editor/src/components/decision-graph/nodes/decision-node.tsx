@@ -1,4 +1,4 @@
-import { CloseOutlined, MoreOutlined } from '#icons';
+import { CloseOutlined, MoreOutlined, SuccessOutlined } from '#icons';
 import { Badge } from '#reui/badge';
 import { IconTile } from '#reui/icon-tile';
 import clsx from 'clsx';
@@ -120,9 +120,15 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
                   {h}
                 </div>
               ))}
+          {/* 执行结果徽标：Motion Icon 悬停微动效（group-hover/dn 缩放，克制） */}
           {status === 'error' && (
-            <div className='flex justify-center items-center rounded-2xl w-4 h-4 text-[10px] font-bold bg-[var(--destructive)] text-white'>
+            <div className='flex justify-center items-center rounded-2xl w-4 h-4 text-[10px] font-bold bg-[var(--destructive)] text-white transition-transform duration-150 group-hover/dn:scale-110'>
               <CloseOutlined />
+            </div>
+          )}
+          {status === 'success' && (
+            <div className='flex justify-center items-center rounded-2xl w-4 h-4 text-[10px] font-bold bg-[var(--color-success)] text-white transition-transform duration-150 group-hover/dn:scale-110'>
+              <SuccessOutlined />
             </div>
           )}
           <DiffIcon status={diffStatus} style={{ fontSize: 16 }} />
