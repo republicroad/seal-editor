@@ -130,6 +130,27 @@ CustomFunction 的参数值列 → TypedInput 替换（值编辑层升级）。
 - 推广位（待触发）：crypto 输入文本、current-date format、timeout——均按同款
   「保语义读态映射 + 信封直写」模式接入。
 
+### 字段选择器层级化（cascader 换装，2026-10-06）
+
+FieldPicker 从平铺 Select 换装 reui cascader（tree 模式 + searchScope=global
+全树搜索 + selectable=any 分支兼叶子），插入语义逐字不变（空框→reference
+信封 / 非空→拼表达式）。移植走查记录（badge/frame 移植惯例）：
+
+- **裁剪集**：core/async/context/lib/types/i18n/nav/item 八文件；裁
+  columns/footer/virtual（FieldPicker 单选无多选确认条、字段树小不需虚拟）；
+- **懒 chunk 隔离**：弹层组合件 `React.lazy` 独立 chunk（实测 77.5KB，
+  首开弹层才下载）——index.js 预算不动；Base UI Combobox 组合件走宿主
+  external（vite external regex 既有规则），零 kernel 包体；
+- **前置件**：scroll-area（Base UI 薄封装，external）/ spinner /
+  icon-placeholder 垫片（lucide 按名映射，vendored 调用点零改动）；
+- **双版本类型兼容**：ref 赋值处 `(ref as {current:unknown})` cast——
+  kernel @types/react 19（RefObject current 可写）与 appshell 18（readonly）
+  并存，vendored 代码须两侧同过；
+- **树构建**：flat 点路径 → CascaderNode，value = 整条路径（选中即回传免
+  反查）；分支与叶子同值并存（`customer` 与 `customer.tier` 都可选，
+  selectable=any 承载）；
+- CSS +12.6kB 为固有成本（Tailwind 全局类，懒加载隔不了）——预算随批对齐。
+
 ## 5 · 明确不做
 
 - 自动推断（用户写 `$.` 前缀自动切 expression——反模式，显式优于隐式）；

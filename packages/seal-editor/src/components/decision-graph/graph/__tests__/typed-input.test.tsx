@@ -128,7 +128,7 @@ describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', 
     expect(labels).toEqual(['Value', 'Expression']);
   });
 
-  it('字段选择器：fieldPaths 空时隐藏，非空时可见且点选写 reference', async () => {
+  it('字段选择器：fieldPaths 空时隐藏，非空可见；全树搜索命中点选写 reference', async () => {
     const onChange = vi.fn();
     const user = userEvent.setup({ pointerEventsCheck: 0 });
     const { rerender } = render(
@@ -147,10 +147,35 @@ describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', 
     const pickerTrigger = () =>
       screen.getByTestId('typed-input-field-picker').querySelector('[data-slot="select-trigger"]') as HTMLElement;
     await user.click(pickerTrigger());
-    await pickOption(user, 'customer.tier');
+
+    // 懒加载弹层（cascader chunk）就位 → 搜索框键入 → 全树命中（global）
+    const search = await waitFor(
+      () => {
+        const el = document.querySelector('[data-slot="cascader-nav"] input');
+        if (!el) {
+          throw new Error('popup not mounted yet');
+        }
+        return el as HTMLInputElement;
+      },
+      { timeout: 5000 },
+    );
+    await user.type(search, 'tier');
+    const hit = await waitFor(
+      () => {
+        const options = [...document.querySelectorAll('[role="treeitem"]')].filter((o) =>
+          o.textContent?.includes('tier'),
+        );
+        if (options.length === 0) {
+          throw new Error('no search hit yet');
+        }
+        return options.at(-1) as HTMLElement;
+      },
+      { timeout: 5000 },
+    );
+    await user.click(hit);
 
     // 空编辑框点选 → 整值绑定写 reference（保字段改名迁移精度）
-    expect(onChange).toHaveBeenLastCalledWith({ mode: 'reference', value: 'customer.tier' });
+    await waitFor(() => expect(onChange).toHaveBeenLastCalledWith({ mode: 'reference', value: 'customer.tier' }));
   });
 
   it('非空表达式点选字段 → 拼接写 expression（组合无整值语义）', async () => {
@@ -168,8 +193,17 @@ describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', 
     const pickerTrigger = () =>
       screen.getByTestId('typed-input-field-picker').querySelector('[data-slot="select-trigger"]') as HTMLElement;
     await user.click(pickerTrigger());
-    await pickOption(user, 'b');
-    expect(onChange).toHaveBeenLastCalledWith({ mode: 'expression', value: '$.a + b' });
+
+    // 根级叶子直接可见（tree 模式整棵展开），无需搜索
+    const hit = await waitFor(() => {
+      const options = [...document.querySelectorAll('[role="treeitem"]')].filter((o) => o.textContent === 'b');
+      if (options.length === 0) {
+        throw new Error('option b not mounted yet');
+      }
+      return options.at(-1) as HTMLElement;
+    });
+    await user.click(hit);
+    await waitFor(() => expect(onChange).toHaveBeenLastCalledWith({ mode: 'expression', value: '$.a + b' }));
   });
 
   it('reference 信封重开折叠进表达式编辑器（值回显）', () => {
@@ -191,5 +225,26 @@ describe('TypedInput（二分呈现：值 / 表达式，存储三态不变）', 
     expect(coerceToTypedValue(envelope)).toBe(envelope);
     // 数组不是信封（窄识别）
     expect(coerceToTypedValue(['fn'])).toEqual({ mode: 'literal', value: ['fn'] });
+  });
+});
+
+describe('buildFieldTree（flat 点路径 → cascader 树）', () => {
+  it('嵌套归组；分支与叶子同值并存；value 恒为整条路径', async () => {
+    const { buildFieldTree } = await import('../typed-input');
+    const tree = buildFieldTree(['customer.tier', 'customer', 'order.items.sku', 'order.id']);
+    expect(tree.map((n) => n.value)).toEqual(['customer', 'order']);
+    const customer = tree[0];
+    expect(customer.label).toBe('customer');
+    // 'customer' 本身是路径——分支兼叶子（selectable=any）
+    expect(customer.value).toBe('customer');
+    expect(customer.children?.map((n) => n.value)).toEqual(['customer.tier']);
+    const order = tree[1];
+    expect(order.children?.map((n) => n.value)).toEqual(['order.id', 'order.items']);
+    expect(order.children?.[1].children?.[0].value).toBe('order.items.sku');
+  });
+
+  it('空清单得空树', async () => {
+    const { buildFieldTree } = await import('../typed-input');
+    expect(buildFieldTree([])).toEqual([]);
   });
 });

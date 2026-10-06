@@ -1,8 +1,13 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import type { CascaderNode } from '#reui/cascader/cascader-types';
+import { ChevronDownIcon } from 'lucide-react';
+import React, { Suspense, lazy, useCallback, useMemo, useRef, useState } from 'react';
 
 import { useT } from '../../../theming/i18n';
 import { CodeEditorBase } from '../../code-editor/ce-base';
 import { Input, InputNumber, Select, Switch } from '../../primitives';
+
+// 弹层 chunk 懒加载：cascader 组合件只在首开字段弹层时下载（index.js 预算隔离）
+const FieldPickerPopup = lazy(() => import('#reui/cascader/field-picker-popup'));
 
 export type TypedValueMode = 'literal' | 'expression' | 'reference';
 
@@ -163,27 +168,80 @@ export const TypedInput: React.FC<TypedInputProps> = ({
   );
 };
 
-/** 字段选择器：点选插入裸路径。Select 短生命周期（key 重挂）——保证同项可连点。 */
+/** flat 点路径 → CascaderNode 树：value = 整条路径（选中即回传，免反查）；
+ * 中间节点同值收录（`customer` 与 `customer.tier` 并存时分支兼叶子）。 */
+export const buildFieldTree = (paths: string[]): CascaderNode[] => {
+  const root: CascaderNode[] = [];
+  for (const path of [...paths].sort()) {
+    const segments = path.split('.');
+    let level = root;
+    let prefix = '';
+    for (let i = 0; i < segments.length; i++) {
+      prefix = prefix ? `${prefix}.${segments[i]}` : segments[i];
+      let node = level.find((candidate) => candidate.value === prefix);
+      if (!node) {
+        node = { value: prefix, label: segments[i] };
+        level.push(node);
+      }
+      if (i < segments.length - 1) {
+        node.children ??= [];
+        level = node.children;
+      }
+    }
+  }
+  return root;
+};
+
+/** 触发钮外壳：懒加载前后同一外观（popup chunk 首开才下载） */
+const PickerTriggerShell: React.FC<{
+  label: string;
+  disabled?: boolean;
+  onClick?: () => void;
+}> = ({ label, disabled, onClick }) => (
+  <button
+    type='button'
+    data-slot='select-trigger'
+    disabled={disabled}
+    onClick={onClick}
+    className='flex h-8 w-full items-center gap-1 rounded-md border border-input bg-transparent px-2.5 text-xs outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50'
+  >
+    <span className='min-w-0 flex-1 truncate text-left opacity-70'>{label}</span>
+    <ChevronDownIcon className='size-3.5 shrink-0 opacity-60' />
+  </button>
+);
+
+/** 字段选择器（cascader 树 + 全树搜索，懒加载弹层 chunk）：点选插入裸路径。
+ * 语义与旧 Select 版一致——插入走 onPick（空框→reference 信封、非空→拼表达式）；
+ * 弹层选中后重挂外壳键，保证同项可连点。 */
 const FieldPicker: React.FC<{
   disabled?: boolean;
   fields: string[];
   onPick: (path: string) => void;
 }> = ({ disabled, fields, onPick }) => {
   const t = useT();
-  const [generation, setGeneration] = useState(0);
+  const [open, setOpen] = useState(false);
+  const nodes = useMemo(() => buildFieldTree(fields), [fields]);
+
   return (
     <div className='w-24 shrink-0' data-testid='typed-input-field-picker'>
-      <Select
-        key={generation}
-        size='small'
-        disabled={disabled}
-        placeholder={t('cf.field')}
-        onChange={(value: string) => {
-          onPick(value);
-          setGeneration((g) => g + 1);
-        }}
-        options={fields.map((field) => ({ value: field, label: field }))}
-      />
+      {open ? (
+        <Suspense fallback={<PickerTriggerShell label={t('cf.field')} disabled={disabled} />}>
+          <FieldPickerPopup
+            nodes={nodes}
+            disabled={disabled}
+            triggerClassName='flex h-8 w-full items-center gap-1 rounded-md border border-input bg-transparent px-2.5 text-xs outline-none transition-colors data-popup-open:ring-2 data-popup-open:ring-ring/50'
+            triggerLabel={t('cf.field')}
+            placeholder={t('cf.fieldInsert')}
+            onPick={onPick}
+            onClose={() => {
+              // 卸载弹层——下次点击重挂新生（选中态与搜索词自然清空），同项可连点
+              setOpen(false);
+            }}
+          />
+        </Suspense>
+      ) : (
+        <PickerTriggerShell label={t('cf.field')} disabled={disabled} onClick={() => setOpen(true)} />
+      )}
     </div>
   );
 };
