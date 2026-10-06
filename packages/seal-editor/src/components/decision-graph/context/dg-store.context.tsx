@@ -27,6 +27,19 @@ import type { Simulation } from '../simulator/simulation.types';
 import { applyCloseTab, applyOpenTab } from './dg-tab-strategy';
 import { createUndoRedoStack } from './undo-redo';
 
+/** Run 历史一笔（批 3 时间线）：snapshot 保整次结果，可回看旧输出 */
+export type SimulateRunEntry = {
+  id: string;
+  ts: string;
+  ok: boolean;
+  performance?: string;
+  error?: string;
+  snapshot: Simulation;
+};
+
+/** 栈深上限（防超大输出堆积） */
+export const SIMULATE_RUNS_LIMIT = 50;
+
 export type PanelType = {
   id: string;
   icon: React.ReactNode;
@@ -89,6 +102,9 @@ export type DecisionGraphStoreType = {
     onPanelsChange?: (val?: string) => void;
 
     simulate?: Simulation;
+
+    /** Run 历史（新运行头部追加） */
+    simulateRuns: SimulateRunEntry[];
 
     user: string;
 
@@ -157,6 +173,11 @@ export type DecisionGraphStoreType = {
 
     setActivePanel: (panel?: string) => void;
 
+    /** Run 历史追加（头部插入，裁到栈深） */
+    pushSimulateRun: (entry: SimulateRunEntry) => void;
+    /** 清空 Run 历史 */
+    clearSimulateRuns: () => void;
+
     setCompactMode: (mode: boolean) => void;
     toggleCompactMode: () => void;
 
@@ -219,6 +240,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       create<DecisionGraphStoreType['state']>()(() => ({
         id: undefined,
         simulate: undefined,
+        simulateRuns: [],
         decisionGraph: { nodes: [], edges: [] },
         hoveredEdgeId: null,
         openTabs: [],
@@ -694,6 +716,15 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       closeTab: (id: string, action?: string) => {
         const { openTabs, activeTab } = stateStore.getState();
         stateStore.setState(applyCloseTab(openTabs, activeTab, id, action));
+      },
+      pushSimulateRun: (entry) => {
+        const { simulateRuns } = stateStore.getState();
+        stateStore.setState({
+          simulateRuns: [entry, ...simulateRuns].slice(0, SIMULATE_RUNS_LIMIT),
+        });
+      },
+      clearSimulateRuns: () => {
+        stateStore.setState({ simulateRuns: [] });
       },
       setActivePanel: (panel?: string) => {
         const { panels } = stateStore.getState();

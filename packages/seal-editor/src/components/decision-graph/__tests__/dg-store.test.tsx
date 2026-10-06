@@ -258,3 +258,49 @@ describe('decision graph store actions', () => {
     expect(seen).toEqual([event]);
   });
 });
+
+describe('simulateRuns（批 3 Run 历史）', () => {
+  let context: ContextValue;
+
+  beforeEach(() => {
+    context = renderProvider();
+  });
+
+  it('pushSimulateRun 头部追加；clearSimulateRuns 清空', () => {
+    const entry = (id: string) => ({
+      id,
+      ts: '2026-10-06T00:00:0' + id + '.000Z',
+      ok: true,
+      performance: '1ms',
+      snapshot: {} as never,
+    });
+    act(() => {
+      context.actions.pushSimulateRun(entry('a'));
+      context.actions.pushSimulateRun(entry('b'));
+    });
+    const runs = context.stateStore.getState().simulateRuns;
+    expect(runs.map((r) => r.id)).toEqual(['b', 'a']);
+
+    act(() => {
+      context.actions.clearSimulateRuns();
+    });
+    expect(context.stateStore.getState().simulateRuns).toEqual([]);
+  });
+
+  it('栈深裁剪：超出 SIMULATE_RUNS_LIMIT 保留最新', () => {
+    act(() => {
+      for (let i = 0; i < 55; i++) {
+        context.actions.pushSimulateRun({
+          id: 'r' + i,
+          ts: '2026-10-06T00:00:00.000Z',
+          ok: true,
+          snapshot: {} as never,
+        });
+      }
+    });
+    const runs = context.stateStore.getState().simulateRuns;
+    expect(runs).toHaveLength(50);
+    expect(runs[0].id).toBe('r54');
+    expect(runs.at(-1)!.id).toBe('r5');
+  });
+});

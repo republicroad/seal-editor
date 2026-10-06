@@ -1,0 +1,79 @@
+import { Badge } from '#reui/badge';
+import {
+  Timeline,
+  TimelineContent,
+  TimelineHeader,
+  TimelineIndicator,
+  TimelineItem,
+  TimelineSeparator,
+  TimelineTitle,
+} from '#reui/timeline';
+import json5 from 'json5';
+import React, { useState } from 'react';
+
+import { useT } from '../../../theming/i18n';
+import type { SimulateRunEntry } from '../context/dg-store.context';
+
+/**
+ * Run 历史时间线（批 3）：新运行在头部，outcome 徽章 + 耗时；
+ * 点行展开该次的输出/错误 JSON（snapshot 回看，不重跑）。
+ */
+export const SimulateRunsPanel: React.FC<{
+  runs: SimulateRunEntry[];
+  emptyHint?: string;
+}> = ({ runs, emptyHint }) => {
+  const t = useT();
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  if (runs.length === 0) {
+    return <div className='p-6 text-center text-xs opacity-50'>{emptyHint ?? t('dg.simulation.runsEmpty')}</div>;
+  }
+
+  return (
+    <Timeline className='p-3'>
+      {runs.map((run, index) => {
+        const expanded = expandedId === run.id;
+        const detail = run.ok ? run.snapshot.result?.result : (run.snapshot.error ?? 'unknown error');
+        return (
+          <TimelineItem key={run.id} step={runs.length - index}>
+            <TimelineSeparator />
+            <TimelineIndicator
+              className={run.ok ? 'bg-[var(--color-success)] text-white' : 'bg-[var(--destructive)] text-white'}
+            />
+            <TimelineHeader>
+              <TimelineTitle className='text-xs font-normal'>
+                <button
+                  type='button'
+                  data-testid='simulate-run-row'
+                  className='flex w-full items-center gap-2 text-left'
+                  onClick={() => setExpandedId(expanded ? null : run.id)}
+                >
+                  <span className='font-mono opacity-70'>{new Date(run.ts).toLocaleTimeString('en-GB')}</span>
+                  <Badge
+                    size='xs'
+                    variant={run.ok ? 'outline' : 'destructive'}
+                    className={run.ok ? 'border-success/40 text-success' : undefined}
+                  >
+                    {run.ok ? 'OK' : 'ERR'}
+                  </Badge>
+                  {run.performance && <span className='font-mono text-[10px] opacity-60'>{run.performance}</span>}
+                  {run.error && <span className='truncate text-[10px] text-destructive'>{run.error}</span>}
+                </button>
+              </TimelineTitle>
+            </TimelineHeader>
+            {expanded && (
+              <TimelineContent className='mt-1'>
+                <pre
+                  data-testid='simulate-run-detail'
+                  className='max-h-64 overflow-auto rounded-md bg-muted/60 p-2 font-mono text-[10px] leading-relaxed'
+                >
+                  {json5.stringify(detail, undefined, 2)}
+                </pre>
+              </TimelineContent>
+            )}
+          </TimelineItem>
+        );
+      })}
+    </Timeline>
+  );
+};

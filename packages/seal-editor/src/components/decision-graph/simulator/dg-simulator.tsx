@@ -1,6 +1,6 @@
 import CrossIcon from '#reui/icons/animated/outline/cross';
 import json5 from 'json5';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { P, match } from 'ts-pattern';
 
@@ -9,7 +9,10 @@ import { usePersistentState } from '../../../helpers/use-persistent-state';
 import { useT } from '../../../theming/i18n';
 import { Button, Tabs, Tooltip } from '../../primitives';
 import { useDecisionGraphRaw, useDecisionGraphState } from '../context/dg-store.context';
+import type { SimulateRunEntry } from '../context/dg-store.context';
 import { NodeKind } from '../nodes/specifications/specification-types';
+import { SimulateRunsPanel } from './simulate-runs-panel';
+import type { Simulation } from './simulation.types';
 import { SimulatorEditor } from './simulator-editor';
 import { SimulatorNodesPanel } from './simulator-nodes-panel';
 import { SimulatorRequestPanel, type SimulatorRequestPanelProps } from './simulator-request-panel';
@@ -18,6 +21,7 @@ enum SimulationSegment {
   Output = 'Output',
   Input = 'Input',
   Trace = 'Trace',
+  Runs = 'Runs',
 }
 
 export type GraphSimulatorProps = {
@@ -62,6 +66,36 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
   }));
 
   const [selectedNode, setSelectedNode] = useState<string>('graph');
+  const simulateRuns = useDecisionGraphState((state) => state.simulateRuns);
+
+  // Run 历史累积（批 3）：simulate 引用变化 = 一次新运行——压栈 + sonner 桥事件
+  const lastSimulateRef = useRef<Simulation | undefined>(undefined);
+  useEffect(() => {
+    if (simulate === lastSimulateRef.current) {
+      return;
+    }
+    lastSimulateRef.current = simulate;
+    if (!simulate) {
+      return;
+    }
+    const ok = !!simulate.result;
+    const entry: SimulateRunEntry = {
+      id: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : 'run-' + Date.now(),
+      ts: new Date().toISOString(),
+      ok,
+      performance: simulate.result?.performance,
+      error: simulate.error
+        ? [simulate.error.code, simulate.error.title].filter(Boolean).join(': ') || 'simulation error'
+        : undefined,
+      snapshot: simulate,
+    };
+    actions.pushSimulateRun(entry);
+    window.dispatchEvent(
+      new CustomEvent('seal:simulation-finished', {
+        detail: { ok, performance: entry.performance, error: entry.error },
+      }),
+    );
+  }, [simulate, actions]);
 
   return (
     <div className='flex h-full w-full flex-col'>
@@ -121,24 +155,30 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
             />
           </div>
           <div className={'min-h-0 flex-1 overflow-y-auto'}>
-            <SimulatorEditor
-              readOnly
-              value={match(simulate)
-                .with({ result: P._ }, ({ result }) =>
-                  match(selectedNode)
-                    .with('graph', () =>
-                      displaySegment(
-                        {
-                          traceData: result?.trace,
-                          output: result?.result,
-                        },
-                        segment ?? SimulationSegment.Output,
+            {segment === SimulationSegment.Runs ? (
+              <SimulateRunsPanel runs={simulateRuns} />
+            ) : (
+              <SimulatorEditor
+                readOnly
+                value={match(simulate)
+                  .with({ result: P._ }, ({ result }) =>
+                    match(selectedNode)
+                      .with('graph', () =>
+                        displaySegment(
+                          {
+                            traceData: result?.trace,
+                            output: result?.result,
+                          },
+                          segment ?? SimulationSegment.Output,
+                        ),
+                      )
+                      .otherwise(() =>
+                        displaySegment(result?.trace[selectedNode], segment ?? SimulationSegment.Output),
                       ),
-                    )
-                    .otherwise(() => displaySegment(result?.trace[selectedNode], segment ?? SimulationSegment.Output)),
-                )
-                .otherwise(() => '')}
-            />
+                  )
+                  .otherwise(() => '')}
+              />
+            )}
           </div>
         </Panel>
       </PanelGroup>
