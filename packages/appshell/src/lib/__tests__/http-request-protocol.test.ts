@@ -51,7 +51,7 @@ describe('normalizeMethod', () => {
 });
 
 describe('parseHttpRequest / toHttpRequestValue 具名 kwargs', () => {
-  test('双读：具名形回填全部字段', () => {
+  test('双读：具名形回填全部字段；旧裸串 url 保语义映射 expression', () => {
     const fields = parseHttpRequest({
       id: 'n1',
       key: 'k1',
@@ -70,6 +70,7 @@ describe('parseHttpRequest / toHttpRequestValue 具名 kwargs', () => {
       },
     });
     expect(fields.urlExpr).toBe('urlExpr');
+    expect(fields.urlTv).toEqual({ mode: 'expression', value: 'urlExpr' });
     expect(fields.method).toBe('POST');
     expect(fields.headersExpr).toBe('{ a: 1 }');
     expect(fields.paramsExpr).toBe('{ p: 1 }');
@@ -78,7 +79,7 @@ describe('parseHttpRequest / toHttpRequestValue 具名 kwargs', () => {
     expect(fields.authExpr).toBe('{ type: "basic" }');
   });
 
-  test('可选尾参缺省回退空串', () => {
+  test('可选尾参缺省回退空串；缺 url 键 = literal 空串', () => {
     const fields = parseHttpRequest({
       id: 'n1',
       key: 'k1',
@@ -87,18 +88,33 @@ describe('parseHttpRequest / toHttpRequestValue 具名 kwargs', () => {
     expect(fields.method).toBe('GET');
     expect(fields.paramsExpr).toBe('');
     expect(fields.authExpr).toBe('');
+    expect(parseHttpRequest({ value: { $call: 'http_request', kwargs: {} } } as never).urlTv).toEqual({
+      mode: 'literal',
+      value: '',
+    });
   });
 
-  test('写器：尾空省键（可选语义由具名承载，无位置占位）；method = literal 信封', () => {
-    const base = { urlExpr: 'u', method: 'GET' as const, headersExpr: '', bodyExpr: '' };
+  test('写器：尾空省键（可选语义由具名承载，无位置占位）；url/method = 信封', () => {
+    const base = {
+      urlTv: { mode: 'literal', value: 'u' } as const,
+      urlExpr: 'u',
+      method: 'GET' as const,
+      headersExpr: '',
+      bodyExpr: '',
+    };
     expect(toHttpRequestValue({ ...base, paramsExpr: '', timeoutExpr: '', retryExpr: '', authExpr: '' })).toEqual({
       $call: 'http_request',
-      kwargs: { url: 'u', method: { mode: 'literal', value: 'GET' }, headers: '', body: '' },
+      kwargs: {
+        url: { mode: 'literal', value: 'u' },
+        method: { mode: 'literal', value: 'GET' },
+        headers: '',
+        body: '',
+      },
     });
     expect(
       (toHttpRequestValue({ ...base, paramsExpr: '', timeoutExpr: '5000', retryExpr: '', authExpr: '' }) as any).kwargs,
     ).toEqual({
-      url: 'u',
+      url: { mode: 'literal', value: 'u' },
       method: { mode: 'literal', value: 'GET' },
       headers: '',
       body: '',
@@ -115,7 +131,7 @@ describe('parseHttpRequest / toHttpRequestValue 具名 kwargs', () => {
         }) as any
       ).kwargs,
     ).toEqual({
-      url: 'u',
+      url: { mode: 'literal', value: 'u' },
       method: { mode: 'literal', value: 'GET' },
       headers: '',
       body: '',
@@ -125,11 +141,26 @@ describe('parseHttpRequest / toHttpRequestValue 具名 kwargs', () => {
     });
   });
 
-  test('parse→serialize 幂等（具名域稳定）', () => {
+  test('「值」模式写裸 URL 不加引号（literal 原样绑定，引号仪式退役）', () => {
+    const value = toHttpRequestValue({
+      urlTv: { mode: 'literal', value: 'https://api.example.com/users' },
+      urlExpr: 'https://api.example.com/users',
+      method: 'GET',
+      headersExpr: '',
+      bodyExpr: '',
+      paramsExpr: '',
+      timeoutExpr: '',
+      retryExpr: '',
+      authExpr: '',
+    });
+    expect((value as any).kwargs.url).toEqual({ mode: 'literal', value: 'https://api.example.com/users' });
+  });
+
+  test('parse→serialize 幂等（具名域稳定，url 信封全态保真）', () => {
     const named = {
       $call: 'http_request',
       kwargs: {
-        url: 'u',
+        url: { mode: 'expression', value: 'u' },
         method: { mode: 'literal', value: 'DELETE' },
         headers: '{ h: 1 }',
         body: 'body',
@@ -223,8 +254,9 @@ describe('parseAuthState / serializeAuthExpr', () => {
 });
 
 describe('parseHttpRequest / toHttpRequestValue 规范形（具名 kwargs + literal 信封）', () => {
-  test('写器产出具名 kwargs（method = literal 信封；空尾参省键）', () => {
+  test('写器产出具名 kwargs（url/method = 信封；空尾参省键）', () => {
     const value = toHttpRequestValue({
+      urlTv: { mode: 'expression', value: '$.endpoint' },
       urlExpr: '$.endpoint',
       method: 'POST',
       headersExpr: '{ "X": "1" }',
@@ -237,7 +269,7 @@ describe('parseHttpRequest / toHttpRequestValue 规范形（具名 kwargs + lite
     expect(value).toEqual({
       $call: 'http_request',
       kwargs: {
-        url: '$.endpoint',
+        url: { mode: 'expression', value: '$.endpoint' },
         method: { mode: 'literal', value: 'POST' },
         headers: '{ "X": "1" }',
         body: '$.body',
@@ -245,7 +277,7 @@ describe('parseHttpRequest / toHttpRequestValue 规范形（具名 kwargs + lite
     });
   });
 
-  test('双读：具名形回填字段；非字符串参数值解信封', () => {
+  test('双读：具名形回填字段；url 信封全态保真（expression/literal/reference）', () => {
     const fields = parseHttpRequest({
       id: 'n1',
       key: 'k1',
@@ -259,6 +291,7 @@ describe('parseHttpRequest / toHttpRequestValue 规范形（具名 kwargs + lite
       },
     });
     expect(fields).toEqual({
+      urlTv: { mode: 'expression', value: '$.endpoint' },
       urlExpr: '$.endpoint',
       method: 'GET',
       headersExpr: '',
@@ -268,5 +301,13 @@ describe('parseHttpRequest / toHttpRequestValue 规范形（具名 kwargs + lite
       retryExpr: '',
       authExpr: '',
     });
+    const literalUrl = parseHttpRequest({
+      value: { $call: 'http_request', kwargs: { url: { mode: 'literal', value: 'https://x' } } },
+    } as never);
+    expect(literalUrl.urlTv).toEqual({ mode: 'literal', value: 'https://x' });
+    const referenceUrl = parseHttpRequest({
+      value: { $call: 'http_request', kwargs: { url: { mode: 'reference', value: 'input.apiUrl' } } },
+    } as never);
+    expect(referenceUrl.urlTv).toEqual({ mode: 'reference', value: 'input.apiUrl' });
   });
 });

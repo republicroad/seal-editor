@@ -1,3 +1,5 @@
+import type { TypedValue } from '@republicroad/seal-editor';
+
 import type { CustomNodeExpression } from './custom-node-types';
 
 export const UDF_FUNC = 'http_request';
@@ -6,6 +8,9 @@ export const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'O
 export type HttpMethod = (typeof HTTP_METHODS)[number];
 
 export interface HttpRequestFields {
+  /** URL 万能值（值/表达式二分，ADR-016 信封全态） */
+  urlTv: TypedValue;
+  /** URL 展示串（urlTv.value 投影；引号仪式串由展示层 unquote） */
   urlExpr: string;
   method: HttpMethod;
   headersExpr: string;
@@ -211,6 +216,18 @@ export const parseHttpRequest = (expr?: CustomNodeExpression): HttpRequestFields
   // 缺省尾参回退默认（可选语义由具名天然承载，无位置尾裁）
   const kwargs =
     expr && isRecord(expr.value) && isRecord(expr.value.kwargs) ? (expr.value.kwargs as Record<string, unknown>) : {};
+  // URL 万能值读态（TypedInput 试点）：信封全态保真（literal/expression/reference）；
+  // 旧裸串执行面走表达式求值路径——保语义映射为 expression（「值」模式即脱离引号仪式）
+  const readTv = (key: string): TypedValue => {
+    const v = kwargs[key];
+    if (v === null || v === undefined) {
+      return { mode: 'literal', value: '' };
+    }
+    if (typeof v === 'object' && !Array.isArray(v) && 'mode' in v && 'value' in v) {
+      return v as TypedValue;
+    }
+    return { mode: 'expression', value: String(v) };
+  };
   const readExpr = (key: string): string => {
     const v = kwargs[key];
     if (v === null || v === undefined) return '';
@@ -219,8 +236,10 @@ export const parseHttpRequest = (expr?: CustomNodeExpression): HttpRequestFields
     }
     return String(v);
   };
+  const urlTv = readTv('url');
   return {
-    urlExpr: readExpr('url'),
+    urlTv,
+    urlExpr: String(urlTv.value ?? ''),
     method: normalizeMethod(readExpr('method')),
     headersExpr: readExpr('headers'),
     bodyExpr: readExpr('body'),
@@ -233,12 +252,14 @@ export const parseHttpRequest = (expr?: CustomNodeExpression): HttpRequestFields
 
 /**
  * 规范形写器（ADR-015/016）：具名 kwargs + literal 信封（method 引号仪式退役）。
+ * URL 走 TypedInput 万能值——urlTv 信封全态直写（值模式 = literal 原样绑定，
+ * 「值」框内任何内容不求值，引号仪式退役）。
  * 可选尾参（params/timeout/retry/auth）空则省键——具名形态无位置占位需求；
  * maxBytes 引擎默认，UI 不写。
  */
 export const toHttpRequestValue = (fields: HttpRequestFields): CustomNodeExpression['value'] => {
-  const kwargs: Record<string, string | { mode: 'literal'; value: string }> = {
-    url: fields.urlExpr,
+  const kwargs: Record<string, string | TypedValue> = {
+    url: fields.urlTv,
     method: { mode: 'literal', value: fields.method },
     headers: fields.headersExpr,
     body: fields.bodyExpr,

@@ -3,12 +3,14 @@ import {
   GraphNode,
   type MinimalNodeProps,
   type MinimalNodeSpecification,
+  TypedInput,
+  getRequestDefinitions,
   jsonSchemaToVariableType,
   useDecisionGraphActions,
   useDecisionGraphState,
 } from '@republicroad/seal-editor';
 import { GlobeIcon } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { createSpecNode } from '../../lib/custom-node-registry';
 import { uid } from '../../lib/custom-node-registry';
@@ -31,6 +33,13 @@ import { Alert, AlertDescription } from '../reui/alert';
 import { Badge } from '../reui/badge';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import {
+  NumberField,
+  NumberFieldDecrement,
+  NumberFieldGroup,
+  NumberFieldIncrement,
+  NumberFieldInput,
+} from '../ui/number-field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import css from './custom-node.module.css';
@@ -219,6 +228,12 @@ export const HttpRequestTab: React.FC<{ id: string }> = ({ id }) => {
   const graphActions = useDecisionGraphActions();
   const config = useNodeConfig(id);
   const output = useSimulateOutput(id);
+  // 引用模式字段树：首个输入节点 InputContract/Schema 投影（TypedInput 字段选择器；
+  // tab-custom-function-table 同款读法）
+  const inputContent = useDecisionGraphState(
+    ({ decisionGraph }) => (decisionGraph?.nodes ?? []).find((node) => node?.type === 'inputNode')?.content,
+  );
+  const fieldPaths = useMemo(() => getRequestDefinitions(inputContent as never).map((def) => def.path), [inputContent]);
 
   const expressions: CustomNodeExpression[] = config?.expressions ?? [];
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -232,13 +247,8 @@ export const HttpRequestTab: React.FC<{ id: string }> = ({ id }) => {
 
   const persistConfig = (next: CustomNodeExpression[]) => {
     graphActions.updateNode(id, (draft) => {
-      draft.content.config = {
-        locked: config?.locked,
-        inputField: config?.inputField ?? null,
-        outputPath: config?.outputPath ?? null,
-        passThrough: config?.passThrough ?? true,
-        expressions: next,
-      };
+      // immer 局部变更：只写 expressions（键主权——不触碰 config 其余键）
+      draft.content.config.expressions = next;
       return draft;
     });
   };
@@ -259,6 +269,7 @@ export const HttpRequestTab: React.FC<{ id: string }> = ({ id }) => {
         id: uid(),
         key: nextExprKey(expressions),
         value: toHttpRequestValue({
+          urlTv: { mode: 'literal', value: '' },
           urlExpr: '',
           method: 'GET',
           headersExpr: '',
@@ -355,12 +366,17 @@ export const HttpRequestTab: React.FC<{ id: string }> = ({ id }) => {
                       ))}
                     </SelectContent>
                   </Select>
-                  <CodeEditor
-                    value={fields.urlExpr}
-                    onChange={(value) => persistFields({ urlExpr: value })}
-                    placeholder={'"https://api.example.com/users" 或 input.apiUrl'}
-                    maxRows={1}
-                  />
+                  {/* URL 万能值（TypedInput 试点）：值模式 = literal 原样绑定，
+                      裸 URL 不再需要引号仪式；表达式模式保留 $. 动态取值 */}
+                  <div className='min-w-0 flex-1'>
+                    <TypedInput
+                      parameterType='string'
+                      value={fields.urlTv}
+                      onChange={(tv) => persistFields({ urlTv: tv })}
+                      placeholder='https://api.example.com/users'
+                      fieldPaths={fieldPaths}
+                    />
+                  </div>
                 </div>
 
                 <Tabs defaultValue='headers' className='gap-2'>
@@ -424,21 +440,35 @@ export const HttpRequestTab: React.FC<{ id: string }> = ({ id }) => {
                   <TabsContent value='advanced' className='flex flex-col gap-3'>
                     <div className='flex items-center gap-2'>
                       <span className='flex-none text-xs text-muted-foreground'>超时(ms)</span>
-                      <Input
-                        className='h-8 w-28 text-xs'
-                        inputMode='numeric'
-                        placeholder='10000'
-                        value={fields.timeoutExpr}
-                        onChange={(event) => persistFields({ timeoutExpr: event.target.value.replace(/[^\d]/g, '') })}
-                      />
+                      <NumberField
+                        size='sm'
+                        className='w-28'
+                        min={100}
+                        max={60000}
+                        value={fields.timeoutExpr.trim() === '' ? null : Number(fields.timeoutExpr)}
+                        onValueChange={(value) => persistFields({ timeoutExpr: value == null ? '' : String(value) })}
+                      >
+                        <NumberFieldGroup className='h-8'>
+                          <NumberFieldDecrement />
+                          <NumberFieldInput className='text-xs' placeholder='10000' aria-label='超时毫秒数' />
+                          <NumberFieldIncrement />
+                        </NumberFieldGroup>
+                      </NumberField>
                       <span className='flex-none text-xs text-muted-foreground'>重试(次)</span>
-                      <Input
-                        className='h-8 w-20 text-xs'
-                        inputMode='numeric'
-                        placeholder='0'
-                        value={fields.retryExpr}
-                        onChange={(event) => persistFields({ retryExpr: event.target.value.replace(/[^\d]/g, '') })}
-                      />
+                      <NumberField
+                        size='sm'
+                        className='w-20'
+                        min={0}
+                        max={5}
+                        value={fields.retryExpr.trim() === '' ? null : Number(fields.retryExpr)}
+                        onValueChange={(value) => persistFields({ retryExpr: value == null ? '' : String(value) })}
+                      >
+                        <NumberFieldGroup className='h-8'>
+                          <NumberFieldDecrement />
+                          <NumberFieldInput className='text-xs' placeholder='0' aria-label='重试次数' />
+                          <NumberFieldIncrement />
+                        </NumberFieldGroup>
+                      </NumberField>
                     </div>
                     <p className='text-xs text-muted-foreground'>
                       超时范围 100–60000ms，默认 10000；重试上限 5 次，仅网络异常/超时/5xx/429 触发并指数退避。
@@ -564,6 +594,7 @@ export const httpRequestNode = createSpecNode({
           id: uid(),
           key: 'result',
           value: toHttpRequestValue({
+            urlTv: { mode: 'literal', value: '' },
             urlExpr: '',
             method: 'GET',
             headersExpr: '',
