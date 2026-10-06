@@ -1,18 +1,24 @@
+import type { CascaderNode } from '#reui/cascader/cascader-types';
 import { type Variable } from '@gorules/zen-engine-wasm';
-import React, { useEffect, useRef, useState } from 'react';
+import { ChevronDownIcon } from 'lucide-react';
+import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 
+import { variableTypeToPaths } from '../../../helpers/components';
 import { COLUMN_FIELD_TYPE_OPTIONS, type ColumnEnum, type ColumnFieldType } from '../../../helpers/schema';
 import { useT } from '../../../theming/i18n';
 import { AutosizeTextArea } from '../../autosize-text-area';
 import type { CodeEditorRef } from '../../code-editor';
 import { CodeEditor } from '../../code-editor';
 import { CodeEditorPreview } from '../../code-editor/ce-preview';
+import { buildFieldTree } from '../../decision-graph/graph/typed-input';
 import type { InputRef } from '../../primitives';
 import { Checkbox, Input, Select } from '../../primitives';
 import { useDecisionTableState } from '../context/dt-store.context';
 import { ENUM_MODE_OPTIONS, type EnumMode, getEnumMode, parseEnumString, serializeEnumValues } from './enum-utils';
 import { FieldEditPopover } from './field-edit-popover';
 import { FieldTypeTags } from './field-type-tags';
+
+const FieldPickerPopup = lazy(() => import('#reui/cascader/field-picker-popup'));
 
 const FieldLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <span className='mb-1.5 block text-xs font-medium text-muted-foreground'>{children}</span>
@@ -48,6 +54,10 @@ export const InputFieldEdit: React.FC<InputFieldEditProps> = ({
   const dictionaries = useDecisionTableState((s) => s.dictionaries) ?? {};
   const uiMode = useDecisionTableState((s) => s.mode);
   const showAdvanced = uiMode === 'business';
+  const inputVariableType = useDecisionTableState((s) => s.inputVariableType);
+  const fieldPaths = useMemo(() => variableTypeToPaths(inputVariableType), [inputVariableType]);
+  const fieldNodes: CascaderNode[] = useMemo(() => buildFieldTree(fieldPaths), [fieldPaths]);
+  const [browseOpen, setBrowseOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const t = useT();
   const [innerName, setInnerName] = useState('');
@@ -130,6 +140,39 @@ export const InputFieldEdit: React.FC<InputFieldEditProps> = ({
       mode={mode}
       trigger={trigger}
     >
+      {fieldNodes.length > 0 && (
+        <div className='space-y-1.5' data-testid='dt-field-browse'>
+          <FieldLabel>{t('dt.field.browse')}</FieldLabel>
+          {browseOpen ? (
+            <Suspense fallback={null}>
+              <FieldPickerPopup
+                nodes={fieldNodes}
+                disabled={disabled}
+                triggerClassName='flex h-8 w-full items-center gap-1 rounded-md border border-input bg-transparent px-2.5 text-xs outline-none transition-colors data-popup-open:ring-2 data-popup-open:ring-ring/50'
+                triggerLabel={t('dt.field.browse')}
+                placeholder={t('dt.field.browse')}
+                onPick={(path) => {
+                  // 字段绑定 = 单一路径：点选即替换（非表达式拼接）
+                  setInnerValue(path);
+                  setBrowseOpen(false);
+                }}
+                onClose={() => setBrowseOpen(false)}
+              />
+            </Suspense>
+          ) : (
+            <button
+              type='button'
+              data-testid='dt-field-browse-trigger'
+              disabled={disabled}
+              onClick={() => setBrowseOpen(true)}
+              className='flex h-8 w-full items-center gap-1 rounded-md border border-dashed border-input bg-transparent px-2.5 text-xs text-muted-foreground outline-none transition-colors hover:bg-accent/50 disabled:cursor-not-allowed disabled:opacity-50'
+            >
+              <span className='min-w-0 flex-1 truncate text-left'>{t('dt.field.browse')}</span>
+              <ChevronDownIcon className='size-3.5 shrink-0 opacity-60' />
+            </button>
+          )}
+        </div>
+      )}
       <div className='space-y-1.5'>
         <FieldLabel>Input Field</FieldLabel>
         <CodeEditor

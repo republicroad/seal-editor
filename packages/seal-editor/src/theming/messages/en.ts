@@ -42,6 +42,7 @@ export const en = {
   'dt.field.output.add': 'Add Output',
   'dt.field.output.label': 'Output Field',
   'dt.field.label': 'Field label',
+  'dt.field.browse': 'Browse fields',
   'dt.field.name': 'Name',
   'dt.field.type': 'Field Type',
   'dt.field.outputType': 'Output Type',

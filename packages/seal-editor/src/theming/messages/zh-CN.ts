@@ -35,6 +35,7 @@ export const zhCN: Record<string, string> = {
   'dt.field.output.add': '添加输出',
   'dt.field.output.label': '输出字段',
   'dt.field.label': '字段标签',
+  'dt.field.browse': '浏览字段',
   'dt.field.name': '名称',
   'dt.field.type': '字段类型',
   'dt.field.outputType': '输出类型',
