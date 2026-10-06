@@ -101,6 +101,8 @@ export const en = {
   'dg.toolbar.downloadExcel': 'Download Excel',
   'dg.toolbar.searchNodes': 'Search nodes',
   'dg.toolbar.closeClose': 'Close panel',
+  'dg.simulation.toastOk': 'Simulation finished',
+  'dg.simulation.toastErr': 'Simulation failed',
   'dg.simulation.runsEmpty': 'No runs yet — run a simulation to build history',
   'dg.simulation.runsClear': 'Clear history',
   'dg.toolbar.schema': 'JSON Schema',

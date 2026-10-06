@@ -8,6 +8,7 @@ import {
   type Simulation,
   type ToolbarItem,
 } from '@republicroad/seal-editor';
+import { useT } from '@republicroad/seal-editor';
 import { FlaskConicalIcon, PanelRightIcon } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -92,6 +93,7 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
 > = React.forwardRef<DecisionGraphRef, SkinnedDecisionGraphProps>((props, ref) => {
   const { activeSkin } = useTheme();
   const { simulateHandler, headerSlots, autoPersist, simulationFooter, customFunctions, ...restProps } = props;
+  const t = useT();
   const shell = useOptionalEditorShell();
   const internalRef = useRef<DecisionGraphRef | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -235,9 +237,9 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
     const handler = (event: Event) => {
       const detail = (event as CustomEvent<{ ok: boolean; performance?: string; error?: string }>).detail;
       if (detail?.ok) {
-        toast.success('Simulation finished' + (detail.performance ? ' · ' + detail.performance : ''));
+        toast.success(t('dg.simulation.toastOk') + (detail.performance ? ' · ' + detail.performance : ''));
       } else {
-        toast.error('Simulation failed' + (detail?.error ? ' · ' + detail.error : ''));
+        toast.error(t('dg.simulation.toastErr') + (detail?.error ? ' · ' + detail.error : ''));
       }
     };
     window.addEventListener('seal:simulation-finished', handler);

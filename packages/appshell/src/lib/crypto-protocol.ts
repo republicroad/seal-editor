@@ -1,3 +1,5 @@
+import type { TypedValue } from '@republicroad/seal-editor';
+
 import type { CustomNodeExpression } from './custom-node-types';
 
 export const CRYPTO_UDF = 'crypto';
@@ -9,6 +11,9 @@ export const CRYPTO_ENCODINGS = ['hex', 'base64', 'base64url'] as const;
 export type CryptoEncoding = (typeof CRYPTO_ENCODINGS)[number];
 
 export interface CryptoFields {
+  /** 待摘要内容万能值（值/表达式二分，ADR-016 信封全态） */
+  inputTv: TypedValue;
+  /** 输入展示串（inputTv.value 投影） */
   inputExpr: string;
   algorithm: CryptoAlgorithm;
   secretExpr: string;
@@ -55,8 +60,20 @@ export const parseCrypto = (expr?: CustomNodeExpression): CryptoFields => {
     }
     return String(v);
   };
+  const readTv = (key: string): TypedValue => {
+    const v = kwargs[key];
+    if (v === null || v === undefined) {
+      return { mode: 'literal', value: '' };
+    }
+    if (typeof v === 'object' && !Array.isArray(v) && 'mode' in v && 'value' in v) {
+      return v as TypedValue;
+    }
+    return { mode: 'expression', value: String(v) };
+  };
+  const inputTv = readTv('input');
   return {
-    inputExpr: readExpr('input'),
+    inputTv,
+    inputExpr: String(inputTv.value ?? ''),
     algorithm: normalizeAlgorithm(readExpr('algorithm')),
     secretExpr: readExpr('secret'),
     encoding: normalizeEncoding(readExpr('encoding')),
@@ -70,8 +87,8 @@ export const parseCrypto = (expr?: CustomNodeExpression): CryptoFields => {
  * upper 由 UI 布尔开关产出 'true'/'' 表达式串。
  */
 export const toCryptoValue = (fields: CryptoFields): CustomNodeExpression['value'] => {
-  const kwargs: Record<string, string | { mode: 'literal'; value: string }> = {
-    input: fields.inputExpr,
+  const kwargs: Record<string, string | TypedValue> = {
+    input: fields.inputTv,
     algorithm: { mode: 'literal', value: fields.algorithm },
   };
   if (fields.secretExpr.trim()) kwargs.secret = fields.secretExpr;

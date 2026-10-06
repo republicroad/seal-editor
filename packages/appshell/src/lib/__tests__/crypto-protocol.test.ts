@@ -28,21 +28,27 @@ describe('parseCrypto / toCryptoValue 规范形（具名 kwargs + literal 信封
   const lit = (value: string) => ({ mode: 'literal', value });
 
   test('写器：尾空省键（可选语义由具名承载，无位置占位）', () => {
-    const base = { inputExpr: 'x', algorithm: 'sha256' as const, secretExpr: '', encoding: 'hex' as const };
+    const base = {
+      inputTv: { mode: 'expression' as const, value: 'x' },
+      inputExpr: 'x',
+      algorithm: 'sha256' as const,
+      secretExpr: '',
+      encoding: 'hex' as const,
+    };
     expect(toCryptoValue({ ...base, upperExpr: '' })).toEqual({
       $call: 'crypto',
-      kwargs: { input: 'x', algorithm: lit('sha256'), encoding: lit('hex') },
+      kwargs: { input: { mode: 'expression', value: 'x' }, algorithm: lit('sha256'), encoding: lit('hex') },
     });
     expect(
       (toCryptoValue({ ...base, secretExpr: 'env.KEY', encoding: 'base64url', upperExpr: '' }) as any).kwargs,
     ).toEqual({
-      input: 'x',
+      input: { mode: 'expression', value: 'x' },
       algorithm: lit('sha256'),
       secret: 'env.KEY',
       encoding: lit('base64url'),
     });
     expect((toCryptoValue({ ...base, secretExpr: '', encoding: 'hex', upperExpr: 'true' }) as any).kwargs).toEqual({
-      input: 'x',
+      input: { mode: 'expression', value: 'x' },
       algorithm: lit('sha256'),
       encoding: lit('hex'),
       upper: 'true',
@@ -51,6 +57,7 @@ describe('parseCrypto / toCryptoValue 规范形（具名 kwargs + literal 信封
 
   test('写器：algorithm/encoding 恒 literal 信封（引号仪式退役）', () => {
     const value = toCryptoValue({
+      inputTv: { mode: 'expression' as const, value: '$.text' },
       inputExpr: '$.text',
       algorithm: 'sha256',
       secretExpr: '',
@@ -64,7 +71,13 @@ describe('parseCrypto / toCryptoValue 规范形（具名 kwargs + literal 信封
   test('parse→serialize 幂等（具名域稳定）', () => {
     const named = {
       $call: 'crypto',
-      kwargs: { input: 'input.raw', algorithm: lit('sha1'), secret: '"k"', encoding: lit('base64'), upper: 'true' },
+      kwargs: {
+        input: { mode: 'expression', value: 'input.raw' },
+        algorithm: lit('sha1'),
+        secret: '"k"',
+        encoding: lit('base64'),
+        upper: 'true',
+      },
     };
     expect(toCryptoValue(parseCrypto({ value: named } as never))).toEqual(named);
   });
@@ -72,7 +85,7 @@ describe('parseCrypto / toCryptoValue 规范形（具名 kwargs + literal 信封
   test('空表达式安全解析', () => {
     expect(toCryptoValue(parseCrypto(undefined))).toEqual({
       $call: 'crypto',
-      kwargs: { input: '', algorithm: lit('sha256'), encoding: lit('hex') },
+      kwargs: { input: { mode: 'literal', value: '' }, algorithm: lit('sha256'), encoding: lit('hex') },
     });
   });
 });
@@ -86,6 +99,7 @@ describe('deriveCryptoMode / applyCryptoMode', () => {
 
   test('切回普通摘要强制清空密钥槽位', () => {
     const hmacFields = {
+      inputTv: { mode: 'expression' as const, value: 'x' },
       inputExpr: 'x',
       algorithm: 'sha256' as const,
       secretExpr: 'env.KEY',
@@ -108,7 +122,7 @@ describe('deriveCryptoMode / applyCryptoMode', () => {
     expect(deriveCryptoMode(fields.secretExpr)).toBe('hmac');
     const cleared = applyCryptoMode(fields, 'plain');
     expect((toCryptoValue(cleared) as any).kwargs).toEqual({
-      input: 'x',
+      input: { mode: 'expression', value: 'x' },
       algorithm: { mode: 'literal', value: 'md5' },
       encoding: { mode: 'literal', value: 'hex' },
     });
@@ -118,6 +132,7 @@ describe('deriveCryptoMode / applyCryptoMode', () => {
 describe('parseCrypto / toCryptoValue 规范形（具名 kwargs + literal 信封）', () => {
   test('写器产出具名 kwargs（algorithm/encoding = literal 信封；空尾参省键）', () => {
     const value = toCryptoValue({
+      inputTv: { mode: 'expression' as const, value: '$.text' },
       inputExpr: '$.text',
       algorithm: 'sha256',
       secretExpr: '',
@@ -127,7 +142,7 @@ describe('parseCrypto / toCryptoValue 规范形（具名 kwargs + literal 信封
     expect(value).toEqual({
       $call: 'crypto',
       kwargs: {
-        input: '$.text',
+        input: { mode: 'expression', value: '$.text' },
         algorithm: { mode: 'literal', value: 'sha256' },
         encoding: { mode: 'literal', value: 'hex' },
       },
@@ -148,6 +163,7 @@ describe('parseCrypto / toCryptoValue 规范形（具名 kwargs + literal 信封
       },
     });
     expect(fields).toEqual({
+      inputTv: { mode: 'expression' as const, value: '$.text' },
       inputExpr: '$.text',
       algorithm: 'md5',
       secretExpr: '',

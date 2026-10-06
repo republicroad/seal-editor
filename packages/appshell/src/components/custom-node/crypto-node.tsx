@@ -3,12 +3,14 @@ import {
   GraphNode,
   type MinimalNodeProps,
   type MinimalNodeSpecification,
+  TypedInput,
+  getRequestDefinitions,
   jsonSchemaToVariableType,
   useDecisionGraphActions,
   useDecisionGraphState,
 } from '@republicroad/seal-editor';
 import { FingerprintIcon } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import {
   CRYPTO_ALGORITHMS,
@@ -109,6 +111,10 @@ interface CryptoInstanceEditorProps {
 }
 
 const CryptoInstanceEditor: React.FC<CryptoInstanceEditorProps> = ({ expr, onChange }) => {
+  const inputContent = useDecisionGraphState(
+    ({ decisionGraph }) => (decisionGraph?.nodes ?? []).find((node) => node?.type === 'inputNode')?.content,
+  );
+  const fieldPaths = useMemo(() => getRequestDefinitions(inputContent as never).map((def) => def.path), [inputContent]);
   const fields: CryptoFields = parseCrypto(expr);
   // 模式是显式选择而非实时推导：首次切到 HMAC 时密钥尚为空，
   // 若按空槽位推导会立刻回落成普通摘要(触发器显示错误且序列化缺密钥)。
@@ -180,12 +186,15 @@ const CryptoInstanceEditor: React.FC<CryptoInstanceEditorProps> = ({ expr, onCha
             </CascaderPanel>
           </CascaderContent>
         </Cascader>
-        <CodeEditor
-          value={fields.inputExpr}
-          onChange={(value) => persistFields({ inputExpr: value })}
-          placeholder={'待摘要内容，如 input.phone 或 "文本"'}
-          maxRows={3}
-        />
+        <div className='min-w-0 flex-1'>
+          <TypedInput
+            parameterType='string'
+            value={fields.inputTv}
+            onChange={(tv) => persistFields({ inputTv: tv })}
+            placeholder='待摘要内容，如 customer.phone'
+            fieldPaths={fieldPaths}
+          />
+        </div>
       </div>
       {mode === 'hmac' && (
         <div className={css.form}>
@@ -320,6 +329,7 @@ export const CryptoTab: React.FC<{ id: string }> = ({ id }) => {
         id: uid(),
         key: nextExprKey(expressions),
         value: toCryptoValue({
+          inputTv: { mode: 'literal', value: '' },
           inputExpr: '',
           algorithm: 'sha256',
           secretExpr: '',
@@ -487,6 +497,7 @@ export const cryptoNode = createSpecNode({
           id: uid(),
           key: 'result',
           value: toCryptoValue({
+            inputTv: { mode: 'literal', value: '' },
             inputExpr: '',
             algorithm: 'sha256',
             secretExpr: '',

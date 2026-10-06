@@ -319,11 +319,17 @@ export const GraphPlayground: React.FC = () => {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ model, input: {} }),
       });
-      const body = (await res.json()) as { result?: unknown; error?: string };
+      const body = (await res.json()) as { result?: unknown; error?: string; audit?: { performance?: string } };
       setStatus(
         res.ok
           ? `server: ${JSON.stringify(body.result ?? null).slice(0, 100)}`
           : `server ${res.status}: ${body.error ?? 'failed'}`,
+      );
+      // 批 3 事件桥：Server run 也走 toast（Run 历史行属编辑器执行面，此路径不进）
+      window.dispatchEvent(
+        new CustomEvent('seal:simulation-finished', {
+          detail: { ok: res.ok, performance: body.audit?.performance, error: res.ok ? undefined : body.error },
+        }),
       );
     } catch (err) {
       setStatus(`server unreachable (:8787): ${String(err).slice(0, 60)}`);

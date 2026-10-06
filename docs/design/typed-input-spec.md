@@ -119,16 +119,18 @@ CustomFunction 的参数值列 → TypedInput 替换（值编辑层升级）。
 
 主从编辑器右侧参数绑定区 → 同一 TypedInput 复用（已实施）。
 
-### 专用节点（http_request url 试点，2026-10-05）
+### 专用节点（http_request url 试点，2026-10-05；crypto 输入推广，2026-10-06）
 
-`kwargs.url` → TypedInput（值/表达式二分 + 字段选择器），信封全态直写：
+`kwargs.url` / `kwargs.input`（crypto 待摘要内容）→ TypedInput（值/表达式二分 +
+字段选择器），信封全态直写：
 
 - 旧裸串读态映射 expression（保语义——裸串执行面走表达式求值路径）；
-- 「值」模式 = literal 信封原样绑定（zen-udf 1.1.0+），裸 URL 引号仪式退役
-  （旧形态裸 URL 经求值失败落 null 的陷阱一并消除）；
-- 其余结构化字段（headers/params/body/auth）保留各自编辑器，暂不入 TypedInput；
-- 推广位（待触发）：crypto 输入文本、current-date format、timeout——均按同款
-  「保语义读态映射 + 信封直写」模式接入。
+- 「值」模式 = literal 信封原样绑定（zen-udf 1.1.0+），裸 URL/裸文本引号仪式
+  退役（旧形态经求值失败落 null 的陷阱一并消除）；
+- crypto 的 secret 槽位保留表达式编辑器（密钥几乎恒为 env 引用，值模式无益）；
+- current-date 撤项：该函数**无参数**（此前登记的 format 推广位不存在）；
+- 推广位（待触发）：http headers/params 值格（KeyValueEditor 行内）——结构化
+  域，按需另议。
 
 ### 字段选择器层级化（cascader 换装，2026-10-06）
 

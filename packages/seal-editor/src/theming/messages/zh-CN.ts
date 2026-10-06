@@ -91,6 +91,8 @@ export const zhCN: Record<string, string> = {
   'dg.toolbar.downloadExcel': '下载 Excel',
   'dg.toolbar.searchNodes': '搜索节点',
   'dg.toolbar.closeClose': '关闭面板',
+  'dg.simulation.toastOk': '仿真完成',
+  'dg.simulation.toastErr': '仿真失败',
   'dg.simulation.runsEmpty': '暂无运行——跑一次仿真以积累历史',
   'dg.simulation.runsClear': '清空历史',
   'dg.toolbar.schema': 'JSON Schema',
