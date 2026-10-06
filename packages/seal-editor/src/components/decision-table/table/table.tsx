@@ -1,4 +1,4 @@
-import { PlusCircleOutlined, TableColumnsOutlined } from '#icons';
+import { PlusCircleOutlined, RedoOutlined, TableColumnsOutlined, UndoOutlined } from '#icons';
 import { DataGrid, dataGridFeatures } from '#reui/data-grid/data-grid';
 import { DataGridCellSelection } from '#reui/data-grid/data-grid-cell-selection';
 import { DataGridColumnVisibility } from '#reui/data-grid/data-grid-column-visibility';
@@ -9,7 +9,7 @@ import { useTable } from '@tanstack/react-table';
 import type { Virtualizer } from '@tanstack/react-virtual';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal/es6/react';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { P, match } from 'ts-pattern';
 import { z } from 'zod';
 
@@ -134,6 +134,14 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
     debug,
     debugIndex,
   }));
+  // 格子 undo/redo 栈深度（只取长度，避免整栈订阅重渲染）
+  const { cellUndoLen, cellRedoLen } = useDecisionTableState(({ cellUndoStack, cellRedoStack }) => ({
+    cellUndoLen: cellUndoStack.length,
+    cellRedoLen: cellRedoStack.length,
+  }));
+  // 粘贴/填充被拒格的轻反馈（2.6s 自清）
+  const [skippedCells, setSkippedCells] = useState(0);
+  const skipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { rules } = useDecisionTableState(
     ({ decisionTable }) => ({
       rules: decisionTable.rules,
@@ -158,6 +166,9 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         size: 44,
         enableResizing: false,
         enableSorting: false,
+        // 行号列不参与选区/剪贴板/填充（焦点 Escape 复位直接落首个数据格，
+        // 复制不带行号空列，填充柄只出现在可写格）
+        enableCellSelection: false,
       },
       {
         id: 'inputs',
@@ -173,6 +184,9 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
               minSize: minColWidth,
               size: colWidth,
               header: () => <TableHeadCellInputField schema={input} permission={permission} disabled={disabled} />,
+              // 剪贴板写路径（无 control = 内置编辑器不启用，双击仍走 dt 自家控件）；
+              // 无 parse = 裸串直传（dt 格子值恒字符串，非 coerce 是刻意的）
+              meta: { cellEdit: { clearValue: '', editable: () => !disabled } },
             };
           }),
         ],
@@ -189,6 +203,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
               minSize: minColWidth,
               size: colWidth,
               header: () => <TableHeadCellOutputField schema={output} permission={permission} disabled={disabled} />,
+              meta: { cellEdit: { clearValue: '', editable: () => !disabled } },
             };
           }),
         ],
@@ -203,6 +218,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         ),
         minSize: minColWidth,
         size: colWidth,
+        meta: { cellEdit: { clearValue: '', editable: () => !disabled } },
       },
     ],
     [permission, disabled, inputs, outputs, minColWidth, colWidth],
@@ -211,9 +227,11 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
   // A' 单格聚焦（Phase 2 备选立项）：grid 焦点经受控 cellSelection 桥接回
   // dt cursor——命令栏/快捷键的行级操作契约零改动。本 fork 的 tanstack 里
   // 传 onCellSelectionChange 即外部接管态，必须同时持有 state 才会生效，
-  // 故走受控模式（state + onCellSelectionChange 直通）。single 模式无范围/
-  // 剪贴板/内置编辑器（dt 列未声明 meta.cellEdit，编辑仍走自家控件），
-  // CodeMirror 与格内输入由控制器的事件过滤器天然让位。
+  // 故走受控模式（state + onCellSelectionChange 直通）。range 模式开范围选区
+  // 与剪贴板（粘贴/剪切/清除经 onCellsChange → commitCells 落库，一次
+  // produce + 一次 onChange）；列声明 meta.cellEdit（无 control）——内置
+  // 编辑器不启用，双击编辑仍走 dt 自家控件，CodeMirror 与格内输入由控制器的
+  // 事件过滤器天然让位。
   const [cellSelection, setCellSelection] = useState<CellSelectionState>([]);
 
   const table = useTable({
@@ -406,6 +424,19 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         return;
       }
 
+      // 格子 undo/redo（编辑-5 形态）：输入控件内让位（原生文本 undo 优先），
+      // grid 焦点下 Ctrl/⌘+Z 回滚上一批写、Ctrl+Y / Ctrl+Shift+Z 重做
+      if ((e.ctrlKey || e.metaKey) && e.code === 'KeyZ' && !e.shiftKey) {
+        e.preventDefault();
+        tableActions.undoCells();
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.code === 'KeyY' || (e.code === 'KeyZ' && e.shiftKey))) {
+        e.preventDefault();
+        tableActions.redoCells();
+        return;
+      }
+
       // A' 之后的方向键约定：plain=焦点移动（grid），Ctrl/⌘+方向=边缘跳转
       // （grid），Alt+方向/⌫=插删行（本处，grid 已让位 altKey）——原先的
       // ⌘+方向插删行与 grid 边缘跳转撞车，收敛为 Alt-only。
@@ -443,6 +474,24 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         getRowStatus={getRowStatus}
         getRowClassName={getRowClassName}
         getCellClassName={getCellClassName}
+        onCellsChange={(details) => {
+          // 剪贴板粘贴/剪切/清除/填充：一次批次一次 produce + 一次 onChange。
+          // 被拒格（readonly/invalid）弹轻状态条自清——不再静默
+          if (details.rejected.length > 0) {
+            setSkippedCells(details.rejected.length);
+            if (skipTimer.current) {
+              clearTimeout(skipTimer.current);
+            }
+            skipTimer.current = setTimeout(() => setSkippedCells(0), 2600);
+          }
+          const changes = details.changes.flatMap((change) => {
+            const rowIndex = rules.findIndex((rule: any) => rule._id === change.rowId);
+            return rowIndex < 0 ? [] : [{ value: String(change.value ?? ''), columnId: change.columnId, rowIndex }];
+          });
+          if (changes.length > 0) {
+            tableActions.commitCells(changes);
+          }
+        }}
         tableLayout={{
           columnsResizable: true,
           rowBorder: false,
@@ -450,11 +499,14 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
           stripped: false,
           rowsDraggable: true,
           headerSticky: true,
-          // A'：单格聚焦——方向键格间导航 + aria 焦点跟踪；范围/填充/剪贴板/
-          // 内置编辑器全不启用（cellEditMode 缺省 dblclick 且列无 cellEdit，
-          // 双击编辑仍走 dt 自家控件）
+          // range：范围选区 + 剪贴板（翻案：B1/B2 时的「dt 无 onCellsChange
+          // 契约」已由 commitCells 批量出口补齐）；键盘导航/aria 焦点跟踪不变
           cellSelection: true,
-          cellSelectionMode: 'single',
+          cellSelectionMode: 'range',
+          // 填充柄（Sheets 形态，ring 变体）：拖拽向下/右复制块，写路径同
+          // onCellsChange → commitCells
+          cellFillHandle: true,
+          cellFillHandleVariant: 'ring',
         }}
       >
         <TableContextMenu>
@@ -468,8 +520,9 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
             virtualizerRef={virtualizerRef}
           />
         </TableContextMenu>
-        {/* 单格聚焦控制器：键盘导航开启，剪贴板关闭（dt 无 onCellsChange 契约） */}
-        <DataGridCellSelection clipboard={false} />
+        {/* 范围选区控制器：键盘导航 + 剪贴板（复制/粘贴/剪切/清除/填充），
+            写路径经 onCellsChange → commitCells；格内编辑器聚焦时控制器让位 */}
+        <DataGridCellSelection />
         <div className='sticky bottom-0 flex items-center gap-3 bg-[var(--card)] p-2'>
           <Button
             type='link'
@@ -479,6 +532,27 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
           >
             Add row
           </Button>
+          <Button
+            type='link'
+            disabled={disabled || cellUndoLen === 0}
+            icon={<UndoOutlined />}
+            aria-label={t('dt.toolbar.undo')}
+            data-testid='dt-undo'
+            onClick={() => tableActions.undoCells()}
+          />
+          <Button
+            type='link'
+            disabled={disabled || cellRedoLen === 0}
+            icon={<RedoOutlined />}
+            aria-label={t('dt.toolbar.redo')}
+            data-testid='dt-redo'
+            onClick={() => tableActions.redoCells()}
+          />
+          {skippedCells > 0 && (
+            <Typography.Text role='status' data-testid='dt-cells-skipped' className='text-xs text-muted-foreground'>
+              {t('dt.cellsSkipped', { count: skippedCells })}
+            </Typography.Text>
+          )}
           <DataGridColumnVisibility
             table={table}
             onColumnVisibilityChange={(visibility) => {

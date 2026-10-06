@@ -139,6 +139,17 @@ export type JdmUiMode = 'dev' | 'business';
 /** @deprecated Use JdmUiMode instead */
 export type DecisionTableMode = JdmUiMode;
 
+/** 单元格历史一笔（undo/redo 栈的原子单位；rowId 寻址——行插删不使历史失位） */
+export type CellHistoryEntry = {
+  rowId: string;
+  columnId: string;
+  previousValue: string;
+  value: string;
+};
+
+/** 编辑-5 形态：格子级历史栈深上限（防超大粘贴撑爆内存） */
+export const CELL_HISTORY_LIMIT = 100;
+
 export type DecisionTableStoreType = {
   state: {
     id?: string;
@@ -170,12 +181,22 @@ export type DecisionTableStoreType = {
       trace: SimulationTrace<SimulationTraceDataTable>;
       inputData?: GetNodeDataResult;
     };
+
+    /** 单元格 undo/redo 栈（一批一 entry 组；commitData/commitCells 写入时压栈） */
+    cellUndoStack: CellHistoryEntry[][];
+    cellRedoStack: CellHistoryEntry[][];
   };
 
   actions: {
     setDecisionTable: (val: DecisionTableType) => void;
     setCursor: (cursor: TableCursor | null) => void;
     commitData: (data: string, cursor: TableCursor) => void;
+    /** 批量格子写入（剪贴板粘贴/清除/填充）：一次 produce + 一次 onChange */
+    commitCells: (changes: Array<{ value: string; columnId: string; rowIndex: number }>) => void;
+    /** 格子 undo：弹一批按 rowId 回写 previousValue（行插删后仍寻址正确） */
+    undoCells: () => void;
+    /** 格子 redo：回放上一批撤销的 value */
+    redoCells: () => void;
     swapRows: (source: number, target: number) => void;
     addRowAbove: (target?: number) => void;
     addRowBelow: (target?: number) => void;
@@ -229,6 +250,8 @@ export const DecisionTableProvider: React.FC<React.PropsWithChildren<DecisionTab
         name: undefined,
         decisionTable: parseDecisionTable(),
         cursor: null,
+        cellUndoStack: [],
+        cellRedoStack: [],
 
         disabled: false,
         disableHitPolicy: false,
@@ -257,12 +280,23 @@ export const DecisionTableProvider: React.FC<React.PropsWithChildren<DecisionTab
     [],
   );
 
-  const actions = useMemo<DecisionTableStoreType['actions']>(
-    () => ({
+  const actions = useMemo<DecisionTableStoreType['actions']>(() => {
+    /** 格子历史压栈：新写入清空 redo；栈深裁到 CELL_HISTORY_LIMIT */
+    const pushCellHistory = (entries: CellHistoryEntry[]) => {
+      const { cellUndoStack } = stateStore.getState();
+      stateStore.setState({
+        cellUndoStack: [...cellUndoStack, entries].slice(-CELL_HISTORY_LIMIT),
+        cellRedoStack: [],
+      });
+    };
+
+    return {
       setDecisionTable: (decisionTable) => stateStore.setState({ decisionTable }),
       setCursor: (cursor: TableCursor | null) => stateStore.setState({ cursor }),
       commitData: (value: string, cursor: TableCursor) => {
         const { decisionTable } = stateStore.getState();
+        const rowId = decisionTable.rules[cursor.y]?._id;
+        const previousValue = String(decisionTable.rules[cursor.y]?.[cursor.x] ?? '');
 
         const updatedDecisionTable = produce(decisionTable, (draft) => {
           const { x, y } = cursor;
@@ -271,6 +305,83 @@ export const DecisionTableProvider: React.FC<React.PropsWithChildren<DecisionTab
         });
 
         stateStore.setState({ decisionTable: updatedDecisionTable });
+        if (rowId != null) {
+          pushCellHistory([{ rowId, columnId: cursor.x, previousValue, value }]);
+        }
+        listenerStore.getState().onChange?.(updatedDecisionTable);
+      },
+      commitCells: (changes) => {
+        const { decisionTable } = stateStore.getState();
+        const history: CellHistoryEntry[] = [];
+
+        const updatedDecisionTable = produce(decisionTable, (draft) => {
+          for (const { value, columnId, rowIndex } of changes) {
+            const row = draft.rules[rowIndex];
+            if (row && columnId in row) {
+              history.push({
+                rowId: String(row._id),
+                columnId,
+                previousValue: String(row[columnId] ?? ''),
+                value,
+              });
+              row[columnId] = value;
+            }
+          }
+          return draft;
+        });
+
+        stateStore.setState({ decisionTable: updatedDecisionTable });
+        if (history.length > 0) {
+          pushCellHistory(history);
+        }
+        listenerStore.getState().onChange?.(updatedDecisionTable);
+      },
+      undoCells: () => {
+        const { decisionTable, cellUndoStack, cellRedoStack } = stateStore.getState();
+        const entries = cellUndoStack.at(-1);
+        if (!entries?.length) {
+          return;
+        }
+
+        const updatedDecisionTable = produce(decisionTable, (draft) => {
+          for (const entry of entries) {
+            const rowIndex = draft.rules.findIndex((rule) => rule._id === entry.rowId);
+            if (rowIndex >= 0 && entry.columnId in draft.rules[rowIndex]) {
+              draft.rules[rowIndex][entry.columnId] = entry.previousValue;
+            }
+          }
+          return draft;
+        });
+
+        stateStore.setState({
+          decisionTable: updatedDecisionTable,
+          cellUndoStack: cellUndoStack.slice(0, -1),
+          cellRedoStack: [...cellRedoStack, entries],
+        });
+        listenerStore.getState().onChange?.(updatedDecisionTable);
+      },
+      redoCells: () => {
+        const { decisionTable, cellUndoStack, cellRedoStack } = stateStore.getState();
+        const entries = cellRedoStack.at(-1);
+        if (!entries?.length) {
+          return;
+        }
+
+        const updatedDecisionTable = produce(decisionTable, (draft) => {
+          for (const entry of entries) {
+            const rowIndex = draft.rules.findIndex((rule) => rule._id === entry.rowId);
+            if (rowIndex >= 0 && entry.columnId in draft.rules[rowIndex]) {
+              draft.rules[rowIndex][entry.columnId] = entry.value;
+            }
+          }
+          return draft;
+        });
+
+        stateStore.setState({
+          decisionTable: updatedDecisionTable,
+          cellUndoStack: [...cellUndoStack, entries],
+          cellRedoStack: cellRedoStack.slice(0, -1),
+        });
         listenerStore.getState().onChange?.(updatedDecisionTable);
       },
       swapRows: (source: number, target: number) => {
@@ -451,9 +562,8 @@ export const DecisionTableProvider: React.FC<React.PropsWithChildren<DecisionTab
         stateStore.setState({ decisionTable: updatedDecisionTable });
         listenerStore.getState().onChange?.(updatedDecisionTable);
       },
-    }),
-    [],
-  );
+    };
+  }, []);
 
   const value = useMemo(
     () => ({

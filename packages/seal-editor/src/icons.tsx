@@ -6,6 +6,7 @@
  * (`src/reui/icons/*`) for hover animations. Components migrate by
  * swapping the import path only.
  */
+import SuccessCircleIcon from './reui/icons/animated/outline/check-circle';
 import CrossIcon from './reui/icons/animated/outline/cross';
 import PencilIcon from './reui/icons/animated/outline/pencil';
 import PlayCircleIcon from './reui/icons/animated/outline/play-circle';
@@ -50,6 +51,8 @@ export {
   List as UnorderedListOutlined,
   TriangleAlert as WarningFilled,
   TriangleAlert as WarningOutlined,
+  Undo2 as UndoOutlined,
+  Redo2 as RedoOutlined,
 } from 'lucide-react';
 
 export {
@@ -58,4 +61,5 @@ export {
   PencilIcon as EditOutlined,
   PlayCircleIcon as PlayCircleOutlined,
   RefreshArrowClockwiseIcon as SyncOutlined,
+  SuccessCircleIcon as SuccessOutlined,
 };

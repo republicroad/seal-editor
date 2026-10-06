@@ -122,6 +122,28 @@ describe('decision table store actions', () => {
     expect(onChange).toHaveBeenCalledWith(state.decisionTable);
   });
 
+  it('commits a paste batch in one produce pass and notifies listeners once', () => {
+    const onChange = vi.fn();
+    context.listenerStore.setState({ onChange });
+
+    act(() => {
+      context.actions.commitCells([
+        { value: 'a1', columnId: 'in-a', rowIndex: 0 },
+        { value: 'b1', columnId: 'out-a', rowIndex: 0 },
+        { value: 'a2', columnId: 'in-a', rowIndex: 1 },
+        // 越界格静默跳过（行已删/列已移除的竞态）
+        { value: 'x', columnId: 'in-a', rowIndex: 99 },
+        { value: 'y', columnId: 'ghost-col', rowIndex: 0 },
+      ]);
+    });
+
+    const state = context.stateStore.getState();
+    expect(state.decisionTable.rules[0]['in-a']).toBe('a1');
+    expect(state.decisionTable.rules[0]['out-a']).toBe('b1');
+    expect(state.decisionTable.rules[1]['in-a']).toBe('a2');
+    expect(onChange).toHaveBeenCalledTimes(1);
+  });
+
   it('swaps rows, resets the cursor and notifies listeners', () => {
     const onChange = vi.fn();
     context.listenerStore.setState({ onChange });
@@ -367,6 +389,99 @@ describe('decision table store actions', () => {
     });
 
     expect(context.stateStore.getState().cursor).toEqual({ x: 'in-a', y: 0 });
+    expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+describe('decision table cell undo/redo（编辑-5 形态）', () => {
+  let context: ContextValue;
+
+  beforeEach(() => {
+    context = renderProvider();
+    act(() => {
+      context.actions.setDecisionTable(baseTable());
+      context.listenerStore.setState({ onChange: undefined, cellRenderer: undefined });
+    });
+  });
+
+  it('commitData 压历史，undo 回滚 previousValue，redo 重放', () => {
+    const onChange = vi.fn();
+    context.listenerStore.setState({ onChange });
+
+    act(() => {
+      context.actions.commitData('99', { x: 'in-a', y: 0 });
+    });
+    expect(context.stateStore.getState().decisionTable.rules[0]['in-a']).toBe('99');
+
+    act(() => {
+      context.actions.undoCells();
+    });
+    expect(context.stateStore.getState().decisionTable.rules[0]['in-a']).toBe('40');
+
+    act(() => {
+      context.actions.redoCells();
+    });
+    expect(context.stateStore.getState().decisionTable.rules[0]['in-a']).toBe('99');
+    expect(onChange).toHaveBeenCalledTimes(3);
+  });
+
+  it('commitCells 一批一组历史；undo 整批回滚（含空串原值）', () => {
+    act(() => {
+      context.actions.commitCells([
+        { value: 'x', columnId: 'in-a', rowIndex: 0 },
+        { value: '', columnId: 'out-a', rowIndex: 1 },
+      ]);
+    });
+    expect(context.stateStore.getState().cellUndoStack).toHaveLength(1);
+
+    act(() => {
+      context.actions.undoCells();
+    });
+    const state = context.stateStore.getState();
+    expect(state.decisionTable.rules[0]['in-a']).toBe('40');
+    expect(state.decisionTable.rules[1]['out-a']).toBe('60');
+    expect(state.cellRedoStack).toHaveLength(1);
+  });
+
+  it('rowId 寻址：undo 前行被 swap，回滚仍落在同一逻辑行', () => {
+    act(() => {
+      context.actions.commitData('77', { x: 'in-a', y: 0 });
+    });
+    act(() => {
+      context.actions.swapRows(0, 1);
+    });
+    // swap 后 r1 在 index 1——undo 应写回 r1（现 index 1），而非 position 0
+    act(() => {
+      context.actions.undoCells();
+    });
+    const rules = context.stateStore.getState().decisionTable.rules;
+    expect(rules[1]['in-a']).toBe('40');
+    expect(rules[1]._id).toBe('r1');
+  });
+
+  it('新写入清空 redo 栈', () => {
+    act(() => {
+      context.actions.commitData('1', { x: 'in-a', y: 0 });
+    });
+    act(() => {
+      context.actions.undoCells();
+    });
+    expect(context.stateStore.getState().cellRedoStack).toHaveLength(1);
+
+    act(() => {
+      context.actions.commitData('2', { x: 'in-a', y: 0 });
+    });
+    const state = context.stateStore.getState();
+    expect(state.cellRedoStack).toHaveLength(0);
+    expect(state.cellUndoStack).toHaveLength(1);
+  });
+
+  it('undoCells 空栈为 no-op（不触发 onChange）', () => {
+    const onChange = vi.fn();
+    context.listenerStore.setState({ onChange });
+    act(() => {
+      context.actions.undoCells();
+    });
     expect(onChange).not.toHaveBeenCalled();
   });
 });
