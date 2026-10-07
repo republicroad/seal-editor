@@ -1,6 +1,7 @@
 import { CodeBlock } from '#components/reui/code-block/code-block';
 import {
   type CustomFunctionTool,
+  type DecisionGraphRef,
   EditorShellProvider,
   FunctionCatalog,
   FunctionRepl,
@@ -12,7 +13,7 @@ import {
   useEditorShell,
 } from '@republicroad/seal-appshell';
 import { LinkIcon, SquareTerminalIcon } from 'lucide-react';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { InstanceShell } from './shared/instance-shell';
 import { TrustChainPanel } from './shared/trust-chain-panel';
@@ -31,6 +32,7 @@ const UdfLabBody: React.FC = () => {
   const [serverUp, setServerUp] = useState<boolean | null>(null);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [replToolName, setReplToolName] = useState<string | undefined>(undefined);
+  const graphRef = useRef<DecisionGraphRef>(null);
   // 底部 Trust/REPL 已注册为 kernel panels 底部 dock（批 10）——收起条退役
 
   // demo-server 健康探针：schema 拉取失败会在 appshell 内静默回退内置样例，
@@ -86,6 +88,8 @@ const UdfLabBody: React.FC = () => {
   const onTryTool = useCallback((tool: CustomFunctionTool) => {
     setReplToolName(tool.name);
     setCatalogOpen(false);
+    // 批 13：直通口打开 REPL 面板（ref = store actions 门面）
+    graphRef.current?.setActivePanel('repl');
   }, []);
 
   // A3：demo-server 单函数执行通道（POST /v1/functions/:name/execute）

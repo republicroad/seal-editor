@@ -61,7 +61,8 @@ const hasAutoComplete = (n: SyntaxNode | null): boolean => {
   return isAutoComplete || hasAutoComplete(n?.parent);
 };
 
-const makeExpressionCompletion = () => {
+/** 测试可达：补全源本体（惰性取用回归的断言面） */
+export const makeExpressionCompletion = () => {
   // 补全源惰性取用：setUdfCompletions 可能在编辑器创建之后才注入（appshell
   // useCustomNodes 异步拉 schema）——创建期快照会永远空手
   const topLevelCompletions = () =>
