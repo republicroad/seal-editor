@@ -158,6 +158,9 @@ try {
     mkdirSync(dir, { recursive: true });
     const pkg = { name: host.label, private: true, type: 'module' };
     writeFileSync(path.join(dir, 'package.json'), JSON.stringify(pkg, null, 2));
+    // auto-install-peers：kernel peerDeps（@base-ui/react 等）自动安装——
+    // 治理谓词/⌘K 调色板等新模块引入的 Base UI 子路径导入才可解析
+    writeFileSync(path.join(dir, '.npmrc'), 'auto-install-peers=true\n');
     writeFileSync(path.join(dir, 'index.html'), INDEX_HTML);
     writeFileSync(path.join(dir, 'main.js'), host.main ?? MAIN_JS);
 
