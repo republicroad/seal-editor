@@ -90,7 +90,7 @@ jobs:
       - name: Storybook interaction suite (incl. geometry parity guard)
         run: pnpm --filter @republicroad/seal-editor test:storybook
 
-      - name: E2E smoke (playwright: dt editing / dock / UDF completion)
+      - name: 'E2E smoke — playwright dt editing / dock / UDF completion'
         run: pnpm --filter @republicroad/e2e test
 
       - name: Consumer smoke (react 18 & 19)
