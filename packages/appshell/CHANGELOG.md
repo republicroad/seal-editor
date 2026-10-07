@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.36.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.35.0...@republicroad/seal-appshell@1.36.0) (2026-10-07)
+
+### Features
+
+- **seal-appshell:** allowedNamespaces 治理谓词透传——宿主传 Set 即过滤 customNodes
+
 # [1.35.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.34.0...@republicroad/seal-appshell@1.35.0) (2026-10-07)
 
 ### Features

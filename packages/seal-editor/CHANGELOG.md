@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.31.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.30.0...@republicroad/seal-editor@1.31.0) (2026-10-07)
+
+### Features
+
+- **seal-editor:** 治理谓词 allowedNamespaces——按 namespace/kind 过滤 customNodes，三消费面自动继承（目录/⌘K 调色板/Components 面板）
+
 # [1.30.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.29.0...@republicroad/seal-editor@1.30.0) (2026-10-07)
 
 ### Features
