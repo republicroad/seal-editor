@@ -60,9 +60,7 @@ const seedGraph = async (request: APIRequestContext) => {
 };
 
 test.describe('图编辑器与 dock', () => {
-  // storage=http 的 API 预置图在页面层装载有未解怪癖（服务端已存、页面渲染默认图）——
-  // cascader 语义已由 kernel 补全/源级测试覆盖，此处挂起待装载问题单独排查
-  test.fixme('http 节点 url 字段选择器：全树搜索点选写 reference', async ({ page, request }) => {
+  test('http 节点 url 字段选择器：全树搜索点选写 reference', async ({ page, request }) => {
     await seedGraph(request);
     await page.goto('/graph.html?storage=http', { waitUntil: 'networkidle' });
     await page.waitForTimeout(2500);

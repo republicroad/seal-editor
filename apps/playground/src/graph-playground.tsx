@@ -96,6 +96,28 @@ export const GraphPlayground: React.FC = () => {
 
   // 验证通道：demo-server /v1/validate（模型级，zen 引擎权威）——面板打开时随
   // 图变化防抖刷新；zen 校验为模型级单错误，映射为单条 error 条目。
+  // 启动水合（批 14 排查落地）：mount 时从适配器装 head——此前页面从不 load
+  // （adapter 仅服务保存/版本历史/恢复），storage=http 与 IndexedDB 两模式的
+  // 「刷新后图回默认」即此根因。404/空存储保持 initialGraph。
+  useEffect(() => {
+    let cancelled = false;
+    adapter
+      .load(GRAPH_ID)
+      .then((record) => {
+        if (cancelled || !record?.content) {
+          return;
+        }
+        setGraph({ ...(record.content as object), id: GRAPH_ID, revision: record.revision });
+        setStatus('loaded ' + GRAPH_ID + ' @ ' + record.revision);
+      })
+      .catch((err) => setStatus('load failed: ' + String(err).slice(0, 60)));
+    return () => {
+      cancelled = true;
+    };
+    // 仅 mount 一次：后续由版本历史/恢复流显式装载
+     
+  }, []);
+
   useEffect(() => {
     if (govPanel !== 'validation') return;
     const t = setTimeout(() => {
