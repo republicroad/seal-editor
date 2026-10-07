@@ -421,6 +421,22 @@ export const GraphPlayground: React.FC = () => {
             ref={graphRef}
             value={graph}
             runsPersistenceKey={GRAPH_ID}
+            extraCommands={[
+              {
+                id: 'cmd-validate',
+                group: 'graph-ops',
+                label: '验证图',
+                keywords: 'validate 验证',
+                run: () => setGovPanel('validation'),
+              },
+              {
+                id: 'cmd-server-run',
+                group: 'graph-ops',
+                label: 'Server run',
+                keywords: 'server run execute',
+                run: () => void onServerExecute(),
+              },
+            ]}
             allowedNamespaces={new Set(['http_request', 'roster', 'crypto', 'current_date'])}
             onChange={setGraph}
             customNodes={[httpRequestNode, queryListNode, cryptoNode, currentDateNode]}

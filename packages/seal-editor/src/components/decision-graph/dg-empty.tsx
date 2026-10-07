@@ -33,6 +33,15 @@ export type DecisionGraphEmptyType = {
 
   /** 治理谓词（批 23）：按 namespace/kind 过滤 customNodes——缺省不过滤（全量可用） */
   allowedNamespaces?: Set<string>;
+  /** ⌘K 二期：宿主注入扩展命令（保存/验证/导出/皮肤等） */
+  extraCommands?: Array<{
+    id: string;
+    group: string;
+    label: string;
+    icon?: React.ReactNode;
+    keywords: string;
+    run: () => void;
+  }>;
 
   hideLeftToolbar?: DecisionGraphStoreType['state']['hideLeftToolbar'];
 
@@ -75,6 +84,7 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
   components,
   customNodes,
   allowedNamespaces,
+  extraCommands,
   defaultActivePanel,
   hideLeftToolbar,
   panels,
@@ -131,6 +141,7 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
       disabled,
       components: Array.isArray(components) ? components : [],
       customNodes: Array.isArray(filteredCustomNodes) ? filteredCustomNodes : [],
+      extraCommands: Array.isArray(extraCommands) ? extraCommands : [],
       panels,
       viewConfig,
       viewConfigCta,
@@ -144,6 +155,7 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
     components,
     filteredCustomNodes,
     allowedNamespaces,
+    extraCommands,
     panels,
     viewConfig,
     viewConfigCta,

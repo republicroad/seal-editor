@@ -30,10 +30,11 @@ export const GraphCommandMenu: React.FC<{
 }> = ({ addNode, specifications }) => {
   const t = useT();
   const graphActions = useDecisionGraphActions();
-  const { commandMenuOpen, panels, activePanelId, nodes } = useDecisionGraphState(
-    ({ commandMenuOpen, panels, activePanel, decisionGraph }) => ({
+  const { commandMenuOpen, panels, activePanelId, nodes, extraCommands } = useDecisionGraphState(
+    ({ commandMenuOpen, panels, activePanel, decisionGraph, extraCommands }) => ({
       commandMenuOpen,
       panels: panels ?? [],
+      extraCommands: extraCommands ?? [],
       activePanelId: activePanel,
       nodes: (decisionGraph.nodes ?? []).filter((node) => node.type !== 'inputNode'),
     }),
@@ -92,8 +93,16 @@ export const GraphCommandMenu: React.FC<{
         graphActions.openTab(node.id);
       },
     }));
-    return [...panelItems, ...gotoItems, ...addItems];
-  }, [panels, activePanelId, nodes, specifications, addNode, graphActions]);
+    const extra = extraCommands.map((cmd) => ({
+      id: cmd.id,
+      group: cmd.group as CommandItem['group'],
+      label: cmd.label,
+      icon: cmd.icon ?? null,
+      keywords: cmd.keywords,
+      run: cmd.run,
+    }));
+    return [...extra, ...panelItems, ...gotoItems, ...addItems];
+  }, [panels, activePanelId, nodes, specifications, extraCommands, addNode, graphActions]);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();

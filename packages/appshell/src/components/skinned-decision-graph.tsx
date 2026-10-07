@@ -82,6 +82,15 @@ export type SkinnedDecisionGraphProps = DecisionGraphProps & {
   runsPersistenceKey?: string;
   /** 治理谓词（批 23）：按 namespace/kind 过滤 customNodes——缺省不过滤 */
   allowedNamespaces?: Set<string>;
+  /** ⌘K 二期：宿主注入扩展命令 */
+  extraCommands?: Array<{
+    id: string;
+    group: string;
+    label: string;
+    icon?: React.ReactNode;
+    keywords: string;
+    run: () => void;
+  }>;
 };
 
 /**
@@ -104,6 +113,7 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
     customFunctions,
     runsPersistenceKey,
     allowedNamespaces,
+    extraCommands,
     ...restProps
   } = props;
   const t = useT();
@@ -304,6 +314,7 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
     <DecisionGraph
       {...restProps}
       allowedNamespaces={allowedNamespaces}
+      extraCommands={extraCommands}
       ref={setRef}
       toolbarItems={toolbarItems}
       panels={panels}

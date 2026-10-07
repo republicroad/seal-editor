@@ -112,6 +112,16 @@ export type DecisionGraphStoreType = {
     /** ⌘K 全局调色板开合（批 20：GraphSideToolbar 触发钮与弹层分居两处，经 store 联通） */
     commandMenuOpen: boolean;
 
+    /** ⌘K 二期：宿主注入的扩展命令（保存/验证/导出/皮肤等） */
+    extraCommands: Array<{
+      id: string;
+      group: string;
+      label: string;
+      icon?: React.ReactNode;
+      keywords: string;
+      run: () => void;
+    }>;
+
     user: string;
 
     simulatorRequest?: string;
@@ -183,6 +193,17 @@ export type DecisionGraphStoreType = {
     pushSimulateRun: (entry: SimulateRunEntry) => void;
     /** ⌘K 调色板开合 */
     setCommandMenuOpen: (open: boolean) => void;
+    /** 宿主注入扩展命令 */
+    setExtraCommands: (
+      commands: Array<{
+        id: string;
+        group: string;
+        label: string;
+        icon?: React.ReactNode;
+        keywords: string;
+        run: () => void;
+      }>,
+    ) => void;
     /** 置顶切换：pin = 环淘汰豁免 + 载荷持久化保留 */
     setSimulateRunPinned: (id: string, pinned: boolean) => void;
     /** 持久化水合：整表替换（面板挂载时从 localStorage 恢复） */
@@ -254,6 +275,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         simulate: undefined,
         simulateRuns: [],
         commandMenuOpen: false,
+        extraCommands: [],
         decisionGraph: { nodes: [], edges: [] },
         hoveredEdgeId: null,
         openTabs: [],
@@ -732,6 +754,9 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       },
       setCommandMenuOpen: (open) => {
         stateStore.setState({ commandMenuOpen: open });
+      },
+      setExtraCommands: (commands) => {
+        stateStore.setState({ extraCommands: commands });
       },
       pushSimulateRun: (entry) => {
         const { simulateRuns } = stateStore.getState();
