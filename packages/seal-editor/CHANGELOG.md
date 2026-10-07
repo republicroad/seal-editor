@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.32.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.31.0...@republicroad/seal-editor@1.32.0) (2026-10-08)
+
+### Features
+
+- **seal-editor:** ⌘K 二期——宿主 extraCommands 注入（graph-command-menu 合并宿主命令到条目头部；dg-store 增 extraCommands 状态）
+
 # [1.31.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.30.0...@republicroad/seal-editor@1.31.0) (2026-10-07)
 
 ### Features
