@@ -27,6 +27,24 @@ const adapter: GraphPersistenceAdapter = createIndexedDbAdapter();
 const UdfLabBody: React.FC = () => {
   const { customNodes, schema, ready, runSimulate } = useEditorShell();
   const [graph, setGraph] = useState<any>(udfFixtures[0]?.model);
+
+  // 水合一致性（批 17）：mount 时读 IndexedDB 的 udf-lab-graph——空存储回落夹具
+  useEffect(() => {
+    let cancelled = false;
+    adapter
+      .load(GRAPH_ID)
+      .then((record) => {
+        if (cancelled || !record?.content) {
+          return;
+        }
+        setGraph(record.content);
+        setStatus('已恢复上次编辑的图（IndexedDB @ ' + record.revision + '）');
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [activeFixture, setActiveFixture] = useState<string>(udfFixtures[0]?.id ?? '');
   const [status, setStatus] = useState('');
   const [serverUp, setServerUp] = useState<boolean | null>(null);
