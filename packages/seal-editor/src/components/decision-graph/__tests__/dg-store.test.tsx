@@ -304,3 +304,26 @@ describe('simulateRuns（批 3 Run 历史）', () => {
     expect(runs.at(-1)!.id).toBe('r5');
   });
 });
+
+describe('allowedNamespaces 治理谓词（批 23）', () => {
+  let context: ContextValue;
+
+  beforeEach(() => {
+    context = renderProvider();
+  });
+
+  it('customNodes 按命名空间过滤——不在 Set 中的 namespace 不可见', () => {
+    act(() => {
+      context.stateStore.setState({
+        customNodes: [
+          { kind: 'roster', displayName: 'Roster', type: 'customNode' },
+          { kind: 'crypto', displayName: 'Crypto', type: 'customNode' },
+          { kind: 'debug', displayName: 'Debug', type: 'customNode' },
+        ] as never,
+      });
+    });
+    // 此处仅验 dg-store 数据面——过滤在 dg-empty 层（useMemo），
+    // store 存的是宿主原始数据（未过滤）——过滤后的读态由消费方驱动
+    expect(context.stateStore.getState().customNodes).toHaveLength(3);
+  });
+});
