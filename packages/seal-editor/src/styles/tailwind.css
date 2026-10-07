@@ -539,3 +539,25 @@
   background: var(--primary);
   color: var(--seal-color-text-light-solid);
 }
+
+/* 面板 dock 上缘拖拽手柄（re-resizable top handle 的视觉层）：
+   平时隐形，悬停显 3px 主色条 + 行向光标——VS Code 面板式可发现性 */
+.seal-dock-resize-handle {
+  cursor: row-resize;
+}
+
+.seal-dock-resize-handle::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 3px;
+  border-radius: 9999px;
+  background: transparent;
+  transition: background 0.15s ease;
+}
+
+.seal-dock-resize-handle:hover::after {
+  background: var(--primary);
+  opacity: 0.5;
+}

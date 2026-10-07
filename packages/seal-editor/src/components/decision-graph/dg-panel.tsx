@@ -1,6 +1,6 @@
 import { CloseOutlined } from '#icons';
 import { Resizable } from 're-resizable';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 
 import { useT } from '../../theming/i18n';
 import { Button, Tooltip, Typography } from '../primitives';
@@ -24,6 +24,31 @@ export const GraphPanel: React.FC = () => {
     return Number.parseFloat(localStorage.getItem(heightKey) ?? '') ?? 300;
   }, [activePanel]);
 
+  const resizableRef = useRef<Resizable>(null);
+
+  // 双击上缘手柄：重置为内容自适应高度（清持久化 + 交还 auto）。
+  // Resizable 不透传 onDoubleClick——经实例根元素代理。
+  useEffect(() => {
+    // re-resizable 实例的 resizable 槽位：v10 为元素、旧版为 RefObject——两形兼容
+    const slot = resizableRef.current?.resizable as unknown;
+    const root: HTMLElement | null | undefined =
+      slot instanceof HTMLElement ? slot : ((slot as { current?: HTMLElement } | undefined)?.current ?? null);
+    if (!root) {
+      return;
+    }
+    const onDoubleClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (target.classList.contains('seal-dock-resize-handle')) {
+        localStorage.removeItem(heightKey);
+        resizableRef.current?.updateSize({ width: '100%', height: 'auto' });
+      }
+    };
+    root.addEventListener('dblclick', onDoubleClick);
+    return () => root.removeEventListener('dblclick', onDoubleClick);
+  }, [activePanel]);
+
+  // 双击上缘手柄：重置为内容自适应高度（清持久化 + 交还 auto）
+
   // Esc 关闭抽屉（业界面板惯例：X / 触发钮再点 / Esc 三路冗余）
   useEffect(() => {
     if (!activePanel) return;
@@ -40,6 +65,10 @@ export const GraphPanel: React.FC = () => {
 
   return (
     <Resizable
+      ref={resizableRef}
+      handleClasses={{
+        top: 'seal-dock-resize-handle',
+      }}
       className={
         // 浮层抽屉（宿主 2026-09-30 裁定）：从编辑面底部向上浮起、覆盖画布
         // （不再占用 grid-area:bottom 行挤压布局）。.seal-dg 为定位祖先；侧栏
@@ -67,7 +96,8 @@ export const GraphPanel: React.FC = () => {
         bottomLeft: { display: 'none' },
         bottomRight: { display: 'none' },
       }}
-      maxHeight={500}
+      // maxHeight 百分比：随画布区域伸缩（VS Code 式占比语义），而非写死像素
+      maxHeight={'85%'}
       minHeight={150}
       onResize={(event, direction, elementRef) => {
         localStorage.setItem(heightKey, elementRef.clientHeight.toString());
