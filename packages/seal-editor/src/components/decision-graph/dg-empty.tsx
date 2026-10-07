@@ -1,6 +1,6 @@
 import equal from 'fast-deep-equal/es6/react';
 import type React from 'react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
 import type { DictionaryMap } from '../../theme';
@@ -30,6 +30,9 @@ export type DecisionGraphEmptyType = {
 
   components?: DecisionGraphStoreType['state']['components'];
   customNodes?: DecisionGraphStoreType['state']['customNodes'];
+
+  /** 治理谓词（批 23）：按 namespace/kind 过滤 customNodes——缺省不过滤（全量可用） */
+  allowedNamespaces?: Set<string>;
 
   hideLeftToolbar?: DecisionGraphStoreType['state']['hideLeftToolbar'];
 
@@ -71,6 +74,7 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
   onChange,
   components,
   customNodes,
+  allowedNamespaces,
   defaultActivePanel,
   hideLeftToolbar,
   panels,
@@ -111,12 +115,22 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
     }
   }, [viewConfig]);
 
+  // 治理谓词（批 23）：allowedNamespaces 过滤 customNodes——
+  // 不传或空 Set = 全量可用（零回归）
+  const filteredCustomNodes = useMemo(() => {
+    const all = Array.isArray(customNodes) ? customNodes : [];
+    if (!allowedNamespaces || allowedNamespaces.size === 0) {
+      return all;
+    }
+    return all.filter((node) => allowedNamespaces.has(node.kind));
+  }, [customNodes, allowedNamespaces]);
+
   useEffect(() => {
     stateStore.setState({
       id,
       disabled,
       components: Array.isArray(components) ? components : [],
-      customNodes: Array.isArray(customNodes) ? customNodes : [],
+      customNodes: Array.isArray(filteredCustomNodes) ? filteredCustomNodes : [],
       panels,
       viewConfig,
       viewConfigCta,
@@ -124,7 +138,19 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
       dictionaries,
       mode,
     });
-  }, [id, disabled, components, customNodes, panels, viewConfig, viewConfigCta, hideLeftToolbar, dictionaries, mode]);
+  }, [
+    id,
+    disabled,
+    components,
+    filteredCustomNodes,
+    allowedNamespaces,
+    panels,
+    viewConfig,
+    viewConfigCta,
+    hideLeftToolbar,
+    dictionaries,
+    mode,
+  ]);
 
   useEffect(() => {
     stateStore.setState({ name: name ?? 'graph.json' });
