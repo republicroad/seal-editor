@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.29.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.28.0...@republicroad/seal-editor@1.29.0) (2026-10-07)
+
+### Features
+
+- **seal-editor:** Run 历史持久化——元数据环形常驻 + pin 载荷保留 + 未 pin 淘汰提示（GraphSimulator runsPersistenceKey 启用）
+- **seal-editor:** dt 字段绑定浏览选择器已随 1.28.0，本版为持久化与水合扫尾（kernel 侧 store pin/水合动作）
+
 # [1.28.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.27.0...@republicroad/seal-editor@1.28.0) (2026-10-07)
 
 ### Bug Fixes
