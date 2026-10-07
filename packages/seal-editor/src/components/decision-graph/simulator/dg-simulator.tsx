@@ -1,4 +1,5 @@
 import CrossIcon from '#reui/icons/animated/outline/cross';
+import { Skeleton } from '#reui/skeleton';
 import json5 from 'json5';
 import React, { useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
@@ -178,7 +179,20 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
               }
             />
           </div>
-          <div className={'min-h-0 flex-1 overflow-y-auto'}>
+          <div className={'min-h-0 flex-1 overflow-y-auto relative'}>
+            {loading && (
+              <div
+                className='absolute inset-0 z-10 flex flex-col gap-2.5 bg-[var(--card)]/80 p-4'
+                data-testid='simulator-loading-skeleton'
+              >
+                <Skeleton className='h-3 w-2/3' />
+                <Skeleton className='h-3 w-1/2' />
+                <Skeleton className='h-3 w-3/4' />
+                <Skeleton className='h-24 w-full' />
+                <Skeleton className='h-3 w-2/3' />
+                <Skeleton className='h-3 w-1/2' />
+              </div>
+            )}
             {segment === SimulationSegment.Runs ? (
               <SimulateRunsPanel runs={simulateRuns} />
             ) : (

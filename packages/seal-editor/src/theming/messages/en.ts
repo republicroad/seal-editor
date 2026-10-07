@@ -113,6 +113,7 @@ export const en = {
   'dg.simulation.runsEmpty': 'No runs yet — run a simulation to build history',
   'dg.simulation.pin': 'Pin run (keep output across reloads)',
   'dg.simulation.unpin': 'Unpin run',
+  'dg.simulation.copy': 'Copy JSON',
   'dg.simulation.payloadEvicted': 'Run payload evicted (unpinned) — re-run to inspect',
   'dg.simulation.runsClear': 'Clear history',
   'dg.toolbar.schema': 'JSON Schema',

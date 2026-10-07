@@ -25,6 +25,7 @@ import {
 } from '@republicroad/seal-appshell';
 import { type GraphDiff, computeGraphDiff } from '@republicroad/seal-editor';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 import { GRAPH_ID } from './shared/fixtures';
 import { ThemeToggle } from './shared/instance-shell';
@@ -234,6 +235,7 @@ export const GraphPlayground: React.FC = () => {
         },
       );
       setStatus(`saved ${revision}`);
+      toast.success(`已保存 @ ${revision}`);
       setGraph((g: any) => ({ ...g, revision }));
       setAutoHead(revision);
     } catch (err) {
