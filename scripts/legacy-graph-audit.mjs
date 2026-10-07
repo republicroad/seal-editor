@@ -1,229 +1,323 @@
 #!/usr/bin/env node
 /**
- * 存量决策图遗留形态审计（ADR-015/016 OQ7 随档工具，零依赖）。
+ * legacy-graph-audit — 决策图遗留形态检测与迁移（零依赖，Node/Bun 皆可运行）。
  *
- * 检测面：nodes[].content.config.expressions[].value 的四类遗留/规范形态
- * （ADR-015 §历史格式三层并存 + ADR-016 信封协议）：
+ * 出处：自 verdict 仓 scripts/legacy-graph-audit.mjs 整体移植（2026-10-02），
+ * 规格文档同目录 legacy-graph-audit.md（verdict 侧同款）；检测/迁移语义镜像
+ * 本仓 kernel findDollarFormRows / migrateDollarFormArgs / legacyValueToNamedCall
+ * 与 zen-udf normalizeNamedCall（规格文档 §5 维护注记：任一侧语义演进须同步）。
  *
- *  - dollar-form   kwargs 值或位置数组元素为 `$.` 前缀字符串（含 expression/
- *                  reference 信封内 `$.` 前缀）——zen-udf 1.x 独立绑定恒 null，
- *                  --fix 自动剥前缀为裸路径（幂等；literal 信封不检测不改动）；
- *  - string-form   value 为早期字符串表达式（ADR-015 三层并存第一代，
- *                  `roster('acme', 1)` 形态）——无法机械转换，需手工迁移至
- *                  位置数组或具名字典；
- *  - expr-asts     节点 config 携带 expr_asts 派生结构（ADR-015：与位置数组
- *                  同构冗余，1.x 停写）——可安全删除；
- *  - typed envelope（literal/expression/reference 信封本体）= ADR-016 规范形，
- *                  不计遗留。
+ * 背景：自定义函数节点表达式值已完成规范形收紧（{$call, kwargs} 具名字典 +
+ * 可选 {mode,value} 信封）。存量图可能携带四类遗留形态：
+ *
+ *   LEGACY_BARE        value = 裸函数名字符串               → {$call: name, kwargs: {}}
+ *   LEGACY_SEMICOLON   value 含 ';;'（位置参数串）           → {$call: first, kwargs: {$positional: rest}}
+ *   LEGACY_POSITIONAL  value = 位置数组                      → {$call, kwargs: {$positional: 元素}}
+ *   LEGACY_DOLLAR      kwargs 值 = '$.' 开头裸路径           → 剥前缀为裸路径
+ *                      （standalone 求值域 $ 根不绑定，恒 null）
+ *
+ * 注意：位置数组 → 具名 kwargs 的声明序映射需要函数 schema；本工具无 schema
+ * 时一律落 $positional 保留键（zen-udf normalizeNamedCall 同款语义），引擎侧
+ * 可再归一。已在规范的值不动（幂等）。
  *
  * 用法：
- *   node scripts/legacy-graph-audit.mjs graph.json            # 审计报告
- *   cat graph.json | node scripts/legacy-graph-audit.mjs      # stdin 同上
- *   node scripts/legacy-graph-audit.mjs graph.json --fix      # $-形态自动迁移（stdout）
- *   node scripts/legacy-graph-audit.mjs graph.json --json     # 审计结果 JSON（工具链集成）
+ *   node scripts/legacy-graph-audit.mjs scan <输入...>    # 检测报告；发现即 exit 1（可作导入门禁）
+ *   node scripts/legacy-graph-audit.mjs fix  <json 文件...> # 迁移改写（原文件备份 .bak）
+ *   node scripts/legacy-graph-audit.mjs sql  <dump>        # 从 pg_dump 生成遗留行的 UPDATE 迁移 SQL（stdout）
  *
- * 退出码：0 = clean；1 = 有遗留发现（--fix 后 = 仍有不可自动迁移项）；2 = 用法/解析错误。
- *
- * 前身：scan-dollar-form.mjs（$-形态单面）——本脚本为其 consolidated 升格。
+ * 输入：.json 图文件 / 目录（递归取 .json）/ .dump（PGDMP custom 格式，
+ * zlib 启发式恢复 decision_model_version 行——免 pg 工具链）。
  */
-import { readFileSync } from 'node:fs';
+import fs from 'node:fs';
+import path from 'node:path';
+import zlib from 'node:zlib';
 
-const TYPED_MODES = new Set(['literal', 'expression', 'reference']);
+// ---------- 遗留形态识别与迁移 ----------
 
-const isEnvelope = (value) => {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
-  const keys = Object.keys(value);
-  return keys.length === 2 && keys.includes('mode') && keys.includes('value') && TYPED_MODES.has(String(value.mode));
+const LEGACY_KINDS = {
+  LEGACY_BARE: '裸函数名字符串',
+  LEGACY_SEMICOLON: ';; 位置参数串',
+  LEGACY_POSITIONAL: '位置数组',
+  LEGACY_DOLLAR: 'kwargs $-路径（恒 null 陷阱）',
 };
 
-const isDollarForm = (value) => {
-  if (typeof value === 'string') return value.trim().startsWith('$.');
-  if (isEnvelope(value)) {
-    const mode = String(value.mode);
-    return (mode === 'expression' || mode === 'reference') && typeof value.value === 'string'
-      ? value.value.trim().startsWith('$.')
-      : false;
-  }
-  return false;
-};
-
-const stripDollar = (value) => {
-  if (typeof value === 'string' && value.trim().startsWith('$.')) return value.replace(/^\$\./, '');
-  if (isEnvelope(value)) {
-    const mode = String(value.mode);
-    if (
-      (mode === 'expression' || mode === 'reference') &&
-      typeof value.value === 'string' &&
-      value.value.trim().startsWith('$.')
-    ) {
-      return { ...value, value: value.value.replace(/^\$\./, '') };
+/** 拆一个表达式 value 的遗留形态；返回 kind 或 null（已规范/信封/空） */
+function classifyValue(value) {
+  if (value === null || value === undefined) return null;
+  if (Array.isArray(value)) return 'LEGACY_POSITIONAL';
+  if (typeof value === 'object') {
+    if (typeof value.$call === 'string') {
+      // 具名调用：扫 kwargs 的 $-路径值（standalone 求值恒 null）
+      const kwargs = value.kwargs;
+      if (kwargs && typeof kwargs === 'object' && !Array.isArray(kwargs)) {
+        for (const v of Object.values(kwargs)) {
+          if (typeof v === 'string' && v.trim().startsWith('$')) return 'LEGACY_DOLLAR';
+        }
+      }
     }
+    return null; // 信封或其它对象：不判遗留
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed === '') return null;
+    if (trimmed.includes(';;')) return 'LEGACY_SEMICOLON';
+    return 'LEGACY_BARE';
+  }
+  return null;
+}
+
+/** 迁移一个表达式 value（就地规范形；返回新值或原值） */
+function migrateValue(value) {
+  const kind = classifyValue(value);
+  if (kind === null) return value;
+
+  if (kind === 'LEGACY_BARE') {
+    return { $call: value.trim(), kwargs: {} };
+  }
+  if (kind === 'LEGACY_SEMICOLON') {
+    // 引号感知切分（与 kernel smartSplit 同语义：;; 不得出现在引号内）
+    const parts = [];
+    let current = '';
+    let inQuote = false;
+    let quote = '';
+    for (let i = 0; i < value.length; i++) {
+      const ch = value[i];
+      if (ch === '"' || ch === "'") {
+        if (inQuote && ch === quote) inQuote = false;
+        else if (!inQuote) {
+          inQuote = true;
+          quote = ch;
+        }
+        current += ch;
+        continue;
+      }
+      if (ch === ';' && value[i + 1] === ';' && !inQuote) {
+        parts.push(current.trim());
+        current = '';
+        i += 1;
+        continue;
+      }
+      current += ch;
+    }
+    parts.push(current.trim());
+    const [name, ...args] = parts;
+    return { $call: name, kwargs: { $positional: args } };
+  }
+  if (kind === 'LEGACY_POSITIONAL') {
+    // 位置形态 = [函数名, ...实参]：首元素即 $call
+    const [name, ...rest] = value;
+    return { $call: name ?? '', kwargs: { $positional: rest } };
+  }
+  if (kind === 'LEGACY_DOLLAR') {
+    const kwargs = {};
+    for (const [k, v] of Object.entries(value.kwargs ?? {})) {
+      kwargs[k] = typeof v === 'string' && v.trim().startsWith('$') ? v.trim().replace(/^\$\./, '') : v;
+    }
+    return { ...value, kwargs };
   }
   return value;
-};
+}
 
-/** 单表达式审计：返回该 expression 的遗留发现（不含节点级 expr_asts）。 */
-const auditExpression = (expr, nodeId) => {
-  const findings = [];
-  const key = expr?.key ?? '?';
-  const value = expr?.value;
+// ---------- 图遍历：收集/迁移 customNode expressions ----------
 
-  if (typeof value === 'string') {
-    findings.push({
-      kind: 'string-form',
-      node: nodeId,
-      key,
-      param: '(value)',
-      value: value.slice(0, 80),
-      autoFixable: false,
-      note: '早期字符串表达式——手工迁移至位置数组或具名字典（ADR-015）',
-    });
-    return findings;
+/** 深走图对象，收集 customNode 表达式值的 {kind, path, node} 引用 */
+function collectFindings(node, findings, pathPrefix = '') {
+  if (node === null || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    node.forEach((item, i) => collectFindings(item, findings, `${pathPrefix}[${i}]`));
+    return;
   }
-
-  if (value !== null && typeof value === 'object' && !Array.isArray(value) && value.kwargs) {
-    for (const [param, v] of Object.entries(value.kwargs)) {
-      if (isDollarForm(v)) {
-        findings.push({ kind: 'dollar-form', node: nodeId, key, param, value: v, autoFixable: true });
-      }
-    }
-    return findings;
-  }
-
-  if (Array.isArray(value)) {
-    value.slice(1).forEach((v, index) => {
-      if (isDollarForm(v)) {
-        findings.push({ kind: 'dollar-form', node: nodeId, key, param: `#${index + 1}`, value: v, autoFixable: true });
+  if (node.type === 'customNode' && node.content?.config?.expressions) {
+    node.content.config.expressions.forEach((expr, i) => {
+      const kind = classifyValue(expr?.value);
+      if (kind) {
+        findings.push({
+          kind,
+          path: `${pathPrefix}${pathPrefix ? '.' : ''}expressions[${i}]${expr?.key ? `(${expr.key})` : ''}`,
+          nodeType: node.type,
+          value: expr.value,
+        });
       }
     });
   }
-  return findings;
-};
-
-/** 全图审计：$-形态（可自动迁移）+ string-form（手工）+ expr_asts（可删） */
-const collect = (graph) => {
-  const findings = [];
-  const nodes = Array.isArray(graph?.nodes) ? graph.nodes : [];
-  for (const node of nodes) {
-    const nodeId = node?.id ?? node?.name ?? '?';
-    const config = node?.content?.config;
-    if (config && typeof config === 'object' && Array.isArray(config.expr_asts)) {
-      findings.push({
-        kind: 'expr-asts',
-        node: nodeId,
-        key: '(config)',
-        param: '(node)',
-        value: `${config.expr_asts.length} 条派生结构`,
-        autoFixable: false,
-        note: 'ADR-015：与位置数组同构冗余，1.x 停写——可安全删除',
-      });
-    }
-    const expressions = config?.expressions;
-    if (!Array.isArray(expressions)) continue;
-    for (const expr of expressions) {
-      findings.push(...auditExpression(expr, nodeId));
-    }
+  for (const [key, value] of Object.entries(node)) {
+    collectFindings(value, findings, pathPrefix ? `${pathPrefix}.${key}` : key);
   }
-  return findings;
-};
+}
 
-/** --fix 迁移：仅 $-形态剥前缀（幂等；string-form/expr_asts 不动）。 */
-const migrate = (graph) => {
-  const nodes = Array.isArray(graph?.nodes) ? graph.nodes : [];
-  return {
-    ...graph,
-    nodes: nodes.map((node) => {
-      const config = node?.content?.config;
-      const cleanedConfig = config?.expr_asts ? { ...config, expr_asts: undefined } : config;
-      const expressions = cleanedConfig?.expressions;
-      if (!Array.isArray(expressions)) {
-        return cleanedConfig === config ? node : { ...node, content: { ...node.content, config: cleanedConfig } };
+/** 就地迁移所有 customNode 表达式；返回迁移计数 */
+function migrateGraphInPlace(node) {
+  let migrated = 0;
+  const walk = (obj) => {
+    if (obj === null || typeof obj !== 'object') return;
+    if (Array.isArray(obj)) {
+      obj.forEach(walk);
+      return;
+    }
+    if (obj.type === 'customNode' && obj.content?.config?.expressions) {
+      for (const expr of obj.content.config.expressions) {
+        const before = JSON.stringify(expr?.value);
+        const after = migrateValue(expr?.value);
+        if (JSON.stringify(after) !== before) {
+          expr.value = after;
+          migrated += 1;
+        }
       }
-      return {
-        ...node,
-        content: {
-          ...node.content,
-          config: {
-            ...cleanedConfig,
-            expressions: expressions.map((expr) => {
-              const value = expr?.value;
-              if (value !== null && typeof value === 'object' && !Array.isArray(value) && value.kwargs) {
-                return {
-                  ...expr,
-                  value: {
-                    ...value,
-                    kwargs: Object.fromEntries(Object.entries(value.kwargs).map(([k, v]) => [k, stripDollar(v)])),
-                  },
-                };
-              }
-              if (Array.isArray(value)) {
-                return { ...expr, value: value.map((v, i) => (i === 0 ? v : stripDollar(v))) };
-              }
-              return expr;
-            }),
-          },
-        },
-      };
-    }),
+    }
+    for (const value of Object.values(obj)) walk(value);
   };
-};
-
-const args = process.argv.slice(2);
-const fix = args.includes('--fix');
-const jsonOut = args.includes('--json');
-const file = args.find((arg) => !arg.startsWith('--'));
-
-let raw = '';
-if (file) {
-  raw = readFileSync(file, 'utf8');
-} else if (!process.stdin.isTTY) {
-  raw = await new Promise((resolve, reject) => {
-    let data = '';
-    process.stdin.on('data', (chunk) => (data += chunk));
-    process.stdin.on('end', () => resolve(data));
-    process.stdin.on('error', reject);
-  });
-} else {
-  console.error('usage: node scripts/legacy-graph-audit.mjs <graph.json> [--fix] [--json]');
-  process.exit(2);
+  walk(node);
+  return migrated;
 }
 
-let graph;
-try {
-  graph = JSON.parse(raw);
-} catch (error) {
-  console.error(`[audit] invalid JSON: ${error.message}`);
-  process.exit(2);
+// ---------- 输入收集 ----------
+
+function collectJsonFiles(inputs, out = []) {
+  for (const input of inputs) {
+    const stat = fs.statSync(input);
+    if (stat.isDirectory()) {
+      for (const entry of fs.readdirSync(input)) {
+        if (entry.endsWith('.json')) out.push(path.join(input, entry));
+      }
+    } else if (input.endsWith('.json')) {
+      out.push(input);
+    }
+  }
+  return out;
 }
 
-const findings = collect(graph);
-
-if (jsonOut) {
-  process.stdout.write(JSON.stringify({ count: findings.length, findings }, null, 2));
-  process.exit(findings.length > 0 ? 1 : 0);
+/** PGDMP custom 格式：逐偏移膨胀 zlib 块，回收含图 JSON 的文本 */
+function recoverDumpTexts(dumpPath) {
+  const buf = fs.readFileSync(dumpPath);
+  const texts = [];
+  for (let o = 0; o < buf.length - 2; o++) {
+    if (buf[o] !== 0x78) continue;
+    const low = buf[o + 1];
+    if (!(low === 0x01 || low === 0x9c || low === 0xda || low === 0x5e || low === 0xbb)) continue;
+    try {
+      const out = zlib.inflateSync(buf.subarray(o));
+      if (out.length > 40) {
+        const text = out.toString('utf8');
+        if (text.includes('"nodes"') || text.includes('"$call"')) texts.push(text);
+        o += Math.min(out.length, 1024);
+      }
+    } catch {
+      // 非流边界
+    }
+  }
+  return texts;
 }
 
-if (findings.length === 0) {
-  console.error('[audit] clean — 无遗留形态发现');
-  process.exit(0);
+/** 从恢复文本中提取 {modelId, revision, content} 行（decision_model_version COPY 形态） */
+function recoverDumpRows(dumpPath) {
+  const rows = [];
+  for (const text of recoverDumpTexts(dumpPath)) {
+    // COPY 行形态：modelId \t modelId(parent) \t revision \t {json} \t ...
+    for (const line of text.split('\n')) {
+      const jsonStart = line.indexOf('{"');
+      if (jsonStart === -1) continue;
+      const cols = line.slice(0, jsonStart).split('\t');
+      if (cols.length < 3) continue;
+      const jsonEnd = line.lastIndexOf('}');
+      if (jsonEnd === -1) continue;
+      try {
+        const content = JSON.parse(line.slice(jsonStart, jsonEnd + 1));
+        rows.push({ modelId: cols[0], revision: cols[2], content });
+      } catch {
+        // 截断行跳过
+      }
+    }
+  }
+  return rows;
 }
 
-const byKind = {};
-for (const f of findings) {
-  byKind[f.kind] = (byKind[f.kind] ?? 0) + 1;
-  const preview = typeof f.value === 'string' ? f.value : JSON.stringify(f.value);
-  console.error(
-    `[audit] ${f.kind} node=${f.node} key=${f.key} param=${f.param}: ${preview.slice(0, 80)}${f.note ? `\n         ↳ ${f.note}` : ''}`,
-  );
-}
-console.error(
-  `[audit] ${findings.length} 处遗留发现（${Object.entries(byKind)
-    .map(([k, n]) => `${k}=${n}`)
-    .join(', ')}）` + (fix ? '' : '——$-形态可 --fix 自动迁移；string-form/expr-asts 需手工'),
-);
+// ---------- 主流程 ----------
 
-if (fix) {
-  process.stdout.write(JSON.stringify(migrate(graph), null, 2));
-  console.error('[audit] --fix 已输出改写后 JSON（stdout）');
+function main() {
+  const [command, ...inputs] = process.argv.slice(2);
+  if (!command || inputs.length === 0) {
+    console.error(
+      [
+        '用法:',
+        '  legacy-graph-audit.mjs scan <输入...>     检测报告（发现遗留形态 exit 1，可作门禁）',
+        '  legacy-graph-audit.mjs fix  <json 文件...> 迁移改写 JSON（.bak 备份原文件）',
+        '  legacy-graph-audit.mjs sql  <dump>        从 pg_dump 生成遗留行 UPDATE SQL（stdout）',
+        '',
+        '输入: .json 图文件 / 目录 / .dump（PGDMP custom）',
+      ].join('\n'),
+    );
+    process.exit(2);
+  }
+
+  if (command === 'sql') {
+    const rows = recoverDumpRows(inputs[0]);
+    const updates = [];
+    for (const row of rows) {
+      const findings = [];
+      collectFindings(row.content, findings);
+      if (findings.length === 0) continue;
+      const migrated = structuredClone(row.content);
+      const before = JSON.stringify(migrated);
+      migrateGraphInPlace(migrated);
+      if (JSON.stringify(migrated) === before) continue;
+      const json = JSON.stringify(migrated).replaceAll("'", "''");
+      updates.push(
+        `UPDATE decision_model_version SET content = '${json}' WHERE model_id = '${row.modelId}' AND revision = ${Number(row.revision)};`,
+      );
+    }
+    if (updates.length === 0) {
+      console.log(`-- 无遗留形态行（共扫描 ${rows.length} 个版本）`);
+    } else {
+      console.log(`-- ${updates.length} 行含遗留形态，迁移 SQL 如下（执行前请备份并在测试库演练）`);
+      console.log('-- 演练后核对语句：$positional 保留键可由 zen-udf normalizeNamedCall 按声明序二次归一');
+      for (const sql of updates) console.log(sql + '\n');
+    }
+    return;
+  }
+
+  // scan / fix：文件输入
+  const findings = [];
+  const fileContents = [];
+  for (const file of collectJsonFiles(command === 'fix' ? inputs : inputs)) {
+    try {
+      const content = JSON.parse(fs.readFileSync(file, 'utf8'));
+      fileContents.push({ file, content });
+      collectFindings(content, findings, file);
+    } catch (e) {
+      console.error(`[skip] ${file}: ${String(e).slice(0, 80)}`);
+    }
+  }
+
+  if (command === 'fix') {
+    let totalMigrated = 0;
+    for (const { file, content } of fileContents) {
+      const migrated = migrateGraphInPlace(content);
+      if (migrated > 0) {
+        fs.copyFileSync(file, file + '.bak');
+        fs.writeFileSync(file, JSON.stringify(content, null, 2));
+        console.log(`[fix] ${file}: ${migrated} 个表达式已迁移（原文件备份 .bak）`);
+        totalMigrated += migrated;
+      }
+    }
+    console.log(totalMigrated > 0 ? `[done] 共迁移 ${totalMigrated} 个表达式；重跑 scan 复核` : '[done] 无需迁移');
+    return;
+  }
+
+  // scan 报告
+  const byKind = {};
+  for (const f of findings) byKind[f.kind] = (byKind[f.kind] ?? 0) + 1;
+  console.log(`扫描 ${fileContents.length} 个图文件：${findings.length} 处遗留形态`);
+  for (const [kind, count] of Object.entries(byKind)) {
+    console.log(`  ${kind}（${LEGACY_KINDS[kind]}）: ${count}`);
+    for (const f of findings.filter((x) => x.kind === kind)) {
+      console.log(`    - ${f.path}`);
+    }
+  }
+  if (findings.length > 0) {
+    console.error('\n[audit] 发现遗留形态——迁移后重扫（fix 命令或人工复核）');
+    process.exit(1);
+  }
+  console.log('[audit] 干净');
 }
-process.exit(1);
+
+main();
