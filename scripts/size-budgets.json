@@ -1,11 +1,11 @@
 {
   "index.js": {
-    "raw": 880000,
-    "gzip": 216000
+    "raw": 890880,
+    "gzip": 221184
   },
   "style.css": {
-    "raw": 180000,
-    "gzip": 27000
+    "raw": 181248,
+    "gzip": 27648
   },
   "schema.js": {
     "raw": 8000
