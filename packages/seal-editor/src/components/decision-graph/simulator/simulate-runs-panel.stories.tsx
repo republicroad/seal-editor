@@ -1,5 +1,5 @@
 import { type Meta, type StoryObj } from '@storybook/react-vite';
-import { expect, fireEvent, within } from 'storybook/test';
+import { expect, fireEvent, waitFor, within } from 'storybook/test';
 
 import { type SimulateRunEntry } from '../context/dg-store.context';
 import { SimulateRunsPanel } from './simulate-runs-panel';
