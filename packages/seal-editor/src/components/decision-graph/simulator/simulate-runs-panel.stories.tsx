@@ -52,6 +52,8 @@ export const WithRuns: Story = {
     expect(canvas.getByText('E_HTTP: upstream 500')).toBeTruthy();
     // 点行展开该次输出 JSON（回看不重跑）
     fireEvent.click(canvas.getAllByTestId('simulate-run-row')[0]);
-    await expect(canvas.getByTestId('simulate-run-detail').textContent).resolves.toContain('0.85');
+    await waitFor(() => {
+      expect(canvas.getByTestId('simulate-run-detail').textContent).toContain('0.85');
+    });
   },
 };
