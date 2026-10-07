@@ -115,7 +115,7 @@ describe('SkinnedDecisionGraph simulator panel', () => {
     await waitFor(
       () => {
         // WS1-R6 起：内核侧栏新增 auto-layout 按钮（不受 simulateHandler 影响）
-        if (container.querySelectorAll('[class*="grid-area:sidebar"] button').length !== 3) {
+        if (container.querySelectorAll('[class*="grid-area:sidebar"] button').length !== 4) {
           throw new Error('sidebar not settled');
         }
       },
