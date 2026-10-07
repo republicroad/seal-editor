@@ -78,6 +78,8 @@ export type SkinnedDecisionGraphProps = DecisionGraphProps & {
    * 同传（面板本身由 simulateHandler 驱动）。
    */
   simulationFooter?: React.ReactNode;
+  /** Run 历史持久化键（传入即启用：元数据环形常驻 + pin 载荷保留） */
+  runsPersistenceKey?: string;
 };
 
 /**
@@ -92,7 +94,15 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
   SkinnedDecisionGraphProps & React.RefAttributes<DecisionGraphRef>
 > = React.forwardRef<DecisionGraphRef, SkinnedDecisionGraphProps>((props, ref) => {
   const { activeSkin } = useTheme();
-  const { simulateHandler, headerSlots, autoPersist, simulationFooter, customFunctions, ...restProps } = props;
+  const {
+    simulateHandler,
+    headerSlots,
+    autoPersist,
+    simulationFooter,
+    customFunctions,
+    runsPersistenceKey,
+    ...restProps
+  } = props;
   const t = useT();
   const shell = useOptionalEditorShell();
   const internalRef = useRef<DecisionGraphRef | null>(null);
@@ -195,6 +205,7 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
           defaultRequest={'{\n  \n}'}
           loading={running}
           simulationFooter={simulationFooter}
+          runsPersistenceKey={runsPersistenceKey}
           onRun={({ graph, context }) => {
             setRunning(true);
             simulateHandler(graph as DecisionGraphType, context)

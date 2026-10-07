@@ -115,7 +115,6 @@ export const GraphPlayground: React.FC = () => {
       cancelled = true;
     };
     // 仅 mount 一次：后续由版本历史/恢复流显式装载
-     
   }, []);
 
   useEffect(() => {
@@ -419,6 +418,7 @@ export const GraphPlayground: React.FC = () => {
           <SkinnedDecisionGraph
             ref={graphRef}
             value={graph}
+            runsPersistenceKey={GRAPH_ID}
             onChange={setGraph}
             customNodes={[httpRequestNode, queryListNode, cryptoNode, currentDateNode]}
             diffBaseline={diffBase ? (diffBase.content as any) : undefined}
