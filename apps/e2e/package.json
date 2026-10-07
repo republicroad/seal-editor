@@ -1,0 +1,12 @@
+{
+  "name": "@republicroad/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Playwright 冒烟套件：编辑器关键链路回归（dt 剪贴板/填充/undo、cascader 字段点选、dock 开合）。前置：demo-server(:8787) + playground dev 由 playwright webServer 自动拉起。",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1"
+  }
+}
