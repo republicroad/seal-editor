@@ -34,7 +34,10 @@ export type SimulateRunEntry = {
   ok: boolean;
   performance?: string;
   error?: string;
-  snapshot: Simulation;
+  /** 置顶保留：环形淘汰与载荷持久化的豁免标记 */
+  pinned?: boolean;
+  /** 载荷（持久化场景：未 pin 的条目可被剥除——只剩元数据行） */
+  snapshot?: Simulation;
 };
 
 /** 栈深上限（防超大输出堆积） */
@@ -173,8 +176,12 @@ export type DecisionGraphStoreType = {
 
     setActivePanel: (panel?: string) => void;
 
-    /** Run 历史追加（头部插入，裁到栈深） */
+    /** Run 历史追加（头部插入，裁到栈深；pin 条目豁免淘汰） */
     pushSimulateRun: (entry: SimulateRunEntry) => void;
+    /** 置顶切换：pin = 环淘汰豁免 + 载荷持久化保留 */
+    setSimulateRunPinned: (id: string, pinned: boolean) => void;
+    /** 持久化水合：整表替换（面板挂载时从 localStorage 恢复） */
+    hydrateSimulateRuns: (entries: SimulateRunEntry[]) => void;
     /** 清空 Run 历史 */
     clearSimulateRuns: () => void;
 
@@ -719,9 +726,26 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       },
       pushSimulateRun: (entry) => {
         const { simulateRuns } = stateStore.getState();
+        const next = [entry, ...simulateRuns];
+        // 环淘汰（pin 感知）：超限时从尾部丢最旧的未 pin 条目
+        const kept: SimulateRunEntry[] = [];
+        let budget = SIMULATE_RUNS_LIMIT;
+        for (const run of next) {
+          if (run.pinned || budget > 0) {
+            if (!run.pinned) budget -= 1;
+            kept.push(run);
+          }
+        }
+        stateStore.setState({ simulateRuns: kept });
+      },
+      setSimulateRunPinned: (id, pinned) => {
+        const { simulateRuns } = stateStore.getState();
         stateStore.setState({
-          simulateRuns: [entry, ...simulateRuns].slice(0, SIMULATE_RUNS_LIMIT),
+          simulateRuns: simulateRuns.map((run) => (run.id === id ? { ...run, pinned } : run)),
         });
+      },
+      hydrateSimulateRuns: (entries) => {
+        stateStore.setState({ simulateRuns: entries.slice(0, SIMULATE_RUNS_LIMIT) });
       },
       clearSimulateRuns: () => {
         stateStore.setState({ simulateRuns: [] });

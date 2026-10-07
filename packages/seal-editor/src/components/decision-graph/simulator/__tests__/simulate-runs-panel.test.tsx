@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { SimulateRunEntry } from '../../context/dg-store.context';
 import { SimulateRunsPanel } from '../simulate-runs-panel';
+import { serializeRuns } from '../simulate-runs-persistence';
 
 const entry = (id: string, ok: boolean, performance = '1.2ms'): SimulateRunEntry => ({
   id,
@@ -45,5 +46,16 @@ describe('SimulateRunsPanel（批 3 Run 历史时间线）', () => {
 
     fireEvent.click(screen.getByTestId('simulate-run-row'));
     expect(screen.queryByTestId('simulate-run-detail')).toBeNull();
+  });
+});
+
+describe('Run 历史持久化序列（批 16 混合方案）', () => {
+  it('serialize：pin 条目带载荷，未 pin 剥除 snapshot 只剩元数据', () => {
+    const entries: SimulateRunEntry[] = [{ ...entry('a', true), pinned: true }, entry('b', false)];
+    const parsed = JSON.parse(serializeRuns(entries));
+    expect(parsed[0].snapshot).toBeDefined();
+    expect(parsed[0].pinned).toBe(true);
+    expect(parsed[1].snapshot).toBeUndefined();
+    expect(parsed[1].id).toBe('b');
   });
 });

@@ -12,6 +12,7 @@ import { useDecisionGraphRaw, useDecisionGraphState } from '../context/dg-store.
 import type { SimulateRunEntry } from '../context/dg-store.context';
 import { NodeKind } from '../nodes/specifications/specification-types';
 import { SimulateRunsPanel } from './simulate-runs-panel';
+import { loadRuns, saveRuns } from './simulate-runs-persistence';
 import type { Simulation } from './simulation.types';
 import { SimulatorEditor } from './simulator-editor';
 import { SimulatorNodesPanel } from './simulator-nodes-panel';
@@ -25,6 +26,9 @@ enum SimulationSegment {
 }
 
 export type GraphSimulatorProps = {
+  /** Run 历史持久化键（批 16 混合方案）：传入即启用——元数据环形常驻、
+   *  pin 条目载荷保留、未 pin 载荷剥除。缺省不持久化（纯会话态）。 */
+  runsPersistenceKey?: string;
   onClear?: () => void;
   loading?: boolean;
   /** ADR-008 L3：仿真面板底部宿主插槽（动作条/宿主联动入口） */
@@ -42,6 +46,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
   onClear,
   loading = false,
   simulationFooter,
+  runsPersistenceKey,
   leftPanel: LeftPanel = SimulatorRequestPanel,
 }) => {
   const t = useT();
@@ -67,6 +72,25 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
 
   const [selectedNode, setSelectedNode] = useState<string>('graph');
   const simulateRuns = useDecisionGraphState((state) => state.simulateRuns);
+
+  // 持久化（批 16）：挂载时从 localStorage 水合（存储空则不动）；
+  // 之后每次 runs 变化写回（元数据常驻、pin 载荷保留、未 pin 剥除）
+  useEffect(() => {
+    if (!runsPersistenceKey) {
+      return;
+    }
+    const stored = loadRuns(runsPersistenceKey);
+    if (stored.length > 0) {
+      actions.hydrateSimulateRuns(stored);
+    }
+    // 仅挂载一次
+  }, [runsPersistenceKey]);
+
+  useEffect(() => {
+    if (runsPersistenceKey && simulateRuns.length > 0) {
+      saveRuns(runsPersistenceKey, simulateRuns);
+    }
+  }, [runsPersistenceKey, simulateRuns]);
 
   // Run 历史累积（批 3）：simulate 引用变化 = 一次新运行——压栈 + sonner 桥事件
   const lastSimulateRef = useRef<Simulation | undefined>(undefined);
