@@ -302,7 +302,7 @@ standalone 绑定恒 null，属性访问是裸键/点路径）。「0.14 ✓ →
 （隐式约定显式化）；②漂移带可检 `$.` 形态实参提示迁移（同 kwargs 歧义检测
 器消费位）；③verdict/demo 存量图若有 $-形态 kwargs 属数据面迁移（编辑器
 字段选择器已输出正确形态，无需引擎动作）——**③已收口（2026-10-04）：verdict
-确认数据面迁移对其无负担；扫描工具入库 scripts/scan-dollar-form.mjs
+确认数据面迁移对其无负担；扫描工具入库 scripts/legacy-graph-audit.mjs
 （零依赖 CLI，先扫后导，发现即 exit 1 可作导入门禁；--fix 输出改写 JSON）**。
 
 ### OQ7 表态修正（2026-10-04 第二轮，jdm 换正确视角后改判）
