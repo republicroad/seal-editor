@@ -80,6 +80,8 @@ export type SkinnedDecisionGraphProps = DecisionGraphProps & {
   simulationFooter?: React.ReactNode;
   /** Run 历史持久化键（传入即启用：元数据环形常驻 + pin 载荷保留） */
   runsPersistenceKey?: string;
+  /** 治理谓词（批 23）：按 namespace/kind 过滤 customNodes——缺省不过滤 */
+  allowedNamespaces?: Set<string>;
 };
 
 /**
@@ -101,6 +103,7 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
     simulationFooter,
     customFunctions,
     runsPersistenceKey,
+    allowedNamespaces,
     ...restProps
   } = props;
   const t = useT();
@@ -300,6 +303,7 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
   const decisionGraph = (
     <DecisionGraph
       {...restProps}
+      allowedNamespaces={allowedNamespaces}
       ref={setRef}
       toolbarItems={toolbarItems}
       panels={panels}
