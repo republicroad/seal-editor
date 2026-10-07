@@ -19,9 +19,9 @@ const run = (id: string, ok: boolean, result?: unknown): SimulateRunEntry => ({
   ok,
   performance: ok ? '270.4µs' : undefined,
   error: ok ? undefined : 'E_HTTP: upstream 500',
-  snapshot: ok
+  snapshot: (ok
     ? { result: { performance: '270.4µs', result, snapshot: {}, trace: {} } }
-    : { error: { title: 'upstream 500', code: 'E_HTTP', data: {} } },
+    : { error: { title: 'upstream 500', code: 'E_HTTP', data: {} } }) as never,
 });
 
 export const Empty: Story = {
