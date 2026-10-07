@@ -39,6 +39,7 @@ import { GraphNode } from '../nodes/graph-node';
 import type { MinimalNodeProps } from '../nodes/specifications/specification-types';
 import { NodeKind } from '../nodes/specifications/specification-types';
 import { nodeSpecification } from '../nodes/specifications/specifications';
+import { GraphCommandMenu } from './graph-command-menu';
 import { GraphComponents } from './graph-components';
 import { NodeInspector } from './node-inspector';
 import { XYFLOW_THEME } from './xyflow-theme';
@@ -437,6 +438,10 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
                 }}
               />
             </div>
+            <GraphCommandMenu
+              addNode={addNodeInner}
+              specifications={[...Object.values(nodeSpecification), ...components, ...customNodes]}
+            />
             <div className='min-h-0 flex-1 overflow-y-auto'>
               <GraphComponents inputDisabled={hasInputNode} collapsed={!componentsOpened} disabled={disabled} />
             </div>

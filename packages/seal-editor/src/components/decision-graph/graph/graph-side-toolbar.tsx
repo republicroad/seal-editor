@@ -1,4 +1,5 @@
 import { AutoLayoutOutlined, CloudDownloadOutlined, CloudUploadOutlined } from '#icons';
+import { CommandIcon } from 'lucide-react';
 import React, { Fragment, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -28,13 +29,14 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
   const excelFileInput = useRef<HTMLInputElement>(null);
   const [excelGraphData, setExcelGraphData] = useState<ParsedExcelData[] | null>();
 
-  const { setDecisionGraph, setActivePanel, autoLayout } = useDecisionGraphActions();
-  const { disabled, panels, activePanel, viewConfig } = useDecisionGraphState(
-    ({ disabled, panels, activePanel, viewConfig }) => ({
+  const { setDecisionGraph, setActivePanel, setCommandMenuOpen, autoLayout } = useDecisionGraphActions();
+  const { disabled, panels, activePanel, viewConfig, commandMenuOpen } = useDecisionGraphState(
+    ({ disabled, panels, activePanel, viewConfig, commandMenuOpen }) => ({
       disabled,
       panels,
       activePanel,
       viewConfig,
+      commandMenuOpen,
     }),
   );
 
@@ -335,6 +337,17 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
             </Dropdown>
           </div>
           <div className={'flex flex-col items-center gap-2'}>
+            <Tooltip title={t('dg.command.open')} placement='right'>
+              <Button
+                type='text'
+                icon={<CommandIcon className='size-4' />}
+                aria-pressed={commandMenuOpen}
+                aria-label={t('dg.command.open')}
+                data-testid='graph-command-trigger'
+                className={commandMenuOpen ? 'bg-primary/10 text-primary' : undefined}
+                onClick={() => setCommandMenuOpen(!commandMenuOpen)}
+              />
+            </Tooltip>
             {(panels || []).map((panel) => {
               const isActive = activePanel === panel.id;
               return (

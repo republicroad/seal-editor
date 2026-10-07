@@ -109,6 +109,9 @@ export type DecisionGraphStoreType = {
     /** Run 历史（新运行头部追加） */
     simulateRuns: SimulateRunEntry[];
 
+    /** ⌘K 全局调色板开合（批 20：GraphSideToolbar 触发钮与弹层分居两处，经 store 联通） */
+    commandMenuOpen: boolean;
+
     user: string;
 
     simulatorRequest?: string;
@@ -178,6 +181,8 @@ export type DecisionGraphStoreType = {
 
     /** Run 历史追加（头部插入，裁到栈深；pin 条目豁免淘汰） */
     pushSimulateRun: (entry: SimulateRunEntry) => void;
+    /** ⌘K 调色板开合 */
+    setCommandMenuOpen: (open: boolean) => void;
     /** 置顶切换：pin = 环淘汰豁免 + 载荷持久化保留 */
     setSimulateRunPinned: (id: string, pinned: boolean) => void;
     /** 持久化水合：整表替换（面板挂载时从 localStorage 恢复） */
@@ -248,6 +253,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         id: undefined,
         simulate: undefined,
         simulateRuns: [],
+        commandMenuOpen: false,
         decisionGraph: { nodes: [], edges: [] },
         hoveredEdgeId: null,
         openTabs: [],
@@ -723,6 +729,9 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       closeTab: (id: string, action?: string) => {
         const { openTabs, activeTab } = stateStore.getState();
         stateStore.setState(applyCloseTab(openTabs, activeTab, id, action));
+      },
+      setCommandMenuOpen: (open) => {
+        stateStore.setState({ commandMenuOpen: open });
       },
       pushSimulateRun: (entry) => {
         const { simulateRuns } = stateStore.getState();
