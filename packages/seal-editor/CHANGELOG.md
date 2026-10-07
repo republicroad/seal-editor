@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.30.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.29.0...@republicroad/seal-editor@1.30.0) (2026-10-07)
+
+### Features
+
+- **seal-editor:** ⌘K 全局调色板——节点添加/面板开合/节点跳转三组条目（Base UI Combobox 组合零新增包体；Ctrl/⌘+K 唤起，输入控件内让位）
+- **seal-editor:** 面板 dock 上缘拖拽可视化（悬停主色条 + 85% 占比 + 双击重置）——拖拽能力此前已实装，本版补可发现性
+
 # [1.29.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.28.0...@republicroad/seal-editor@1.29.0) (2026-10-07)
 
 ### Features

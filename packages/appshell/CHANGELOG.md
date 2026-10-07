@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.35.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.34.0...@republicroad/seal-appshell@1.35.0) (2026-10-07)
+
+### Features
+
+- **seal-appshell:** SkinnedDecisionGraph runsPersistenceKey 透传（Run 历史持久化宿主开关）
+
 # [1.34.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.33.0...@republicroad/seal-appshell@1.34.0) (2026-10-07)
 
 ### Features
