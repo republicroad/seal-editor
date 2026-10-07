@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.28.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.27.0...@republicroad/seal-editor@1.28.0) (2026-10-07)
+
+### Bug Fixes
+
+- **seal-editor:** 表达式补全源惰性取用——UDF schema 晚注入不再被创建期快照挡住（回归测试两向钉住）
+
+### Features
+
+- **seal-editor:** 面板 dock 上缘拖拽可视化（悬停主色条 + row-resize 光标）+ maxHeight 85% 占比 + 双击重置
+- **seal-editor:** dt 字段绑定浏览选择器——FieldEditPopover 内嵌 cascader（懒 chunk 复用零新增包体），variableTypeToPaths 字段源
+
 # [1.27.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.26.0...@republicroad/seal-editor@1.27.0) (2026-10-07)
 
 ### Bug Fixes
