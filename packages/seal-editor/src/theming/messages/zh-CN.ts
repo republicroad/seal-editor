@@ -104,6 +104,7 @@ export const zhCN: Record<string, string> = {
   'dg.simulation.pin': '置顶保留（刷新后仍可回看输出）',
   'dg.simulation.unpin': '取消置顶',
   'dg.simulation.copy': '复制 JSON',
+  'dg.simulation.copied': '已复制',
   'dg.simulation.payloadEvicted': '历史载荷已淘汰（未置顶）——重新运行可回看',
   'dg.simulation.runsClear': '清空历史',
   'dg.toolbar.schema': 'JSON Schema',

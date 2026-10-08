@@ -47,6 +47,16 @@ describe('SimulateRunsPanel（批 3 Run 历史时间线）', () => {
     fireEvent.click(screen.getByTestId('simulate-run-row'));
     expect(screen.queryByTestId('simulate-run-detail')).toBeNull();
   });
+
+  it('展开详情由 code-block 渲染（懒 chunk 就绪后：折叠 + copy 按钮出现）', async () => {
+    render(<SimulateRunsPanel runs={[entry('a', true)]} />);
+    fireEvent.click(screen.getByTestId('simulate-run-row'));
+    // fallback pre 同步可见（内容不缺席）
+    expect(screen.getByTestId('simulate-run-detail').textContent).toContain('0.85');
+    // 懒 chunk 解析后 code-block 接管：copy 按钮挂载
+    expect(await screen.findByLabelText('Copy JSON', undefined, { timeout: 5000 })).toBeTruthy();
+    expect(screen.getByTestId('simulate-run-detail').textContent).toContain('0.85');
+  });
 });
 
 describe('Run 历史持久化序列（批 16 混合方案）', () => {

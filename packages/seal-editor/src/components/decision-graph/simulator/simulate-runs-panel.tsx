@@ -9,17 +9,20 @@ import {
   TimelineTitle,
 } from '#reui/timeline';
 import json5 from 'json5';
-import { CopyIcon, PinIcon, PinOffIcon } from 'lucide-react';
-import React, { useState } from 'react';
+import { PinIcon, PinOffIcon } from 'lucide-react';
+import React, { Suspense, lazy, useState } from 'react';
 
 import { useT } from '../../../theming/i18n';
 import { useDecisionGraphActions } from '../context/dg-store.context';
 import type { SimulateRunEntry } from '../context/dg-store.context';
 
+/** code-block 渲染的 run 详情留在动态 chunk（shiki 随行），fallback = 裸 pre。 */
+const SimulateRunDetail = lazy(() => import('./simulate-run-detail').then((m) => ({ default: m.SimulateRunDetail })));
+
 /**
- * Run 历史时间线（批 3 + 批 16 持久化 + 批 A1 展示升级）：
+ * Run 历史时间线（批 3 + 批 16 持久化 + 批 A1 展示升级 + code-block 渲染）：
  * 新运行在头部，outcome 徽章 + 耗时；点行展开该次的输出/错误 JSON
- * （copy 按钮 + snapshot 回看，不重跑）；行内 pin 切换——
+ * （高亮 + 折叠 + copy，chunk 就绪前以裸 pre 兜底）；行内 pin 切换——
  * 置顶条目豁免环形淘汰且载荷持久化保留，未置顶条目刷新后仅剩元数据行
  * （payloadEvicted 提示，重跑可回看）。
  */
@@ -30,17 +33,6 @@ export const SimulateRunsPanel: React.FC<{
   const t = useT();
   const graphActions = useDecisionGraphActions();
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-
-  const copyDetail = (run: SimulateRunEntry) => {
-    const evicted = !run.snapshot;
-    const detail = evicted ? null : run.ok ? run.snapshot?.result?.result : (run.snapshot?.error ?? 'unknown error');
-    const text = json5.stringify(detail, undefined, 2);
-    void navigator.clipboard.writeText(text).then(() => {
-      setCopiedId(run.id);
-      setTimeout(() => setCopiedId((cur) => (cur === run.id ? null : cur)), 1500);
-    });
-  };
 
   if (runs.length === 0) {
     return <div className='p-6 text-center text-xs opacity-50'>{emptyHint ?? t('dg.simulation.runsEmpty')}</div>;
@@ -105,27 +97,18 @@ export const SimulateRunsPanel: React.FC<{
                   </div>
                 )}
                 {!evicted && (
-                  <div className='relative'>
-                    <pre
-                      data-testid='simulate-run-detail'
-                      className='max-h-64 overflow-auto rounded-md bg-muted/60 p-2 pr-8 font-mono text-[10px] leading-relaxed'
-                    >
-                      {json5.stringify(detail, undefined, 2)}
-                    </pre>
-                    <button
-                      type='button'
-                      data-testid='simulate-run-copy'
-                      aria-label={t('dg.simulation.copy')}
-                      className='absolute right-1.5 top-1.5 rounded p-1 text-muted-foreground opacity-60 transition-colors hover:bg-background hover:text-foreground hover:opacity-100'
-                      onClick={() => copyDetail(run)}
-                    >
-                      {copiedId === run.id ? (
-                        <span className='text-[10px] text-success'>✓</span>
-                      ) : (
-                        <CopyIcon className='size-3' />
-                      )}
-                    </button>
-                  </div>
+                  <Suspense
+                    fallback={
+                      <pre
+                        data-testid='simulate-run-detail'
+                        className='max-h-64 overflow-auto rounded-md bg-muted/60 p-2 pr-8 font-mono text-[10px] leading-relaxed'
+                      >
+                        {json5.stringify(detail, undefined, 2)}
+                      </pre>
+                    }
+                  >
+                    <SimulateRunDetail detail={detail} />
+                  </Suspense>
                 )}
               </TimelineContent>
             )}

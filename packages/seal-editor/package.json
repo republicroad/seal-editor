@@ -89,6 +89,7 @@
     "react-intersection-observer": "^9.16.0",
     "react-json-tree": "^0.20.0",
     "react-resizable-panels": "^2.1.7",
+    "shiki": "^4.4.3",
     "sonner": "catalog:",
     "tailwind-merge": "catalog:",
     "to-json-schema": "^0.2.5",
