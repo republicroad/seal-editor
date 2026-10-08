@@ -137,12 +137,17 @@ type InferNodeTypes = (
   graphWalker: GraphWalker,
 ) => { nodeTypes: NodeTypes; isModified: boolean };
 
-const inferNodeTypes: InferNodeTypes = ({ decisionGraph, nodeTypes, customNodes }, prevState, graphWalker) => {
+/** 测试接缝：walk 推理核心（wasm VariableType 以 mock 注入后可在 node/jsdom 断言）。 */
+export const inferNodeTypes: InferNodeTypes = ({ decisionGraph, nodeTypes, customNodes }, prevState, graphWalker) => {
   let isModified = false;
   const newNodeTypes = produce(nodeTypes, (draft) => {
     for (const { node, incomers } of graphWalker.walk(decisionGraph)) {
       if (node.type === 'inputNode') {
-        return;
+        // 祖传缺陷修复（2026-10-08 实证）：walk 首 yield 恒为 inputNode，
+        // 原 `return` 直接退出整个 produce——inferNodeTypes 对一切合法图
+        // 空转，自定义节点 inferTypes 从未执行过。inputNode 该跳过（其类型
+        // 由字段定义另路写入），后续节点必须继续走。
+        continue;
       }
 
       const incomerTypes = incomers
