@@ -2,11 +2,14 @@
 
 > 本目录归拢 seal-editor 仓库的架构决策。每条 ADR 记录一个**不可轻易撤回**的技术选型：
 > 背景、备选方案、决策结论、后续条件。格式参考 [MADR](https://adr.github.io/madr/)（简化版）。
+> 立法判据、跨仓归属（seal-editor / verdict 双档案分界）与评审工作流见
+> [ADR-000 宪章](./000-adr-charter.md)。
 
 ## 索引
 
 | ADR | 标题 | 状态 | 日期 |
 | --- | --- | --- | --- |
+| [ADR-000](./000-adr-charter.md) | ADR 制度宪章：立法判据、跨仓归属与评审工作流 | accepted | 2026-10 |
 | [ADR-001](./001-esm-only-packages.md) | 全部发布包采用 ESM-only（不提供 CJS 双格式） | accepted | 2025-01 |
 | [ADR-002](./002-zen-udf-tenant-isolation.md) | zen-udf 多租户隔离：语义三元 + 审计 journal + 构造期上下文捕获 | accepted | 2026-09 |
 | [ADR-003](./003-zen-udf-cache-ownership.md) | L1 决策缓存责任归宿主（zen-engine 函数 loader 无引擎级缓存） | accepted | 2026-09 |
@@ -37,6 +40,9 @@
 
 ## 新建 ADR
 
+0. 先读 [ADR-000 宪章](./000-adr-charter.md)确认立法判据与归属——verdict 服务
+   内部决策立 **verdict 仓自己的 `docs/adr/`**（独立编号 `verdict-NNN`），本目录
+   只收编辑器内核、zen-udf 引擎与跨仓接口契约
 1. 复制下方模板，命名 `NNN-短标题.md`（NNN 三位递增序号）
 2. 填写完整后在上方索引表追加一行
 3. 状态变更（如 accepted → deprecated）时在正文尾部追加 `## 后记` 说明原因与替代 ADR 链接
