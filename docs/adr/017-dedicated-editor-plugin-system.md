@@ -106,8 +106,10 @@ spec | undefined`，优先级矩阵固定：
 1. **内建五节点永远优先**（decision-table / function / expression / input /
    output 的内建路由先行）——**pack 不可劫持内建 kind，这是安全边界**，
    注册表只管辖 customNode 域；
-2. kind 精确匹配组，按 rank 降序；
-3. tester 谓词组，按 rank 降序；
+2. kind 精确匹配组，按 rank 降序——**组内 tester 仲裁**：第一个「无 tester
+   或 tester 通过」者胜（kind 收窄候选、tester 按 config 形态分流——同 kind
+   多代编辑器场景；无 tester 时与纯 rank 排序完全一致）；
+3. 精确组全部 tester 拒绝 → 跨 kind tester 谓词组按 rank 降序；
 4. 同 rank 按声明序（确定性——宿主数组顺序不再影响语义）；
 5. 开发模式下同分冲突 `console.warn`（生产静默，冲突申报随治理窗验证面板）。
 
@@ -117,9 +119,11 @@ spec | undefined`，优先级矩阵固定：
   （generateNode/onNodeAdd）；各位点把自身节点形态归一为 `NodeMatchContext`
   后调用，`dg-infer` 的 `node.type` 键形差异在收敛批审计（若是错配即顺手修复，
   行为变化进 changelog）；
-- **降级语义（P1/P2 补齐）**：kind 精确先行于 tester 谓词（可预期性优先——
-  显式声明归属的压过模式匹配的）；tester 抛异常按**不匹配**处理（注册表内
-  try/catch，单 pack 故障不拖垮编辑器）；
+- **降级语义（P1/P2 补齐）**：kind 精确组内 tester 仲裁、精确组全拒后落跨
+  kind 谓词组（「kind 收窄候选 + tester 分流」——同 kind 多代编辑器由此可
+  表达：双 spec 同 kind 各带 tester，按 `config.schemaVersion` 认领；纯 rank
+  组行为不变）；tester 抛异常按**不匹配**处理（注册表内 try/catch，单 pack
+  故障不拖垮编辑器）；
 - **rank 惯例**：常规 pack 不设（=0）；兜底/兼容 pack 负值；官方覆盖正值。
 
 **renderTab 上下文增补（M3）**——props 追加 `disabled` 与只读 `node` 快照：
@@ -187,9 +191,11 @@ pack 面板现状感知不到禁用态（disabled 只影响内建 tab）；追�
 
 ## 开放问题
 
-1. **kind 精确组与 tester 组的相对优先级**——本 ADR 裁定 kind 精确先行
-   （可预期性优先）。是否允许高 rank tester 压过低 rank 精确匹配？建议维持
-   现裁定（简单可解释），待真实争抢场景检验；
+1. **kind 精确组与 tester 组的相对优先级**——初稿裁定 kind 精确先行、tester
+   不可越组压制；实施批（2026-10-08，PackAuthoring 活文档暴露动机不可表达）
+   修正为「**kind 收窄候选、tester 组内仲裁**」：同 kind 多代编辑器（ADR 动机
+   场景）唯有 tester 在精确组内分流才可表达，纯 rank 组行为不变，跨 kind 谓词
+   组仍居精确组全拒之后——可预期性与表达力兼得，OQ1 就此闭合；
 2. **冲突申报形态**——开发模式 console.warn 为首版；是否随治理窗批次 4
    （集中验证面板事件流）升级为结构化事件？建议后者，随 #4 实施；
 3. **`resolveCustomNode` 导出面**——纯函数无风险，建议公共导出供宿主自用

@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
+// barrel MUST 首位：规格链（specifications ↔ graph）存在模块环，barrel 先行
+// 即按 dg→wrapper→graph→specifications 顺序完整初始化；迟到求值会撞上
+// 半初始化的 specifications（graph.tsx:60 Object.entries(undefined)）
 import { VariableType } from '@gorules/zen-engine-wasm';
 import { describe, expect, it, vi } from 'vitest';
 
 import { createGraphWalker } from '../../../helpers/traversal';
 import { NodeTypeKind } from '../context/dg-store.context';
 import { inferNodeTypes } from '../dg-infer';
-// barrel 先行——traversal/规格链的循环初始化在部分求值序下会炸（probe 实证）
 import '../index';
 
 vi.mock('@gorules/zen-engine-wasm', () => {
@@ -40,6 +42,8 @@ vi.mock('@gorules/zen-engine-wasm', () => {
  * 修复为 `continue` 后，本组测试锁定三条：下游可达、content.kind 解析、缓存语义。
  */
 
+type InferState = Parameters<typeof inferNodeTypes>[0];
+
 const makeState = (customNodes: unknown[], withInput = true) =>
   ({
     decisionGraph: {
@@ -51,7 +55,7 @@ const makeState = (customNodes: unknown[], withInput = true) =>
     },
     nodeTypes: {},
     customNodes,
-  }) as never;
+  }) as unknown as InferState;
 
 const makePrevState = () => ({ decisionGraph: { nodes: [], edges: [] }, nodeTypes: {}, customNodes: [] }) as never;
 
@@ -73,10 +77,12 @@ describe('inferNodeTypes（自定义节点 inferTypes 行为守卫——return�
     const result = inferNodeTypes(state, makePrevState(), createGraphWalker());
 
     expect(determineOutputType).toHaveBeenCalledTimes(1);
-    expect(determineOutputType.mock.calls[0][0].content).toEqual({ kind: 'roster', config: { v: 2 } });
+    expect((determineOutputType.mock.calls[0] as unknown[])[0]).toMatchObject({
+      content: { kind: 'roster', config: { v: 2 } },
+    });
     expect(needsUpdate).toHaveBeenCalled();
     expect(result.isModified).toBe(true);
-    expect((result.nodeTypes as Record<string, never>)['c1']).toBeDefined();
+    expect((result.nodeTypes as Record<string, object>)['c1']).toBeDefined();
   });
 
   it('customNode 按 content.kind 解析 spec（死路径修复锁定：kind ≠ node.type）', () => {
@@ -93,7 +99,7 @@ describe('inferNodeTypes（自定义节点 inferTypes 行为守卫——return�
 
   it('needsUpdate=false 且 input 未变 → 跳过重推理（缓存语义）', () => {
     const determineOutputType = vi.fn(() => ({ json: 'out' }) as never);
-    const existing = VariableType.fromJson('any') as never;
+    const existing = VariableType.fromJson('any' as never) as never;
     const prevState = {
       decisionGraph: {
         nodes: makeState([], true).decisionGraph.nodes,
@@ -107,7 +113,7 @@ describe('inferNodeTypes（自定义节点 inferTypes 行为守卫——return�
         },
       },
       customNodes: [],
-    } as never;
+    } as unknown as InferState;
     const state = {
       ...makeState([rosterSpec({ inferTypes: { needsUpdate: () => false, determineOutputType } })]),
       nodeTypes: {
@@ -117,7 +123,7 @@ describe('inferNodeTypes（自定义节点 inferTypes 行为守卫——return�
           [NodeTypeKind.InferredOutput]: existing,
         },
       },
-    } as never;
+    } as unknown as InferState;
 
     const result = inferNodeTypes(state, prevState, createGraphWalker());
     // InferredInput 因 incomers 侧缺席仍会刷新（isModified 可为 true），
@@ -130,6 +136,8 @@ describe('inferNodeTypes（自定义节点 inferTypes 行为守卫——return�
     const state = makeState([rosterSpec()]);
     const result = inferNodeTypes(state, makePrevState(), createGraphWalker());
     expect(result.isModified).toBe(true); // InferredInput 仍推进
-    expect((result.nodeTypes as Record<string, never>)['c1']?.InferredOutput).toBeUndefined();
+    expect(
+      (result.nodeTypes as Record<string, Record<string, object>>)['c1']?.[NodeTypeKind.InferredOutput],
+    ).toBeUndefined();
   });
 });

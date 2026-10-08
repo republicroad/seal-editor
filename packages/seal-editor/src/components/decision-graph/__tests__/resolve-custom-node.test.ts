@@ -44,6 +44,31 @@ describe('resolveCustomNode（ADR-017 §2 编辑接管层注册表）', () => {
     expect(resolveCustomNode([predicate, exact], { kind: 'roster' })).toBe(exact);
   });
 
+  test('同 kind 双 spec：tester 组内仲裁按 config 分流（多代编辑器场景）', () => {
+    const v1 = spec('riskQuery', {
+      tester: (ctx) => (ctx.config as { schemaVersion?: number })?.schemaVersion === 1,
+    });
+    const v2 = spec('riskQuery', {
+      tester: (ctx) => (ctx.config as { schemaVersion?: number })?.schemaVersion === 2,
+      rank: 10,
+    });
+    // kind 收窄候选（两个同 kind 都入组，v2 rank 高在前），tester 分流
+    expect(resolveCustomNode([v1, v2], { kind: 'riskQuery', config: { schemaVersion: 1 } })).toBe(v1);
+    expect(resolveCustomNode([v1, v2], { kind: 'riskQuery', config: { schemaVersion: 2 } })).toBe(v2);
+  });
+
+  test('精确组 tester 全拒 → 回落跨 kind 谓词组（而非直接无主）', () => {
+    const strict = spec('roster', { tester: () => false });
+    const fallback = spec('legacy-fallback', { tester: () => true });
+    expect(resolveCustomNode([strict, fallback], { kind: 'roster' })).toBe(fallback);
+  });
+
+  test('同 kind 无 tester：rank 定胜负，语义与纯排序一致（向后兼容）', () => {
+    const a = spec('k');
+    const b = spec('k', { rank: 5 });
+    expect(resolveCustomNode([a, b], { kind: 'k' })).toBe(b);
+  });
+
   test('tester 谓词组：kind 未命中时按 rank 降序接管', () => {
     const v1 = spec('legacy-editor', {
       tester: (ctx) => (ctx.config as { schemaVersion?: number })?.schemaVersion === 1,

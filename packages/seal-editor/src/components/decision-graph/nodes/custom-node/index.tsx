@@ -118,11 +118,16 @@ export type BaseNode<
   group?: string;
   searchKeywords?: string[];
   meta?: CustomNodeSpecification<any, Component>['meta'];
+  /** ADR-017 §2：接管谓词（createJdmNode 透传到 spec） */
+  tester?: CustomNodeSpecification<NodeData, Component>['tester'];
+  /** ADR-017 §2：接管优先级 */
+  rank?: number;
   handleLeft?: boolean;
   handleRight?: boolean;
   inputs?: [...Inputs];
   generateNode?: CustomNodeSpecification<NodeData, Component>['generateNode'];
   renderNode?: CustomNodeSpecification<NodeData, Component>['renderNode'];
+  renderTab?: CustomNodeSpecification<NodeData, Component>['renderTab'];
   onNodeAdd?: CustomNodeSpecification<NodeData, Component>['onNodeAdd'];
 };
 
@@ -142,6 +147,9 @@ export const createJdmNode = <
     shortDescription: n.shortDescription,
     searchKeywords: n.searchKeywords,
     meta: n.meta,
+    tester: n.tester,
+    rank: n.rank,
+    renderTab: n.renderTab,
     generateNode:
       n.generateNode ||
       (({ index }) => ({

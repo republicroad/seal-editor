@@ -352,6 +352,9 @@ importers:
       monaco-editor:
         specifier: ^0.52.2
         version: 0.52.2
+      storybook:
+        specifier: 10.6.0
+        version: 10.6.0(@types/react@18.3.31)(prettier@3.9.9)(react@19.2.8)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

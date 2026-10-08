@@ -55,5 +55,12 @@ export const WithRuns: Story = {
     await waitFor(() => {
       expect(canvas.getByTestId('simulate-run-detail').textContent).toContain('0.85');
     });
+    // code-block 懒 chunk 就绪：高亮 + 折叠 + copy 一体化渲染接管
+    await waitFor(
+      () => {
+        expect(canvas.getByLabelText('Copy JSON')).toBeTruthy();
+      },
+      { timeout: 5000 },
+    );
   },
 };

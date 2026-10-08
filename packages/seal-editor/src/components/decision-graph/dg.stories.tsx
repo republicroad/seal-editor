@@ -2,11 +2,13 @@ import { ApartmentOutlined, ApiOutlined, LeftOutlined, PlayCircleOutlined, Right
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import json5 from 'json5';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { expect, fireEvent, waitFor } from 'storybook/test';
+import { expect, fireEvent, waitFor, within } from 'storybook/test';
 
 import type { DictionaryMap } from '../../theme';
+import { useT } from '../../theming/i18n';
 import type { JdmUiMode } from '../decision-table/context/dt-store.context';
-import { Button, Select, Space, Typography } from '../primitives';
+import { Button, Input, Select, Space, Typography } from '../primitives';
+import { useDecisionGraphActions } from './context/dg-store.context';
 import type { DecisionGraphSnapshot } from './context/serializer.context';
 import type { DecisionGraphRef } from './dg';
 import { DecisionGraph } from './dg';
@@ -22,6 +24,7 @@ import { calculateDiffGraph } from './diff/utility';
 import type { GraphRef } from './graph/graph';
 import { createJdmNode } from './nodes/custom-node';
 import { GraphNode } from './nodes/graph-node';
+import { definePack } from './nodes/resolve-custom-node';
 import type { NodeSpecification } from './nodes/specifications/specification-types';
 import { GraphSimulator } from './simulator/dg-simulator';
 import type { Simulation } from './simulator/simulation.types';
@@ -264,6 +267,142 @@ export const UnknownCustomNode: Story = {
         />
       </div>
     );
+  },
+};
+
+/** PackAuthoring 活文档（ADR-017）：~60 行迷你 pack——definePack + 同 kind
+ * 双代编辑器（tester 组内仲裁按 config.schemaVersion 分流）+ renderTab 表单。
+ * pack 作者照此模板起步：声明 spec，装上即得编辑面板，内核零改动。 */
+const riskPackGraph = {
+  nodes: [
+    {
+      id: 'rq1',
+      type: 'customNode',
+      name: 'riskQuery1',
+      position: { x: 40, y: 60 },
+      content: { kind: 'riskQuery', config: { schemaVersion: 1, roster: 'acme-v1' } },
+    },
+    {
+      id: 'rq2',
+      type: 'customNode',
+      name: 'riskQuery2',
+      position: { x: 40, y: 200 },
+      content: { kind: 'riskQuery', config: { schemaVersion: 2, queryName: 'chargeback-rate' } },
+    },
+  ],
+  edges: [],
+} as any;
+
+const RiskLegacyEditorTab: React.FC<{ id: string; node?: { config?: unknown } }> = ({ id, node }) => {
+  const t = useT();
+  const { updateNode, openTab } = useDecisionGraphActions();
+  return (
+    <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }} data-testid={`risk-legacy-${id}`}>
+      <Typography.Text type='secondary'>Legacy Editor（tester: config.schemaVersion === 1）</Typography.Text>
+      <Typography.Text>{JSON.stringify(node?.config ?? {})}</Typography.Text>
+      <Space>
+        <Button
+          data-testid={`risk-legacy-migrate-${id}`}
+          onClick={() =>
+            updateNode(id, (draft: any) => {
+              draft.content.config = {
+                schemaVersion: 2,
+                queryName: draft.content.config?.roster ?? '',
+              };
+              return draft;
+            })
+          }
+        >
+          Migrate to v2
+        </Button>
+        <Button type='text' onClick={() => openTab(id)}>
+          {t('dg.node.editExpression')}
+        </Button>
+      </Space>
+    </div>
+  );
+};
+
+const RiskModernEditorTab: React.FC<{ id: string; node?: { config?: unknown } }> = ({ id, node }) => {
+  const { updateNode } = useDecisionGraphActions();
+  const config = (node?.config ?? {}) as { queryName?: string };
+  return (
+    <div
+      style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 420 }}
+      data-testid={`risk-modern-${id}`}
+    >
+      <Typography.Text type='secondary'>Modern Editor（tester: config.schemaVersion === 2 · rank 10）</Typography.Text>
+      <Input
+        data-testid={`risk-query-name-${id}`}
+        value={config.queryName ?? ''}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          updateNode(id, (draft: any) => {
+            draft.content.config = { ...draft.content.config, queryName: e.target.value };
+            return draft;
+          })
+        }
+      />
+      <Typography.Text type='secondary'>queryName: {config.queryName ?? '—'}</Typography.Text>
+    </div>
+  );
+};
+
+const riskPack = definePack({
+  namespace: 'risk',
+  version: '2.0.0',
+  specs: [
+    createJdmNode({
+      kind: 'riskQuery',
+      displayName: 'Risk Query (v1)',
+      group: 'risk',
+      // 组内仲裁：schemaVersion===1 认领——A legacy 图自动落旧编辑器
+      tester: (ctx) => (ctx.config as { schemaVersion?: number })?.schemaVersion === 1,
+      renderTab: (props) => <RiskLegacyEditorTab id={props.id} node={props.node} />,
+      generateNode: ({ index }) => ({ name: `riskQuery${index}`, config: { schemaVersion: 2, queryName: '' } }),
+    }),
+    createJdmNode({
+      kind: 'riskQuery',
+      displayName: 'Risk Query',
+      group: 'risk',
+      rank: 10,
+      // 组内仲裁：schemaVersion===2 认领——新图自动落现代编辑器
+      tester: (ctx) => (ctx.config as { schemaVersion?: number })?.schemaVersion === 2,
+      renderTab: (props) => <RiskModernEditorTab id={props.id} node={props.node} />,
+      generateNode: ({ index }) => ({ name: `riskQuery${index}`, config: { schemaVersion: 2, queryName: '' } }),
+    }),
+  ],
+});
+
+export const PackAuthoring: Story = {
+  render: () => {
+    const [value, setValue] = useState<any>(riskPackGraph);
+    return (
+      <div style={{ height: '100%' }}>
+        <DecisionGraph
+          customNodes={riskPack.specs}
+          value={value}
+          onChange={(val) => setValue(val)}
+          components={components}
+        />
+      </div>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // 双节点各落其代：点开 rq1 页签 → Legacy；rq2 → Modern（tester 组内仲裁）
+    fireEvent.click(canvas.getByText('riskQuery1'));
+    await waitFor(() => {
+      expect(canvas.getByTestId('risk-legacy-rq1')).toBeTruthy();
+    });
+    fireEvent.click(canvas.getByText('riskQuery2'));
+    await waitFor(() => {
+      expect(canvas.getByTestId('risk-modern-rq2')).toBeTruthy();
+    });
+    // renderTab 状态桥：编辑即写图（updateNode → onChange）
+    fireEvent.change(canvas.getByTestId('risk-query-name-rq2'), { target: { value: 'fraud-score' } });
+    await waitFor(() => {
+      expect(canvas.getByText('queryName: fraud-score')).toBeTruthy();
+    });
   },
 };
 

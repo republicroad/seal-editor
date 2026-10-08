@@ -6,9 +6,12 @@ import type { CustomNodeSpecification } from './custom-node';
  * 优先级矩阵（固定，不得由宿主改写）：
  *   ① 内建五节点永远优先——本解析器只管辖 customNode 域（调用方在内建
  *      分支之后到达，结构性保证不可劫持）；
- *   ② kind 精确匹配组按 rank 降序——显式声明归属压过模式匹配；
- *   ③ tester 谓词组按 rank 降序——非 kind 可判定的接管（同 kind 多代
- *      编辑器、按 config 形态分流）；
+ *   ② kind 精确匹配组按 rank 降序——组内 spec 的 tester 作为仲裁：第一个
+ *      「无 tester 或 tester 通过」者胜。kind 收窄候选、tester 在候选内
+ *      按 config 形态分流（同 kind 多代编辑器场景），无 tester 时行为与
+ *      纯 rank 排序完全一致（向后兼容）；
+ *   ③ 精确组全部 tester 拒绝时，回落跨 kind tester 谓词组按 rank 降序——
+ *      非 kind 可判定的接管；
  *   ④ 同 rank 按声明序（稳定排序，宿主数组顺序不再影响语义）；
  *   ⑤ 开发模式同分冲突 console.warn；tester 抛异常按不匹配处理（单
  *      pack 故障隔离）。
@@ -55,6 +58,16 @@ const warnConflict = <C extends string>(group: Array<CustomNodeSpecification<obj
 const byRankDesc = <C extends string>(a: CustomNodeSpecification<object, C>, b: CustomNodeSpecification<object, C>) =>
   (b.rank ?? 0) - (a.rank ?? 0);
 
+/** tester 仲裁：无 tester 视为无条件认领；异常按不匹配（单 pack 故障隔离）。 */
+const testerAccepts = <C extends string>(spec: CustomNodeSpecification<object, C>, ctx: NodeMatchContext) => {
+  if (typeof spec.tester !== 'function') return true;
+  try {
+    return !!spec.tester(ctx);
+  } catch {
+    return false;
+  }
+};
+
 export function resolveCustomNode<C extends string>(
   customNodes: ReadonlyArray<CustomNodeSpecification<object, C>> | undefined,
   ref: CustomNodeRef,
@@ -70,28 +83,30 @@ export function resolveCustomNode<C extends string>(
     node: ref.node,
   };
 
-  // ② kind 精确组
+  // ② kind 精确组：rank 降序 + tester 仲裁（kind 收窄候选，tester 分流）
   if (kind) {
     const exact = all.filter((spec) => spec.kind === kind);
     if (exact.length > 0) {
       if (exact.length > 1) {
         exact.sort(byRankDesc);
-        if (isDev() && exact[0].rank === exact[1].rank) warnConflict(exact, `kind "${kind}"`);
+        if (
+          isDev() &&
+          exact[0].rank === exact[1].rank &&
+          testerAccepts(exact[0], ctx) === testerAccepts(exact[1], ctx)
+        ) {
+          warnConflict(exact, `kind "${kind}"`);
+        }
       }
-      return exact[0];
+      const winner = exact.find((spec) => testerAccepts(spec, ctx));
+      if (winner) return winner;
+      // 精确组全部 tester 拒绝 → 落到跨 kind 谓词组
     }
   }
 
-  // ③ tester 谓词组（异常按不匹配——单 pack 故障不拖垮编辑器）
-  const matched: Array<CustomNodeSpecification<object, C>> = [];
-  for (const spec of all) {
-    if (typeof spec.tester !== 'function') continue;
-    try {
-      if (spec.tester(ctx)) matched.push(spec);
-    } catch {
-      /* 不匹配 */
-    }
-  }
+  // ③ 跨 kind tester 谓词组——仅显式声明 tester 的 spec 参与（异常按不匹配）
+  const matched = all.filter(
+    (spec) => spec.kind !== kind && typeof spec.tester === 'function' && testerAccepts(spec, ctx),
+  );
   if (matched.length === 0) return undefined;
   if (matched.length > 1) {
     matched.sort(byRankDesc);
