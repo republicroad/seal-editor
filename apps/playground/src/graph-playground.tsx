@@ -76,6 +76,8 @@ export const GraphPlayground: React.FC = () => {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [versions, setVersions] = useState<VersionEntry[]>([]);
   const [diffs, setDiffs] = useState<Record<string, GraphDiff>>({});
+  // 行级差异原文：revision → 与前相邻版本的 pretty JSON（版本历史 unified patch 视图）
+  const [diffContents, setDiffContents] = useState<Record<string, { before: string; after: string }>>({});
   const [diffBase, setDiffBase] = useState<DiffBase | null>(null);
   const [status, setStatus] = useState('');
   // 模式 D 自动持久化（?storage=http 演示）：head 与同步状态独立于图文档 state——
@@ -252,13 +254,21 @@ export const GraphPlayground: React.FC = () => {
       list.map((v) => adapter.load(GRAPH_ID, { revision: v.revision }).then((r) => r?.content ?? null)),
     );
     const next: Record<string, GraphDiff> = {};
+    const nextContents: Record<string, { before: string; after: string }> = {};
     list.forEach((entry, i) => {
       const prev = i > 0 ? contents[i - 1] : null;
       if (contents[i]) {
         next[entry.revision] = computeGraphDiff((prev ?? { nodes: [], edges: [] }) as any, contents[i] as any);
+        if (prev) {
+          nextContents[entry.revision] = {
+            before: JSON.stringify(prev, null, 2),
+            after: JSON.stringify(contents[i], null, 2),
+          };
+        }
       }
     });
     setDiffs(next);
+    setDiffContents(nextContents);
   }, []);
 
   const openHistory = useCallback(async () => {
@@ -506,6 +516,7 @@ export const GraphPlayground: React.FC = () => {
           versions={versions}
           currentRevision={currentRevision}
           diffs={diffs}
+          diffContents={diffContents}
           comparingRevision={diffBase?.revision}
           onRestore={(revision) => void onRestore(revision)}
           onRename={(revision, versionName) => void onRename(revision, versionName)}

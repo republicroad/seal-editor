@@ -47,6 +47,7 @@
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
     "lucide-react": "catalog:",
+    "shiki": "^4.4.3",
     "sonner": "catalog:",
     "tailwind-merge": "catalog:",
     "ts-pattern": "catalog:",

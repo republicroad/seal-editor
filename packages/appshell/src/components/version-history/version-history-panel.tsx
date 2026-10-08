@@ -2,10 +2,13 @@ import { type GraphDiff, useT } from '@republicroad/seal-editor';
 import { ChevronDownIcon, ChevronRightIcon, PencilIcon, PinIcon, PinOffIcon } from 'lucide-react';
 import * as React from 'react';
 
+import { CodeBlock } from '../reui/code-block/code-block';
+import { parseUnifiedDiff } from '../reui/code-block/code-block-highlight';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { ScrollArea } from '../ui/scroll-area';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../ui/sheet';
+import { computeUnifiedPatch } from './compute-unified-patch';
 
 export type VersionHistoryEntry = {
   revision: string;
@@ -31,6 +34,12 @@ export interface VersionHistoryPanelProps {
    * 键 = 版本 revision）。提供后条目显示 +/−/~ 摘要，点击展开变更明细。
    */
   diffs?: Record<string, GraphDiff>;
+  /**
+   * 行级差异原文（可选，宿主提供：revision → 该版本与前相邻版本的完整 JSON 串；
+   * 通常与 diffs 同源同批计算）。提供后展开条目在结构摘要下追加 unified
+   * patch 视图（双行号 +/− 行标记）；不提供则维持仅结构摘要。
+   */
+  diffContents?: Record<string, { before: string; after: string }>;
   /** 钉住/取消钉住版本(宿主实现：adapter.updateVersionMeta)；未提供则隐藏钉住入口 */
   onPin?: (revision: string, pinned: boolean) => void;
   /**
@@ -122,6 +131,46 @@ const DiffSummary: React.FC<{ diff: GraphDiff; expanded: boolean; onToggle: () =
 };
 
 /**
+ * 行级差异视图（ADR-017 同批：code-block unified patch，c-18 形态）——
+ * 宿主喂相邻两版 JSON 串，LCS 出 patch 后 parseUnifiedDiff 渲染双行号 +/− 行。
+ * `lines` prop 预高亮直供，零 shiki 参与。
+ */
+const VersionLineDiff: React.FC<{ before: string; after: string }> = ({ before, after }) => {
+  const t = useT();
+  const computed = React.useMemo(() => {
+    const pretty = (s: string) => {
+      try {
+        return JSON.stringify(JSON.parse(s), null, 2);
+      } catch {
+        return s;
+      }
+    };
+    return computeUnifiedPatch(pretty(before), pretty(after));
+  }, [before, after]);
+  // null = 超行数 guard（tooLarge）；patch 空 = 两版本无行级差异
+  const files = React.useMemo(() => (computed?.patch ? parseUnifiedDiff(computed.patch) : null), [computed]);
+
+  if (files === null) {
+    return (
+      <div className='mt-1 text-[10px] text-muted-foreground'>
+        {computed === null ? t('vh.diff.tooLarge') : t('vh.diff.noLineChanges')}
+      </div>
+    );
+  }
+  const file = files[0];
+  return (
+    <div data-testid='vh-line-diff' className='mt-1 overflow-hidden rounded-md border'>
+      <div className='flex items-center gap-2 border-b bg-muted/40 px-2 py-1 text-[10px]'>
+        <span className='font-mono opacity-70'>{file.file}</span>
+        {file.added > 0 && <span className='font-medium text-emerald-600 dark:text-emerald-400'>+{file.added}</span>}
+        {file.removed > 0 && <span className='font-medium text-red-600 dark:text-red-400'>−{file.removed}</span>}
+      </div>
+      <CodeBlock lines={file.lines} variant='ghost' showLineNumbers className='max-h-72 font-mono text-[10px]' />
+    </div>
+  );
+};
+
+/**
  * 版本历史侧滑面板：列出某图的全部历史版本，支持恢复到任一版本、按名称/版本号
  * 过滤、命名版本的重命名，以及可选的版本差异摘要（受控，宿主喂 adapter 数据与回调）。
  */
@@ -134,6 +183,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
   onRestore,
   onRename,
   diffs,
+  diffContents,
   onPin,
   onCompare,
   comparingRevision,
@@ -265,6 +315,12 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                                   setExpandedDiff(expandedDiff === entry.revision ? null : entry.revision)
                                 }
                               />
+                              {expandedDiff === entry.revision && diffContents?.[entry.revision] && (
+                                <VersionLineDiff
+                                  before={diffContents[entry.revision].before}
+                                  after={diffContents[entry.revision].after}
+                                />
+                              )}
                             </div>
                           )}
                           {entry.updatedAt && !isEditing && (

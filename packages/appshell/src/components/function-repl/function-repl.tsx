@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 
 import type { CustomNodeNamespace } from '../../lib/custom-node-types';
+import { CodeBlock, CodeBlockExpandButton } from '../reui/code-block/code-block';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -196,12 +197,18 @@ export const FunctionRepl: React.FC<{
               {renderResult(outcome.result)}
             </div>
           ) : (
-            <pre
-              data-testid='repl-result'
-              className='max-h-48 overflow-auto whitespace-pre-wrap break-all rounded bg-[var(--muted)] p-2 font-mono text-[11px]'
-            >
-              {JSON.stringify(outcome.result, null, 2)}
-            </pre>
+            <div data-testid='repl-result' className='max-h-48 overflow-auto rounded bg-[var(--muted)]'>
+              <CodeBlock
+                code={JSON.stringify(outcome.result, null, 2)}
+                language='json'
+                variant='ghost'
+                maxLines={12}
+                showLineNumbers={false}
+                className='font-mono text-[11px]'
+              >
+                <CodeBlockExpandButton className='text-[10px]' />
+              </CodeBlock>
+            </div>
           )}
         </div>
       )}

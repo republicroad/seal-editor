@@ -75,6 +75,8 @@ export const en = {
   'vh.filter.noMatch': 'No versions match "{{query}}".',
   'vh.noChanges': 'No changes',
   'vh.changes': 'changes',
+  'vh.diff.tooLarge': 'Change too large for a line-level diff',
+  'vh.diff.noLineChanges': 'No line-level changes',
   'vh.entry.current': 'current',
   'vh.entry.auto': 'auto',
   'vh.entry.pinned': 'pinned',

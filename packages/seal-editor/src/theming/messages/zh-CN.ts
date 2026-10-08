@@ -65,6 +65,8 @@ export const zhCN: Record<string, string> = {
   'vh.filter.noMatch': '没有匹配“{{query}}”的版本。',
   'vh.noChanges': '无变化',
   'vh.changes': '处变更',
+  'vh.diff.tooLarge': '变更过大，已省略行级差异',
+  'vh.diff.noLineChanges': '无行级变更',
   'vh.entry.current': '当前',
   'vh.entry.auto': '自动',
   'vh.entry.pinned': '已钉住',

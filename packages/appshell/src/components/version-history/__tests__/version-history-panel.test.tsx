@@ -188,6 +188,54 @@ describe('VersionHistoryPanel', () => {
     expect(screen.queryByRole('button', { expanded: false })).not.toBeInTheDocument();
   });
 
+  test('diffContents：展开条目追加 unified patch 行级视图（+/− 徽标与变更行）', () => {
+    const diffs = {
+      v2: {
+        addedNodes: [{ id: 'n3' }],
+        removedNodes: [],
+        modifiedNodes: [],
+        addedEdges: [],
+        removedEdges: [],
+        modifiedEdges: [],
+        unchanged: false,
+      },
+    };
+    const diffContents = {
+      v2: {
+        before: JSON.stringify({ nodes: [{ id: 'n1' }] }, null, 2),
+        after: JSON.stringify({ nodes: [{ id: 'n1' }, { id: 'n3' }] }, null, 2),
+      },
+    };
+    renderPanel({ diffs, diffContents });
+
+    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    const diffView = screen.getByTestId('vh-line-diff');
+    // pretty JSON 下新增一个节点 = 3 行（{ / "id": "n3" / }）
+    expect(diffView.textContent).toContain('+3');
+    expect(diffView.textContent).toContain('n3');
+  });
+
+  test('diffContents：两版无行级差异时显示 noLineChanges 提示', () => {
+    const same = JSON.stringify({ nodes: [] }, null, 2);
+    renderPanel({
+      diffs: {
+        v1: {
+          addedNodes: [],
+          removedNodes: [],
+          modifiedNodes: [],
+          addedEdges: [],
+          removedEdges: [],
+          modifiedEdges: [],
+          unchanged: false,
+        },
+      },
+      diffContents: { v1: { before: same, after: same } },
+    });
+
+    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    expect(screen.getByText('No line-level changes')).toBeInTheDocument();
+  });
+
   // ── pin ──
 
   test('未提供 onPin 时不渲染钉住入口', () => {
