@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.33.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.32.0...@republicroad/seal-editor@1.33.0) (2026-10-08)
+
+### Features
+
+- **seal-editor:** reui code-block 裁剪移植（shiki 全动态 chunk）+ Run 历史详情 code-block 渲染（懒 chunk + 折叠/复制）
+- **seal-editor:** ADR-017 插件体系编辑接管层——resolveCustomNode（tester+rank 组内仲裁）+ definePack 公共导出，六处消费点收敛，renderTab 增补 disabled/node 上下文
+
+### Bug Fixes
+
+- **seal-editor:** dg-infer 推理循环 return→continue——祖传空转修复（上游 jdm 同缺陷），自定义节点 inferTypes 首次真正生效
+- **seal-editor:** graph defaultNodeTypes 惰性化——模块环入口序非确定性根修
+
 # [1.32.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.31.0...@republicroad/seal-editor@1.32.0) (2026-10-08)
 
 ### Features

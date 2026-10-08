@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.37.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.36.0...@republicroad/seal-appshell@1.37.0) (2026-10-08)
+
+### Features
+
+- **seal-appshell:** 版本历史 unified patch 行级 diff（diffContents prop + compute-unified-patch LCS 工具 + code-block 渲染，双行号 +/− 行与 +N/−N 徽标）
+- **seal-appshell:** function-repl 缺省结果 code-block 化（renderResult 宿主插槽不变）；Button 增 icon-sm 尺寸；version-history-panel 行级差异故事
+
 # [1.36.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.35.0...@republicroad/seal-appshell@1.36.0) (2026-10-07)
 
 ### Features
