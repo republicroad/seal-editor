@@ -81,6 +81,31 @@ const fraudPack: UdfPack = {
 
 发布前跑 `packChecks(pack)` 质量层；act 语义工具必须声明 `idempotent`（Z1）。
 
+## 3.5 专用编辑器插件体系契约（ADR-017，2026-10-08 已实施）
+
+pack 除执行侧（上节）外，可在**编辑侧**声明专属编辑面板——内核零改动、零发版：
+
+- **声明面**：`createJdmNode`/`definePack` 的 spec 带 `renderTab`（编辑面板）+
+  可选 `tester`（接管谓词）+ `rank`（优先级）；装进宿主 `customNodes` 数组即自动
+  接管。作者入口：[pack-authoring-guide](./pack-authoring-guide.md)；
+  活示例：Storybook **Decision Graph/PackAuthoring** 故事（~60 行迷你 pack）；
+- **匹配语义**：kind 精确组按 rank 降序 → 组内 tester 仲裁（第一个「无 tester
+  或 tester 通过」者胜）→ 精确组全拒回落跨 kind tester 组；同 rank 按声明序；
+  tester 抛异常按不匹配（单 pack 故障隔离）；
+- **状态桥纪律**：pack 面板写配置必须走 `useDecisionGraphActions().updateNode`
+  immer 管道（撤销/自动保存/onChange 链一致），回调返回 draft；
+- **config 键主权**：`content.config` 多写手共享，pack 只写自有键（红线，
+  [custom-node-editor-spec](./custom-node-editor-spec.md) §2）；
+- **治理先行**：宿主 `allowedNamespaces` 过滤先于接管解析——verdict 按 namespace
+  关停 pack 时，其编辑面板随 spec 一起从解析器输入中消失（tester 无法复活），
+  存量节点回退兜底表格（只读不白块）；
+- **verdict 首批建议**：fraud/kyc pack 各带一个 renderTab（velocity 的窗口
+  配置面板是最自然的第一个专属编辑器）；争抢未出现前不设 rank；
+- **存在性层（待触发）**：catalog 载荷驱动的 namespace 注册表 + 版本迁移器
+  （[dedicated-node-registry-design](./dedicated-node-registry-design.md) #4/#5）——
+  **触发条件 = verdict 侧第三方 pack 贡献或函数 schema 首次 breaking change**，
+  届时由该档启动实施。
+
 ## 4. L0 内容存储（PostgreSQL，rev 化）
 
 - 模型内容按 `${tenantId}:${key}` + `rev` 存档；发布 = 新 rev 建档 + 旧键失效
@@ -101,6 +126,7 @@ const fraudPack: UdfPack = {
 
 - [ ] 四端口实现过 conformance（RateStore / ConcurrencyLimiter / EgressGuard / SecretResolver）
 - [ ] fraudPack / kycPack 过 `packChecks` 质量层
+- [ ] fraudPack / kycPack 编辑侧 renderTab（§3.5，velocity 窗口配置面板优先）
 - [ ] PostgreSQL L0 rev 化存储就绪
 - [ ] model-execute 最小闭环：execute → trace → audit journal → Prometheus 指标可见
 - [ ] 失效广播链路演练（双副本场景）

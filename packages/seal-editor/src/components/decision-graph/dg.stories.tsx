@@ -389,12 +389,21 @@ export const PackAuthoring: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    // 双节点各落其代：点开 rq1 页签 → Legacy；rq2 → Modern（tester 组内仲裁）
-    fireEvent.click(canvas.getByText('riskQuery1'));
+    // 双节点各落其代（tester 组内仲裁）：经默认 renderNode 的 Edit 动作开页签
+    // （画布节点名单击仅选中，不开页签）。第二击必须 scope 到 rq2 的画布
+    // 节点——已开的 Legacy 页签内部也有同名 Edit 按钮，裸 getAll 会误点。
+    const editButtonIn = (nodeId: string): HTMLElement => {
+      const node = canvasElement.querySelector(`.react-flow__node[data-id="${nodeId}"]`);
+      if (!node) throw new Error(`canvas node ${nodeId} not found`);
+      const btn = Array.from(node.querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Edit Expression');
+      if (!btn) throw new Error(`Edit Expression button not found in ${nodeId}`);
+      return btn as HTMLElement;
+    };
+    fireEvent.click(editButtonIn('rq1'));
     await waitFor(() => {
       expect(canvas.getByTestId('risk-legacy-rq1')).toBeTruthy();
     });
-    fireEvent.click(canvas.getByText('riskQuery2'));
+    fireEvent.click(editButtonIn('rq2'));
     await waitFor(() => {
       expect(canvas.getByTestId('risk-modern-rq2')).toBeTruthy();
     });

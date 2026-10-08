@@ -1,5 +1,5 @@
 import { type Meta, type StoryObj } from '@storybook/react-vite';
-import { expect, fireEvent, waitFor, within } from 'storybook/test';
+import { expect, waitFor } from 'storybook/test';
 
 import { type VersionHistoryEntry, VersionHistoryPanel } from './version-history-panel';
 
@@ -55,16 +55,21 @@ export const WithLineDiff: Story = {
     </div>
   ),
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    // 展开结构摘要 → unified patch 视图挂载
-    fireEvent.click(canvas.getByRole('button', { expanded: false }));
+    // Sheet 门户内容挂在 #storybook-root 之外，test-runner 的 testing-library
+    // 管道跨 portal 不可靠——断言用原生 querySelector + waitFor 轮询；
+    // interactions 自动跑可能与 play 竞争展开态——点击须幂等（已展开则跳过）
+    const doc = canvasElement.ownerDocument;
     await waitFor(() => {
-      expect(canvas.getByTestId('vh-line-diff')).toBeTruthy();
+      const toggle = doc.querySelector('button[aria-expanded="false"]');
+      if (toggle) (toggle as HTMLElement).click();
+      if (!doc.querySelector('[data-testid="vh-line-diff"]')) {
+        throw new Error('vh-line-diff not ready');
+      }
+      // 头部徽标（parseUnifiedDiff 计数）与变更行同屏
+      const diff = doc.querySelector('[data-testid="vh-line-diff"]');
+      expect(diff?.textContent).toContain('graph.json');
+      expect(diff?.textContent).toContain('Enrich');
     });
-    const diff = canvas.getByTestId('vh-line-diff');
-    // 头部徽标（parseUnifiedDiff 计数）与变更行同屏
-    expect(diff.textContent).toContain('graph.json');
-    expect(diff.textContent).toContain('Enrich');
   },
 };
 
@@ -96,10 +101,13 @@ export const NoLineChanges: Story = {
     );
   },
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    fireEvent.click(canvas.getByRole('button', { expanded: false }));
+    const doc = canvasElement.ownerDocument;
     await waitFor(() => {
-      expect(canvas.getByText('No line-level changes')).toBeTruthy();
+      const toggle = doc.querySelector('button[aria-expanded="false"]');
+      if (toggle) (toggle as HTMLElement).click();
+      if (!doc.body?.textContent?.includes('No line-level changes')) {
+        throw new Error('noLineChanges hint not ready');
+      }
     });
   },
 };
