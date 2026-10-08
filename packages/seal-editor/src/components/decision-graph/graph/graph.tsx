@@ -57,22 +57,27 @@ export type GraphRef = DecisionGraphStoreType['actions'] & {
   restore: (snapshot: DecisionGraphSnapshot) => void;
 };
 
-const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
-  (acc, [key, value]) => ({
-    ...acc,
-    [key]: React.memo(
-      (props: MinimalNodeProps) => value.renderNode({ specification: value, ...props }),
-      (prevProps, nextProps) => {
-        return (
-          prevProps.id === nextProps.id &&
-          prevProps.selected === nextProps.selected &&
-          equal(prevProps.data, nextProps.data)
-        );
-      },
-    ),
-  }),
-  {},
-);
+// 模块环防线（2026-10-08）：specifications ↔ graph 存在模块环，模块作用域
+// 直接消费 nodeSpecification 会因求值序撞上半初始化（不同测试文件入口下
+// 非确定性复现）。惰性化——首次渲染时一切模块已就绪。
+let defaultNodeTypesCache: Record<string, React.FC<MinimalNodeProps>> | null = null;
+const getDefaultNodeTypes = (): Record<string, React.FC<MinimalNodeProps>> =>
+  (defaultNodeTypesCache ??= Object.entries(nodeSpecification).reduce(
+    (acc, [key, value]) => ({
+      ...acc,
+      [key]: React.memo(
+        (props: MinimalNodeProps) => value.renderNode({ specification: value, ...props }),
+        (prevProps, nextProps) => {
+          return (
+            prevProps.id === nextProps.id &&
+            prevProps.selected === nextProps.selected &&
+            equal(prevProps.data, nextProps.data)
+          );
+        },
+      ),
+    }),
+    {},
+  ));
 
 const edgeTypes = {
   edge: React.memo(edgeFunction(null)),
@@ -185,7 +190,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
           },
         ),
       }),
-      { ...defaultNodeTypes, customNode: customNodeRenderer },
+      { ...getDefaultNodeTypes(), customNode: customNodeRenderer },
     );
   }, [components, customNodeRenderer]);
 

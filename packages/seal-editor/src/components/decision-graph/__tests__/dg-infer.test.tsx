@@ -1,14 +1,10 @@
 // @vitest-environment jsdom
-// barrel MUST 首位：规格链（specifications ↔ graph）存在模块环，barrel 先行
-// 即按 dg→wrapper→graph→specifications 顺序完整初始化；迟到求值会撞上
-// 半初始化的 specifications（graph.tsx:60 Object.entries(undefined)）
 import { VariableType } from '@gorules/zen-engine-wasm';
 import { describe, expect, it, vi } from 'vitest';
 
 import { createGraphWalker } from '../../../helpers/traversal';
 import { NodeTypeKind } from '../context/dg-store.context';
 import { inferNodeTypes } from '../dg-infer';
-import '../index';
 
 vi.mock('@gorules/zen-engine-wasm', () => {
   class VariableType {

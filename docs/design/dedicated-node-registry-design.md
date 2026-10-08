@@ -3,6 +3,12 @@
 - 日期：2026-09-29
 - 状态：**设计定稿待实施**（轨道 B Phase 2；含版本迁移器 §5——实践 6 落地；上游缺口记录见 [ADR-010](../adr/010-function-catalog-tenant-filter.md) 确认段）
 - 归属：appshell（useCustomNodes 流程）；内核零改动；zen-udf 核心零改动（origin 依赖为可选增强，见 §6）
+- **两层衔接（2026-10-08）**：本档 = 插件体系的**存在性层**（catalog 载荷 → 哪些
+  namespace 存在、以什么形态存在）；**编辑接管层**（节点实例 → 编辑面板归谁）
+  已立法为 [ADR-017](../adr/017-dedicated-editor-plugin-system.md) 并实施
+  （`resolveCustomNode` tester+rank）。本档 tester(ns) 评分语义与 ADR-017
+  tester(ctx) 谓词语义刻意不同层， pack 作者视角入口见
+  [pack-authoring-guide](./pack-authoring-guide.md)。
 
 ## 0. 背景与问题
 
