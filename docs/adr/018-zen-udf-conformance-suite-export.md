@@ -2,6 +2,7 @@
 
 ## 状态
 proposed（2026-10-08 verdict 侧起草——消费方立项前置，按协作规范只提 ADR 不改代码；目标版本 zen-udf **1.3.0**）
+→ **accepted（2026-10-08 上游 seal-editor/zen-udf 评审，三条精化见文末评审注记；实施归 jdm-editor 仓随 zen-udf 1.3.0）**
 
 ## 背景
 
@@ -87,3 +88,49 @@ rateStoreConformance('RedisRateStore', (now) => new RedisRateStore(redis, now));
   **先推本 ADR 发版再动工**（批次 17 交付注记已留此前置）；
 - limiter/egress/secret 的宿主实现 conformance 化（现为分散语义测试）不在本
   ADR 范围，届时按同一入口逐个归拢。
+
+## 评审注记（seal-editor / zen-udf 上游侧，2026-10-08）
+
+### 事实核查（六条，全部属实）
+
+1. **exports map 现状**：`{"." : "./src/index.ts", "./runner": "./src/fixtures.ts"}`
+   两入口——属实，deep import 确被 exports 收口拒绝；
+2. **套件形态**：`rateStoreConformance(name, createStore: (now: () => number) => RateStore)`
+   时钟注入——属实，且签名设计对 Redis 实现友好（now() 时间戳可随命令传入）；
+3. **vitest 依赖位置**：`import { describe, expect, test } from 'vitest'` +
+   vitest 仅 devDep——属实，方案 A 的否决论据（根入口静态拖 vitest 进宿主
+   运行时图）成立；
+4. **上游自测消费**：`rate-store.test.ts:8` 以
+   `rateStoreConformance('InMemoryRateStore', …)` 消费——属实（注释已留
+   「宿主裁决 D1」先例标记）；
+5. **CONTRACT §7 归属**：§7 现为 Conformance 协议（fixtures 部分）——归属
+   正确；**精化**：§7 现文仅有工具级 fixtures 协议条文，端口套件导出位立法
+   建议以「端口 conformance」小节落 §7，而非一行带过；
+6. **类型面无障碍（ADR 未提及的确认项）**：`RateStore` 类型已从根入口导出
+   （`src/index.ts` `type RateStore`）——宿主实现 `implements RateStore` 无需
+   本 ADR 扩面；聚合文件 re-export 套件时类型随行（ADR-005 源码发布无编译边界）。
+
+### 逐节裁定
+
+| 节 | 裁定 |
+| --- | --- |
+| 方案对比 | **接受 B**——A 的 vitest 静态入根否决论据成立；C 契约双源违背 §1 立法本意；D 数据化成本/收益不成立 |
+| 决策 1（聚合文件） | **接受**——聚合而非直指 contrib 内部，公共面稳定原则正确 |
+| 决策 2（本期唯一成员） | **接受**——后续端口归拢条款已留 |
+| 决策 3（vitest 处置） | **修改后接受**——「注释注记」不解决包管理器对齐问题；改为正式声明 `peerDependencies.vitest` + `peerDependenciesMeta.vitest.optional`（zen-udf peer 面已有 `@opentelemetry/api` 先例，同面声明即可） |
+| 决策 4（上游自测迁移） | **升格为必须**——原稿「非必须」不取：聚合入口若仅外部消费，contrib 重组时 re-export 断裂而上游自测仍绿的腐化窗口存在；改一行 import 成本≈0，聚合入口活性由上游 CI 持续证明（ADR-015 解析器单源硬约束同哲学） |
+| 决策 5（CONTRACT §7） | **接受 + 精化**（见核查 5） |
+| 后续条件 | **接受**——「先推本 ADR 发版再动工」的前置正确 |
+
+### 精化（三条，实施 MUST 落）
+
+1. **asOf 语义入验收口径（ADR 漏列项）**：套件实际覆盖 **5 组**语义，原稿漏列
+   `asOf 事件时间锚点（point-in-time 复算）`——恰是 Redis 实现最易错处（计数
+   打点 MUST 携带 now() 而非依赖服务器时钟）。verdict Redis 化的验收口径 MUST
+   显式含 asOf 组跑绿；
+2. vitest peer 正式声明（决策 3 修改项）；
+3. 上游自测迁移为消费 `./conformance`（决策 4 升格项）。
+
+**裁定汇总：方案 B 全案接受；三条精化（asOf 验收口径 / vitest 正式 optional
+peer / 上游自测迁移必须）入实施 MUST；实施归 jdm-editor 仓（exports map +
+聚合文件 + CONTRACT §7 端口小节），随 zen-udf 1.3.0 发布。**
