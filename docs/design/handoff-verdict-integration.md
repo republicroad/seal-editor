@@ -1,6 +1,7 @@
 # verdict 接入交接文档（seal-editor / zen-udf → verdict）
 
 - 日期: 2026-09-24
+- 修订: 2026-10-08（版本基线刷新至收官版；§3 补 ADR-011/015/016 契约要点）
 - 性质: **交接文档** —— seal-editor / zen-udf 侧工作已收官，本文档列出 verdict 侧
   需要承接的实现项、契约与核对清单
 - 读者: verdict 平台团队（model-execute 服务、UDF packs、数据面实现）
@@ -9,9 +10,12 @@
 
 | 包 | 版本 | npm | 说明 |
 | --- | --- | --- | --- |
-| `@republicroad/seal-editor` | **1.1.0** | ✅ 已发布 | 决策图编辑器内核（Base UI 全栈、三形态调用、节点卡/工具栏/停靠检查器） |
-| `@republicroad/seal-appshell` | 1.1.0 | ✅ 已发布 | 换肤编辑器壳（SkinnedDecisionGraph / 主题 Provider / 版本历史 / 持久化适配器） |
-| `@republicroad/zen-udf` | **0.6.0** | ✅ 已发布 | 执行内核：DecisionRuntime + 五域参考实现（ab/geo/validate/template/dt）+ 端口面 |
+| `@republicroad/seal-editor` | **1.33.0** | ✅ 已发布 | 决策图编辑器内核（Base UI 全栈、规范形调用、节点卡/工具栏/停靠检查器、ADR-017 插件体系、code-block 渲染族） |
+| `@republicroad/seal-appshell` | 1.37.0 | ✅ 已发布 | 换肤编辑器壳（SkinnedDecisionGraph / 主题 Provider / 版本历史含 unified patch 行级 diff / 持久化适配器 / auto-persist） |
+| `@republicroad/zen-udf` | **1.2.0** | ✅ 已发布 | 执行内核：DecisionRuntime + 五域参考实现（ab/geo/validate/template/dt）+ 端口面 + 具名调用双读 + 实例依赖 DAG 调度 + 参数值信封 |
+
+> **zen-udf 0.x → 1.x 是规范换代**：1.0.0 冻结调用契约（规范形 `{$call, kwargs}`），
+> 1.1.0 引入参数值信封，1.2.0 具名双读——接入 MUST 以 ≥1.2.0 起步，禁止 0.x。
 
 注意：`@republicroad/jdm-editor`（旧包名）已 deprecated，指向 seal-editor。
 
@@ -81,6 +85,26 @@ const fraudPack: UdfPack = {
 
 发布前跑 `packChecks(pack)` 质量层；act 语义工具必须声明 `idempotent`（Z1）。
 
+### 3.1 调用与参数契约（ADR-011 / 015 / 016，2026-10 立法——接入必读）
+
+- **调用规范形 `{$call, kwargs}`**（ADR-015）：位置数组已**停写**，读取双读长期；
+  verdict 侧任何手写图、迁移、replay 工具 MUST 产出规范形（具名、顺序无关、
+  schema 可校验，中插参数静默错位类失败根除）。写路径切换前置核对：全部图消费
+  引擎 ≥ zen-udf 0.14（1.2.0 自然满足）；**漂移带 MUST 消费
+  `detectKwargsEnvelopeAmbiguity`**（平面调用向名为 kwargs 的参数传 Record 的
+  唯一行为变化点，检出即提示迁移规范形）；
+- **TypedValue 参数值信封**（ADR-016）：参数值 = 模式 + 内容二元组
+  （字面量/表达式/引用显式化，字面量歧义根治）——pack 作者声明参数、编辑器
+  保存、引擎绑定三处同一信封语义；
+- **语义三元 `query | observe | act` 不可折叠**（ADR-011）：每个 defineTool
+  声明必填；`idempotent` 仅 act 语义必须（Z1）；
+- **实例依赖调度**（zen-udf 0.15，已实现）：函数节点实例默认并行，`dependsOn`
+  或 `$.key` 自动建图才串行；悬空引用/环/重复输出 = 结构化错误
+  （`DANGLING_REF`/`CYCLE_DETECTED`/`DUPLICATE_OUTPUT`）；
+- **`config.__meta__.packVersion` 版本锚**：自定义节点 seed 时记录创建时的
+  pack 版本——版本迁移链（migrateGraph）与漂移审计的锚点，verdict 侧自建
+  seed 逻辑时 MUST 写入。
+
 ## 3.5 专用编辑器插件体系契约（ADR-017，2026-10-08 已实施）
 
 pack 除执行侧（上节）外，可在**编辑侧**声明专属编辑面板——内核零改动、零发版：
@@ -116,9 +140,9 @@ pack 除执行侧（上节）外，可在**编辑侧**声明专属编辑面板�
 ## 5. verdict 侧建议实现顺序
 
 1. **四端口 Redis/服务实现**（RateStore / ConcurrencyLimiter / EgressGuard / SecretResolver），每件过 conformance
-2. **seal-demo 验证应用**：基于 editor 仓 fork，装 `@republicroad/seal-editor@^1.1.0` + `@republicroad/seal-appshell@^1.0.0`，
+2. **seal-demo 验证应用**：基于 editor 仓 fork，装 `@republicroad/seal-editor@^1.33.0` + `@republicroad/seal-appshell@^1.37.0` + `@republicroad/zen-udf@^1.2.0`，
    跑通「画图 → 保存 L0 → model-execute 执行」闭环
-3. **velocity**（对照 rate-window 的 RateStore 泛化；规划已展开见 [velocity-udf-plan.md](./velocity-udf-plan.md)）+ fraud/kyc 首批 UDF packs
+3. **velocity**（对照 rate-window 的 RateStore 泛化；规划已展开见 [velocity-udf-plan.md](./velocity-udf-plan.md)）+ fraud/kyc 首批 UDF packs（含编辑侧 renderTab，§3.5）
 4. **PostgreSQL L0** + 失效广播
 5. Prometheus metricsSink 接入，观察 `udf/circuit/limiter` 三类指标
 
@@ -127,6 +151,8 @@ pack 除执行侧（上节）外，可在**编辑侧**声明专属编辑面板�
 - [ ] 四端口实现过 conformance（RateStore / ConcurrencyLimiter / EgressGuard / SecretResolver）
 - [ ] fraudPack / kycPack 过 `packChecks` 质量层
 - [ ] fraudPack / kycPack 编辑侧 renderTab（§3.5，velocity 窗口配置面板优先）
+- [ ] 调用规范形核对：手写/迁移工具产出 `{$call, kwargs}`；漂移带接 `detectKwargsEnvelopeAmbiguity`（§3.1）
+- [ ] 参数值信封三模式对齐（ADR-016）；自定义节点 seed 写入 `__meta__.packVersion`
 - [ ] PostgreSQL L0 rev 化存储就绪
 - [ ] model-execute 最小闭环：execute → trace → audit journal → Prometheus 指标可见
 - [ ] 失效广播链路演练（双副本场景）
