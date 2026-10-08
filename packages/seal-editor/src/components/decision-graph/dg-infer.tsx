@@ -9,6 +9,7 @@ import { createGraphWalker } from '../../helpers/traversal';
 import { isWasmAvailable } from '../../helpers/wasm';
 import type { DecisionGraphStoreType } from './context/dg-store.context';
 import { NodeTypeKind, useDecisionGraphRaw } from './context/dg-store.context';
+import { resolveCustomNode } from './nodes/resolve-custom-node';
 import type { NodeKind } from './nodes/specifications/specification-types';
 import { nodeSpecification } from './nodes/specifications/specifications';
 
@@ -163,9 +164,17 @@ const inferNodeTypes: InferNodeTypes = ({ decisionGraph, nodeTypes, customNodes 
         draft[node.id][NodeTypeKind.InferredInput] = inferredInputType;
       }
 
+      // ADR-017 统一解析；原 `n.kind === node.type` 是死路径（文档模型
+      // customNode 的 type 恒为 'customNode'，spec.kind 永不相等）——改按
+      // content.kind 解析，自定义节点 inferTypes 自此真正生效
       const inferTypes =
         nodeSpecification[node.type as NodeKind]?.inferTypes ??
-        customNodes.find((n) => n.kind === node.type)?.inferTypes;
+        resolveCustomNode(customNodes, {
+          kind: (node.content as { kind?: unknown } | undefined)?.kind,
+          type: node.type,
+          config: (node.content as { config?: unknown } | undefined)?.config,
+          node,
+        })?.inferTypes;
       if (!inferTypes) {
         return;
       }
@@ -227,8 +236,15 @@ const inferTypesNeedsUpdate = (
   prevState: DecisionGraphStoreType['state'],
 ) => {
   const nodesNeedUpdate = decisionGraph.nodes.map((node) => {
+    // 同上：死路径修复——customNode inferTypes 按 content.kind 解析
     const inferTypes =
-      nodeSpecification[node.type as NodeKind]?.inferTypes ?? customNodes.find((n) => n.kind === node.type)?.inferTypes;
+      nodeSpecification[node.type as NodeKind]?.inferTypes ??
+      resolveCustomNode(customNodes, {
+        kind: (node.content as { kind?: unknown } | undefined)?.kind,
+        type: node.type,
+        config: (node.content as { config?: unknown } | undefined)?.config,
+        node,
+      })?.inferTypes;
 
     if (!inferTypes) {
       return false;

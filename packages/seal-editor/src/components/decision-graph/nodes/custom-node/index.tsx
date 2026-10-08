@@ -10,6 +10,7 @@ import { Button, Checkbox, Form, Typography } from '../../../primitives';
 import { useDecisionGraphActions, useDecisionGraphState } from '../../context/dg-store.context';
 import { type DecisionNode } from '../../dg-types';
 import { GraphNode } from '../graph-node';
+import type { NodeMatchContext } from '../resolve-custom-node';
 import type { InferTypeData, MinimalNodeProps, MinimalNodeSpecification } from '../specifications/specification-types';
 
 type CustomDecisionNode<T> = {
@@ -37,7 +38,22 @@ export type CustomNodeSpecification<Data extends object, Component extends strin
   searchKeywords?: string[];
   /** ADR-009：pack 元数据（目录 origin 徽标/版本/许可），schema 端点与文件协议透传 */
   meta?: { origin: 'reference' | 'extension' | 'industry'; version: string; license?: 'oss' | 'proprietary' };
-  renderTab?: (props: { id: string; user?: string; customFunctions?: any }) => React.ReactNode;
+  /**
+   * ADR-017 §2：编辑接管谓词——kind 精确匹配组之后按 rank 降序尝试；
+   * 抛异常按不匹配处理。kind 已声明归属的 spec 无需 tester。
+   */
+  tester?: (ctx: NodeMatchContext) => boolean;
+  /** ADR-017 §2：接管优先级（缺省 0；同 rank 按声明序，冲突开发模式告警） */
+  rank?: number;
+  renderTab?: (props: {
+    id: string;
+    user?: string;
+    customFunctions?: any;
+    /** ADR-017 §2 M3：编辑器禁用态（内建 tab 同源），pack 面板应据此切只读 */
+    disabled?: boolean;
+    /** ADR-017 §2 M3：节点只读快照（id/name/kind/config），供面板免 hook 取值 */
+    node?: { id: string; name?: string; kind?: string; config?: unknown };
+  }) => React.ReactNode;
   calculateDiff?: (current: any, previous: any) => [any, any];
   generateNode: (params: GenerateNodeParams) => Omit<DecisionNode, 'position' | 'id' | 'type' | 'content'> & {
     config?: Data;

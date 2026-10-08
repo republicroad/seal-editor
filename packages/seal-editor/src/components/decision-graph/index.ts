@@ -7,6 +7,14 @@ export type {
 } from './nodes/specifications/specification-types';
 export type { CustomNodeSpecification } from './nodes/custom-node/index';
 export { createJdmNode } from './nodes/custom-node';
+export {
+  resolveCustomNode,
+  definePack,
+  type NodeMatchContext,
+  type CustomNodeRef,
+  type CustomNodePack,
+  type CustomNodePackMigration,
+} from './nodes/resolve-custom-node';
 export { GraphNode, type GraphNodeProps } from './nodes/graph-node';
 export {
   DecisionNode as GraphDecisionNode,

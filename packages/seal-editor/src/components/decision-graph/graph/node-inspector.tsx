@@ -6,6 +6,7 @@ import React from 'react';
 
 import { Button } from '../../primitives';
 import { useDecisionGraphState } from '../context/dg-store.context';
+import { resolveCustomNode } from '../nodes/resolve-custom-node';
 import { nodeSpecification } from '../nodes/specifications/specifications';
 
 /**
@@ -43,7 +44,7 @@ export const NodeInspector: React.FC = () => {
 
   const specification =
     selected.type === 'customNode'
-      ? customNodes.find((c) => c.kind === selected.kind)
+      ? resolveCustomNode(customNodes, { kind: selected.kind, type: selected.type })
       : (nodeSpecification as Record<string, unknown>)[selected.type];
   const Settings = (specification as { renderSettings?: React.ComponentType<{ id: string }> } | undefined)
     ?.renderSettings;

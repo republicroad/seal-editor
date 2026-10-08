@@ -3,6 +3,7 @@ import { P, match } from 'ts-pattern';
 
 import type { DecisionEdge, DecisionGraphType, DecisionNode, DiffMetadata } from '../dg-types';
 import type { CustomNodeSpecification } from '../nodes/custom-node';
+import { resolveCustomNode } from '../nodes/resolve-custom-node';
 import { decisionTableSpecification } from '../nodes/specifications/decision-table.specification';
 import { expressionSpecification } from '../nodes/specifications/expression.specification';
 import { functionSpecification } from '../nodes/specifications/function.specification';
@@ -105,9 +106,13 @@ export const processNodes = (
             return component?.getDiffContent?.(newNode?.content, oldNode?.content);
           }
 
-          const customNode = customNodes.find(
-            (node) => newNode?.type === 'customNode' && newNode?.content?.kind === node?.kind,
-          );
+          // ADR-017：kind 精确 + tester 谓词统一解析（原内联 find 收敛）
+          const customNode = resolveCustomNode(customNodes, {
+            kind: newNode?.content?.kind,
+            type: newNode?.type,
+            config: newNode?.content?.config,
+            node: newNode,
+          });
           if (customNode) {
             return customNode?.calculateDiff?.(newNode?.content, oldNode?.content);
           }

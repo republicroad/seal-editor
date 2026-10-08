@@ -36,6 +36,7 @@ import { componentsOpenedKey, useGraphSerializers } from '../hooks/use-graph-ser
 import { useNodeAdd } from '../hooks/use-node-add';
 import type { CustomNodeSpecification } from '../nodes/custom-node';
 import { GraphNode } from '../nodes/graph-node';
+import { resolveCustomNode } from '../nodes/resolve-custom-node';
 import type { MinimalNodeProps } from '../nodes/specifications/specification-types';
 import { NodeKind } from '../nodes/specifications/specification-types';
 import { nodeSpecification } from '../nodes/specifications/specifications';
@@ -121,10 +122,13 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
       (props: MinimalNodeProps) => {
         const t = useT();
         const { openTab } = useDecisionGraphActions();
-        const node = customNodes.find((node) => node.kind === props?.data?.kind) as CustomNodeSpecification<
-          object,
-          string
-        >;
+        // ADR-017：kind 精确 + tester 谓词统一解析（RF 域 type 恒为 'customNode'）
+        const node = resolveCustomNode(customNodes, {
+          kind: props?.data?.kind,
+          type: 'customNode',
+          config: props?.data?.config,
+          node: props?.data,
+        }) as CustomNodeSpecification<object, string> | undefined;
 
         if (!node) {
           console.warn('node not found', props, customNodes);

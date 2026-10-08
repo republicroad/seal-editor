@@ -7,6 +7,7 @@ import { nodeSchema } from '../../../helpers/schema';
 import type { DecisionGraphStoreType } from '../context/dg-store.context';
 import type { DecisionNode } from '../dg-types';
 import type { CustomNodeSpecification } from '../nodes/custom-node';
+import { resolveCustomNode } from '../nodes/resolve-custom-node';
 import type { NodeSpecification } from '../nodes/specifications/specification-types';
 import { nodeSpecification } from '../nodes/specifications/specifications';
 
@@ -44,7 +45,7 @@ export const useNodeAdd = ({
     }
 
     const customSpecification = match(type)
-      .with('customNode', () => customNodes.find((node) => node.kind === component))
+      .with('customNode', () => resolveCustomNode(customNodes, { kind: component, type }))
       .otherwise(() => {
         const allSpecifications = [...Object.values(nodeSpecification), ...components];
         return allSpecifications.find((s) => s.type === type);

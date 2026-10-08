@@ -16,6 +16,7 @@ import { GraphTabs } from './graph/graph-tabs';
 import { CustomFunctionTable } from './graph/tab-custom-function-table';
 import type { ToolbarItem } from './graph/toolbar-anchor';
 import { ToolbarAnchor } from './graph/toolbar-anchor';
+import { resolveCustomNode } from './nodes/resolve-custom-node';
 import { decisionTableSpecification } from './nodes/specifications/decision-table.specification';
 import { expressionSpecification } from './nodes/specifications/expression.specification';
 import { functionSpecification } from './nodes/specifications/function.specification';
@@ -116,20 +117,26 @@ export const DecisionGraphWrapper = React.memo(
 );
 
 const TabContents: React.FC<{ customFunctions?: any }> = React.memo(({ customFunctions }) => {
-  const { openNodes, activeNodeId, components, user, customNodes } = useDecisionGraphState(
-    ({ decisionGraph, openTabs, activeTab, components, user, customNodes }) => {
+  const { openNodes, activeNodeId, components, user, disabled, customNodes } = useDecisionGraphState(
+    ({ decisionGraph, openTabs, activeTab, components, user, disabled, customNodes }) => {
       const activeNodeId = (decisionGraph?.nodes ?? []).find((node) => node.id === activeTab)?.id;
       const openNodes = (decisionGraph?.nodes ?? []).filter((node) => openTabs.includes(node.id));
 
       return {
-        openNodes: openNodes.map(({ id, type, content }) => ({
+        openNodes: openNodes.map(({ id, type, name, content }) => ({
           id,
           type,
-          kind: (content as { kind?: unknown } | undefined)?.kind,
+          name,
+          kind:
+            typeof (content as { kind?: unknown } | undefined)?.kind === 'string'
+              ? (content as { kind: string }).kind
+              : undefined,
+          config: (content as { config?: unknown } | undefined)?.config,
         })),
         activeNodeId,
         components,
         user,
+        disabled,
         customNodes,
       };
     },
@@ -151,23 +158,33 @@ const TabContents: React.FC<{ customFunctions?: any }> = React.memo(({ customFun
               与否都占满面板块（行向会让子元素主轴按内容宽收缩，右栏被拽窄） */}
           <div className='flex min-h-0 w-full flex-1 flex-col overflow-hidden [&>*]:h-full'>
             {match(node?.type)
-              .with(NodeKind.DecisionTable, () => decisionTableSpecification?.renderTab?.({ id: node?.id, user }))
-              .with(NodeKind.Function, () => functionSpecification?.renderTab?.({ id: node?.id, user }))
-              .with(NodeKind.Expression, () => expressionSpecification?.renderTab?.({ id: node?.id, user }))
-              .with(NodeKind.Input, () => inputSpecification?.renderTab?.({ id: node?.id, user }))
-              .with(NodeKind.Output, () => outputSpecification?.renderTab?.({ id: node?.id, user }))
+              .with(NodeKind.DecisionTable, () =>
+                decisionTableSpecification?.renderTab?.({ id: node?.id, user, disabled, node }),
+              )
+              .with(NodeKind.Function, () => functionSpecification?.renderTab?.({ id: node?.id, user, disabled, node }))
+              .with(NodeKind.Expression, () =>
+                expressionSpecification?.renderTab?.({ id: node?.id, user, disabled, node }),
+              )
+              .with(NodeKind.Input, () => inputSpecification?.renderTab?.({ id: node?.id, user, disabled, node }))
+              .with(NodeKind.Output, () => outputSpecification?.renderTab?.({ id: node?.id, user, disabled, node }))
 
               .otherwise(() => {
                 const component = components.find((cmp) => cmp.type === node.type);
                 if (component) {
-                  return component?.renderTab?.({ id: node.id, user, customFunctions });
+                  return component?.renderTab?.({ id: node.id, user, customFunctions, disabled, node });
                 }
 
-                const kind = (node as { kind?: unknown })?.kind;
-                if (kind) {
-                  const customSpec = customNodes?.find((n) => n.kind === kind);
+                if (node.kind) {
+                  // ADR-017：kind 精确 + tester 谓词统一解析（rank 降序，同 rank 按声明序）
+                  const customSpec = resolveCustomNode(customNodes, node);
                   if (customSpec?.renderTab) {
-                    return customSpec.renderTab({ id: node.id, user, customFunctions });
+                    return customSpec.renderTab({
+                      id: node.id,
+                      user,
+                      customFunctions,
+                      disabled,
+                      node: { id: node.id, name: node.name, kind: node.kind, config: node.config },
+                    });
                   }
                   // 无自定义 renderTab 的 kind 节点（容器/旧版 UDF）回退到
                   // 自定义函数表格——与 zrule 行为一致

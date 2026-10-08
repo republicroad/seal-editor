@@ -42,7 +42,15 @@ export type NodeSpecification<T = any> = {
   /** ADR-009：pack 元数据（目录 origin 徽标/版本/许可），schema 端点与文件协议透传 */
   meta?: { origin: 'reference' | 'extension' | 'industry'; version: string; license?: 'oss' | 'proprietary' };
   helper?: string | React.ReactNode;
-  renderTab?: (props: { id: string; user?: string; customFunctions?: any }) => React.ReactNode;
+  renderTab?: (props: {
+    id: string;
+    user?: string;
+    customFunctions?: any;
+    /** ADR-017 §2 M3：编辑器禁用态（与内建 tab 同源），面板应据此切只读 */
+    disabled?: boolean;
+    /** ADR-017 §2 M3：节点只读快照（id/name/kind/config），供面板免 hook 取值 */
+    node?: { id: string; name?: string; kind?: string; config?: unknown };
+  }) => React.ReactNode;
   getDiffContent?: (current: T, previous: T) => T;
   generateNode: (params: GenerateNodeParams) => Omit<DecisionNode<T>, 'position' | 'id' | 'type'>;
   renderNode: React.FC<MinimalNodeProps & { specification: MinimalNodeSpecification }>;
