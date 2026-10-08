@@ -134,3 +134,17 @@ rateStoreConformance('RedisRateStore', (now) => new RedisRateStore(redis, now));
 **裁定汇总：方案 B 全案接受；三条精化（asOf 验收口径 / vitest 正式 optional
 peer / 上游自测迁移必须）入实施 MUST；实施归 jdm-editor 仓（exports map +
 聚合文件 + CONTRACT §7 端口小节），随 zen-udf 1.3.0 发布。**
+
+## 实施回执（2026-10-04，jdm-editor）——ADR-018 全案落地，zen-udf@1.3.0 已发布
+
+- **已发布且 registry 实证**（feat fa5c92da + release 425e0a50；validate success）：
+  `src/conformance.ts` 聚合出口 re-export `rateStoreConformance`（本期唯一成员）+
+  exports map += `./conformance` 子路径 + vitest optional peer 正式声明
+  （评审决策 3 修改项——`peerDependencies.vitest` + `peerDependenciesMeta.vitest.optional`，
+  与 `@opentelemetry/api` 同面先例）+ CONTRACT §7 端口 conformance 小节；
+- **上游自测迁移**（决策 4 升格项）：`rate-store.test.ts` 改消费
+  `./conformance.ts` 同一入口——聚合入口活性由上游 CI 持续证明；
+- **验收**：rate-store 6/6 + 全量 1121 绿 + tsc 干净；
+- **verdict Redis RateStore 前置就绪**：
+  `import { rateStoreConformance } from '@republicroad/zen-udf/conformance'`
+  一行导入即可跑套件验收（评审精化 1：asOf 组 MUST 跑绿）。
