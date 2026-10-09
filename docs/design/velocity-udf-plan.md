@@ -3,7 +3,7 @@
 - 日期: 2026-09-26（v2：吸收宿主设计裁定——窗口语义 / 重放保真 / 性能档位 / 场景驱动四轴）
 - 修订: 2026-10-09（v2.1：§0 现状核实刷新；§2 签名对齐上游 RateStore 模式
   （ExecContext 构造期捕获，去显式 tenantId）；新增 §11 与 ADR-021 草案的
-  关系节——两正交轴命名切分与两层校验时刻编排）
+  关系节（两正交轴命名切分/两层校验时刻/§11.4 ADR 立项时点与 §2 契约迁移约定）
 - 性质: **规划文档** —— [handoff-verdict-integration.md](./handoff-verdict-integration.md) §5 第 3 步（velocity + fraud/kyc 首批 UDF packs）的展开；承接后转 verdict 仓执行
 - 裁决基线（2026-09-17，宿主裁决）: velocity **转移到 saas/verdict 侧实现**，对照本仓
   `contrib/rate-window.ts` 的 RateStore 接口细节落地，**稳定后再开源回流；本仓不实现**
@@ -233,7 +233,7 @@ velocity.stats(entity, kinds?, window?, windowType?)                  // 只读�
 | VEL-2 | Redis T1（滑窗 ZSET）+ T1'（日历桶计数器）过 conformance | VEL-0 VEL-1 |
 | VEL-3 | velocityPack（record/stats）+ `packChecks` + 部署期 capabilities 校验 + model-execute 注册 + metricsSink 观察 | VEL-2 |
 | VEL-4 | 编辑器目录核对（§6 清单）+ fraud 示例模型（含一条自然窗限额规则 + 一条滑窗行为规则） | VEL-3 |
-| VEL-5 | 生产浸泡 1–2 周 → T2 近似档评估（流量数据说话）与**开源回流提案**（VD6/VD8，宿主裁决后执行） | VEL-3 上线 |
+| VEL-5 | 生产浸泡 1–2 周 → T2 近似档评估（流量数据说话）与**开源回流提案**（VD6/VD8，宿主裁决后执行）。**回流提案启动 = 立 seal-editor ADR 的触发点**（§11.4：含 §2 机制契约迁移，规划文档届时归档不失立法） | VEL-3 上线 |
 
 ## 8. 决策点（待宿主裁决）
 
@@ -244,7 +244,7 @@ velocity.stats(entity, kinds?, window?, windowType?)                  // 只读�
 | VD3 | v1 聚合范围：count/distinct/idle 首发，sum/max 是否同版 | sum/max 与 count 同版——金额聚合是 velocity 相对 rate-window 的核心增量 |
 | VD4 | distinct 实现：per-value ZSET（精确、键多） vs 分桶 HLL（近似、可归并） | v1 先 per-value ZSET（精确）；T2 分桶 HLL 作为规模化档位，靠 capabilities 平滑升级 |
 | VD5 | 事件上限语义：超限截断 + `truncated` 标记 vs 拒绝记录返回错误 | **截断 + 标记**——observe 语义下拒绝记录会让风控图在攻击峰值失效（恰是最需要它的时刻） |
-| VD6 | 回流形态：并入 zen-udf `contrib/velocity.ts` vs 独立 `@republicroad/velocity` 包；`rate_1h`/`group_distinct_1h` 存量如何共存 | 并入 contrib、与 rate-window 共存不删；conformance 一并归还，本仓 rate-store-conformance 不动 |
+| VD6 | 回流形态：并入 zen-udf `contrib/velocity.ts` vs 独立 `@republicroad/velocity` 包；`rate_1h`/`group_distinct_1h` 存量如何共存 | 并入 contrib、与 rate-window 共存不删；conformance 一并归还，本仓 rate-store-conformance 不动。**回流即立法时点：立 seal-editor 序列 ADR（或 ADR-021 增补 §），本文档 §2 机制契约条文随之迁移入 ADR/CONTRACT 正文**（规划文档 shipped 即归档，契约不得居住其中） |
 | VD7 | v1 窗口语义范围：仅滑动（贴 rate-window 先例） vs 滑动+自然双语义 | **双语义同版**——日限额是 day-one 风控场景，T1' 日历桶实现成本极低；语义轴进契约后加参数是破坏面，一次定齐 |
 | VD8 | 档位路线：v1 只做 T0/T1/T1'，T2（近似）/T4（冷存重放）何时立项 | v1 = T0/T1/T1'；T2 待 VEL-5 浸泡数据；T4 待真实 audit/回测需求——都靠 capabilities 声明接入，无契约破坏 |
 | VD9 | 近似结果的可观测性：provenance 恒在结果 vs 仅近似时携带 | **恒在**（exact: true 也要回显 windowType/asOf）——审计对称性要求"精确"也是被声明的属性而非缺省 |
@@ -311,3 +311,20 @@ verdict 侧已拟 ADR-021 草案（状态算子契约：时间档位/保真披�
   accepted → zen-udf 实施（1.4.0 候选）→ VEL-2/3 消费；
 - 改名条款（rate_1h → trailing_count_1h 等）实施前需 verdict 盘点生产存量图
   按名引用（上游评审事实核查 4）。
+
+### 11.4 ADR 立项时点（本规划的立法归宿，2026-10-09 补）
+
+按 [ADR-000](../adr/000-adr-charter.md) 判据裁定：**本规划现在不单独立 ADR**——
+决策面已拆进三份现有文档（ADR-021 内核机制面 / verdict-005/006 宿主消费面 /
+本文档规格详设层）。两个未来立法时点写明如下，届时直接执行不再议：
+
+| 时点 | 触发 | 立法动作 | 归属 |
+| --- | --- | --- | --- |
+| **时点 1** | VEL-1/3 落地（VelocityStore 在 verdict 仓内实现） | verdict-NNN 序列**增补小节**（verdict-005/006 预计已覆盖大半，预计不需要新号） | verdict 仓 |
+| **时点 2** | VEL-5 回流提案启动（VD6：并入 zen-udf contrib） | **立 seal-editor 序列新 ADR**（或 ADR-021 增补 §，视其范围演化）——先例 ADR-013（design spec 升格 ADR）；**§2 机制契约条文必须迁移进 ADR 正文或 jdm CONTRACT.md 新章**（本规划 shipped 即归档，契约不得居住其中） | seal-editor 序列 |
+
+- **VD1-VD11 裁定落档方式**：宿主裁决后直接在本档 §8 表格标注裁定结果
+  （jdm OQ 表态同款先例），不逐条立 ADR；升级为公共面不可撤回的裁定
+  （当前仅 VD6 回流形态可见）随时点 2 入 ADR；
+- **时点 2 前置盘点**（随回流提案一并产出）：生产存量图对 `rate_1h`/
+  `group_distinct_1h` 的按名引用（对齐 ADR-021 评审事实核查 4）。
