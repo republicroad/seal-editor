@@ -1,6 +1,9 @@
 # velocity 自定义函数规划（verdict 侧实现 · 本仓只定机制契约）
 
 - 日期: 2026-09-26（v2：吸收宿主设计裁定——窗口语义 / 重放保真 / 性能档位 / 场景驱动四轴）
+- 修订: 2026-10-09（v2.1：§0 现状核实刷新；§2 签名对齐上游 RateStore 模式
+  （ExecContext 构造期捕获，去显式 tenantId）；新增 §11 与 ADR-021 草案的
+  关系节——两正交轴命名切分与两层校验时刻编排）
 - 性质: **规划文档** —— [handoff-verdict-integration.md](./handoff-verdict-integration.md) §5 第 3 步（velocity + fraud/kyc 首批 UDF packs）的展开；承接后转 verdict 仓执行
 - 裁决基线（2026-09-17，宿主裁决）: velocity **转移到 saas/verdict 侧实现**，对照本仓
   `contrib/rate-window.ts` 的 RateStore 接口细节落地，**稳定后再开源回流；本仓不实现**
@@ -9,13 +12,14 @@
   重放策略、存储与计算档位全部是服务端（verdict）策略**。本文档 §2 只定义契约，
   §3 的档位表是 verdict 的选型参考，不是契约内容
 
-## 0. 现状核实（2026-09-26）
+## 0. 现状核实（2026-10-09 刷新；首版 2026-09-26）
 
 | 侧 | 事实 |
 | --- | --- |
-| seal-editor 仓 | 参照物就绪：zen-udf 单一源（jdm-editor 仓；2026-09-28 ruling 12 后移出本仓，本仓经 npm 消费 `^0.7.0`）的 `packages/zen-udf/src/contrib/rate-window.ts`（RateStore 端口 + InMemoryRateStore + `rate_1h`/`group_distinct_1h` 工具）与 `rate-store-conformance.ts`（注入时钟 + asOf 点算契约测试）。zen-udf 0.6.0 已发布五域（现 0.7.0），velocity 不在其中 |
-| verdict 仓 | **零代码**：无 velocity / RateStore / fraudPack 任何实现；`docs/udf-operators.md` T1–T5 纯函数算子规范已立但实现待启动，且 T1–T5 是纯函数体系，velocity（有状态）不在其内，需独立架构位 |
-| verdict 生产栈 | ECS 2C4G 八容器（postgres×2 / api / web / site / nginx / openobserve / vector）——**无 Redis**。状态存储前置 = Redis 引入（与 handoff §1 四端口的 RateStore Redis 化同船） |
+| seal-editor 仓 | 参照物就绪：zen-udf 单一源（jdm-editor 仓；2026-09-28 ruling 12 后移出本仓，本仓经 npm 消费）的 `packages/zen-udf/src/contrib/rate-window.ts`（RateStore 端口 + InMemoryRateStore + `rate_1h`/`group_distinct_1h` 工具）与 `rate-store-conformance.ts`（注入时钟 + asOf 点算契约测试）。**zen-udf 现版 1.3.0**（1.0.0 调用契约冻结 → 1.1.0 参数值信封 → 1.2.0 具名双读 → 1.3.0 conformance 套件包外导出 ADR-018），velocity 不在其中 |
+| verdict 仓 | ~~零代码~~ **已起步**：batch 17 落 RateStore 注入 + 熔断器 + zen-udf 指标入 api_logs（InMemoryRateStore 过上游 conformance）；消费 seal-editor 1.33.0 / seal-appshell 1.37.0 / zen-udf 1.3.0；velocity 本体与 fraudPack 仍未启动。`docs/udf-operators.md` T1–T5 纯函数体系已实现（T1 清零 + T2 cn-validation），velocity（有状态）独立架构位的定位不变 |
+| verdict 生产栈 | ECS 2C4G 八容器（postgres×2 / api / web / site / nginx / openobserve / vector）——**仍无 Redis**。状态存储前置 = Redis 引入（VEL-0，与 handoff §1 四端口 Redis 化同船） |
+| 机制面进程 | ADR-021 草案（状态算子契约：时间档位/保真披露/幂等/改名）verdict 侧拟稿、上游预评审通过（见 §11）——待 verdict-005/006 落章后提交 seal-editor 序列 |
 
 ## 1. 语义定义：velocity = 多事件 × 多窗口语义 × 多精度的滑窗聚合
 
@@ -94,10 +98,15 @@ interface VelocityStats {
 }
 
 interface VelocityStore {
-  record(tenantId, ev: VelocityEvent, opts: { windowMs: number; windowType: WindowType }, asOf?): Promise<VelocityStats>;
-  stats(tenantId, entity, kinds: string[], opts: { windowMs: number; windowType: WindowType }, asOf?): Promise<Record<string, VelocityStats>>;
+  record(ev: VelocityEvent, opts: { windowMs: number; windowType: WindowType }, asOf?): Promise<VelocityStats>;
+  stats(entity: string, kinds: string[], opts: { windowMs: number; windowType: WindowType }, asOf?): Promise<Record<string, VelocityStats>>;
 }
 ```
+
+> **v2.1 签名对齐（上游评审 M2）**：去显式 tenantId 参数——上游 RateStore
+> 模式为端口签名无租户、实现内部经 ExecContext 构造期捕获（ADR-002）取租户
+> 入数据键；VelocityStore 同构（§8 多租户纪律不变：键内含租户、禁 per-tenant
+> 注册）。
 
 **能力声明与部署期校验**（机制，不是策略）：
 
@@ -269,3 +278,36 @@ velocity.stats(entity, kinds?, window?, windowType?)                  // 只读�
 - [ ] seal-editor 函数目录可见可配、嵌套返回与 provenance 展示正常、三模调用等价（§6 清单）
 - [ ] Redis 键泄漏检查：窗口滑出 + EXPIRE 后无残留
 - [ ] VEL-5 浸泡后回流提案归档，VD6/VD8 形态经宿主裁决
+
+## 11. 与 ADR-021 草案的关系（2026-10-09 增补，上游预评审后）
+
+verdict 侧已拟 ADR-021 草案（状态算子契约：时间档位/保真披露/幂等/算子改名，
+`verdict/docs/drafts/upstream-adr021-draft…md`，上游预评审通过待宿主落章）。
+本规划与其是**同一问题的两份投影**，关系切分如下（防双轴混淆与重复立法）：
+
+### 11.1 两条正交轴，命名切分
+
+| 轴 | 本规划 | ADR-021 草案（精化后） |
+| --- | --- | --- |
+| **窗口语义轴**（窗的形状） | `windowType`: sliding / calendar / session（§1.1，**名称先占**） | 不涉及 |
+| **保真/精度轴**（聚合的实现保真度） | §1.2 重放保真轴 + `VelocityProvenance`（结果自报：exact/structure/relErrorBound/asOf） | `fidelity`: exact-per-event / bucketed / interpolated（**原名 windowSemantics 已裁改名**，声明面）+ conformance exact/approximate 分档（§1.3） |
+| 时间档位 | asOf 语义照搬 rate-window `resolveAsOfMs` | `temporal: event/processing` + ReplayPolicy + `RATE_NO_EVENT_TIME`（replay 路径内核强制） |
+| 幂等 | eventId 幂等（PG 唯一约束 + Redis SETNX，§3.1） | `stateful: true` 禁自动重试 + requestId 幂等键（**传播通道与本规划 eventId 立法统一**，评审 R4） |
+
+### 11.2 两层校验时刻，互补编排
+
+- **deploy-time**：本规划 §2 capabilities 校验（store 能力 vs 图调用静态匹配，
+  不匹配 deploy 期失败）；
+- **runtime**：ADR-021 §1.2 replay 路径强制（processing 工具遇 asOf 按宿主
+  ReplayPolicy 执行）；
+- 两时刻互补非二选一；VEL-3 落地时在同一发布 gate 挂 capabilities 校验
+  （与 namespace 边界闸同点）。
+
+### 11.3 合流点与排期
+
+- VEL-1（机制契约落地）实现时应对照 ADR-021 草案的 UdfTool 三字段
+  （temporal/stateful/fidelity）与双名注册条款——velocityPack 是第一批消费者；
+- ADR-021 提交门序：verdict-005/006 落章 → 提交 seal-editor → 上游评审转
+  accepted → zen-udf 实施（1.4.0 候选）→ VEL-2/3 消费；
+- 改名条款（rate_1h → trailing_count_1h 等）实施前需 verdict 盘点生产存量图
+  按名引用（上游评审事实核查 4）。
