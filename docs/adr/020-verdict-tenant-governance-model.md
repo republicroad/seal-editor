@@ -3,9 +3,10 @@
 ## 状态
 
 proposed（2026-10-08 seal-editor 侧起草——按 [ADR-000](./000-adr-charter.md) §2
-归属：治理谓词消费面与存储键模式均为跨仓契约。**待 verdict 侧评审**；
-时序：[ADR-019](./019-verdict-model-storage-execute-contract.md) 落定后接续，
-多租户 beta 前必须闭合）
+归属：治理谓词消费面与存储键模式均为跨仓契约。）
+→ **accepted（2026-10-08 verdict 侧账实核对评审——「修改后接受」，术语对齐
+workspace + tenantExempt 合法面成文，执行边界差距 G-G1 确认为唯一必修项，
+见文末评审注记）**
 
 ## 0 · 定位
 
@@ -137,3 +138,38 @@ proposed（2026-10-08 seal-editor 侧起草——按 [ADR-000](./000-adr-charter
   图→namespace 引用集合）；双层校验依赖治理 Set 的新鲜度（TTL + 广播
   双保险，同 ADR-019 §3 语义）；内部头协议是新增信任面（签名管理成本）；
 - **后续条件**：ADR-019 落定后接续评审；多租户 beta 前全部实施项闭合。
+
+## 评审注记（verdict 侧账实核对，2026-10-08）
+
+### 账实对账
+
+| ADR 条款 | verdict 现状 | 裁定 |
+| --- | --- | --- |
+| §2 策略数据（租户 → allowedNamespaces） | workspace.enabled_packs（null=全量/数组=白名单）——治理闸已存在（catalog.ts 工作间闸），UI 已接（editor-canvas derived Set → SkinnedDecisionGraph） | ✅ 形态对应（名称 enabled_packs vs allowedNamespaces——前者是策略数据、后者是内核消费面，同一闸的两端） |
+| §2 执行层边界（发布 gate + execute 前置校验） | **无**——execute 路径零 enabled_packs 校验，直写图（API 保存 + execute）可越工作间闸执行任意 namespace | ⚠️ **差距确认，G-G1 为唯一必修实施项**（kernel 零权限语义：UI 过滤不构成边界） |
+| §3 图内容纪律（零凭证/静态扫描） | 未实施（redaction.ts 存在但覆盖面待查） | 差距→实施项 G-G2（低优先，密钥引用扫描） |
+| §4 认证装配 fail-closed | middleware resolve workspace/user，require 中间件拒绝未认证——大体 fail-closed | ✅ 一致；匿名 /v1/execute 是显式豁免端点（见精化 2） |
+| 术语 tenantId | 隔离单元 = workspace（同 ADR-019 精化 4） | ⚠️ 术语对齐 |
+| ExecContext | runWithExecContext({ tenantExempt: true }) 用于匿名端点 | ⚠️ tenantExempt 合法使用面需成文（精化 2） |
+
+### 精化（三条）
+
+1. **术语对齐 workspace**（同 ADR-019 精化 4）："租户"在 verdict 映射为
+   workspace；§1/§2 的 tenantId 一律读作 workspaceId；
+2. **tenantExempt 合法使用面成文**：豁免仅限匿名/系统内部执行
+   （/v1/execute 即时体验端点、启动期编译），不触数据面（workspaceId: null
+   日志隔离）；出现第三种使用即纪律违例；
+3. **策略数据双名言明**：enabled_packs（verdict 策略存储）与
+   allowedNamespaces（内核消费面）是同一治理闸的两端——实施 G-G1 时
+   校验源 = workspace.enabled_packs ∪ kernel builtin namespaces，
+   与 editor-canvas 现有 derived 口径严格一致（防止 UI 与执行边界口径漂移）。
+
+### 差距清单（实施项，归 verdict）
+
+| # | 差距 | 量级 |
+| --- | --- | --- |
+| G-G1 | 执行边界校验：execute/保存路径加 namespace 集合 ⊆ 工作间闸检查（口径对齐 editor-canvas derived），违例 NAMESPACE_FORBIDDEN | ~0.5 天（唯一必修） |
+| G-G2 | 图内容密钥引用静态扫描（低优先） | ~0.25 天 |
+
+**裁定汇总：修改后接受——策略数据/UI 层/装配面与现状收敛良好；执行边界
+G-G1 是 ADR-020 唯一实质实施项（kernel 零权限语义的唯一敞口）。**

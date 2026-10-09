@@ -5,6 +5,8 @@
 proposed（2026-10-08 seal-editor 侧起草——按 [ADR-000](./000-adr-charter.md) §2
 归属：编辑器（生产者）↔ verdict 服务（消费者）的跨仓接口契约。**待 verdict 侧
 评审**；实施归 verdict 服务，编辑器侧零代码改动（persistence adapter 接口已存在））
+→ **accepted（2026-10-08 verdict 侧账实核对评审——「修改后接受」，§3 语义修正 +
+术语对齐 workspace，见文末评审注记）**
 
 ## 0 · 定位
 
@@ -160,3 +162,48 @@ auto-persist 的防抖/maxWait/CONFLICT 三选在此契约上零改动工作。
   与缓存引用的协调需要实施细节设计；content_hash 依赖 canonical 口径落定；
 - **后续条件**：verdict 侧评审通过后按实施清单排期；本契约变更 MUST 同步
   handoff §2/§4。
+
+## 评审注记（verdict 侧账实核对，2026-10-08）
+
+> 评审方式：对照 verdict 仓实码（packages/db/schema.ts、apps/api/routes/graphs.ts、
+> models.ts execute 路径、catalog.ts 工作间闸）逐节对账。verdict 已自建模型存储
+> （M2 登记/M5 版本历史/自动保存），本评审即「提案 vs 现状」的收敛。
+
+### 账实对账（九项，七项一致）
+
+| ADR 条款 | verdict 现状 | 裁定 |
+| --- | --- | --- |
+| §1 单调计数 rev | revision integer 单调 + (modelId, revision) 唯一约束 | ✅ 一致 |
+| §1 versionName/pinned/auto | 全部已存在（auto 受 20 条保留策略） | ✅ 一致 |
+| §1 contentHash 列 | 无 | ⚠️ 降为可选优化（见精化 3） |
+| §2 baseRev 乐观锁 → 409 CONFLICT | baseRevision 比对 currentRevision，409 双通道（status + body error.code），与 auto-persist 三选已对接 | ✅ 一致 |
+| §2 head = max(rev) 派生 | decision_model.currentRevision 显式 head 列 | ⚠️ 修正（见精化 1） |
+| §3 head 缓存 + 广播 + TTL | **无**——execute 永远服务端解析 rev 后 pinned 调用（head 执行也落具体 revision 进 executionLog），L1 缓存键带 @vN 永不陈旧 | ⚠️ **重大修正（精化 2）** |
+| §4 execute API 面 | /v1/models/:key/execute 存在，错误码透传、audit journal（executionLog）齐 | ✅ 一致 |
+| §5 adapter 映射 | graphs.ts 编辑器兼容层五方法全实现（load/save/listVersions/patch/create），线上格式 "vN" | ✅ 一致 |
+| 术语 tenantId | verdict 隔离单元 = **workspace**（workspaceId 贯穿全表 + membership） | ⚠️ 术语对齐（见精化 4） |
+
+### 精化（四条，修正后接受）
+
+1. **head 形态**：显式 currentRevision 列为准（非派生 max）——归档语义
+   （archivedAt，409 拒执行）与并发控制都挂在列上，派生设计作废；
+2. **失效保证降维（本评审最重要修正）**：verdict 现状 = **pinned-only 即规范
+   形态**——execute 永远钉具体 rev，无 head 缓存则无失效问题。原稿 §3 的
+   head 缓存 + pub/sub 广播 + TTL 三层整体**降级为触发制选项**（触发 = 多
+   实例部署或 head 调用成为热路径），当前零实施。"先提交后广播"等条款
+   随之冻结；
+3. **contentHash 去重降为可选优化**：auto-persist 前端防抖 + 保留策略已
+   控制版本噪声，后端去重等真实存储压力再上；
+4. **术语对齐**：tenantId → **workspaceId**（verdict 产品形态的隔离单元）；
+   "租户"概念在 verdict 映射为 workspace，用户是认证主体（membership 关联）。
+
+### 差距清单（实施项，归 verdict）
+
+| # | 差距 | 量级 |
+| --- | --- | --- |
+| G1 | 并发保存原子性：读-改-写窗口内双保存撞唯一约束返回 500——应转译 409 CONFLICT（条件插入或 unique violation 捕获） | ~0.25 天 |
+| G2 | contentHash 列 + 同内容幂等去重（可选，见精化 3） | ~0.25 天 |
+| G3 | session 列（编辑器会话现场）与 archivedAt 归档语义未入 ADR §1 表——本注记补录，ADR 正文以本条为准 | 已随本注记闭合 |
+
+**裁定汇总：修改后接受——§1/§2/§4/§5 与 verdict 现状收敛良好；§3 降维为
+pinned-only 规范形态（精化 2）；G1 为唯一必修实施项。**

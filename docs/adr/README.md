@@ -27,9 +27,9 @@
 | [ADR-015](./015-custom-function-node-spec.md) | 自定义函数节点规范：定义/调用（位置数组→具名字典）/入参返回值标准化/编辑面兜底策略/实例依赖调度增补（zen-udf 1.2.0 已实现；jdm 评审全项通过） | implemented | 2026-10 |
 | [ADR-016](./016-custom-function-typed-value-envelope.md) | 自定义函数参数值信封（TypedValue）：模式显式化 + 字面量歧义根治（zen-udf 1.1.0 已实现；OQ 表态对账 §9.1，OQ7 挂 jdm 议程） | accepted | 2026-10 |
 | [ADR-017](./017-dedicated-editor-plugin-system.md) | 宿主/pack 专用编辑器插件体系：两层注册表（存在性 appshell / 接管 kernel）+ tester+rank 匹配矩阵 + 永不白块降级阶梯 | proposed | 2026-10 |
-| [ADR-018](./018-zen-udf-conformance-suite-export.md) | zen-udf 端口 conformance 套件包外导出：`./conformance` 子路径（宿主端口实现接入门槛客观化；verdict Redis 化 RateStore 前置；上游评审三条精化已入档） | accepted | 2026-10 |
-| [ADR-019](./019-verdict-model-storage-execute-contract.md) | verdict 模型存储与执行契约：L0 rev 化（单调计数+contentHash）/发布原子性与 CONFLICT/失效广播三层保证/execute API 面/编辑器 adapter 对接 | proposed（待 verdict 评审） | 2026-10 |
-| [ADR-020](./020-verdict-tenant-governance-model.md) | verdict 租户与治理模型：租户数据边界/双层治理（发布 gate+execute 前置，UI 过滤仅装饰）/fail-closed 认证装配/配额框架 | proposed（待 verdict 评审） | 2026-10 |
+| [ADR-018](./018-zen-udf-conformance-suite-export.md) | zen-udf 端口 conformance 套件包外导出：`./conformance` 子路径（宿主端口实现接入门槛客观化；（宿主端口实现接入门槛客观化；verdict Redis 化 RateStore 前置；上游评审三条精化已入档） | accepted | 2026-10 |
+| [ADR-019](./019-verdict-model-storage-execute-contract.md) | verdict 模型存储与执行契约：L0 rev 化/发布原子性 CONFLICT/pinned-only 失效语义（精化）/execute API 面/adapter 对接（账实核对评审已落档） | accepted（修改后接受） | 2026-10 |
+| [ADR-020](./020-verdict-tenant-governance-model.md) | verdict 租户与治理模型：租户数据边界/双层治理（发布 gate+execute 前置）/fail-closed 装配/配额框架（账实核对评审已落档，G-G1 执行边界为唯一必修） | accepted（修改后接受） | 2026-10 |
 
 ## 状态定义
 
