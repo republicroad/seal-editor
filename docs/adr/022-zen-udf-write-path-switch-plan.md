@@ -1,7 +1,7 @@
 # ADR-022：自定义节点调用表达式写路径切具名嵌套形——`{$call, kwargs}` canonical 施工计划
 
 - 日期：2026-10-04
-- 状态：**待实施**（宿主口令后执行；归 seal-editor 会话）
+- 状态：**accepted（2026-10-09 实施会话账实核对评审——约七成已由并行批次落地，剩余 ~0.5 天按修订后清单实施；见文末评审注记）**
 - 上位：[ADR-015](./015-custom-function-node-spec.md) §2（调用规范·具名字典 canonical）、
   [ADR-016](./016-custom-function-typed-value-envelope.md) §11.6（TypedValue 信封）
 - 引擎依赖：zen-udf 1.2.0 嵌套 kwargs 双读 ✓ 已就绪（零引擎改动）
@@ -83,3 +83,49 @@
 - ADR-016（TypedValue 信封）`docs/adr/016-custom-function-typed-value-envelope.md`
 - 编辑面规格 `docs/design/custom-node-editor-spec.md`
 - jdm 缺口档 `docs/design/upstream/jdm-dg-infer-dead-loop.md`
+
+## 评审注记（实施会话账实核对，2026-10-09）
+
+> 本 ADR 为施工计划（归 seal-editor 会话）。实施前账实核对结论：**计划描述的
+> 工作约七成已由并行批次落地**——逐条对账如下，修订后实施清单见文末。
+
+### 账实核对（六项，三项已完成）
+
+| 批次 | 计划 | 账实（代码实证） | 裁定 |
+| --- | --- | --- | --- |
+| 1.1 `buildDefaultFunctionExpression` 切具名 | 未做 | **未做确认**——仍产 `value: [name, ...args]` + `arg_exprs`（custom-function-schema.ts:153-165）；但**无生产调用方**（仅测试引用，非包导出） | 待做，量级降为微 |
+| 1.2 normalizeCustomNodeExpressions 双读 | 未提完成度 | **大部分已存在**——`;;` 迁移有测试证明（utility-expr.test『migrates ;; expression values』）+ expr_asts 读侧规范化在位（utility.ts:114-116，存续义务正确保留）；嵌套形识别待验 | 基本就绪 |
+| 1.3 persistExpressions 具名（计划：随 1.1 自动生效） | — | **已独立完成**——tab-custom-function-table.tsx:76-88 注释明标 ADR-015 #3，双形态识别（位置数组取 value[0] / 嵌套取 $call）+ priorKwargs 非位置键并回 | ✅ 计划账实颠倒（详见精化 1） |
+| 2.1 expr_asts 停写 | 未做? | **已完成**——全仓无 `expr_asts:` 写入点；persistExpressions 注释明标停写 | ✅ |
+| 2.2 arg_exprs 停写 | 未做 | **部分**——expression-item.tsx `buildFunctionValue` 仍产位置数组（standalone 自定义函数表格组件面，与 tab 面是两条写路径） | 待做（精化 2） |
+| 3 漂移带按名检测 | 未做 | **已完成**——`computeFunctionArgsDrift` 按 kwargs 键比对（missing/unrecognized）+ `$positional` 排除，即按名检测本体 | ✅ 计划账实颠倒（精化 3） |
+
+### 精化（四条）
+
+1. **账实颠倒修正**：原计划把 1.3/2.1/3 当待办——实际三者已落地（并行批次先行）；
+   真实剩余 = 1.1（buildDefault 微修）+ 2.2（standalone 表格面 arg_exprs/位置数组
+   停写）。实施清单按此重排；
+2. **两写路径收敛**：tab 面（persistExpressions，已规范）与 standalone 面 
+   （expression-item，仍位置数组）是同一 config.expressions 的两条写路径——
+   2.2 实施时 MUST 复用 tab 面的映射逻辑（声明序映射 + priorKwargs 并回），
+   防两路面形态分叉；
+3. **歧义检测器消费缺失（ADR-015 #3 检查单 MUST 补录）**：原计划批次 3 只提
+   validateNamedArgs 三类清单，未含 `detectKwargsEnvelopeAmbiguity` 歧义检出
+   （ADR-015 #3 开工检查单第 1 条 MUST）——漂移带改造时一并挂入；
+4. **验收基线过期**：「全量 483 绿」为旧数字——当前套件规模以实施时实测为准；
+   另 kwargs 默认值形态 MUST 对齐 ADR-016 §11.6 信封（原计划 1.1 的
+   `kwargs: argExprs` 原始值未言明信封 wrapping）。
+
+### 修订后实施清单（替代原清单）
+
+| # | 项 | 量级 |
+| --- | --- | --- |
+| 1 | `buildDefaultFunctionExpression` 切具名嵌套（kwargs 值按 ADR-016 信封）+ 其测试更新 | ~0.1 天 |
+| 2 | expression-item.tsx（standalone 表格面）写路径切规范形——复用 persistExpressions 映射逻辑，arg_exprs 停写 | ~0.25 天 |
+| 3 | 漂移带挂 `detectKwargsEnvelopeAmbiguity` 歧义检出 | ~0.1 天 |
+| 4 | 验收断言（原验收 1-8 仍适用，基线数字更新） | 随批 |
+
+### 裁定汇总
+
+**计划方向成立（切规范形写路径 = ADR-015 #3 的正确施工分解）；账实修订后
+转 accepted（施工定稿）——剩余实施 ~0.5 天，归 seal-editor 会话。**
