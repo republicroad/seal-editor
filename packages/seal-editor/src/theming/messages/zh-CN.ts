@@ -242,6 +242,7 @@ export const zhCN: Record<string, string> = {
   'cf.argsDriftMissing': '缺参',
   'cf.argsDriftUnrecognized': '未识别键',
   'cf.argsKwargsCollision': 'kwargs 信封歧义',
+  'cf.argsDanglingRefs': '悬空引用',
   'cf.argsFillMissing': '补缺失默认值',
   'cf.instanceOverview': '函数实例',
   'cf.parallelHint': '并行执行',

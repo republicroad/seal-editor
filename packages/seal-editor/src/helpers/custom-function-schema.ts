@@ -217,6 +217,41 @@ export type FunctionArgsDriftEntry = {
   unrecognized: string[];
   /** ADR-015 #3 检查单 MUST：平面 kwargs 携带名为 kwargs 的 Record 键——0.14+ 双读按信封解释的歧义触发形态 */
   kwargsKeyCollision?: boolean;
+  /** 检查单三类之三：实参字面量形态与声明类型不符（静态可判字面量，标识符/表达式不标记） */
+  typeMismatch?: Array<{ name: string; declaredType: string; actual: string }>;
+  /** ADR-015 D 表第四类：$.refs 不指向同节点任何实例输出键 */
+  danglingRefs?: string[];
+};
+
+/**
+ * 实参字面量形态静态判定（typeMismatch 用）：数字/布尔/引号字符串/对象起始
+ * 可静态判型；标识符与表达式串返回 null（静态不可判，不参与 mismatch）。
+ * 信封 {mode:'literal', value} 按 value 类型判；expression/reference 信封
+ * 返回 null（运行期求值，静态不可判）。
+ */
+const literalTypeOf = (value: unknown): string | null => {
+  if (isRecord(value)) {
+    if (value.mode === 'literal') return typeof value.value === 'string' ? 'string' : typeof value.value;
+    return null; // expression/reference 信封静态不可判
+  }
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const t = value.trim();
+  if (/^-?\d+(\.\d+)?$/.test(t)) return 'number';
+  if (t === 'true' || t === 'false') return 'boolean';
+  if (/^".*"$/.test(t) || /^'.*'$/.test(t)) return 'string';
+  if (t.startsWith('{') || t.startsWith('[')) return 'object';
+  return null;
+};
+
+/** 声明类型 ↔ 字面量形态匹配（integer 向 number 归一——ADR-015 第七型口径）。 */
+const literalTypeMatches = (declaredType: string, actual: string): boolean => {
+  if (declaredType === actual) return true;
+  if (declaredType === 'integer' && actual === 'number') return true; // 数字面量对 integer 声明不判错
+  if (declaredType === 'number' && actual === 'integer') return true;
+  return false;
 };
 
 const getScopeFunction = (scope: FunctionScope | undefined, functionName: string | null) => {
@@ -244,7 +279,7 @@ export const computeFunctionArgsDrift = (expressions: any, scope?: FunctionScope
 
       const properties = isRecord(funcDef.parameters) ? (funcDef.parameters.properties ?? {}) : {};
       const declared = Object.keys(properties);
-      const kwargs = isRecord(expression.value.kwargs) ? expression.value.kwargs : {};
+      const kwargs: Record<string, unknown> = isRecord(expression.value.kwargs) ? expression.value.kwargs : {};
       const missing = declared
         .filter((name) => !(name in kwargs))
         .map((name) => ({ name, default: properties[name]?.default }));
@@ -257,7 +292,33 @@ export const computeFunctionArgsDrift = (expressions: any, scope?: FunctionScope
       // `'kwargs' in parameters.properties`；kernel 零依赖 → 内联同规则）。
       const kwargsKeyCollision = 'kwargs' in properties;
 
-      if (missing.length > 0 || unrecognized.length > 0 || kwargsKeyCollision) {
+      // ADR-015 #3 检查单三类之三：typeMismatch——实参字面量形态与声明类型
+      // 不符（仅静态可判字面量：数字/布尔/引号字符串/对象；标识符与表达式
+      // 静态不可判不标记；信封 literal 按 value 类型判）。
+      const typeMismatch: Array<{ name: string; declaredType: string; actual: string }> = [];
+      declared.forEach((name) => {
+        const declaredType = String((properties[name] as { type?: unknown } | undefined)?.type ?? '');
+        const actual = literalTypeOf(kwargs[name]);
+        if (actual === null || declaredType === '' || literalTypeMatches(declaredType, actual)) {
+          return;
+        }
+        typeMismatch.push({ name, declaredType, actual });
+      });
+
+      // 悬空引用（ADR-015 D 表第四类）：$.refs 不指向同节点任何实例输出键
+      // （复用 collectRefs 信封感知提取；悬空在运行期求值 null 不建边）。
+      const refs = new Set<string>();
+      collectRefs(expression.value, refs);
+      const instanceKeys = new Set(expressions.map((e) => e?.key).filter(Boolean) as string[]);
+      const danglingRefs = [...refs].filter((k) => !instanceKeys.has(k)).sort();
+
+      if (
+        missing.length > 0 ||
+        unrecognized.length > 0 ||
+        typeMismatch.length > 0 ||
+        kwargsKeyCollision ||
+        danglingRefs.length > 0
+      ) {
         entries.push({
           rowId: expression.id,
           rowKey: expression.key ?? '',
@@ -265,6 +326,8 @@ export const computeFunctionArgsDrift = (expressions: any, scope?: FunctionScope
           missing,
           unrecognized,
           kwargsKeyCollision,
+          typeMismatch,
+          danglingRefs,
         });
       }
 

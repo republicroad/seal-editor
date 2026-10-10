@@ -62,6 +62,7 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
   const driftUnrecognizedCount = argsDrift.reduce((sum, entry) => sum + entry.unrecognized.length, 0);
   // ADR-015 #3 检查单 MUST：kwargs 键撞车 = 0.14+ 双读按信封解释的歧义触发形态
   const kwargsCollisionCount = argsDrift.filter((entry) => entry.kwargsKeyCollision).length;
+  const danglingRefCount = argsDrift.reduce((sum, entry) => sum + (entry.danglingRefs?.length ?? 0), 0);
 
   // ADR-015 增补 P1：实例概览数据（并行集合观 + 键重复 + 实例级漂移）
   const duplicateKeys = useMemo(() => findDuplicateKeys(expressions), [expressions]);
@@ -310,6 +311,12 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
                   <>
                     {' '}
                     · {t('cf.argsKwargsCollision')} {kwargsCollisionCount}
+                  </>
+                )}
+                {danglingRefCount > 0 && (
+                  <>
+                    {' '}
+                    · {t('cf.argsDanglingRefs')} {danglingRefCount}
                   </>
                 )}
               </AlertTitle>
