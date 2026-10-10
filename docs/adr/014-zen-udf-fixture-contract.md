@@ -550,31 +550,39 @@ seal-appshell 参考适配器（批次三 M1'）则以 simulateHandler 构造 ex
    与该契约不符**：依赖此形态的结果条件恒 null → `!== false` 判定恒 true =
    **静默放行**（fixtures 结果条件语义失效）。
 
-### 修法收敛（2026-10-10 探针实测精化——**①′ 一行修正**，原三选一裁撤）
+### 修法裁定（2026-10-10 二次修正——回归语料实证后回到原 ①）
 
-**探针决定性证据**：`$` 可作为 context 顶层键绑定——
-`evaluateExpressionSync('$.b', { $: { b: 7 } })` → 7（实测 ✓）。
-因此 OQ3 根语义（条件写 `$.result.x`）**无需改写任何条件**，包装层一行：
+**首轮探针**：`$` 可作为 context 顶层键绑定——
+`evaluateExpressionSync('$.b', { $: { b: 7 } })` → 7（实测 ✓），
+据此曾倾向 ①′（包装层传 `{ $: data }`，条件零改写）。
+
+**二次修正（回归语料实证）**：zen-udf 表达式回归语料三文件 961 行
+（unary 98 / standard 586 / date 277）中 **`$.path` 表达式零覆盖**——已测面 =
+裸标识符（standard）+ `$` 标量比较（unary）+ `d()` 日期（date）。
+**`$.` 导航在独立求值环境属零语料覆盖形态**：简单一跳（`$.b`）实测可行，
+但多跳/嵌套/字面量混杂等边角无任何语料保证，且上游从未承诺。
+
+**裁定：回到原 ①——包装层平铺 context + fixtures 条件改裸键**。
+裸标识符求值是 586 行 standard.csv 语料重仓覆盖的形态，落地即站在已测面上；
+条件改写成本真实存在但一次性（普查清单由 verdict dump 扫描产出）。
 
 ```ts
-// ①′（替代原①的普查改写）：根名保持 result，$ 键绑执行结果
-evaluateExpressionSync(source, { $: { result: data } }) !== false;
+// ①（定稿）：context 平铺，条件改裸键
+evaluateExpressionSync(source, data) !== false;
+// 现存条件 `$.result.x` → 改写 `x`（顶层直引）
 ```
-
-实测回归 4/4：`$.result.discount.rate == 0.85` → true、
-`$.result.count > 1` → true、`$.result.discount.rate < 0.5` → false、
-缺失路径 → null（≠ false → false，静默放行缺口同步闭合——null 条件不再误判通过）。
 
 | 原选项 | 裁定 |
 | --- | --- |
-| ① 普查改写裸键 | 被 ①′ 取代（零改写） |
+| ①′ `$` 键绑定（零改写） | **否决**——依赖零语料覆盖的 `$.` 导航形态 |
 | ② 剥前缀改写器 | 维持否决 |
-| ③ 上游 `$` 根绑定提案 | 维持否决（①′ 已达等价效果） |
+| ③ 上游 `$` 根绑定提案 | 维持否决（① 已达等价效果且零上游依赖） |
 
 ### 过渡纪律（实施前）
 
-- 修法 ①′ 一行落地后**无需任何条件改写**——过渡纪律自动解除；
-- 新增 fixtures 结果条件维持 `$.result.x` 写法（OQ3 根语义不变）。
+- 现存 fixtures 结果条件 `$.result.x` 普查改写为裸键（① 定稿）；
+- 新增 fixtures 结果条件一律裸键写法；
+- 普查工具复用 verdict `scripts/legacy-graph-audit.mjs` 的 dump/JSON 扫描机械。
 
 ### 关联
 
