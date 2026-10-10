@@ -215,6 +215,8 @@ export type FunctionArgsDriftEntry = {
   missing: Array<{ name: string; default?: unknown }>;
   /** 本行携带但函数未声明的具名键 */
   unrecognized: string[];
+  /** ADR-015 #3 检查单 MUST：平面 kwargs 携带名为 kwargs 的 Record 键——0.14+ 双读按信封解释的歧义触发形态 */
+  kwargsKeyCollision?: boolean;
 };
 
 const getScopeFunction = (scope: FunctionScope | undefined, functionName: string | null) => {
@@ -248,13 +250,19 @@ export const computeFunctionArgsDrift = (expressions: any, scope?: FunctionScope
         .map((name) => ({ name, default: properties[name]?.default }));
       const unrecognized = Object.keys(kwargs).filter((name) => !declared.includes(name) && name !== '$positional');
 
-      if (missing.length > 0 || unrecognized.length > 0) {
+      // ADR-015 #3 检查单 MUST：平面 kwargs 携带名为 kwargs 的 Record 键 =
+      // 0.14+ 双读按信封解释的歧义触发形态（迁移 = {$call, kwargs: { kwargs: {...} }}）。
+      // 语义单源 = zen-udf detectKwargsEnvelopeAmbiguity；kernel 零依赖 → 内联结构判定。
+      const kwargsKeyCollision = isRecord(kwargs.kwargs);
+
+      if (missing.length > 0 || unrecognized.length > 0 || kwargsKeyCollision) {
         entries.push({
           rowId: expression.id,
           rowKey: expression.key ?? '',
           functionName: expression.value.$call,
           missing,
           unrecognized,
+          kwargsKeyCollision,
         });
       }
 

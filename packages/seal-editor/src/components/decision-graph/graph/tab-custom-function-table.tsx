@@ -60,6 +60,8 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
   const driftRowCount = argsDrift.length;
   const driftMissingCount = argsDrift.reduce((sum, entry) => sum + entry.missing.length, 0);
   const driftUnrecognizedCount = argsDrift.reduce((sum, entry) => sum + entry.unrecognized.length, 0);
+  // ADR-015 #3 检查单 MUST：kwargs 键撞车 = 0.14+ 双读按信封解释的歧义触发形态
+  const kwargsCollisionCount = argsDrift.filter((entry) => entry.kwargsKeyCollision).length;
 
   // ADR-015 增补 P1：实例概览数据（并行集合观 + 键重复 + 实例级漂移）
   const duplicateKeys = useMemo(() => findDuplicateKeys(expressions), [expressions]);
@@ -304,6 +306,12 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
               <AlertTitle className='font-normal leading-5'>
                 {t('cf.argsDriftTitle')} · {driftRowCount} {t('cf.argsDriftRows')} · {t('cf.argsDriftMissing')}{' '}
                 {driftMissingCount} · {t('cf.argsDriftUnrecognized')} {driftUnrecognizedCount}
+                {kwargsCollisionCount > 0 && (
+                  <>
+                    {' '}
+                    · {t('cf.argsKwargsCollision')} {kwargsCollisionCount}
+                  </>
+                )}
               </AlertTitle>
               {driftMissingCount > 0 && (
                 <AlertAction>

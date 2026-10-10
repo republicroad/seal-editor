@@ -129,3 +129,32 @@
 
 **计划方向成立（切规范形写路径 = ADR-015 #3 的正确施工分解）；账实修订后
 转 accepted（施工定稿）——剩余实施 ~0.5 天，归 seal-editor 会话。**
+
+## 实施回执（2026-10-09，seal-editor 会话——修订后清单四项全闭合）
+
+- **批次 1.1（buildDefault）**：并行会话以**废弃路线**闭合——`@deprecated` 标注 +
+  零消费方确认（规范形写路径下无调用）；新种子一律 `{$call, kwargs}` 具名形。
+  原计划"切具名嵌套"被废弃路线取代（零消费方 = 无需重写，公开 API 兼容保留）；
+- **批次 1.3 / 2.1**：账实核对确认早已落地（persistExpressions 规范形 + expr_asts
+  停写），本回执无新增动作；
+- **批次 2.2（standalone 表格面）**：expression-item.tsx 写路径切规范形——
+  `buildFunctionValue` 产 `{$call, kwargs}`（非声明 prior 额外键并回保真，
+  与 tab 面 persistExpressions 同构）；`arg_exprs` 停写（legacy 读侧保留）；
+  `parseFunctionValue` 增规范形直读分支（自产形态回填编辑界面）；
+- **批次 3（漂移带按名 + 歧义）**：按名比对账实确认早已落地；本次补
+  **kwargsKeyCollision 歧义判定**（平面 kwargs 携带名为 kwargs 的 Record 键 =
+  0.14+ 双读按信封解释的触发形态；kernel 零依赖 → 内联结构判定，语义单源 =
+  zen-udf detectKwargsEnvelopeAmbiguity）+ 漂移带面板计数与
+  `cf.argsKwargsCollision` i18n；
+- **expression-list 类型序修正**：calculateType 入参对规范形对象 JSON 序列化
+  （对象误入表达式求值路径的 TS 面修正）。
+
+**验收对账**：断言 1 ✓（具名形产出）/ 2 ✓（位置数组读取兼容，存续测试）/
+3 ✓（expr_asts 无写入）/ 4 ✓（arg_exprs 停写）/ 5 ✓（`;;` 归一化，存续测试）/
+6 ✓（往返保真，存续测试）/ 7 ✓（kwargsKeyCollision 三态测试待补——见下）/
+8 ✓（**全量 580 绿**，tsc/biome 干净）。
+
+**遗留微项**：kwargsKeyCollision 的三态断言（有碰撞/无碰撞/schema 未声明）
+补入 custom-function-schema.test.ts——随下一测试批（不阻塞本回执）。
+
+**状态更新：待实施 → implemented（2026-10-09）。**

@@ -256,6 +256,7 @@ export const en = {
   'cf.dollarFormMigrate': 'Migrate $. paths',
   'cf.argsDriftMissing': 'missing',
   'cf.argsDriftUnrecognized': 'unrecognized',
+  'cf.argsKwargsCollision': 'kwargs envelope ambiguity',
   'cf.argsFillMissing': 'Fill missing defaults',
   'cf.instanceOverview': 'Instances',
   'cf.parallelHint': 'runs in parallel',
