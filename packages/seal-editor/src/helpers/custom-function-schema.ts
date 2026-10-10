@@ -250,10 +250,12 @@ export const computeFunctionArgsDrift = (expressions: any, scope?: FunctionScope
         .map((name) => ({ name, default: properties[name]?.default }));
       const unrecognized = Object.keys(kwargs).filter((name) => !declared.includes(name) && name !== '$positional');
 
-      // ADR-015 #3 检查单 MUST：平面 kwargs 携带名为 kwargs 的 Record 键 =
-      // 0.14+ 双读按信封解释的歧义触发形态（迁移 = {$call, kwargs: { kwargs: {...} }}）。
-      // 语义单源 = zen-udf detectKwargsEnvelopeAmbiguity；kernel 零依赖 → 内联结构判定。
-      const kwargsKeyCollision = isRecord(kwargs.kwargs);
+      // ADR-015 #3 检查单 MUST：函数声明了名为 kwargs 的参数时，对象型调用
+      // kwargs 无法与信封区分（0.14+ 双读按信封解释）——歧义触发形态
+      // （迁移 = 参数改名或 {$call, kwargs: { kwargs: {...} }} 显式信封）。
+      // 判定与 zen-udf detectKwargsEnvelopeAmbiguity 对齐（上游规则 =
+      // `'kwargs' in parameters.properties`；kernel 零依赖 → 内联同规则）。
+      const kwargsKeyCollision = 'kwargs' in properties;
 
       if (missing.length > 0 || unrecognized.length > 0 || kwargsKeyCollision) {
         entries.push({

@@ -520,3 +520,53 @@ seal-appshell 参考适配器（批次三 M1'）则以 simulateHandler 构造 ex
   `@gorules/zen-engine` 浏览器桩）；
 - CI 附注：npm 索引延迟连续两次 10-35 分钟（0.13.0/0.13.1 实测），jdm 侧
   传播门禁窗口已调 30 分钟（10 分钟档两次如实判 fail——门禁行为正确）。
+
+## 增补提案（OQ3 修订）：独立表达式求值的 `$` 根绑定语义立法（2026-10-09，seal 起草——jdm 协商）
+
+> **触发**：verdict 线实测发现 `evaluateExpressionSync/Async` 的 context 绑定
+> 与 jdm 包装层约定（ADR-014 OQ3「根绑定 result」）不符——本增补把该语义缺口
+> 立法化，供 jdm 评审后实施（归 jdm-editor 仓）。
+
+### 实测事实（zen-udf 1.2.0 / 依赖 @gorules/zen-engine 2.1.0 与 2.1.4、node/bun 双运行时一致）
+
+| 表达式 | context | 结果 |
+| --- | --- | --- |
+| `1 + 1` | 任意 | 2（引擎本体正常） |
+| `$.result.b`（b=7） | `{ result: { b: 7 } }` | **null**（`$` 未绑定，路径 miss 恒 null 静默） |
+| `$.result.b == 7` | 同上 | false |
+| `$.b`（context = `{ b: 7 }`） | 同左 | **null**（普通变量环境契约下应为 7） |
+| `a * 2`（context = `{ a: 10 }`） | — | **20**（顶层键直引 = 官方契约，工作正常） |
+| `null ?? 42` | — | 42（`??` 原生可用） |
+| `$.result.a?.b ?? 9` | — | parserError（`?.` 不可用不变） |
+
+### 立法点（三条）
+
+1. **官方契约确认**：`evaluateExpressionSync/Async(expression, context)` 的
+   context 是**普通变量环境**——顶层键即表达式变量（GoRules WASM SDK 文档
+   示例 `evaluateExpressionSync('a * 2', { a: 10 })` → 20 实测一致）；
+2. **`$` 根在独立求值环境不绑定**：`$.x` 恒求值 null 且**静默不报错**——
+   `$` 根绑定仅存在于完整决策图执行（decision.evaluate，input 直接作根）；
+3. **jdm 包装层 `{ result: data }` + `$.result.x` 形态（ADR-014 OQ3 约定）
+   与该契约不符**：依赖此形态的结果条件恒 null → `!== false` 判定恒 true =
+   **静默放行**（fixtures 结果条件语义失效）。
+
+### 修法三选一（建议 ①）
+
+| # | 修法 | 量级 | 取舍 |
+| --- | --- | --- | --- |
+| ① | **fixtures 表达式改裸键**：结果条件写顶层直引（`count > 3`），包装层平铺 context（`{ ...data }` 替代 `{ result: data }`） | 最小（runner + 现存 fixtures 表达式普查改写） | 符合官方契约；`$` 前缀风格丢失（表达力无损——平铺后字段直引等价） |
+| ② | 包装层维持 `{ result: data }`，求值前**剥 `$.` 前缀改裸键**（正则改写表达式） | 中（表达式改写有边界：字符串字面量内的 `$.` 会误伤） | 不推荐——改写器自成新语言 |
+| ③ | 向 GoRules 提案 `$` 根绑定选项（zen-expression 上游） | 重 | 依赖上游排期 |
+
+### 过渡纪律（实施前）
+
+- 全部现存 fixtures 结果条件**普查**：凡写 `$.result.x` 的改为裸键（①）；
+- 普查工具复用 verdict `scripts/legacy-graph-audit.mjs` 的 dump/JSON 扫描
+  机械（grep `$.result.` 即清单）；
+- **在修法落地前，新增 fixtures 结果条件一律裸键**（写法纪律先行，防增量）。
+
+### 关联
+
+- 实测证据：verdict 仓探针（本增补 §表全部可复现）；
+- seal 侧同型发现：ADR-022 评审（写路径账实核对）同期记录；
+- jdm 侧实施回执后，本节转「已实施」并回填版本号。

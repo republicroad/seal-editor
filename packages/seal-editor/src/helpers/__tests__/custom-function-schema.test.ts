@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, test } from 'vitest';
 
 import {
   buildDefaultFunctionExpression,
+  computeFunctionArgsDrift,
   computeInstanceSchedule,
   findDollarFormRows,
   healExpressionsForScope,
@@ -299,5 +300,43 @@ describe('computeInstanceSchedule（实例依赖调度：Kahn 分层）', () => 
     const result = computeInstanceSchedule([expr('a', {}), expr('b', {}, ['a'])]);
     expect(result).toMatchObject({ ok: true });
     if (result.ok) expect(result.layers).toEqual([['a'], ['b']]);
+  });
+});
+
+describe('computeFunctionArgsDrift · kwargsKeyCollision（ADR-015 #3 检查单 MUST）', () => {
+  const scope = {
+    mode: 'scoped' as const,
+    functions: [
+      {
+        name: 'f_kwargs',
+        parameters: {
+          type: 'object',
+          properties: { kwargs: { type: 'object', description: '名为 kwargs 的参数' } },
+        },
+      },
+      {
+        name: 'f_plain',
+        parameters: { type: 'object', properties: { x: { type: 'string' } } },
+      },
+    ],
+  };
+
+  const drift = (value: unknown) =>
+    computeFunctionArgsDrift([{ id: '1', key: 'out', value, type: 'function' }], scope as never);
+
+  test('函数声明 kwargs 参数 + 对象型调用 kwargs → kwargsKeyCollision', () => {
+    const entries = drift({ $call: 'f_kwargs', kwargs: { inner: 1 } });
+    expect(entries).toHaveLength(1);
+    expect(entries[0].kwargsKeyCollision).toBe(true);
+  });
+
+  test('函数未声明 kwargs 参数：结构撞键不标记（上游 detector 需 schema 感知，差异已入档 ADR-022）', () => {
+    const entries = drift({ $call: 'f_plain', kwargs: { kwargs: { deep: 1 } } });
+    expect(entries.every((e) => !e.kwargsKeyCollision)).toBe(true);
+  });
+
+  test('普通具名调用无碰撞标记', () => {
+    const entries = drift({ $call: 'f_plain', kwargs: { x: 'a' } });
+    expect(entries.every((e) => !e.kwargsKeyCollision)).toBe(true);
   });
 });
