@@ -1,0 +1,121 @@
+{
+  "name": "custom-node-example",
+  "description": "自定义节点规则图示例——输入 → 名单查询（roster，$call 规范形）→ ping（空 config 容器形态）→ 输出。自定义节点 = type:'customNode' + content:{kind, config}；config 形状由注册该 kind 的 pack 的 parametersSchema 定义（ADR-011/ADR-017）。",
+  "nodes": [
+    {
+      "id": "ca98730e-a40f-4601-98cc-b5a57429596d",
+      "type": "inputNode",
+      "position": {
+        "x": 70,
+        "y": 250
+      },
+      "name": "Request",
+      "content": {
+        "inputSchema": [
+          {
+            "type": "string",
+            "name": "customer.id",
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "a70ede61-0000-4601-98cc-000000000001",
+      "type": "customNode",
+      "position": {
+        "x": 340,
+        "y": 180
+      },
+      "name": "roster1",
+      "content": {
+        "kind": "roster",
+        "config": {
+          "locked": true,
+          "inputField": "customer.id",
+          "outputPath": "roster1.result",
+          "passThrough": true,
+          "expressions": [
+            {
+              "id": "e1a1",
+              "key": "result",
+              "value": {
+                "$call": "roster_member",
+                "kwargs": {
+                  "list": "vip",
+                  "value": "customer.id"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "a70ede61-0000-4601-98cc-000000000002",
+      "type": "customNode",
+      "position": {
+        "x": 560,
+        "y": 320
+      },
+      "name": "pingNode1",
+      "content": {
+        "kind": "pingNode",
+        "config": {}
+      }
+    },
+    {
+      "id": "c5e747fe-b74b-4b74-9fd0-bfd7d67007c3",
+      "type": "expressionNode",
+      "position": {
+        "x": 760,
+        "y": 250
+      },
+      "name": "策略判断",
+      "content": {
+        "expressions": [
+          {
+            "id": "ex1",
+            "key": "hit",
+            "value": "$.roster1.result.count > 3 ? '高频' : '正常'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "c5e747fe-0000-4b74-9fd0-000000000003",
+      "type": "outputNode",
+      "position": {
+        "x": 980,
+        "y": 250
+      },
+      "name": "Response"
+    }
+  ],
+  "edges": [
+    {
+      "id": "ed-0001",
+      "sourceId": "ca98730e-a40f-4601-98cc-b5a57429596d",
+      "type": "edge",
+      "targetId": "a70ede61-0000-4601-98cc-000000000001"
+    },
+    {
+      "id": "ed-0002",
+      "sourceId": "a70ede61-0000-4601-98cc-000000000001",
+      "type": "edge",
+      "targetId": "a70ede61-0000-4601-98cc-000000000002"
+    },
+    {
+      "id": "ed-0003",
+      "sourceId": "a70ede61-0000-4601-98cc-000000000002",
+      "type": "edge",
+      "targetId": "c5e747fe-b74b-4b74-9fd0-bfd7d67007c3"
+    },
+    {
+      "id": "ed-0004",
+      "sourceId": "c5e747fe-b74b-4b74-9fd0-bfd7d67007c3",
+      "type": "edge",
+      "targetId": "c5e747fe-0000-4b74-9fd0-000000000003"
+    }
+  ]
+}
