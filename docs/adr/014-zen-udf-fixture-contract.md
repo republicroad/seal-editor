@@ -550,20 +550,31 @@ seal-appshell 参考适配器（批次三 M1'）则以 simulateHandler 构造 ex
    与该契约不符**：依赖此形态的结果条件恒 null → `!== false` 判定恒 true =
    **静默放行**（fixtures 结果条件语义失效）。
 
-### 修法三选一（建议 ①）
+### 修法收敛（2026-10-10 探针实测精化——**①′ 一行修正**，原三选一裁撤）
 
-| # | 修法 | 量级 | 取舍 |
-| --- | --- | --- | --- |
-| ① | **fixtures 表达式改裸键**：结果条件写顶层直引（`count > 3`），包装层平铺 context（`{ ...data }` 替代 `{ result: data }`） | 最小（runner + 现存 fixtures 表达式普查改写） | 符合官方契约；`$` 前缀风格丢失（表达力无损——平铺后字段直引等价） |
-| ② | 包装层维持 `{ result: data }`，求值前**剥 `$.` 前缀改裸键**（正则改写表达式） | 中（表达式改写有边界：字符串字面量内的 `$.` 会误伤） | 不推荐——改写器自成新语言 |
-| ③ | 向 GoRules 提案 `$` 根绑定选项（zen-expression 上游） | 重 | 依赖上游排期 |
+**探针决定性证据**：`$` 可作为 context 顶层键绑定——
+`evaluateExpressionSync('$.b', { $: { b: 7 } })` → 7（实测 ✓）。
+因此 OQ3 根语义（条件写 `$.result.x`）**无需改写任何条件**，包装层一行：
+
+```ts
+// ①′（替代原①的普查改写）：根名保持 result，$ 键绑执行结果
+evaluateExpressionSync(source, { $: { result: data } }) !== false;
+```
+
+实测回归 4/4：`$.result.discount.rate == 0.85` → true、
+`$.result.count > 1` → true、`$.result.discount.rate < 0.5` → false、
+缺失路径 → null（≠ false → false，静默放行缺口同步闭合——null 条件不再误判通过）。
+
+| 原选项 | 裁定 |
+| --- | --- |
+| ① 普查改写裸键 | 被 ①′ 取代（零改写） |
+| ② 剥前缀改写器 | 维持否决 |
+| ③ 上游 `$` 根绑定提案 | 维持否决（①′ 已达等价效果） |
 
 ### 过渡纪律（实施前）
 
-- 全部现存 fixtures 结果条件**普查**：凡写 `$.result.x` 的改为裸键（①）；
-- 普查工具复用 verdict `scripts/legacy-graph-audit.mjs` 的 dump/JSON 扫描
-  机械（grep `$.result.` 即清单）；
-- **在修法落地前，新增 fixtures 结果条件一律裸键**（写法纪律先行，防增量）。
+- 修法 ①′ 一行落地后**无需任何条件改写**——过渡纪律自动解除；
+- 新增 fixtures 结果条件维持 `$.result.x` 写法（OQ3 根语义不变）。
 
 ### 关联
 
