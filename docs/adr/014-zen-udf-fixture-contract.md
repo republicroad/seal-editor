@@ -521,11 +521,13 @@ seal-appshell 参考适配器（批次三 M1'）则以 simulateHandler 构造 ex
 - CI 附注：npm 索引延迟连续两次 10-35 分钟（0.13.0/0.13.1 实测），jdm 侧
   传播门禁窗口已调 30 分钟（10 分钟档两次如实判 fail——门禁行为正确）。
 
-## 增补提案（OQ3 修订）：独立表达式求值的 `$` 根绑定语义立法（2026-10-09，seal 起草——jdm 协商）
+## 增补提案（OQ3 修订）：独立表达式求值的 `$` 根绑定语义立法（2026-10-09，seal 起草——jdm 协商）→ **已实施（zen-udf 1.4.0，2026-10-11）**
 
 > **触发**：verdict 线实测发现 `evaluateExpressionSync/Async` 的 context 绑定
 > 与 jdm 包装层约定（ADR-014 OQ3「根绑定 result」）不符——本增补把该语义缺口
 > 立法化，供 jdm 评审后实施（归 jdm-editor 仓）。
+>
+> **状态**：jdm 侧已评审接受裁定 ①（二次修正定稿）并实施——见文末实施回执。
 
 ### 实测事实（zen-udf 1.2.0 / 依赖 @gorules/zen-engine 2.1.0 与 2.1.4、node/bun 双运行时一致）
 
@@ -589,3 +591,23 @@ evaluateExpressionSync(source, data) !== false;
 - 实测证据：verdict 仓探针（本增补 §表全部可复现）；
 - seal 侧同型发现：ADR-022 评审（写路径账实核对）同期记录；
 - jdm 侧实施回执后，本节转「已实施」并回填版本号。
+
+### 实施回执（2026-10-11，jdm-editor 会话——随 zen-udf 1.4.0）
+
+- **裁定 ① 落地**：`createZenExpressionEvaluator`（`src/expression-evaluator.ts`）
+  去 `{ result: data }` 包装——对象结果 context **平铺**（顶层键即变量，裸键
+  直引）；非对象结果（标量/数组/null）绑 `result` 单键（`result == 42` /
+  `result[0] == 'a'` 形态，表达式断言对任意结果形状保持可断言）；
+- **仓内语料普查**：`$.result.x` 形态零语料；`result.xxx` 顶层键包装形态仓内
+  三处（fixtures.test.ts）已改裸键 `score.value == …` 并补哨兵测试三态——
+  `$` 根与 `$.path` 导航恒 null 静默钉扎（fail-visible，不再有「result 键恰好
+  存在」的假阳性通道）；
+- **契约条文**：CONTRACT §10.1 求值契约修订（平铺/`result` 单键/禁 `$` 导航/
+  1.3.x 形态废弃注记）；
+- **门禁**：zen-udf 全量 1124/1124 绿（42 文件）+ tsc 干净；
+- **版本**：zen-udf **1.4.0**（minor——测试契约面行为修正，jdm 提交
+  23372bdb + 发版 deb4e1b1）；verdict/seal 存量 fixtures 条件按上方过渡纪律
+  自查迁移（普查工具：legacy-graph-audit dump/JSON 扫描机械）；
+- 探针补充（jdm 实测，随本回执入档）：方法调用语法（`result.size()`）不在
+  zen-expression 语言面（parserError，与 `?.` 同族）；数组断言可用
+  `result[0] == 'a'` 或 `len(result) == 2`。
