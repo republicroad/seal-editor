@@ -82,6 +82,7 @@ await runWithExecContext({ tenantId: 't-1', userId: 'u-1' }, async () => {
 
 ## 深入阅读
 
+- [zen 表达式与节点参考（客户核心档）](/seal-editor/docs/zen-reference)
 - [多租户最佳实践设计](/seal-editor/docs/design/zen-udf-multi-tenant)
 - [上下文跨 TSFN 边界传播（现状 + 原生绑定层提案）](/seal-editor/docs/design/zen-udf-context-propagation)
 - [U 系列开发计划（机制与租户契约，已 shipped）](/seal-editor/docs/archive/plans/zen-udf-development-plan)

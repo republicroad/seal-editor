@@ -31,6 +31,7 @@ English files are canonical; `.zh-CN.md` files are translations kept in sync.
 | Document / 文档 | 语言 | 状态 | Contents / 内容 |
 |---|---|---|---|
 | [`features.md`](./features.md) / [`.zh-CN`](./features.zh-CN.md) | EN + 中文 | ✅ | 内核公开功能:DecisionGraph 六种内置节点、DecisionTable、表达式/函数编辑器、公共 API 速查 |
+| [`zen-reference.md`](./zen-reference.md) / [`.zh-CN`](./zen-reference.zh-CN.md) | EN + 中文 | ✅ | **zen 表达式与节点参考（客户核心档）**:表达式语言/函数库/`$` 绑定矩阵、七种节点 schema 与语义、错误目录、版本跟进记录、升级核查清单 |
 | [`nl-expression-builder.md`](./nl-expression-builder.md) / [`.zh-CN`](./nl-expression-builder.zh-CN.md) | EN + 中文 | ✅ | 决策表"业务视图":fieldType schemas、字典、操作符→表达式规范形态、WASM 运行时契约 |
 | [`i18n.md`](./i18n.md) / [`.zh-CN`](./i18n.zh-CN.md) | EN + 中文 | ✅ | 国际化:Provider 接入、useT/createT、en+zh-CN 词条表(键奇偶由测试锁定)、回退链、插值 |
 | [`storybook.md`](./storybook.md) / [`.zh-CN`](./storybook.zh-CN.md) | EN + 中文 | ✅ | Storybook 指南:配置、装饰器、story 清单(计数随特性滚动,以实际 Storybook 为准)、交互测试流水线、高度链 |
