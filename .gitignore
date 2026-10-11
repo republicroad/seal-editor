@@ -8,6 +8,7 @@ node_modules
 # Ignore
 *.log*
 *.tgz
+*.tsbuildinfo
 # storybook static build output
 packages/seal-editor/docs
 
@@ -23,3 +24,4 @@ docs-site-debug.png
 
 dev-docs-debug.png
 .zcode/
+.zcodeignore
