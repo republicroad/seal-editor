@@ -778,3 +778,12 @@ repo (after §8's submodule decoupling and the dts migration's OOM experiment).
 **原因**：Base UI 不发 `data-state="checked|open|active"` 值域属性，改发 presence 属性
 （`data-checked`/`data-open`/`data-active`）。
 **处理**：断言改用 `toHaveAttribute('data-checked')` 形式；样式选择器同理。
+
+## 11. Storybook 交互套件 CI 偶发 flake——auto-layout（dagre）时序敏感（2026-10-12）
+
+**现象**：docs-only 提交的 Validate 红在 `decision-graph--auto-layout`（page.evaluate:
+StorybookTestRunnerError），同一代码前几轮全绿。
+**原因**：auto-layout story 走 dagre 异步布局，CI runner 负载抖动时布局未在交互
+断言窗口内稳定——时序敏感型 flake，非代码回归。
+**处理**：`gh run rerun <run-id> --failed` 重跑失败 job 即绿（本例一次通过）。
+连续两轮同用例红才按真实回归排查。已知敏感族：auto-layout 类 dagre 依赖 story。
