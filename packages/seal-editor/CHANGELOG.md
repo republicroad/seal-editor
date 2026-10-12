@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.34.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.33.0...@republicroad/seal-editor@1.34.0) (2026-10-12)
+
+### Features
+
+- **seal-editor:** $ 语义误用静态提示三件套（zen-reference §1.5 实测矩阵编辑器面）——表达式行 $.<输入字段> 静默丢行提示（剥 $. 裸名建议）/ 行键与输入字段同名三义 hazard / 决策表全表达式单元 $. 导航提示条（field 列 unary $=列值不误报）
+- **seal-editor:** TabExpression 补传映射后输入基面（inputField→get、loop→arrayItem），提示不依赖仿真
+
+### Tests
+
+- dollar 提示 demo story ×2（DollarHints / DollarNavNotice）+ zen-dollar-hints 单测 16 项（全量 599 绿）
+
 # [1.33.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.32.0...@republicroad/seal-editor@1.33.0) (2026-10-08)
 
 ### Features
