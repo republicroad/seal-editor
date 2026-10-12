@@ -607,7 +607,10 @@ evaluateExpressionSync(source, data) !== false;
 - **门禁**：zen-udf 全量 1124/1124 绿（42 文件）+ tsc 干净；
 - **版本**：zen-udf **1.4.0**（minor——测试契约面行为修正，jdm 提交
   23372bdb + 发版 deb4e1b1）；verdict/seal 存量 fixtures 条件按上方过渡纪律
-  自查迁移（普查工具：legacy-graph-audit dump/JSON 扫描机械）；
+  自查迁移（普查工具：legacy-graph-audit dump/JSON 扫描机械）——
+  **两仓普查完成（2026-10-12）**：seal 零存量；verdict 命中 1 处存量断言 +
+  求值器旧形态分叉，已立 verdict-007 提案协商（依赖对齐/求值器换源/
+  断言改写/恒真哨兵四件）；
 - 探针补充（jdm 实测，随本回执入档）：方法调用语法（`result.size()`）不在
   zen-expression 语言面（parserError，与 `?.` 同族）；数组断言可用
   `result[0] == 'a'` 或 `len(result) == 2`。

@@ -92,7 +92,7 @@ English files are canonical; `.zh-CN.md` files are translations kept in sync.
 | [`glossary.md`](./glossary.md) | ✅ | 域术语对照表(JDM 模型 / zen-udf / 端口 / 工具链) |
 | [`adr/`](./adr/README.md) —— 6 条 | ✅ accepted | 架构决策归档:ESM-only、源码直通、zen-udf 租户隔离/缓存归属/源码发布、zustand 选择器 |
 | [`bp/`](./bp/README.md) —— 10 篇 | ✅ | 可复用最佳实践:哨兵测试、conformance 套件、缓存归属、跨仓源码桥等 |
-| [`rfc/`](./rfc/) —— 3 篇 | ✅ 待提交 | 上游 issue 草稿:zen 异步上下文、ReUI ToggleGroup 风格错配、rolldown-plugin-dts OOM |
+| [`rfc/`](./rfc/) —— 4 篇 | ✅ 待提交 | 上游 issue 草稿:zen 异步上下文、**zen 表达式静默降级 fail-visible**、ReUI ToggleGroup 风格错配、rolldown-plugin-dts OOM（提交手册见 [design/upstream](./design/upstream/gorules-submission-handbook)） |
 
 `design/` 只保留**活跃**文档(7 篇);执行完毕的计划一律移入 `archive/plans/`:
 
