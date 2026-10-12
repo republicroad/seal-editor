@@ -346,3 +346,28 @@ export const BusinessModeDictionaries: Story = {
     );
   },
 };
+
+// $ 误用提示 demo（zen-reference §1.5 C2）：全表达式列（无 field）单元含 $. 导航
+// → 表头下方提示条计数；field 列 unary 的 $=列值（i1 列 $ > 5）合法不计数。
+const dollarNavDefault = {
+  hitPolicy: 'first',
+  inputs: [
+    { id: 'i1', field: 'a', name: 'A (field)' },
+    { id: 'x1', name: 'Expr (full)' },
+  ],
+  outputs: [{ id: 'o1', field: 'r', name: 'R' }],
+  rules: [
+    { _id: 'r1', i1: '$ > 5', x1: '$.a == 1', o1: '1' },
+    { _id: 'r2', i1: '== 3', x1: '$root.a == 2', o1: '2' },
+  ],
+};
+
+export const DollarNavNotice: Story = {
+  render: (args) => {
+    return (
+      <div style={{ height: '100%' }}>
+        <DecisionTable {...args} defaultValue={dollarNavDefault} onChange={args?.onChange} tableHeight='100%' />
+      </div>
+    );
+  },
+};

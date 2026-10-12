@@ -1,7 +1,9 @@
+import { VariableType } from '@gorules/zen-engine-wasm';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { fn } from 'storybook/test';
 
+import { ensureWasmLoaded } from '../../helpers/wasm';
 import type { ExpressionEntry } from './context/expression-store.context';
 import { Expression } from './expression';
 
@@ -60,6 +62,43 @@ export const Controlled: Story = {
     return (
       <StoryWrapper>
         <Expression value={value} onChange={setValue} {...args} />
+      </StoryWrapper>
+    );
+  },
+};
+
+// $ 误用提示 demo（zen-reference §1.5）：C1 静默丢行建议 / C3 行键同名三义。
+// 需 wasm 就绪后构建 VariableType——提示面在缺 wasm 时静默关闭（宁漏勿误报）。
+const dollarHintsDefault = [
+  { id: '1', key: 'grandTotal', value: '$.tax * 2' },
+  { id: '2', key: 'total', value: 'total + 1' },
+  { id: '3', key: 'customerName', value: '$.customer.name' },
+  { id: '4', key: 'purchaseCount', value: 'len(customer.purchases)' },
+];
+
+export const DollarHints: Story = {
+  render: () => {
+    const [inputVariableType, setInputVariableType] = useState<VariableType>();
+
+    useEffect(() => {
+      ensureWasmLoaded().then(() => {
+        setInputVariableType(
+           
+          VariableType.fromJson({
+            Object: { customer: { Object: {} }, total: { Object: {} }, tax: { Object: {} } },
+          } as any),
+        );
+      });
+    }, []);
+
+    return (
+      <StoryWrapper>
+        <Expression
+          inputVariableType={inputVariableType}
+          defaultValue={dollarHintsDefault}
+          onChange={fn()}
+          permission='edit:full'
+        />
       </StoryWrapper>
     );
   },
