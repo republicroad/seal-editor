@@ -220,6 +220,7 @@ Mechanical verification of fixtures & corpus: `node scripts/probes/zen-reference
 | --- | --- | --- | --- |
 | 2026-10-10 | wasm 0.23.1 / native 2.1.0 (2.1.4 line same behavior) | Established: full-context `$` binding matrix (six measured rounds); expression-language skeleton + function inventory (corpus-derived); 7 node schemas verified | matrix evidence file · expression-node-dollar-ref fixture · CSV 1068 lines |
 | 2026-10-11 | zen-udf 1.4.0 | OQ3 final fix implemented: host evaluator context flattened to bare keys (§1.6 closed), jdm commits 23372bdb / release deb4e1b1, full suite 1124 green | [ADR-014 implementation receipt](./adr/014-zen-udf-fixture-contract) |
+| 2026-10-12 | native 2.1.4 (via zen-udf 1.4.0 dependency alignment) | First live exercise of §7: 3 fixture sentinels + 855-line corpus full replay green — the $ binding matrix / hitPolicy / silent row drop behave identically on 2.1.4 and 2.1.0 | probe zen-reference-verify --full · demo-server dependency ^1.4.0 |
 | 2026-10-11 | wasm 0.23.1 / native 2.1.0 | Verification probe landed (§7 mechanized): 3 fixture assertions + corpus deterministic sampling / full replay (855 lines) + jdm divergence-ledger gating ported; new `$root`/`$nodes` and table hitPolicy sentinel fixtures | `scripts/probes/zen-reference-verify.mjs` · graph fixtures ×3 |
 
 ## 7. Engine-Upgrade Checklist

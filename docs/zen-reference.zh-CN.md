@@ -219,6 +219,7 @@ DST 语义：落在间隙内的本地时间**前移一个间隙**；带偏移的
 | --- | --- | --- | --- |
 | 2026-10-10 | wasm 0.23.1 / 原生 2.1.0（2.1.4 线同行为） | 立档：`$` 绑定全上下文矩阵（六轮实测）；表达式语言骨架 + 函数清单（语料提炼）；7 节点 schema 实测核对 | 证据档 matrix · 夹具 expression-node-dollar-ref · CSV 1068 行 |
 | 2026-10-11 | zen-udf 1.4.0 | OQ3 定稿实施：宿主求值器 context 平铺裸键（§1.6 闭合），jdm 提交 23372bdb / 发版 deb4e1b1，全量 1124 绿 | [ADR-014 实施回执](./adr/014-zen-udf-fixture-contract) |
+| 2026-10-12 | 原生 2.1.4（经 zen-udf 1.4.0 依赖对齐） | §7 清单首次实战：3 夹具哨兵 + 855 行语料全量重放全绿——$ 绑定矩阵/hitPolicy/静默丢行在 2.1.4 与 2.1.0 行为一致 | 探针 zen-reference-verify --full · demo-server 依赖 ^1.4.0 |
 | 2026-10-11 | wasm 0.23.1 / 原生 2.1.0 | 核查探针落成（§7 固化）：3 夹具断言 + 语料确定性抽样/全量重放（855 行）+ jdm 分歧台账门控移植；新增 `$root`/`$nodes` 与决策表 hitPolicy 哨兵夹具 | `scripts/probes/zen-reference-verify.mjs` · graph 夹具 ×3 |
 
 ## 7. 引擎升级核查清单
