@@ -4,6 +4,7 @@ import { Empty, EmptyContent, EmptyMedia, EmptyTitle } from '#reui/empty';
 import React, { useMemo, useState } from 'react';
 
 import type { FunctionScope, InstanceSchedule } from '../../../helpers/custom-function-schema';
+import { computeInstanceDependencyDrift } from '../../../helpers/custom-function-schema';
 import { useT } from '../../../theming/i18n';
 import { Button, Input, Select, Tag, Tooltip, Typography } from '../../primitives';
 import { TypedInput, coerceToTypedValue } from './typed-input';
@@ -123,6 +124,48 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
   );
   const selectedDrift = selected ? driftByInstance?.[selected.id] : undefined;
   const selectedIsDup = selected ? (duplicateKeys?.includes(selected.key) ?? false) : false;
+
+  // 依赖声明漂移（ADR-015 增补 UI 面）：悬空 dependsOn（error）/ 声明未引用（info）。
+  // 环与分层由 computeInstanceSchedule 覆盖（左栏警示带），此处不重复。
+  const dependencyDrift = useMemo(() => computeInstanceDependencyDrift(instances), [instances]);
+  const selectedDangling = useMemo(
+    () => (selected ? dependencyDrift.danglingDependsOn.filter((d) => d.instanceId === selected.id) : []),
+    [dependencyDrift, selected],
+  );
+  const selectedUnused = useMemo(
+    () => (selected ? dependencyDrift.declaredUnused.filter((d) => d.instanceId === selected.id) : []),
+    [dependencyDrift, selected],
+  );
+  const dependencyOptions = useMemo(() => {
+    if (!selected) return [];
+    const declared = new Set(selected.dependsOn ?? []);
+    return instances
+      .filter((inst) => inst.id !== selected.id && inst.key && !declared.has(inst.key))
+      .map((inst) => ({ value: inst.key, label: inst.key }));
+  }, [instances, selected]);
+
+  // 引用源（C2）：兄弟实例键 → `$.<key>`；上次仿真输出为对象时展开一级字段 → `$.<key>.<field>`。
+  // 点击复制，宿主粘贴进 args 表达式即建隐式依赖边（ADR-015 增补）。
+  const [copiedRef, setCopiedRef] = useState<string | null>(null);
+  const copyRef = (ref: string) => {
+    void navigator.clipboard?.writeText(ref).catch(() => {});
+    setCopiedRef(ref);
+    window.setTimeout(() => setCopiedRef((cur) => (cur === ref ? null : cur)), 1200);
+  };
+  const referenceChips = useMemo(() => {
+    if (!selected) return [] as { ref: string; hint?: string }[];
+    return instances
+      .filter((inst) => inst.id !== selected.id && inst.key)
+      .flatMap((inst) => {
+        const base = { ref: `$.${inst.key}` };
+        const output = outputsByKey?.[inst.key];
+        if (output !== null && typeof output === 'object' && !Array.isArray(output)) {
+          const fields = Object.keys(output as Record<string, unknown>).slice(0, 12);
+          return [base, ...fields.map((field) => ({ ref: `$.${inst.key}.${field}`, hint: inst.key }))];
+        }
+        return [base];
+      });
+  }, [instances, selected, outputsByKey]);
 
   // 依赖调度投影（ADR-015 增补）：分层号 → 列表徽标；环 → 左栏警告带。
   // DUPLICATE_OUTPUT 不在此呈现（duplicateKeys 通道已覆盖）；零边快路径不出徽标。
@@ -334,19 +377,94 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
                   )}
                 </div>
               </div>
-              {(selected.dependsOn?.length ?? 0) > 0 && (
-                <div className='grid grid-cols-[120px_minmax(0,1fr)] items-center gap-2'>
-                  <Typography.Text className='text-xs opacity-70'>{t('cf.dependsOn')}</Typography.Text>
-                  <div className='flex flex-wrap gap-1'>
-                    {selected.dependsOn!.map((dep) => (
-                      <Tag key={dep} className='border border-border bg-muted/60 font-mono text-[10px]'>
-                        {dep}
-                      </Tag>
-                    ))}
-                  </div>
+              <div className='grid grid-cols-[120px_minmax(0,1fr)] items-start gap-2'>
+                <Typography.Text className='pt-1.5 text-xs opacity-70'>{t('cf.dependsOn')}</Typography.Text>
+                <div className='flex flex-col gap-1.5'>
+                  {(selected.dependsOn?.length ?? 0) > 0 && (
+                    <div className='flex flex-wrap gap-1' data-testid='instance-depends-on-tags'>
+                      {selected.dependsOn!.map((dep) => {
+                        const dangling = selectedDangling.some((d) => d.dep === dep);
+                        return (
+                          <Tag
+                            key={dep}
+                            className={`border font-mono text-[10px] ${
+                              dangling
+                                ? 'border-destructive/50 bg-destructive/10 text-destructive'
+                                : 'border-border bg-muted/60'
+                            }`}
+                          >
+                            {dep}
+                            {!disabled && (
+                              <button
+                                type='button'
+                                aria-label={t('cf.dependsOnRemove', { dep })}
+                                data-testid={`instance-depends-on-remove-${dep}`}
+                                className='ml-0.5 opacity-50 hover:opacity-100'
+                                onClick={() =>
+                                  updateInstance(selected.id, {
+                                    dependsOn: selected.dependsOn!.filter((d) => d !== dep),
+                                  })
+                                }
+                              >
+                                ×
+                              </button>
+                            )}
+                          </Tag>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <Select
+                    disabled={disabled}
+                    value={undefined}
+                    placeholder={t('cf.dependsOnAdd')}
+                    onChange={(v: string) => {
+                      updateInstance(selected.id, { dependsOn: [...(selected.dependsOn ?? []), v] });
+                    }}
+                    options={dependencyOptions}
+                  />
+                  {selectedDangling.map((d) => (
+                    <Typography.Text
+                      key={d.dep}
+                      data-testid={`instance-depends-on-dangling-${d.dep}`}
+                      className='text-[11px] text-destructive'
+                    >
+                      {t('cf.dependsOnDangling', { dep: d.dep })}
+                    </Typography.Text>
+                  ))}
+                  {selectedUnused.length > 0 && (
+                    <Typography.Text data-testid='instance-depends-on-unused' className='text-[11px] opacity-60'>
+                      {t('cf.dependsOnUnused', { deps: selectedUnused.map((d) => d.dep).join(', ') })}
+                    </Typography.Text>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
+
+            {/* 引用源：兄弟实例键（及仿真输出一级字段）→ 点击复制 `$.` 引用，粘贴进 args 即建隐式依赖边 */}
+            {referenceChips.length > 0 && (
+              <div className='flex flex-col gap-1.5' data-testid='instance-reference-sources'>
+                <div className='flex items-baseline justify-between gap-2'>
+                  <Typography.Text className='text-xs opacity-70'>{t('cf.referenceSources')}</Typography.Text>
+                  <Typography.Text className='text-[10px] opacity-40'>{t('cf.referenceSourcesHint')}</Typography.Text>
+                </div>
+                <div className='flex flex-wrap gap-1'>
+                  {referenceChips.map((chip) => (
+                    <button
+                      key={chip.ref}
+                      type='button'
+                      title={t('cf.referenceCopy')}
+                      data-testid={`reference-chip-${chip.ref}`}
+                      className='cursor-pointer rounded-sm border border-border bg-muted/40 px-1.5 py-0.5 font-mono text-[10px] hover:bg-muted/80'
+                      onClick={() => copyRef(chip.ref)}
+                    >
+                      {chip.ref}
+                      {copiedRef === chip.ref && <span className='ml-1 opacity-60'>{t('cf.referenceCopied')}</span>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* 返回值：上次仿真的实例结果（run-scoped；error 形态红显） */}
             {outputsByKey && selected.key in outputsByKey && (

@@ -3,6 +3,7 @@ import { describe, expect, it, test } from 'vitest';
 import {
   buildDefaultFunctionExpression,
   computeFunctionArgsDrift,
+  computeInstanceDependencyDrift,
   computeInstanceSchedule,
   findDollarFormRows,
   healExpressionsForScope,
@@ -300,6 +301,49 @@ describe('computeInstanceSchedule（实例依赖调度：Kahn 分层）', () => 
     const result = computeInstanceSchedule([expr('a', {}), expr('b', {}, ['a'])]);
     expect(result).toMatchObject({ ok: true });
     if (result.ok) expect(result.layers).toEqual([['a'], ['b']]);
+  });
+});
+
+describe('computeInstanceDependencyDrift（依赖声明漂移：悬空/声明未引用）', () => {
+  const expr = (key: string, kwargs: Record<string, unknown>, dependsOn?: string[]) => ({
+    id: 'id-' + key,
+    key,
+    type: 'function',
+    value: { $call: 'fn', kwargs },
+    ...(dependsOn ? { dependsOn } : {}),
+  });
+
+  it('悬空 dependsOn（键不存在）→ error 级 danglingDependsOn', () => {
+    const drift = computeInstanceDependencyDrift([expr('a', {}, ['ghost'])]);
+    expect(drift.danglingDependsOn).toEqual([{ instanceId: 'id-a', instanceKey: 'a', dep: 'ghost' }]);
+    expect(drift.declaredUnused).toEqual([]);
+  });
+
+  it('声明且被 args 引用 → 两类漂移均为空', () => {
+    const drift = computeInstanceDependencyDrift([expr('a', {}), expr('b', { val: '$.a.x' }, ['a'])]);
+    expect(drift.danglingDependsOn).toEqual([]);
+    expect(drift.declaredUnused).toEqual([]);
+  });
+
+  it('声明但 args 未引用 → info 级 declaredUnused（纯排序合法）', () => {
+    const drift = computeInstanceDependencyDrift([expr('a', {}), expr('b', { val: '1' }, ['a'])]);
+    expect(drift.danglingDependsOn).toEqual([]);
+    expect(drift.declaredUnused).toEqual([{ instanceId: 'id-b', instanceKey: 'b', dep: 'a' }]);
+  });
+
+  it('多段引用取首段匹配（$.a.b.c 计为引用 a）', () => {
+    const drift = computeInstanceDependencyDrift([expr('a', {}), expr('b', { val: '$.a.b.c' }, ['a'])]);
+    expect(drift.declaredUnused).toEqual([]);
+  });
+
+  it('无 dependsOn 声明 → 恒空（args 隐式边不属声明漂移）', () => {
+    const drift = computeInstanceDependencyDrift([expr('b', { val: '$.a' }), expr('a', {})]);
+    expect(drift).toEqual({ danglingDependsOn: [], declaredUnused: [] });
+  });
+
+  it('非数组入参安全', () => {
+    expect(computeInstanceDependencyDrift(null)).toEqual({ danglingDependsOn: [], declaredUnused: [] });
+    expect(computeInstanceDependencyDrift(undefined)).toEqual({ danglingDependsOn: [], declaredUnused: [] });
   });
 });
 

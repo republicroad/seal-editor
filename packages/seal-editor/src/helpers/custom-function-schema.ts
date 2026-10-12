@@ -624,7 +624,8 @@ export const namedCallToEditorValue = (call: unknown, funcDef?: { parameters?: u
 /**
  * ADR-015 增补（P1 骨架）：多实例视图模型——主从式（Master-Detail）的纯函数层。
  * 并行执行语义（Promise.all 逐条隔离）下实例集合无序：展示按字典序（集合观，
- * 不暗示执行序）；依赖声明（dependsOn）为 additive 预留字段（编辑器暂不渲染）。
+ * 不暗示执行序）；依赖声明（dependsOn）由实例详情面板提供编辑入口（增删 +
+ * 引用源面板），静态漂移见 computeInstanceDependencyDrift。
  */
 
 /** 实例视图模型（主从列表项） */
@@ -687,7 +688,7 @@ export const buildInstanceViews = (expressions: any, _scope?: FunctionScope): Fu
       seq: fn ? seq : 1,
     };
 
-    // dependsOn additive 预留：存量带此字段的行透传（编辑器暂不渲染）
+    // dependsOn 透传（实例详情面板提供编辑入口，往返保真）
     if (isRecord(expression) && Array.isArray(expression.dependsOn)) {
       view.dependsOn = expression.dependsOn.map(String);
     }
@@ -830,4 +831,57 @@ export const computeInstanceSchedule = (expressions: any): InstanceSchedule => {
   for (const [key, edges] of deps) depsByItem[key] = [...edges];
 
   return { ok: true, layers, hasEdges, depsByItem };
+};
+
+/**
+ * 实例依赖声明漂移（编辑器静态预检，ADR-015 增补 UI 面）：
+ * - **danglingDependsOn**：声明的依赖键不存在——调度器静默过滤（`byKey.has` 滤网），
+ *   args 漂移带的 danglingRefs 只查 `$.` 引用不查声明，此处是唯一检出位（error 级）；
+ * - **declaredUnused**：声明的依赖在 args 中无 `$.` 引用——合法（纯排序用途），
+ *   信息级提示，多为遗留/笔误。
+ * 环/重复/分层由 computeInstanceSchedule 覆盖（编辑器已有 CYCL 警示带），此处不重复。
+ */
+export type InstanceDependencyDriftEntry = {
+  instanceId: string;
+  instanceKey: string;
+  /** 涉及的依赖键 */
+  dep: string;
+};
+
+export type InstanceDependencyDrift = {
+  danglingDependsOn: InstanceDependencyDriftEntry[];
+  declaredUnused: InstanceDependencyDriftEntry[];
+};
+
+export const computeInstanceDependencyDrift = (expressions: any): InstanceDependencyDrift => {
+  const drift: InstanceDependencyDrift = { danglingDependsOn: [], declaredUnused: [] };
+  if (!Array.isArray(expressions)) return drift;
+
+  const keys = new Set<string>(expressions.map((expr: any) => String(expr?.key ?? '')).filter(Boolean));
+
+  for (const expr of expressions) {
+    const instanceKey = String(expr?.key ?? '');
+    const instanceId = String(expr?.id ?? '');
+    const dependsOn = (expr?.dependsOn as string[] | undefined) ?? [];
+    if (dependsOn.length === 0) continue;
+
+    // 该实例 args 中实际 `$.` 引用的首段键集合（与调度器同款提取）
+    const refs = new Set<string>();
+    const value = expr?.value;
+    if (isRecord(value) && isRecord(value.kwargs)) {
+      for (const v of Object.values(value.kwargs)) collectRefs(v, refs);
+    } else {
+      collectRefs(value, refs);
+    }
+
+    for (const dep of dependsOn) {
+      const depKey = String(dep);
+      if (!keys.has(depKey)) {
+        drift.danglingDependsOn.push({ instanceId, instanceKey, dep: depKey });
+      } else if (!refs.has(depKey)) {
+        drift.declaredUnused.push({ instanceId, instanceKey, dep: depKey });
+      }
+    }
+  }
+  return drift;
 };
