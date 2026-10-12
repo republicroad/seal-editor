@@ -1,0 +1,119 @@
+{
+  "contentType": "application/vnd.gorules.decision",
+  "nodes": [
+    {
+      "type": "inputNode",
+      "content": {
+        "schema": ""
+      },
+      "id": "ae9715da-2167-40f5-bc25-ee321dda976b",
+      "name": "request",
+      "position": {
+        "x": 55,
+        "y": 180
+      }
+    },
+    {
+      "type": "decisionTableNode",
+      "content": {
+        "hitPolicy": "first",
+        "inputs": [
+          {
+            "id": "i1",
+            "name": "Input"
+          }
+        ],
+        "outputs": [
+          {
+            "id": "o1",
+            "name": "R",
+            "field": "r",
+            "default": "miss"
+          }
+        ],
+        "rules": [
+          {
+            "_id": "r-sentinel",
+            "_description": "哨兵：全表达式单元 $ 未绑定，此规则永不命中——若命中说明 $ 绑定语义回归",
+            "i1": "$.a == 1",
+            "o1": "'dollar-miss'"
+          },
+          {
+            "_id": "r-root",
+            "_description": "$root = 节点输入根，命中走 first",
+            "i1": "$root.a == 1",
+            "o1": "'first-hit'"
+          }
+        ],
+        "passThrough": true,
+        "inputField": null,
+        "outputPath": null,
+        "executionMode": "single"
+      },
+      "id": "4f8dd2d3-033a-401d-b248-f589dce6b927",
+      "name": "t_first",
+      "position": {
+        "x": 255,
+        "y": 180
+      }
+    },
+    {
+      "type": "decisionTableNode",
+      "content": {
+        "hitPolicy": "collect",
+        "inputs": [
+          {
+            "id": "i1",
+            "name": "Input"
+          }
+        ],
+        "outputs": [
+          {
+            "id": "o1",
+            "name": "R",
+            "field": "r",
+            "default": "miss"
+          }
+        ],
+        "rules": [
+          {
+            "_id": "c-nodes",
+            "_description": "$nodes 跨节点引用先行决策表输出",
+            "i1": "$nodes.t_first.r == 'first-hit'",
+            "o1": "'c1'"
+          },
+          {
+            "_id": "c-root",
+            "_description": "$root 输入根判定",
+            "i1": "$root.a >= 1",
+            "o1": "'c2'"
+          }
+        ],
+        "passThrough": false,
+        "inputField": null,
+        "outputPath": null,
+        "executionMode": "single"
+      },
+      "id": "f16174c9-662b-42ad-9794-13f69ede48b7",
+      "name": "t_collect",
+      "position": {
+        "x": 455,
+        "y": 180
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "eed1b1ef-e96d-48ab-9c0d-41c52d1a82fb",
+      "sourceId": "ae9715da-2167-40f5-bc25-ee321dda976b",
+      "type": "edge",
+      "targetId": "4f8dd2d3-033a-401d-b248-f589dce6b927"
+    },
+    {
+      "id": "b3c5d7e9-1111-4a2b-8c3d-5e6f7a8b9c0d",
+      "sourceId": "4f8dd2d3-033a-401d-b248-f589dce6b927",
+      "type": "edge",
+      "targetId": "f16174c9-662b-42ad-9794-13f69ede48b7"
+    }
+  ]
+}

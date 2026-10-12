@@ -1,0 +1,80 @@
+{
+  "contentType": "application/vnd.gorules.decision",
+  "nodes": [
+    {
+      "type": "inputNode",
+      "content": {
+        "schema": ""
+      },
+      "id": "ae9715da-2167-40f5-bc25-ee321dda976b",
+      "name": "request",
+      "position": {
+        "x": 55,
+        "y": 180
+      }
+    },
+    {
+      "type": "expressionNode",
+      "content": {
+        "expressions": [
+          {
+            "id": "6bdfcb1d-04fd-43d3-ad5c-7f24e4d81736",
+            "key": "c",
+            "value": "3"
+          }
+        ],
+        "passThrough": true,
+        "inputField": null,
+        "outputPath": null,
+        "executionMode": "single"
+      },
+      "id": "4f8dd2d3-033a-401d-b248-f589dce6b927",
+      "name": "expression1",
+      "position": {
+        "x": 255,
+        "y": 180
+      }
+    },
+    {
+      "type": "expressionNode",
+      "content": {
+        "expressions": [
+          {
+            "id": "0d2aa228-00ac-4726-8765-91947a67977b",
+            "key": "r1",
+            "value": "$root.a"
+          },
+          {
+            "id": "93c6e228-0413-4cbd-a2cd-e3a77db50312",
+            "key": "r2",
+            "value": "$nodes.expression1.c * 2"
+          }
+        ],
+        "passThrough": true,
+        "inputField": null,
+        "outputPath": null,
+        "executionMode": "single"
+      },
+      "id": "f16174c9-662b-42ad-9794-13f69ede48b7",
+      "name": "expression2",
+      "position": {
+        "x": 455,
+        "y": 180
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "eed1b1ef-e96d-48ab-9c0d-41c52d1a82fb",
+      "sourceId": "ae9715da-2167-40f5-bc25-ee321dda976b",
+      "type": "edge",
+      "targetId": "4f8dd2d3-033a-401d-b248-f589dce6b927"
+    },
+    {
+      "id": "b3c5d7e9-1111-4a2b-8c3d-5e6f7a8b9c0d",
+      "sourceId": "4f8dd2d3-033a-401d-b248-f589dce6b927",
+      "type": "edge",
+      "targetId": "f16174c9-662b-42ad-9794-13f69ede48b7"
+    }
+  ]
+}
