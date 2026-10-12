@@ -635,7 +635,7 @@ export type FunctionInstanceView = {
   fn: string | null;
   /** 输出绑定键（并行结果归集标签；重复 = error 级） */
   key: string;
-  /** ADR-015 增补：显式依赖声明（additive 预留，编辑器暂不渲染） */
+  /** ADR-015 增补：显式依赖声明（实例详情面板提供编辑入口） */
   dependsOn?: string[];
   /** 同函数多实例序号（从 1 起；异函数实例为 1） */
   seq: number;

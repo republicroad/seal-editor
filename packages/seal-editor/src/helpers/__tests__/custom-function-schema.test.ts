@@ -2,6 +2,7 @@ import { describe, expect, it, test } from 'vitest';
 
 import {
   buildDefaultFunctionExpression,
+  buildInstanceViews,
   computeFunctionArgsDrift,
   computeInstanceDependencyDrift,
   computeInstanceSchedule,
@@ -382,5 +383,34 @@ describe('computeFunctionArgsDrift · kwargsKeyCollision（ADR-015 #3 检查单 
   test('普通具名调用无碰撞标记', () => {
     const entries = drift({ $call: 'f_plain', kwargs: { x: 'a' } });
     expect(entries.every((e) => !e.kwargsKeyCollision)).toBe(true);
+  });
+});
+
+describe('dependsOn 往返保真（实例视图 ↔ tab 写形态，防视图重构损毁字段）', () => {
+  /** tab-custom-function-table handleInstancesChange 的写形态（形状契约钉扎） */
+  const writeShape = (inst: { id: string; key: string; call: unknown; dependsOn?: string[] }) => ({
+    id: inst.id,
+    key: inst.key,
+    type: 'function',
+    value: inst.call,
+    ...(inst.dependsOn ? { dependsOn: inst.dependsOn } : {}),
+  });
+
+  it('canonical 行 → buildInstanceViews 视图透传 dependsOn', () => {
+    const views = buildInstanceViews([
+      { id: 'i1', key: 'r1', type: 'function', value: { $call: 'fn', kwargs: {} }, dependsOn: ['r0'] },
+    ]);
+    expect(views[0]?.dependsOn).toEqual(['r0']);
+  });
+
+  it('视图编辑 → 写形态回写 → 再读：dependsOn 不丢（往返）', () => {
+    const edited = { id: 'i1', key: 'r1', call: { $call: 'fn', kwargs: { x: 1 } }, dependsOn: ['r0', 'r2'] };
+    const roundTrip = buildInstanceViews([writeShape(edited)]);
+    expect(roundTrip[0]?.dependsOn).toEqual(['r0', 'r2']);
+  });
+
+  it('无声明的行视图不产生 dependsOn 键', () => {
+    const views = buildInstanceViews([{ id: 'i1', key: 'r1', type: 'function', value: { $call: 'fn', kwargs: {} } }]);
+    expect('dependsOn' in (views[0] ?? {})).toBe(false);
   });
 });
