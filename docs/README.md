@@ -31,7 +31,41 @@ English files are canonical; `.zh-CN.md` files are translations kept in sync.
 | Document / 文档 | 语言 | 状态 | Contents / 内容 |
 |---|---|---|---|
 | [`features.md`](./features.md) / [`.zh-CN`](./features.zh-CN.md) | EN + 中文 | ✅ | 内核公开功能:DecisionGraph 六种内置节点、DecisionTable、表达式/函数编辑器、公共 API 速查 |
-| [`zen-reference.md`](./zen-reference.md) / [`.zh-CN`](./zen-reference.zh-CN.md) | EN + 中文 | ✅ | **zen 表达式与节点参考（客户核心档）**:表达式语言/函数库/`$` 绑定矩阵、七种节点 schema 与语义、错误目录、版本跟进记录、升级核查清单 |
+| [`zen-reference.md`](./zen-reference.md) / [`.zh-CN`](./zen-reference.zh-CN.md) | EN + 中文 | ✅ | **zen 表达式与节点参考（客户核心档）**:表达式语言/函数库/`# Seal Editor — Internal Fork Documentation / 内部维护文档索引
+
+> **Live storybook (interactive demo) / 在线演示:** https://republicroad.github.io/seal-editor/storybook/
+> **Documentation site / 文档站:** https://republicroad.github.io/seal-editor/docs/
+> **Site landing / 站点入口:** https://republicroad.github.io/seal-editor/
+
+> **Fork notice / 分叉声明**
+> This repository is an internally maintained fork of [gorules/jdm-editor](https://github.com/gorules/jdm-editor).
+> Baseline: upstream `master` at commit `283bb11` (`chore(release): publish`). The fork intentionally diverges
+> from upstream (ReactFlow 12, shadcn/ui + ReUI stack, Base UI) and will not track upstream merges.
+>
+> 本仓库是 [gorules/jdm-editor](https://github.com/gorules/jdm-editor) 的内部长期维护分叉。
+> 基线为上游 `master` 提交 `283bb11`。本分叉按既定技术栈路线演进,不同步上游。
+
+## 如何使用本索引 / How to read this index
+
+文档按**受众**分四组,每组内标注状态:
+
+- ✅ **现行** —— 长期维护,与代码保持同步
+- ✅ **现行(历史注记)** —— 结论有效,但文中含已完结的历史叙述
+- 📦 **归档** —— 历史记录,只读,不再更新
+- ⚠️ **已取代** —— 被后续文档覆盖,仅作存档
+
+English files are canonical; `.zh-CN.md` files are translations kept in sync.
+英文文档为准,`.zh-CN.md` 为同步维护的译文。
+
+---
+
+## 一、使用指南 / Guide(面向使用者:怎么用)
+
+| Document / 文档 | 语言 | 状态 | Contents / 内容 |
+|---|---|---|---|
+| [`features.md`](./features.md) / [`.zh-CN`](./features.zh-CN.md) | EN + 中文 | ✅ | 内核公开功能:DecisionGraph 六种内置节点、DecisionTable、表达式/函数编辑器、公共 API 速查 |
+ 绑定矩阵、七种节点 schema 与语义、错误目录、版本跟进记录、升级核查清单 |
+| [`zen-function-reference.md`](./zen-function-reference.md) | 生成档（勿手改） | ✅ | zen 表达式全量函数速查:语料 861 行断言机械投影（scripts/gen-zen-function-reference.mjs 重生成） |
 | [`nl-expression-builder.md`](./nl-expression-builder.md) / [`.zh-CN`](./nl-expression-builder.zh-CN.md) | EN + 中文 | ✅ | 决策表"业务视图":fieldType schemas、字典、操作符→表达式规范形态、WASM 运行时契约 |
 | [`i18n.md`](./i18n.md) / [`.zh-CN`](./i18n.zh-CN.md) | EN + 中文 | ✅ | 国际化:Provider 接入、useT/createT、en+zh-CN 词条表(键奇偶由测试锁定)、回退链、插值 |
 | [`storybook.md`](./storybook.md) / [`.zh-CN`](./storybook.zh-CN.md) | EN + 中文 | ✅ | Storybook 指南:配置、装饰器、story 清单(计数随特性滚动,以实际 Storybook 为准)、交互测试流水线、高度链 |

@@ -68,6 +68,11 @@ jobs:
       - name: Demo-server tests（bun test：REPL 端点契约 + graph API）
         run: pnpm --filter @republicroad/demo-server test
 
+      # zen-reference §7 核查探针（$ 语义哨兵 + 夹具断言；语料阶段在 CI 无
+      # jdm 同级检出时内建降级 SKIP——exit 0 不挡门，本地 --full 重放全量）
+      - name: Zen-reference fixtures probe（$ 语义哨兵）
+        run: node scripts/probes/zen-reference-verify.mjs
+
       - name: Appshell typecheck
         run: pnpm --filter @republicroad/seal-appshell typecheck
       - name: Appshell tests

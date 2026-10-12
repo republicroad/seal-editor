@@ -48,6 +48,7 @@
 ### 1.3 内置函数库（标准）
 
 语料源：jdm 仓 `packages/zen-udf/src/expression-regression/standard.csv`（657 行 · 67 分节，全部为引擎可执行断言）。
+全量逐行速查见生成档 [zen-function-reference](./zen-function-reference)（861 行断言机械投影，勿手改）。
 
 | 族 | 函数 |
 | --- | --- |
@@ -59,7 +60,7 @@
 
 ### 1.4 日期时间函数
 
-语料源：同目录 `date.csv`（303 行 · 17 分节）。日期是**一等类型 + fluent 方法链**。
+语料源：同目录 `date.csv`（303 行 · 17 分节）。日期是**一等类型 + fluent 方法链**。全量速查同上生成档。
 
 | 族 | API |
 | --- | --- |

@@ -3,6 +3,8 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { CORPUS_FILES as corpusFiles, kindOf, parseCorpusFile as parseCorpusFileIn } from '../zen-corpus.mjs';
+
 /**
  * zen-reference 升级核查探针——docs/zen-reference.md §7 清单第 ①② 步的机械固化。
  *
@@ -11,9 +13,9 @@ import { fileURLToPath } from 'node:url';
  * 阶段 ② zen-expression 回归语料抽验：默认确定性抽样（每 25 行取 1），
  *   `--full` 全量重放；`--corpus <dir>` 指定语料目录（默认取同级 jdm-editor 仓）。
  *
- * 语义移植自 jdm-editor packages/zen-udf/src/expression-regression.runner.ts
- * （该文件是 jdm 侧测试与台账的单一事实源）——seal 仓不跨仓 import，
- * 引擎升级若上游 runner 语义变更，需对照同步本文件的移植段。
+ * 比较/时区语义移植自 jdm-editor packages/zen-udf/src/expression-regression.runner.ts；
+ * CSV 解析单源在 scripts/zen-corpus.mjs（探针与生成器共享）。引擎升级若上游
+ * runner 语义变更，需对照同步。
  *
  * Usage: node scripts/probes/zen-reference-verify.mjs [--full] [--corpus <dir>]
  * Exit: 0 全绿（语料缺失降级为 SKIPPED 警告）；1 任一断言失败。
@@ -43,66 +45,7 @@ const fail = (msg) => {
 };
 const pass = (msg) => console.log(`  ✓ ${msg}`);
 
-// ── 语义移植段（源自 jdm expression-regression.runner.ts）──────────────
-
-/** RFC 风格 ';' 分割：双引号包裹字段（"" 转义），非引号字段内引号按字面量 */
-const splitCsvLine = (raw) => {
-  const fields = [];
-  let current = '';
-  let inQuotes = false;
-  for (let i = 0; i < raw.length; i++) {
-    const ch = raw[i];
-    if (inQuotes) {
-      if (ch === '"') {
-        if (raw[i + 1] === '"') {
-          current += '"';
-          i++;
-        } else {
-          inQuotes = false;
-        }
-      } else {
-        current += ch;
-      }
-      continue;
-    }
-    if (ch === '"' && current.length === 0) {
-      inQuotes = true;
-      continue;
-    }
-    if (ch === ';') {
-      fields.push(current);
-      current = '';
-      continue;
-    }
-    current += ch;
-  }
-  fields.push(current);
-  return fields;
-};
-
-const parseCorpusFile = (file) => {
-  const rows = [];
-  let skipped = 0;
-  readFileSync(path.join(corpusDir, file), 'utf8')
-    .split(/\r?\n/)
-    .forEach((raw, index) => {
-      if (index === 0 && raw.startsWith('expression (string)')) return;
-      const fields = splitCsvLine(raw);
-      if (fields.length !== 3) {
-        skipped++;
-        return;
-      }
-      const [expression = '', input = '', output = ''] = fields;
-      if (expression.trim().startsWith('#')) return;
-      rows.push({
-        line: index + 1,
-        expression: expression.trim(),
-        input: input.trim(),
-        output: output.trim(),
-      });
-    });
-  return { rows, skipped };
-};
+// ── 比较语义（移植自 jdm expression-regression.runner.ts；CSV 解析在 ../zen-corpus.mjs 单源共享）──────
 
 const looseEqual = (a, b) => {
   if (typeof a === 'number' && typeof b === 'number') {
@@ -137,9 +80,6 @@ const compare = (actual, expected) => {
   const ew = typeof expected === 'string' ? wall(expected) : null;
   return aw !== null && ew !== null && aw === ew;
 };
-
-const corpusFiles = ['standard.csv', 'date.csv', 'unary.csv'];
-const kindOf = (file) => (file === 'unary.csv' ? 'unary' : 'standard');
 
 /** 求值层时区探针（移植）：裸日期经字符串拼接渲染出带偏移的 ISO 串 */
 const localZoneProbe = () => {
@@ -238,7 +178,7 @@ const runCorpusStage = async () => {
       console.warn(`  ⚠ SKIPPED：${file} 不存在`);
       continue;
     }
-    const { rows, skipped } = parseCorpusFile(file);
+    const { rows, skipped } = parseCorpusFileIn(corpusDir, file);
     const sampled = full ? rows : rows.filter((_, i) => i % STRIDE === 0);
     let ok = 0;
     let knownDivergent = 0;

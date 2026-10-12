@@ -49,6 +49,7 @@ Scientific notation is a **first-class number literal**: parsing, arithmetic, co
 ### 1.3 Built-in Functions (standard)
 
 Corpus: jdm repo `packages/zen-udf/src/expression-regression/standard.csv` (657 lines · 67 sections, all engine-executable assertions).
+The full line-by-line quick reference lives in the generated [zen-function-reference](./zen-function-reference) (861 assertion rows, mechanical projection — do not edit).
 
 | Family | Functions |
 | --- | --- |
@@ -60,7 +61,7 @@ Corpus: jdm repo `packages/zen-udf/src/expression-regression/standard.csv` (657 
 
 ### 1.4 Date & Time Functions
 
-Corpus: `date.csv` in the same directory (303 lines · 17 sections). Dates are a **first-class type with a fluent method chain**.
+Corpus: `date.csv` in the same directory (303 lines · 17 sections). Dates are a **first-class type with a fluent method chain**. Full quick reference in the same generated file.
 
 | Family | API |
 | --- | --- |
