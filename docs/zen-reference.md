@@ -201,6 +201,8 @@ Example graphs paste directly into a `contentType: "application/vnd.gorules.deci
 | null return | Standalone evaluation with bare `$` | Use a bare name or `$root` |
 | `DANGLING_REF` / `INVALID_DEPENDENCY` / `CYCLE_DETECTED` | Custom-node instance dependencies: missing reference / unknown dependency key / dependency cycle | Handle per the ADR-015 addendum scheduling error codes |
 
+Upstream fail-visible proposal (fail-visible, not fail-fast) for the silent behaviors: [rfc/gorules-zen-silent-row-drop](./rfc/gorules-zen-silent-row-drop).
+
 ## 5. Fixture Index
 
 | Fixture | Pins |

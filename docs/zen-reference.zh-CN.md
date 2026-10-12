@@ -200,6 +200,8 @@ DST 语义：落在间隙内的本地时间**前移一个间隙**；带偏移的
 | null 返回 | 独立求值裸 `$` 引用 | 用裸名或 `$root` |
 | `DANGLING_REF` / `INVALID_DEPENDENCY` / `CYCLE_DETECTED` | 自定义节点实例依赖：引用缺失 / 依赖键不存在 / 依赖成环 | 依 ADR-015 增补的依赖调度错误码处置 |
 
+静默行为的上游 fail-visible 提案（fail-visible 非 fail-fast）：[rfc/gorules-zen-silent-row-drop](./rfc/gorules-zen-silent-row-drop)。
+
 ## 5. 实测夹具索引
 
 | 夹具 | 钉住的语义 |
