@@ -258,6 +258,12 @@ export const en = {
   'cf.argsDriftUnrecognized': 'unrecognized',
   'cf.argsKwargsCollision': 'kwargs envelope ambiguity',
   'cf.argsDanglingRefs': 'dangling refs',
+  'dollar.inputRefViaDollar':
+    '"{{ref}}" reads an input field via $ — expression rows only cover row outputs; write "{{suggestion}}" (bare name) or the row is silently dropped',
+  'dollar.keyShadowsInput':
+    'Key "{{name}}" collides with an input field — expressions keep reading the input while the output overrides the key',
+  'dollar.tableNav':
+    '$. references never match in full-expression cells — use "$root." or a bare name ({{count}} cell(s) flagged)',
   'cf.argsFillMissing': 'Fill missing defaults',
   'cf.instanceOverview': 'Instances',
   'cf.parallelHint': 'runs in parallel',

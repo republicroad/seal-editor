@@ -4,8 +4,10 @@ import clsx from 'clsx';
 import { GripVerticalIcon } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 
+import { variableTypeToPaths } from '../../helpers/components';
 import { getDropDirection } from '../../helpers/dnd';
 import { getTrace } from '../../helpers/trace';
+import { type ExpressionDollarHint, analyzeExpressionValue, rowKeyShadowsInput } from '../../helpers/zen-dollar-hints';
 import { useT } from '../../theming/i18n';
 import { CodeEditorPreview } from '../code-editor/ce-preview';
 import { ConfirmAction } from '../confirm-action';
@@ -37,6 +39,15 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
       addRowBelow,
     }),
   );
+
+  const dollarHints = useExpressionStore(({ expressions, inputVariableType }) => {
+    // 静态输入基面缺失（无 wasm/无 schema）时 fieldNames 为空 → 提示自然关闭，宁漏勿误报
+    const inputFieldNames = variableTypeToPaths(inputVariableType).filter((path) => !path.includes('.'));
+    const rowKeys = expressions.map((entry) => entry.key?.trim() ?? '').filter(Boolean);
+    const keyShadow = rowKeyShadowsInput(expression.key, inputFieldNames);
+    const valueHints = analyzeExpressionValue(expression.value, { rowKeys, inputFieldNames });
+    return { keyShadow, valueHints };
+  });
 
   const onChange = (update: Partial<Omit<ExpressionEntry, 'id'>>) => {
     updateRow(index, update);
@@ -134,6 +145,11 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
             value={expression?.key}
             onChange={(e) => onChange({ key: e.target.value })}
           />
+          {dollarHints.keyShadow && (
+            <span className='block px-3 pb-2 text-xs leading-snug text-[color:var(--seal-color-warning-text)]'>
+              {t('dollar.keyShadowsInput', { name: (expression.key ?? '').trim() })}
+            </span>
+          )}
         </ExpressionItemContextMenu>
       </div>
       <div className='relative box-border h-full text-[13px]'>
@@ -163,6 +179,9 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
               noStyle={true}
             />
             <ResultOverlay expression={expression} />
+            {dollarHints.valueHints.map((hint) => (
+              <DollarHintLine key={hint.name} hint={hint} />
+            ))}
           </div>
         </ExpressionItemContextMenu>
       </div>
@@ -171,6 +190,15 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
         {isFocused && <LivePreview id={expression.id} value={expression.value} />}
       </div>
     </div>
+  );
+};
+
+const DollarHintLine: React.FC<{ hint: ExpressionDollarHint }> = ({ hint }) => {
+  const t = useT();
+  return (
+    <span className='block px-3 pb-2 text-xs leading-snug text-[color:var(--seal-color-warning-text)]'>
+      {t('dollar.inputRefViaDollar', { ref: hint.ref ?? '', suggestion: hint.suggestion ?? '' })}
+    </span>
   );
 };
 

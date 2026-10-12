@@ -4,6 +4,7 @@ import type { z } from 'zod';
 
 import type { GetNodeDataResult } from '../../../helpers/node-data';
 import { getNodeData } from '../../../helpers/node-data';
+import { useNodeType } from '../../../helpers/node-type';
 import type { expressionNodeSchema } from '../../../helpers/schema';
 import { get } from '../../../helpers/utility';
 import { isWasmAvailable } from '../../../helpers/wasm';
@@ -23,6 +24,7 @@ export type TabExpressionProps = {
 export const TabExpression: React.FC<TabExpressionProps> = ({ id }) => {
   const graphActions = useDecisionGraphActions();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const inputType = useNodeType(id);
 
   useTabSerializer<ScrollPosition>(id, 'scroll', {
     serialize: () => {
@@ -99,11 +101,27 @@ export const TabExpression: React.FC<TabExpressionProps> = ({ id }) => {
     return { trace: nodeTrace, inputData: extendedInputData, snapshot: nodeSnapshot };
   }, [nodeTrace, nodeSnapshot, inputData]);
 
+  // 行值裸名解析的静态输入基面：inputField 映射 + loop 取数组项（与
+  // specification.inferTypes.determineOutputType 同构）。供 `$` 误用提示
+  // 与编辑器补全使用——不依赖仿真运行（SimulateDataSync 仅在仿真后有值）。
+  const rowInputVariableType = useMemo(() => {
+    if (!inputType) return undefined;
+    let mapped = inputType;
+    if (content?.inputField) {
+      mapped = mapped.get(content.inputField);
+    }
+    if (content?.executionMode === 'loop') {
+      mapped = mapped.arrayItem();
+    }
+    return mapped;
+  }, [inputType, content?.inputField, content?.executionMode]);
+
   return (
     <div ref={scrollContainerRef} style={{ height: '100%', overflowY: 'auto', boxSizing: 'border-box' }}>
       <Expression
         value={content?.expressions}
         disabled={disabled}
+        inputVariableType={rowInputVariableType}
         permission={(viewConfig?.enabled ? viewConfig?.permissions?.[id] : 'edit:full') as ExpressionPermission}
         debug={debug}
         onChange={(val) => {

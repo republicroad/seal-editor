@@ -243,6 +243,10 @@ export const zhCN: Record<string, string> = {
   'cf.argsDriftUnrecognized': '未识别键',
   'cf.argsKwargsCollision': 'kwargs 信封歧义',
   'cf.argsDanglingRefs': '悬空引用',
+  'dollar.inputRefViaDollar':
+    '"{{ref}}" 经 $ 引输入字段——表达式行只覆盖行输出；请写裸名 "{{suggestion}}"，否则该行将被静默丢弃',
+  'dollar.keyShadowsInput': '键 "{{name}}" 与输入字段同名——表达式仍读输入值，但输出会覆盖该字段',
+  'dollar.tableNav': '全表达式单元含 "$." 引用恒不命中——请改用 "$root." 或裸名（共 {{count}} 处）',
   'cf.argsFillMissing': '补缺失默认值',
   'cf.instanceOverview': '函数实例',
   'cf.parallelHint': '并行执行',

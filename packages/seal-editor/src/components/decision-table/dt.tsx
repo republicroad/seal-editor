@@ -1,6 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
+import { findTableCellDollarNavigation } from '../../helpers/zen-dollar-hints';
 import { DictionaryProvider } from '../../theme';
+import { useT } from '../../theming/i18n';
 import { SafeBoundary } from '../safe-boundary';
 import { DecisionTableDialogProvider } from './context/dt-dialog.context';
 import type { DecisionTableContextProps } from './context/dt-store.context';
@@ -51,6 +53,7 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
           <DecisionTableProvider>
             <DecisionTableDialogProvider getContainer={mountDialogsOnBody ? undefined : getContainer}>
               <DecisionTableCommandBar />
+              <DollarNavNotice />
               <DictionaryBridge>
                 <Table
                   id={id}
@@ -66,6 +69,24 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
         )}
       </div>
     </SafeBoundary>
+  );
+};
+
+/** C2 提示条：全表达式列（无 field）单元含 `$.` 导航 → 引擎恒不命中（zen-reference §1.5）。 */
+const DollarNavNotice: React.FC = () => {
+  const t = useT();
+  const decisionTable = useDecisionTableState(({ decisionTable }) => decisionTable);
+  const hitCount = useMemo(() => findTableCellDollarNavigation(decisionTable).length, [decisionTable]);
+  if (hitCount === 0) {
+    return null;
+  }
+  return (
+    <div
+      role='status'
+      className='px-3 py-1.5 text-xs leading-snug bg-[var(--seal-color-warning-bg)] text-[color:var(--seal-color-warning-text)]'
+    >
+      {t('dollar.tableNav', { count: hitCount })}
+    </div>
   );
 };
 
