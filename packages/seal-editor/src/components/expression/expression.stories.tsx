@@ -83,7 +83,6 @@ export const DollarHints: Story = {
     useEffect(() => {
       ensureWasmLoaded().then(() => {
         setInputVariableType(
-           
           VariableType.fromJson({
             Object: { customer: { Object: {} }, total: { Object: {} }, tax: { Object: {} } },
           } as any),
