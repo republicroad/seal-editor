@@ -205,9 +205,13 @@ DST 语义：落在间隙内的本地时间**前移一个间隙**；带偏移的
 | 夹具 | 钉住的语义 |
 | --- | --- |
 | [`docs/graph/expression-node-dollar-ref.json`](./graph/expression-node-dollar-ref.json) | `$`=行输出域 / 裸名=输入 / `$.<输入字段>` 静默丢行 |
+| [`docs/graph/expression-dollar-root-nodes.json`](./graph/expression-dollar-root-nodes.json) | `$root`=节点输入根 / `$nodes.<名>.<字段>` 跨节点引用 |
+| [`docs/graph/decision-table-dollar-policy.json`](./graph/decision-table-dollar-policy.json) | hitPolicy first/collect；全表达式单元 `$` 未绑定哨兵 + `$root`=输入根；`$nodes` 引先行表输出 |
 | 仓内 `apps/demo-server/graphs/custom-node-example.json` | customNode `$call` 规范形 / 实例依赖 |
 | jdm 仓 `packages/zen-udf/src/expression-regression/{standard,date,unary}.csv` | 表达式语言全量回归（1068 行断言） |
 | jdm 仓 `packages/zen-udf/graph/custom_fullnode.json` | `$root` / `$nodes` 跨节点引用实例 |
+
+夹具与语料的机械验证：`node scripts/probes/zen-reference-verify.mjs [--full]`（§7）。
 
 ## 6. 版本跟进记录
 
@@ -215,10 +219,10 @@ DST 语义：落在间隙内的本地时间**前移一个间隙**；带偏移的
 | --- | --- | --- | --- |
 | 2026-10-10 | wasm 0.23.1 / 原生 2.1.0（2.1.4 线同行为） | 立档：`$` 绑定全上下文矩阵（六轮实测）；表达式语言骨架 + 函数清单（语料提炼）；7 节点 schema 实测核对 | 证据档 matrix · 夹具 expression-node-dollar-ref · CSV 1068 行 |
 | 2026-10-11 | zen-udf 1.4.0 | OQ3 定稿实施：宿主求值器 context 平铺裸键（§1.6 闭合），jdm 提交 23372bdb / 发版 deb4e1b1，全量 1124 绿 | [ADR-014 实施回执](./adr/014-zen-udf-fixture-contract) |
+| 2026-10-11 | wasm 0.23.1 / 原生 2.1.0 | 核查探针落成（§7 固化）：3 夹具断言 + 语料确定性抽样/全量重放（855 行）+ jdm 分歧台账门控移植；新增 `$root`/`$nodes` 与决策表 hitPolicy 哨兵夹具 | `scripts/probes/zen-reference-verify.mjs` · graph 夹具 ×3 |
 
 ## 7. 引擎升级核查清单
 
-1. 写磁盘验证脚本（**禁用内联 `node -e`**，bash 会吃 `$` 与反引号），跑 `docs/graph/` 全部夹具；
-2. 回归语料抽验：从 `standard.csv` / `date.csv` / `unary.csv` 各抽 ≥10 行断言重放；
-3. 对照本档 diff：§1.2 运算符、§1.5 `$` 矩阵、§2 节点 schema、§4 错误目录逐节核对；
-4. 在 §6 追加跟进记录（日期 / 新版本 / 变更 / 锚点）；行为变化时同步证据档 matrix。
+1. 跑核查探针：`node scripts/probes/zen-reference-verify.mjs`（夹具断言 + 语料抽样；`--full` 全量重放）；
+2. 对照本档 diff：§1.2 运算符、§1.5 `$` 矩阵、§2 节点 schema、§4 错误目录逐节核对；
+3. 在 §6 追加跟进记录（日期 / 新版本 / 变更 / 锚点）；行为变化时同步证据档 matrix 与 jdm 侧分歧台账。

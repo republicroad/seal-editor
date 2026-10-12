@@ -206,9 +206,13 @@ Example graphs paste directly into a `contentType: "application/vnd.gorules.deci
 | Fixture | Pins |
 | --- | --- |
 | [`docs/graph/expression-node-dollar-ref.json`](./graph/expression-node-dollar-ref.json) | `$` = row domain / bare = input / `$.<inputField>` silent drop |
+| [`docs/graph/expression-dollar-root-nodes.json`](./graph/expression-dollar-root-nodes.json) | `$root` = node input root / `$nodes.<name>.<field>` cross-node reference |
+| [`docs/graph/decision-table-dollar-policy.json`](./graph/decision-table-dollar-policy.json) | hitPolicy first/collect; full-expression-cell `$` unbound sentinel + `$root` = input root; `$nodes` referencing prior table output |
 | repo `apps/demo-server/graphs/custom-node-example.json` | customNode `$call` canonical / instance dependencies |
 | jdm repo `packages/zen-udf/src/expression-regression/{standard,date,unary}.csv` | full expression-language regression (1068 assertion lines) |
 | jdm repo `packages/zen-udf/graph/custom_fullnode.json` | `$root` / `$nodes` cross-node reference examples |
+
+Mechanical verification of fixtures & corpus: `node scripts/probes/zen-reference-verify.mjs [--full]` (§7).
 
 ## 6. Tracking Log
 
@@ -216,10 +220,10 @@ Example graphs paste directly into a `contentType: "application/vnd.gorules.deci
 | --- | --- | --- | --- |
 | 2026-10-10 | wasm 0.23.1 / native 2.1.0 (2.1.4 line same behavior) | Established: full-context `$` binding matrix (six measured rounds); expression-language skeleton + function inventory (corpus-derived); 7 node schemas verified | matrix evidence file · expression-node-dollar-ref fixture · CSV 1068 lines |
 | 2026-10-11 | zen-udf 1.4.0 | OQ3 final fix implemented: host evaluator context flattened to bare keys (§1.6 closed), jdm commits 23372bdb / release deb4e1b1, full suite 1124 green | [ADR-014 implementation receipt](./adr/014-zen-udf-fixture-contract) |
+| 2026-10-11 | wasm 0.23.1 / native 2.1.0 | Verification probe landed (§7 mechanized): 3 fixture assertions + corpus deterministic sampling / full replay (855 lines) + jdm divergence-ledger gating ported; new `$root`/`$nodes` and table hitPolicy sentinel fixtures | `scripts/probes/zen-reference-verify.mjs` · graph fixtures ×3 |
 
 ## 7. Engine-Upgrade Checklist
 
-1. Script verification from disk (**never inline `node -e`** — bash eats `$` and backticks); run every fixture in `docs/graph/`;
-2. Corpus spot-checks: replay ≥10 assertion lines each from `standard.csv` / `date.csv` / `unary.csv`;
-3. Diff this document: verify §1.2 operators, §1.5 `$` matrix, §2 node schemas, §4 error catalog section by section;
-4. Append a §6 tracking entry (date / new version / change / anchors); sync the matrix evidence file on any behavior change.
+1. Run the verification probe: `node scripts/probes/zen-reference-verify.mjs` (fixture assertions + corpus sampling; `--full` for full replay);
+2. Diff this document: verify §1.2 operators, §1.5 `$` matrix, §2 node schemas, §4 error catalog section by section;
+3. Append a §6 tracking entry (date / new version / change / anchors); on behavior change, sync the matrix evidence file and the jdm-side divergence ledger.
