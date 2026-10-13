@@ -155,3 +155,44 @@ expression-evaluator.ts 求值器工厂）+ exports 子路径图。**分歧点�
 注记只点名引擎 import，但 `runWithExecContext` 的 `node:async_hooks` 同样
 不能进浏览器文件——纯 runner 与服务端适配器分文件才是彻底解（垫片拆除条件
 =0.13.1 发版，待宿主口令）。Fixtures 面板（UI-A）的浏览器依赖面自此就绪。
+
+## 7 · 走查注记（2026-10-12，seal 会话——UI-B 走查通过）
+
+走查基线：seal-editor **1.34.0 / 72e9a53e**（≥通知要求的 1.33.0 / 2021153e）。
+自动化底座：Storybook 交互套件 **93/93**（21 套件，含 SplitEditor/FixturesPanel
+play 断言）+ e2e playwright **3/3**（本地 2 例与套件并发跑出时序 flake，单独重跑
+绿、CI 同提交亦绿——flake 处置见 troubleshooting 案例 11）。
+
+### 会话级对表结果（全过）
+
+| 走查项 | 结果 |
+| --- | --- |
+| 三视图同步 | ✓ 树选 customer/cart/items → 上下文编辑器 Key 逐一切换；object → Child fields (2) 子字段列表；array → "Array item editing lives in Code mode." 只读+引导（§1.3.1 逐字） |
+| 漂移徽标/迁移 | ✓ DriftedExample：徽标 "Schema changed since last validation 2" + Migrate 内联；迁移/确认双动作状态机由交互测试钉死（story play 断言 Migrate + request-drift-events.test hook 级） |
+| FixturesPanel | ✓ ReadyAndRun：汇总 passed 1·failed 1 + Run all + 矩阵（名称/结论/耗时/错误/Debug 浅联动）；NoExamples/NoInputNode 错误态文案由 play() 断言钉死（Run all 随 no-examples 禁用） |
+| TabRequest 顶栏全链 | ✓ dg 故事实开 Request 页签：Design/Code 切换、Examples 下拉（空态 No data + 页脚 Add data 新建入口=§1.2 页脚新建）、工具栏（Add data/Upload/Download/Import contract/Export contract——批次二信封导入导出在位） |
+| InstanceEditor | ✓ 本会话早前已浏览器验收（DependencyEditing story：悬空 dependsOn 红显+移除+警示、引用源面板含仿真输出字段展开）——非本批 diff 面，复核通过 |
+
+### jdm 评审注记两条硬性验收项闭合
+
+1. **§1.1 三能力去向**：格式化 ✓（formatDocument 双挂载点：schema 与 example
+   编辑器）；JSON→Schema 转换 ✓（Code 模式 onConvertFromJson 对话框挂线）；
+   **diff 对比历史——评审注记勘误**：input 节点旧 Schema 页签经核实**本无此能力**
+   （旧 tab-request 与 request-schema-editor 全文无 diff；monaco DiffEditor 实居
+   outputNode 的 tab-json-schema 与图级版本历史，两者不受本批影响且完好）。
+   "勿静默丢失"义务以「经核实不存在」闭合，非退役。
+2. **§1.2 快照时点**：`runFixtures` 每次从 dg-store 重读**当前图**构建 fixtures
+   （"或运行前刷新闭包"分支满足），不存在陈旧快照路径——无"明明改好了还报旧错"。
+
+### 环境观察（非修正项）
+
+静态 storybook 站的 monaco 走 @monaco-editor/react 默认 CDN 加载器，本走查沙箱
+网络不可达 jsdelivr → 编辑器挂 Loading（Example 条同）；CI 与正常网络无此现象
+（93/93 含 monaco 依赖断言）。内核契约本就是宿主供给 monaco（window.monaco 或
+loader 配置），非本批回归。
+
+### 结论
+
+**UI-A/UI-B 走查通过**。InputContract 契约面（数据模型/三视图同步语义/漂移事件）
+零修订——纯验收走查，无契约级发现，无需跨仓协商。走查修正项清单：**无代码修正**；
+一条评审注记勘误（如上）与本条环境观察记录在案。
