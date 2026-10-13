@@ -30,7 +30,7 @@
 
 | 组件 | 判定 | 落点/理由 |
 | --- | --- | --- |
-| **cascader** | ✅ 有落点（待触发） | 层级字段路径的钻取选择器——dt 输入列字段绑定（现 field-picker-popup）与 InstanceEditor 引用源面板的升级候选；触发=字段选择体验专项 |
+| **cascader** | ✅ **已落地（本档快照滞后）** | src/reui/cascader 全家已 vendored（10 文件）且双消费端在链：TypedInput 字段选择弹层 + dt 输入列字段绑定（input-field-edit buildFieldTree）——「候选」判定作废，以落码为准 |
 | **time-picker** | ✅ 候选（低频） | 字段值级时间输入（TypedInput datetime 模式 / dt 值单元格）；与 date-selector 的否决理由不冲突——否的是仪表盘周期控件，这是值输入 |
 | file-type | 🟡 装饰性（低） | Upload/Import 菜单与拖放导入的文件图标；纯观感 |
 | color-picker | ❌ 无场景 | 决策编辑器无颜色输入（主题走 token） |

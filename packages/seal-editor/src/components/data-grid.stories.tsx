@@ -2,7 +2,7 @@ import { DataGrid, DataGridContainer, type DataGridFeatures, dataGridFeatures } 
 import { DataGridColumnHeader } from '#reui/data-grid/data-grid-column-header';
 import { DataGridPagination } from '#reui/data-grid/data-grid-pagination';
 import { DataGridScrollArea } from '#reui/data-grid/data-grid-scroll-area';
-import { DataGridTable } from '#reui/data-grid/data-grid-table';
+import { DataGridTable, DataGridTableFootRow, DataGridTableFootRowCell } from '#reui/data-grid/data-grid-table';
 import { DataGridTableDndRowHandle, DataGridTableDndRows } from '#reui/data-grid/data-grid-table-dnd-rows';
 import type { DragEndEvent, UniqueIdentifier } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
@@ -159,3 +159,48 @@ export const RowDrag: StoryObj = {
 };
 
 export default Meta;
+
+// footer 能力示例（轨道 A 能力验证）：footerContent 逐列组合——
+// 快照/汇总行的未来落点（触发制「dt 快照+footer」前置已验）。
+export const FooterRow: StoryObj = {
+  render: () => {
+    const columns = useMemo(() => sortableColumns(), []);
+    const table = useTable({
+      features: dataGridFeatures,
+      columns,
+      data: people,
+      getRowId: (row: Person) => row.id,
+    });
+    const totalBalance = people.reduce((sum, p) => sum + p.balance, 0);
+
+    return (
+      <div style={{ height: '100%' }}>
+        <DataGrid table={table} recordCount={people.length} tableLayout={{ footerBackground: true }}>
+          <div className='w-full space-y-2.5 p-4'>
+            <DataGridContainer>
+              <DataGridScrollArea>
+                <DataGridTable
+                  footerContent={
+                    <DataGridTableFootRow>
+                      <DataGridTableFootRowCell>Total · {people.length} people</DataGridTableFootRowCell>
+                      <DataGridTableFootRowCell colSpan={2} />
+                      <DataGridTableFootRowCell className='tabular-nums'>
+                        {totalBalance.toFixed(2)}
+                      </DataGridTableFootRowCell>
+                    </DataGridTableFootRow>
+                  }
+                />
+              </DataGridScrollArea>
+            </DataGridContainer>
+          </div>
+        </DataGrid>
+      </div>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const foot = canvasElement.querySelector('tfoot');
+    expect(foot).not.toBeNull();
+    expect(foot?.textContent).toContain('Total');
+    expect(foot?.textContent).toContain('19664.36');
+  },
+};

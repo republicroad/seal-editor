@@ -22,6 +22,7 @@ import {
   Typography,
 } from '../../../primitives';
 import { ExcelPreviewGrid } from '../../../shared/excel-preview-grid';
+import { useDataGridI18n } from '../../../shared/use-data-grid-i18n';
 import { assembleMergedData, buildAutoSelection, buildMergedItems } from './merge-data';
 import type { GraphExcelDialogProps, ItemValue, SelectedItems } from './types';
 
@@ -45,6 +46,7 @@ type SheetHeader = {
 
 export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, handleSuccess, handleCancel }) => {
   const t = useT();
+  const dataGridI18n = useDataGridI18n();
   const [currentStep, setCurrentStep] = useState<number>(0);
   const steps = useMemo(() => excelData?.map((item) => ({ key: item.id, title: item.name })), [excelData]);
 
@@ -389,7 +391,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
     >
       <Steps current={currentStep} items={steps} />
       <div className='py-2'>
-        <DataGrid table={mappingTable} recordCount={sheetHeaders.length}>
+        <DataGrid table={mappingTable} recordCount={sheetHeaders.length} i18n={dataGridI18n}>
           <DataGridContainer>
             <DataGridTable />
           </DataGridContainer>

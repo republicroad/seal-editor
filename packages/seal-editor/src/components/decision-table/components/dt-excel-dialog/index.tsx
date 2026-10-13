@@ -11,6 +11,7 @@ import type { ColumnFieldType, OutputFieldType } from '../../../../helpers/schem
 import { useT } from '../../../../theming/i18n';
 import { Button, Checkbox, Modal, Popconfirm, Select, Switch, Tooltip, Typography } from '../../../primitives';
 import { ExcelPreviewGrid } from '../../../shared/excel-preview-grid';
+import { useDataGridI18n } from '../../../shared/use-data-grid-i18n';
 import { useDecisionTableDialog } from '../../context/dt-dialog.context';
 import { useDecisionTableState } from '../../context/dt-store.context';
 import { InputFieldEdit } from '../input-field-edit';
@@ -49,6 +50,7 @@ const MappingGrid: React.FC<{
   emptyMessage,
 }) => {
   const t = useT();
+  const dataGridI18n = useDataGridI18n();
 
   const columns = useMemo<ColumnDef<DataGridFeatures, ImportColumn>[]>(
     () => [
@@ -208,7 +210,13 @@ const MappingGrid: React.FC<{
   });
 
   return (
-    <DataGrid table={table} recordCount={rows.length} emptyMessage={emptyMessage} tableLayout={{ rowsDraggable: true }}>
+    <DataGrid
+      table={table}
+      recordCount={rows.length}
+      emptyMessage={emptyMessage}
+      tableLayout={{ rowsDraggable: true }}
+      i18n={dataGridI18n}
+    >
       <DataGridContainer className='rounded-lg border border-[var(--border)]'>
         <DataGridTableDndRows handleDragEnd={handleDragEnd} dataIds={dataIds} />
       </DataGridContainer>

@@ -17,6 +17,7 @@ import { setRefValue } from '../../../helpers/compose-refs';
 import { useThemeMode } from '../../../theme';
 import { useT } from '../../../theming/i18n';
 import { Button, Typography } from '../../primitives';
+import { useDataGridI18n } from '../../shared/use-data-grid-i18n';
 import { useDecisionTableActions, useDecisionTableListeners, useDecisionTableState } from '../context/dt-store.context';
 import { TableContextMenu } from './table-context-menu';
 import { TableDefaultCell } from './table-default-cell';
@@ -112,6 +113,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
   const mode = useThemeMode();
   const tableActions = useDecisionTableActions();
   const t = useT();
+  const dataGridI18n = useDataGridI18n();
 
   const { cellRenderer } = useDecisionTableListeners(({ cellRenderer }) => ({ cellRenderer }));
   const [columnSizing, setColumnSizing] = useState<ColumnSizing>(() => loadColumnSizing(id));
@@ -470,7 +472,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
       <DataGrid
         table={table as React.ComponentProps<typeof DataGrid>['table']}
         recordCount={rules.length}
-        i18n={{ labels: { toggleColumns: t('dt.toolbar.toggleColumns') } }}
+        i18n={dataGridI18n}
         getRowStatus={getRowStatus}
         getRowClassName={getRowClassName}
         getCellClassName={getCellClassName}

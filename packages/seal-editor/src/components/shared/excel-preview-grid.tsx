@@ -6,6 +6,7 @@ import { useTable } from '@tanstack/react-table';
 import React, { useMemo, useState } from 'react';
 
 import type { ParsedExcelData } from '../../helpers/excel';
+import { useDataGridI18n } from './use-data-grid-i18n';
 
 /**
  * WS2-B3：导入数据只读预览。
@@ -16,6 +17,7 @@ import type { ParsedExcelData } from '../../helpers/excel';
  * 列即 sheet 表头。
  */
 export const ExcelPreviewGrid: React.FC<{ sheet: ParsedExcelData; height?: number }> = ({ sheet, height = 240 }) => {
+  const dataGridI18n = useDataGridI18n();
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const rows = useMemo<Record<string, string | undefined>[]>(
@@ -44,7 +46,7 @@ export const ExcelPreviewGrid: React.FC<{ sheet: ParsedExcelData; height?: numbe
 
   return (
     <div style={{ height }}>
-      <DataGrid table={table} recordCount={rows.length}>
+      <DataGrid table={table} recordCount={rows.length} i18n={dataGridI18n}>
         <DataGridScrollArea className='h-full rounded-lg border border-[var(--border)]'>
           <DataGridTableVirtual estimateSize={36} />
         </DataGridScrollArea>
