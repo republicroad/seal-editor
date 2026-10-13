@@ -209,3 +209,40 @@ loader 配置），非本批回归。
   /setUdfCompletions（jdm 自有 A2 面）不扫入——dg-store 的 ⌘K/Run 历史字段以 inert 超集随行；
 - **门禁**：jdm kernel 486/486 + tsc 干净 + demo-server 12/12 + appshell 套件过；
 - 旧 keyboard/components 测试随旧组件退役（分屏范式下由三故事 play 断言接管）。
+
+## 8 · M-B 移植评审注记（2026-10-13，seal 会话——原创仓反向评审）
+
+评审对象：jdm-editor 仓 reui 分支三笔——批 1 契约层（4582653b）· 批 2-4 分屏/
+InstanceEditor/TypedInput/漂移带（a980b8c5）· appshell fixturesRunner 接线
+（bd19bd57）。移植基线声明：seal 547bfae（UI-B 定稿+走查通过）——与触发通知一致。
+
+### 保真对表（逐字 diff 实证，非提交信息采信）
+
+| 面 | 方法 | 结果 |
+| --- | --- | --- |
+| 契约层 contract.ts | 剥 import 前缀后逐字 diff | **零差异**（数据模型/漂移引擎/信封导入导出逐字节一致） |
+| request-split-editor / fixtures-panel / fixtures-run / fixtures-runner | 同法 | **零差异** |
+| tab-request | 同法 | 14 行纯缩进方差（prettier），零语义 |
+| request-session-draft | 同法 | 零差异（schemaDraft 携带 + legacy activeTab 映射 `schema/code→code` 在链） |
+| i18n 超集声明 | 194 旧键 ⊆ 新目录（zh/en 双向脚本核验） | **零缺失**——"五 jdm 键 seal 已含"实证 |
+| 三能力去向 | 逐字继承 seal 版 | format ✓ / JSON→Schema ✓ / diff 不存在（与 seal §7 勘误一致，未错误引入） |
+| 快照语义 | runFixtures 重读当前图 | 与 seal 同款（刷新闭包分支满足） |
+| 范围纪律 | 提交声明 | 显式未移植：ADR-017 resolve-custom-node、code-editor setUdfCompletions（A2 自有面）——边界声明清晰 |
+| 测试 | 门禁记录 | 260/260（26 文件）+ request-drift-events hook 测试 + appshell storybook 84/84 |
+
+### 两条 CI 发现（修改项，非保真问题）
+
+| # | 现象 | 定性 | 处置建议 |
+| --- | --- | --- | --- |
+| F1 | 批 2-4 Validate 红于 **Bundle size budget** | M-B 合法 UI 增量撞 jdm 预算门 | 按 seal 1.33.0 先例显式校准预算+注记理由（分屏+reui 补齐族是特性体积）；或先做按需 chunk 审查再定数 |
+| F2 | appshell 接线 Validate 红于 **Install dependencies**（17s） | 提交缺 pnpm-lock 更新（`zen-udf workspace:^` 条目）——`--frozen-lockfile` 拒装 | 工作树未提交的 pnpm-lock.yaml 恰含该条目，补提交即闭合（机械修正） |
+
+另注：jdm 工作树有未提交的 dg-empty.tsx / pnpm-lock 修改（jdm 会话进行中工作，
+不阻塞本评审）。
+
+### 结论
+
+**修改后接受**。移植保真面全过——契约层逐字节一致、视图层逐字保真（缩进方差外）、
+i18n 超集实证、范围边界声明清晰；两条 CI 红均为发布工程问题（预算数字裁决 +
+lockfile 随手提交），非范式/契约面偏差。F2 补提交、F1 预算校准落定后**无需复审**
+（本注记即为复核基线）。
