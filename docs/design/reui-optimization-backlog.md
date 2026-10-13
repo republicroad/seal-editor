@@ -19,6 +19,55 @@
 | dt 核心编辑器 | data-grid 换装四阶段（spike/换装/裁决/清债），index.js 累计 **-7.5kB** | [dt-datagrid-retrofit-plan.md](./dt-datagrid-retrofit-plan.md) |
 | 三区参考 | dt-command-bar / switch 面板 / function 调试器 | 已移植（reui-retrofit-reference-for-seal-editor.md，jdm 仓） |
 
+
+## 2026-10-13 重新分析（27 组件 + ultimate 全解锁增量）
+
+> 增量口径：09-26 快照 22 组件 → 现测 27（新增 cascader/color-picker/emoji-picker/
+> file-type/signature-pad/time-picker 六项）；premium blocks 636 + Motion Icons 667
+> 全解锁后首扫。判据沿用档头（对口复合组件 + 交互真实升级）。
+
+### 新组件判定（6 项）
+
+| 组件 | 判定 | 落点/理由 |
+| --- | --- | --- |
+| **cascader** | ✅ 有落点（待触发） | 层级字段路径的钻取选择器——dt 输入列字段绑定（现 field-picker-popup）与 InstanceEditor 引用源面板的升级候选；触发=字段选择体验专项 |
+| **time-picker** | ✅ 候选（低频） | 字段值级时间输入（TypedInput datetime 模式 / dt 值单元格）；与 date-selector 的否决理由不冲突——否的是仪表盘周期控件，这是值输入 |
+| file-type | 🟡 装饰性（低） | Upload/Import 菜单与拖放导入的文件图标；纯观感 |
+| color-picker | ❌ 无场景 | 决策编辑器无颜色输入（主题走 token） |
+| emoji-picker | ❌ 无场景 | — |
+| signature-pad | ❌ 无场景 | — |
+
+### data-grid 上游新能力（vendored 升级跟踪）
+
+组件摘要新增：clipboard + **inline editing**、**tree rows**、**footer rows**、
+**单 prop i18n 标签**。对照本仓：
+
+- **i18n 单 prop** —— 与本仓 useT 词条体系直接对口，vendored 升级时可削自写标签接线；
+- **footer rows** —— 触发制清单「data-grid 快照+footer」的技术前置已就绪；
+- inline editing —— dt 有自有 blur-commit 单元编辑器（语义已立法），迁移无可见增益，
+  观望（上游成熟 + dt 编辑语义复审时再评）；
+- tree rows —— dt 无树行场景。
+
+### premium blocks / 模板 / Motion Icons
+
+- **ai-agents 组（18）**：触发制「AI copilot」项的现成 UI 基座——`ai-chat-2 Docked
+  Assistant`（侧栏流式对话 + insert-into-draft，正对口表达式/规则建议插入编辑器）；
+  `agent-activity-3 Run Step Trace`（逐步工具调用 + 延迟时间线）可作 simulator/Trust
+  Chain trace 展示参照。触发条件 = verdict 线激活 AI copilot。
+- **data-grid 组（42）**：整页 admin 表格区块，嵌入式编辑器无整页场景；唯一可借鉴
+  形态 = editing 类的脏状态 Save/Discard 条（与 dt 单元 blur-commit 语义不同，不套用）。
+- **模板**：非 registry 安装物（reui.io 页面下载），整页站定位，不适用组件库。
+- **Motion Icons（667）**：维持不涉及——编辑器图标统一 lucide（#icons），混入 hover
+  动效图标有风格一致性风险；除非未来节点卡 hover 专项另评。
+
+### 覆盖快照更新（27 组件）
+
+- 在用（较 09-26 新增确认）：code-block（REPL）、alert（InstanceEditor）、tree、
+  timeline、frame、sortable——09-26「有落点待用 4」全部落地；
+- 新增候选：cascader（有落点）、time-picker（低频）；
+- 维持否决/无场景：autocomplete、date-selector、color-picker、emoji-picker、
+  signature-pad、kanban/gantt/event-calendar/rating/phone-input/scrollspy、filters；
+- data-grid：vendored 跟踪上游 i18n/footer 能力。
 ## 剩余清单（按价值排序）
 
 | # | 区域 | 现状 | 可做 | 量级 | 触发条件 |
