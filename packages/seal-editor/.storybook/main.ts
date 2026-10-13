@@ -20,7 +20,11 @@ const config: StorybookConfig = {
   // absolute '/zen-engine-wasm' 404s there). Expression evaluation degrades
   // gracefully when the wasm is unreachable, but serving it keeps the
   // variable-type inference working in the static site too.
-  staticDirs: [{ from: '../node_modules/@gorules/zen-engine-wasm/dist', to: 'zen-engine-wasm' }],
+  staticDirs: [
+    { from: '../node_modules/@gorules/zen-engine-wasm/dist', to: 'zen-engine-wasm' },
+    // monaco 同源静态资产（免 CDN）——沙箱/内网走查环境编辑器不再挂 Loading
+    { from: '../node_modules/monaco-editor/min/vs', to: 'monaco/vs' },
+  ],
   framework: {
     name: '@storybook/react-vite',
     options: {

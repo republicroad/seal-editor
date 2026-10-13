@@ -1,4 +1,5 @@
 import * as ZenEngineWasm from '@gorules/zen-engine-wasm';
+import { loader } from '@monaco-editor/react';
 import type { Preview } from '@storybook/react-vite';
 import * as React from 'react';
 import { useDarkMode } from 'storybook-dark-mode';
@@ -13,6 +14,10 @@ import { JdmConfigProvider } from '../src';
 await ZenEngineWasm.default({
   module_or_path: new URL('zen-engine-wasm/zen_engine_wasm_bg.wasm', document.baseURI).href,
 });
+
+// monaco 同源加载（staticDirs 镜像 min/vs，baseURI 解析兼容 Pages 子路径）——
+// 默认 CDN 加载器在离线/内网走查环境会永久挂 Loading
+loader.config({ paths: { vs: new URL('monaco/vs', document.baseURI).href } });
 
 (window as any).VariableType = ZenEngineWasm.VariableType;
 (window as any).Variable = ZenEngineWasm.Variable;

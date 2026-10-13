@@ -684,14 +684,24 @@ export const AutoLayout: Story = {
     expect(button).not.toBeNull();
 
     await fireEvent.click(button!);
-    await waitFor(
-      () => {
-        const after = nodeTransform();
-        expect(after).not.toBe('');
-        expect(after).not.toBe(before);
-      },
-      { timeout: 20_000 },
-    );
+
+    // dagre 落位分多次状态更新——"变过即过"会命中中间态，布局继续移动导致
+    // 偶发红（troubleshooting 案例 11）。等待变换在连续两个采样窗内稳定且异于
+    // before，才算布局完成。
+    const deadline = Date.now() + 20_000;
+    let prev = '';
+     
+    while (true) {
+      if (Date.now() > deadline) {
+        throw new Error('auto-layout did not stabilize within 20s');
+      }
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const cur = nodeTransform();
+      if (cur !== '' && cur === prev && cur !== before) {
+        break;
+      }
+      prev = cur;
+    }
   },
 };
 
