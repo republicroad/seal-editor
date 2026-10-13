@@ -196,3 +196,16 @@ loader 配置），非本批回归。
 **UI-A/UI-B 走查通过**。InputContract 契约面（数据模型/三视图同步语义/漂移事件）
 零修订——纯验收走查，无契约级发现，无需跨仓协商。走查修正项清单：**无代码修正**；
 一条评审注记勘误（如上）与本条环境观察记录在案。
+
+## 8 · jdm 移植回执（2026-10-13，jdm-editor 会话——宿主转达走查通知后执行）
+
+- **基线**：本仓 1.34.0/547bfae（走查 72e9a53e）；移植面=2021153e 落地形态（契约面零修订）；
+- **jdm 提交**：批 1 `4582653b`（contract.ts+ajv-validator+types/index+ajv/ajv-formats 依赖）+
+  批 2-4 `a980b8c5`（request-split-editor/fixtures-panel×3/schema-editor-shared + tab-request
+  整取（旧三页签退役）+ dg-store/schema.ts 整取 + instance-editor/typed-input + 三故事 +
+  request-drift-events 测试 + custom-function-schema 833 行版与漂移带 UI + reui 补齐
+  alert/empty/cascader/scroll-area/spinner/skeleton + i18n 目录超集）；41 文件 +11422/-1333；
+- **越界面处置**：⌘K（graph-command-menu）/ADR-017（resolve-custom-node）/Run 历史 timeline
+  /setUdfCompletions（jdm 自有 A2 面）不扫入——dg-store 的 ⌘K/Run 历史字段以 inert 超集随行；
+- **门禁**：jdm kernel 486/486 + tsc 干净 + demo-server 12/12 + appshell 套件过；
+- 旧 keyboard/components 测试随旧组件退役（分屏范式下由三故事 play 断言接管）。
