@@ -99,6 +99,130 @@ Three iron rules:
 
 ---
 
+
+### 1.7 Language Feature Notes (corpus-annotated)
+
+All examples are assertion lines from the regression corpus (§1.3/§1.4 sources);
+the full line-by-line listing lives in the [generated reference](./zen-function-reference).
+
+| Feature | Corpus example | Note |
+| --- | --- | --- |
+| Intervals (open/closed) | `[20..40]` · `(a..b]` · `(-10..0) or > 0` | brackets close, parens open; range tests in unary |
+| Membership test | `d('2023-10-15') in ['2023-10-14', '2023-10-15']` | `in` works on arrays and intervals |
+| String slice | `$[0:5] == 'sample'` | in unary context `# Zen Expression & Node Reference
+
+Status: **primary customer reference · continuously tracked** (established 2026-10-10)
+Versions: runtime `@gorules/zen-engine-wasm` 0.23.1 · verified against native `@gorules/zen-engine` 2.1.x · document format JDM (`application/vnd.gorules.decision`)
+See also: [zen-udf](./zen-udf) (custom-function runtime) · [`$` binding matrix (evidence file)](./design/zen-dollar-binding-matrix) · [expression-node fixture](./graph/expression-node-dollar-ref.json) · [ADR-015](./adr/015-custom-function-node-spec) / [ADR-016](./adr/016-custom-function-typed-value-envelope) / [ADR-017](./adr/017-dedicated-editor-plugin-system)
+
+> This document governs the **zen expression language** and **zen-engine node semantics** —
+> the first stop when integrating the decision engine.
+> Maintenance rules: ① pin every claim to an evidence anchor (fixture graph / regression corpus / test file); ② every engine upgrade goes through §7 and appends a §6 entry; ③ this file carries customer-facing conclusions — measurement detail and edge analysis live in the evidence file.
+
+---
+
+## 1. Expression Language
+
+### 1.1 Lexicon & Types
+
+| Kind | Form | Example |
+| --- | --- | --- |
+| Numbers | decimal, scientific notation | `42` · `1.5e3` · `2E-2` |
+| Strings | single quotes | `'hello'` |
+| Template strings | backticks + `${expr}` | `` `sum: ${sum([1,2,3])}` `` |
+| Boolean / null | | `true` · `false` · `null` |
+| Arrays | brackets | `[1, 2, 3]` |
+| Objects | braces | `{a: 1, b: 'x'}` |
+| Identifiers | bare name, dot path, dynamic key | `a` · `user.name` · `obj[key]` |
+
+Type set: `null` / `boolean` / `number` / `string` / `date` / `object` / `array`.
+Introspection `type(x)`, `isNumeric(x)`; conversions `number()` / `string()` / `bool()` / `date()`.
+
+Assignment expressions: `key = expr` produces an object in standalone evaluation (`"a = 5"` → `{"a": 5}`); nested paths and multiple assignments supported.
+
+### 1.2 Operator Table
+
+| Family | Form | Corpus-verified example |
+| --- | --- | --- |
+| Arithmetic | `+ - * / %` | `a + b` |
+| Comparison | `== != > < >= <=` | `score > 70` |
+| Interval | `[lo..hi]` (open/closed variants) | `[20..40]` (decision-table range test) |
+| Logic | `and or not` | `true and false` |
+| Ternary | `cond ? a : b` (chainable) | `score > 90 ? 'A' : score > 80 ? 'B' : 'C'` |
+| Nullish | `??` (first non-null) | `null ?? 123 ?? 321` → `123` |
+| Template | `` `...${expr}...` `` | `` `reference: ${a}` `` |
+| Assignment | `path = expr` | `name = 'John'` |
+| Member access | `.`, `[i]`, slices | `list[0]` · string slices |
+| Closures | `#` positional; `as` alias | `map([1,2,3], # * 2)` → `[2,4,6]`; `map(products as p, p.price)` |
+
+Scientific notation is a **first-class number literal**: parsing, arithmetic, comparison, conversion, array operations and template interpolation all covered (11 corpus sections).
+
+### 1.3 Built-in Functions (standard)
+
+Corpus: jdm repo `packages/zen-udf/src/expression-regression/standard.csv` (657 lines · 67 sections, all engine-executable assertions).
+The full line-by-line quick reference lives in the generated [zen-function-reference](./zen-function-reference) (861 assertion rows, mechanical projection — do not edit).
+
+| Family | Functions |
+| --- | --- |
+| Array transforms | `map` `filter` `flatMap` `some` `all` `none` `count` `len` `merge` `mergeDeep` |
+| Statistics | `sum` `avg` `min` `max` `median` `mode` `rand` |
+| Strings | `upper` `lower` `trim` `startsWith` `endsWith` `contains` `split` `matches` `fuzzyMatch` `extract` |
+| Math | `round` `trunc` `floor` `ceil` `abs` |
+| Types & objects | `type` `isNumeric` `number` `string` `bool` `keys` `values` `duration` |
+
+### 1.4 Date & Time Functions
+
+Corpus: `date.csv` in the same directory (303 lines · 17 sections). Dates are a **first-class type with a fluent method chain**. Full quick reference in the same generated file.
+
+| Family | API |
+| --- | --- |
+| Construction | `d('2023-10-15')` (all ISO 8601 forms: date / time / offset) · `duration(n, unit)` |
+| Getters | `.year()` `.month()` `.day()` `.hour()` `.minute()` `.second()` `.weekday()` `.dayOfYear()` `.quarter()` `.timestamp()` `.string()` |
+| Manipulation | `.add(n, unit)` `.sub(n, unit)` `.set(unit, v)` `.startOf(unit)` `.endOf(unit)` `.tz(zone)` |
+| Checks | `.isValid()` `.isSame()` `.isBefore()` `.isAfter()` `.isSameOrBefore()` `.isSameOrAfter()` `.isToday()` `.isYesterday()` `.isTomorrow()` `.isLeapYear()` |
+| Diff & format | `.diff(d2, 'day'|'hour'|'month'|…)` `.format(fmt)` `.offsetName()` |
+
+Example: `d('2023-10-15').diff(d('2023-10-10'), 'day')` → `5`.
+DST semantics: local times falling inside a gap **move forward by the gap**; ISO instants with offsets keep their instant.
+
+### 1.5 `$` Scoping & Root Binding
+
+Full measurement log: [evidence file](./design/zen-dollar-binding-matrix); customer-facing conclusions below (2026-10-10, six native-engine rounds).
+
+| Evaluation context | Bare `$` | `$root` | `$nodes.<name>.<field>` | Bare identifier | On failed reference |
+| --- | --- | --- | --- | --- | --- |
+| Expression-node row | Row-output accumulation: `$.<rowKey>` references prior rows | Node input root | Prior node outputs | Input fields | **Row silently dropped** |
+| Table input cell · unary (field column) | Column value (unary left operand) | — | — | — (implicit operand) | No match |
+| Table cell · full expression | Unbound | Node input root | Prior node outputs | Input fields | No match / missing key |
+| Standalone `evaluateExpression` | Unbound | Context root | — | Context top-level keys | Returns null |
+
+Three iron rules:
+
+1. **Cross-references inside nodes use `$.<rowKey>` (expression nodes) or `$nodes.<name>.<field>` (cross-node); input data always uses bare names or `$root`.**
+2. **Row keys never shadow bare names** in expression nodes: input `{v:1}`, prior row `v=99`, later row `x=v` → `x=1` (bare names always resolve against the input; the output's `v` is overwritten by the row).
+3. A `$.<non-row-key>` reference **silently drops the row without error** — integrators must assert expected keys on the output side.
+
+### 1.6 Standalone vs In-Graph Evaluation
+
+- `evaluateExpression` / `evaluateExpressionSync` (engine-direct): an ordinary variable environment — context top-level keys resolve bare; bare `$` is unbound (returns null); `$root` binds to the context root.
+- Full decision-graph execution: each node gets its own evaluation scope (§1.5 applies per column); `$root` = that node's input root.
+- Host wrapper layers (jdm heritage) once wrapped context as `{result: data}` + `$.result.x` — incompatible with the engine contract; **fixed (zen-udf 1.4.0, 2026-10-11)**: context is flattened to bare keys (object results ARE the context, top-level keys resolve directly), non-object results bind as a single `result` key (`result == 42` / `len(result) == 2` forms), and `$`-root / `$.path` navigation is pinned to silent null by sentinel tests. Migration discipline and implementation receipt: [ADR-014](./adr/014-zen-udf-fixture-contract) addendum.
+
+---
+
+ = the operand (§1.5 row two) |
+| Closures (positional) | `map([1, 2, 3], # * 2)` → `[2, 4, 6]` | `#` is the current element; same for `filter/some/all/none` |
+| Closures (as alias) | `map(products as p, p.price)` → `[10, 20]` | readable naming; nests and mixes (`#` kept for backwards compat) |
+| Assignment expressions | `a = 5` → `{"a": 5}` · `a = 1; b = 2` | produces an object in standalone evaluation; nested paths and call RHS supported |
+| Nullish chain | `null ?? 123 ?? 321` → `123` | first non-null; composes with ternary |
+| Ternary (chainable) | `score > 90 ? 'A' : score > 80 ? 'B' : 'C'` | nesting = else branches |
+| Scientific notation | `1.5e-2 == 0.015` · `1e2 + 50.5` | first-class literal: arithmetic/comparison/conversion/array/template all covered (11 corpus sections) |
+| Template interpolation | `sum: ${sum([1, 2, 3])}` → `'sum: 6'` | `${expr}` is a full expression inside backticks |
+| Dynamic keys & members | `obj[key]` · `user.name` · `list[0]` | dot paths, indexes and variable keys are uniform |
+| Type introspection & conversion | `type(x)` · `isNumeric('123.123')` · `number() / string() / bool()` | type set in §1.1 |
+| Object operations | `keys()` / `values()` / `merge()` / `mergeDeep()` | deep merge preserves key order |
+| Decimal precision | `20 / (5 / 2) == 8.0` · `round(1.5)` · `trunc(-7.999, 2)` | precision function family (corpus "Decimal precision" section) |
+
 ## 2. Node Types
 
 Per node: purpose / content schema / `$` binding / evaluation semantics / error behavior.

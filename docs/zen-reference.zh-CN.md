@@ -98,6 +98,128 @@ DST 语义：落在间隙内的本地时间**前移一个间隙**；带偏移的
 
 ---
 
+
+### 1.7 语言特性速查（语料注记）
+
+全部示例取自回归语料断言行（§1.3/§1.4 语料源）；逐行全量见[生成档](./zen-function-reference)。
+
+| 特性 | 语料示例 | 注记 |
+| --- | --- | --- |
+| 区间（开闭可控） | `[20..40]` · `(a..b]` · `(-10..0) or > 0` | 方括号闭、圆括号开；unary 里做范围测试 |
+| 成员测试 | `d('2023-10-15') in ['2023-10-14', '2023-10-15']` | `in` 对数组/区间均可用 |
+| 字符串切片 | `$[0:5] == 'sample'` | unary 上下文里 `# Zen 表达式与节点参考
+
+状态：**客户参考核心档 · 持续跟进**（2026-10-10 立档）
+口径：运行面 `@gorules/zen-engine-wasm` 0.23.1 · 实测线 `@gorules/zen-engine`（原生）2.1.x · 文档格式 jdm（`application/vnd.gorules.decision`）
+关联：[zen-udf](./zen-udf)（自定义函数运行时） · [`$` 绑定实测矩阵（证据档）](./design/zen-dollar-binding-matrix) · [表达式节点夹具](./graph/expression-node-dollar-ref.json) · [ADR-015](./adr/015-custom-function-node-spec) / [ADR-016](./adr/016-custom-function-typed-value-envelope) / [ADR-017](./adr/017-dedicated-editor-plugin-system)
+
+> 本文管辖 **zen 表达式语言** 与 **zen-engine 节点语义**，是客户集成决策引擎时的首要参考。
+> 维护纪律：① 每条语义尽量钉实证锚点（夹具图 / 回归语料 / 测试文件）；② zen-engine 升级必须走 §7 核查清单并在 §6 追加跟进记录；③ 本档持客户面结论，实测过程与锐边分析留在证据档。
+
+---
+
+## 1. 表达式语言（Zen Expression Language）
+
+### 1.1 词法与类型
+
+| 类别 | 形式 | 示例 |
+| --- | --- | --- |
+| 数字 | 十进制、科学计数法 | `42` · `1.5e3` · `2E-2` |
+| 字符串 | 单引号 | `'hello'` |
+| 模板串 | 反引号 + `${expr}` 插值 | `` `sum: ${sum([1,2,3])}` `` |
+| 布尔 / 空 | | `true` · `false` · `null` |
+| 数组 | 方括号 | `[1, 2, 3]` |
+| 对象 | 花括号 | `{a: 1, b: 'x'}` |
+| 标识符 | 裸名、点路径、动态键 | `a` · `user.name` · `obj[key]` |
+
+类型集合：`null` / `boolean` / `number` / `string` / `date` / `object` / `array`。
+类型探测 `type(x)`、判型 `isNumeric(x)`、转换 `number()` / `string()` / `bool()` / `date()`。
+
+赋值表达式：`key = expr` 在独立求值中产出对象（`"a = 5"` → `{"a": 5}`），支持嵌套路径与多重赋值。
+
+### 1.2 运算符总表
+
+| 运算符族 | 形式 | 示例（语料实证） |
+| --- | --- | --- |
+| 算术 | `+ - * / %` | `a + b` |
+| 比较 | `== != > < >= <=` | `score > 70` |
+| 区间 | `[lo..hi]` 开闭可变 | `[20..40]`（决策表范围测试） |
+| 逻辑 | `and or not` | `true and false` |
+| 三目 | `cond ? a : b`（可链式） | `score > 90 ? 'A' : score > 80 ? 'B' : 'C'` |
+| 空合 | `??`（取首个非 null） | `null ?? 123 ?? 321` → `123` |
+| 模板插值 | `` `...${expr}...` `` | `` `reference: ${a}` `` |
+| 赋值 | `path = expr` | `name = 'John'` |
+| 成员访问 | `.`、`[i]`、切片 | `list[0]` · 字符串切片 |
+| 闭包 | `#` 位置参数；`as` 别名 | `map([1,2,3], # * 2)` → `[2,4,6]`；`map(products as p, p.price)` |
+
+科学计数法为**一等数字字面量**：解析、算术、比较、转换、数组运算、模板插值全链支持（语料 11 个分节钉死）。
+
+### 1.3 内置函数库（标准）
+
+语料源：jdm 仓 `packages/zen-udf/src/expression-regression/standard.csv`（657 行 · 67 分节，全部为引擎可执行断言）。
+全量逐行速查见生成档 [zen-function-reference](./zen-function-reference)（861 行断言机械投影，勿手改）。
+
+| 族 | 函数 |
+| --- | --- |
+| 数组变换 | `map` `filter` `flatMap` `some` `all` `none` `count` `len` `merge` `mergeDeep` |
+| 统计 | `sum` `avg` `min` `max` `median` `mode` `rand` |
+| 字符串 | `upper` `lower` `trim` `startsWith` `endsWith` `contains` `split` `matches` `fuzzyMatch` `extract` |
+| 数学 | `round` `trunc` `floor` `ceil` `abs` |
+| 类型与对象 | `type` `isNumeric` `number` `string` `bool` `keys` `values` `duration` |
+
+### 1.4 日期时间函数
+
+语料源：同目录 `date.csv`（303 行 · 17 分节）。日期是**一等类型 + fluent 方法链**。全量速查同上生成档。
+
+| 族 | API |
+| --- | --- |
+| 构造 | `d('2023-10-15')`（ISO 8601 全形态：日期/时刻/偏移） · `duration(n, unit)` |
+| 读取 | `.year()` `.month()` `.day()` `.hour()` `.minute()` `.second()` `.weekday()` `.dayOfYear()` `.quarter()` `.timestamp()` `.string()` |
+| 变换 | `.add(n, unit)` `.sub(n, unit)` `.set(unit, v)` `.startOf(unit)` `.endOf(unit)` `.tz(zone)` |
+| 判定 | `.isValid()` `.isSame()` `.isBefore()` `.isAfter()` `.isSameOrBefore()` `.isSameOrAfter()` `.isToday()` `.isYesterday()` `.isTomorrow()` `.isLeapYear()` |
+| 差值与格式 | `.diff(d2, 'day'|'hour'|'month'|…)` `.format(fmt)` `.offsetName()` |
+
+实例：`d('2023-10-15').diff(d('2023-10-10'), 'day')` → `5`。
+DST 语义：落在间隙内的本地时间**前移一个间隙**；带偏移的 ISO 时刻保持瞬时值不变。
+
+### 1.5 `$` 作用域与根绑定总表
+
+完整实测记录见[证据档](./design/zen-dollar-binding-matrix)；下表为客户面结论（2026-10-10，六轮原生引擎实证）。
+
+| 求值上下文 | 裸 `$` | `$root` | `$nodes.<名>.<字段>` | 裸标识符 | 引用失败行为 |
+| --- | --- | --- | --- | --- | --- |
+| 表达式节点行值 | 行输出累积域：`$.<rowKey>` 引先行行 | 节点输入根 | 先行节点输出 | 输入字段 | **该行静默丢弃** |
+| 决策表输入单元 · unary（field 列） | 列值（unary 左操作数） | — | — | —（操作数隐式） | 无命中 |
+| 决策表单元 · 全表达式 | 未绑定 | 节点输入根 | 先行节点输出 | 输入字段 | 无命中/缺键 |
+| 独立求值 `evaluateExpression` | 未绑定 | 上下文根 | — | 上下文顶层键 | 返回 null |
+
+三条铁律：
+
+1. **节点内交叉引用用 `$.<rowKey>`（表达式节点）或 `$nodes.<名>.<字段>`（跨节点）；输入数据一律裸名或 `$root`。**
+2. 表达式节点里**行键不遮蔽裸名**：输入 `{v:1}`、先行行 `v=99`、后行 `x=v` → `x=1`（裸名永远解析输入；输出中 `v` 被行覆盖为 99）。
+3. `$.<非行键>` 引用**静默丢行不报错**——集成方必须在输出侧断言期望键存在。
+
+### 1.6 独立求值 vs 图内求值
+
+- `evaluateExpression` / `evaluateExpressionSync`（引擎直出）：普通变量环境，上下文顶层键直引；裸 `$` 未绑定（返回 null），`$root` 绑定为上下文根。
+- 完整决策图执行：各节点拿到自己的求值环境（§1.5 表逐列生效）；`$root` = 该节点输入根。
+- 宿主包装层（jdm 传承）曾以 `{result: data}` 包装上下文 + `$.result.x` 取值——与引擎契约不符；**已修复（zen-udf 1.4.0，2026-10-11）**：context 平铺裸键（对象结果即 context 顶层键直引），非对象结果绑 `result` 单键（`result == 42` / `len(result) == 2` 形态），`$` 根与 `$.path` 导航恒 null 静默由哨兵测试钉扎。迁移纪律与实施回执见 [ADR-014](./adr/014-zen-udf-fixture-contract) 增补节。
+
+---
+
+=操作数（§1.5 第二行） |
+| 闭包（位置参数） | `map([1, 2, 3], # * 2)` → `[2, 4, 6]` | `#` 引用当次元素；`filter/some/all/none` 同款 |
+| 闭包（as 别名） | `map(products as p, p.price)` → `[10, 20]` | 可读命名；支持嵌套与混用（`#` 向后兼容保留） |
+| 赋值表达式 | `a = 5` → `{"a": 5}` · `a = 1; b = 2` | 独立求值产出对象；支持嵌套路径与函数调用右侧 |
+| 空合链 | `null ?? 123 ?? 321` → `123` | 取首个非 null；与三目组合 |
+| 三目（可链式） | `score > 90 ? 'A' : score > 80 ? 'B' : 'C'` | 嵌套即 else 分支 |
+| 科学计数法 | `1.5e-2 == 0.015` · `1e2 + 50.5` | 一等字面量：算术/比较/转换/数组/模板全链支持（语料 11 节） |
+| 模板插值 | `sum: ${sum([1, 2, 3])}` → `'sum: 6'` | 反引号串内 `${expr}` 全表达式 |
+| 动态键与成员 | `obj[key]` · `user.name` · `list[0]` | 点路径/下标/变量键三者一致 |
+| 类型内省与转换 | `type(x)` · `isNumeric('123.123')` · `number() / string() / bool()` | 类型集合见 §1.1 |
+| 对象操作 | `keys()` / `values()` / `merge()` / `mergeDeep()` | 深合并保键序 |
+| 十进制精度 | `20 / (5 / 2) == 8.0` · `round(1.5)` · `trunc(-7.999, 2)` | 精度族函数配套（语料 "Decimal precision" 节） |
+
 ## 2. 节点类型参考
 
 每节点五要素：用途 / content schema / `$` 绑定 / 求值语义 / 错误行为。
