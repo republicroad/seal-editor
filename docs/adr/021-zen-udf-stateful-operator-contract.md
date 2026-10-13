@@ -190,3 +190,42 @@ velocityPack 是本契约的第一批消费者（velocity-udf-plan §11.3 合流
 **草案方向上游预评审通过；R1-R4 吸收后立项转移至本序列（proposed）。**
 实施门序：verdict-005/006 落章 → zen-udf 1.4.0 实施 → verdict 消费
 （velocity-udf-plan §11.3 合流点：velocityPack 为第一批消费者）。
+
+## 评审注记 2026-10-13（seal 会话——门序开启后的实施前评审与规划）
+
+### 账实核对（门序事实与勘误）
+
+1. ✓ **门序事实成立**：verdict-005/006 均 accepted（2026-10-13 宿主裁决落章），
+   verdict-005 §186 的 ADR-021 跨仓挂点在链（相对路径引本档）；
+2. ⚠️ **版本锚点漂移（勘误）**：状态行"zen-udf **1.4.0** 候选"已陈旧——1.4.0
+   （OQ3）/1.5.0（instances 重构+回放钉扎）/1.6.0（声明式出口清单+契约兼容级
+   门禁）均已发布且**不含本契约**；实施目标修正为 **zen-udf 1.7.0**。实施时
+   §1.2 replay 强制须与 1.5.0 回放钉扎机制对齐（复用其钉扎通道，不重复立法）；
+3. ✓ RateStore 签名断言仍成立：`rate(entity, windowMs, asOf?)`（rate-window.ts:42
+   实测）；conformance 套件 asOf point-in-time 断言在链（rate-store-conformance.ts:58）；
+4. ✓ R1-R4 吸收核对通过；OQ1（tool vs pack 级）仍开放——裁决时点 = 实施中
+   （证据：verdict velocityPack 为单 pack 多工具，pack 级缺省可能占优）。
+
+### 实施前置盘点（§1 改名前置——verdict 存量旧名引用）
+
+- **仓内侧（本次完成）**：verdict 仓全量 grep `rate_[1m5m1hd7d]`/`group_distinct`/
+  `rate-window`——**存量图按名引用 0 条**；旧名唯一机械落点 = `apps/web/public/
+  host-functions.json`（目录宣告本体，双名注册须镜像该文件：新名注册 + 旧名
+  alias + deprecated 元数据）+ velocity 包注释若干（非语义面）；
+- **生产 DB 侧（归 verdict ops）**：存量图存 DB 不在仓——一条 JSON 内容查询
+  （`$call` 含 `rate_`/`group_distinct` 计数）定过渡期长度；仓内零引用不豁免
+  此步（生产图才是 ADR P4 的炸点）。
+
+### 实施时序（规划）
+
+| 步 | 内容 | 归属 | 量级 |
+| --- | --- | --- | --- |
+| T0 | 本注记落档（勘误+盘点） | seal ✓ | — |
+| T1 | 生产 DB 旧名引用计数 → 定双名过渡期 | verdict ops | ~0.1 天 |
+| T2 | zen-udf **1.7.0**：三字段契约 + replay 强制 + RATE_NO_EVENT_TIME（对齐 1.5.0 钉扎）→ conformance 分档 + 重试双计向量 → 双名注册 + host-functions.json 镜像 | 上游（jdm）会话 | ~1.25 天 |
+| T3 | CONTRACT.md 状态算子章（时间档位/保真/幂等/命名通式 `trailing_<agg>_<window>` + `rolling` 禁用词）——随 T2 评审合入 | seal（跨仓契约物） | ~0.25 天 |
+| T4 | HaProxyRateStore 声明 interpolated + 目录重导出 | verdict 会话 | 随 verdict-005 清单 |
+| OQ1 | temporal/fidelity 声明层级（tool vs pack）随 T2 定 | 上游 | — |
+
+归属按 ADR-000 §3.1：T2 归 zen-udf 实施仓（jdm）；T3 立法起草归本仓会话
+（CONTRACT.md 为跨仓契约物）；T1/T4 归 verdict。
