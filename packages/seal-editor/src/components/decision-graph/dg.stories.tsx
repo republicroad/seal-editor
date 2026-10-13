@@ -690,7 +690,7 @@ export const AutoLayout: Story = {
     // before，才算布局完成。
     const deadline = Date.now() + 20_000;
     let prev = '';
-     
+
     while (true) {
       if (Date.now() > deadline) {
         throw new Error('auto-layout did not stabilize within 20s');
