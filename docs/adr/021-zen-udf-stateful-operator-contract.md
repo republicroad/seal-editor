@@ -5,7 +5,7 @@
 proposed（2026-10-09 立项——verdict 侧起草 + 上游预评审通过后由本仓**立项
 转移**（评审注记随文，R1-R4 已吸收进正文）。**立项先行理由**：verdict-005 §6
 预留引用挂点等待本 ADR proposed 落档（互等死锁的解法 = 区分「立项」与
-「accepted」）。
+「accepted」）。**实施门序开启（2026-10-13）**：宿主已落章 verdict-005/006 accepted（velocity 冻结正式解除，全链 VEL-1..4 已实施部署）——zen-udf 侧实施（三字段契约/conformance 分档/双名注册）可启动，实施归上游会话。
 
 - **门序剩余**：verdict-005/006 用户落章后进入实施；zen-udf **1.4.0 候选**（纯增量）；
 - 消费面立法：verdict-005（trailing 语义/双档实现族/回放策略）、verdict-006
