@@ -250,7 +250,7 @@ velocityPack 是本契约的第一批消费者（velocity-udf-plan §11.3 合流
 
 | # | 项 | 归属 |
 | --- | --- | --- |
-| 实施清单 #4 | CONTRACT.md 状态算子章（trailing 通式 + rolling 禁用词——1.7.0 代码注释已留「随 T3 章」钩子） | seal 会话（立法起草中） |
+| ~~实施清单 #4~~ | ✅ 2026-10-14 落地——CONTRACT §13 状态算子章（四节：声明字段/replay 强制/分档许可/命名通式与禁用词；§5.4 收录 RATE_NO_EVENT_TIME）+ §1.5 双名注册段补 ADR-021 引用。jdm 提交 c3a21519 | seal ✓ |
 | T4 | HaProxyRateStore 声明 interpolated + 目录重导出 | verdict 会话 |
 | 目录镜像 | verdict 侧 host-functions.json 尚无 trailing 条目（双名注册的目录面同步） | verdict 会话 |
 | T1 | 生产 DB 旧名引用计数 → 过渡期定档（仓内侧 0 引用已盘点） | verdict ops |
