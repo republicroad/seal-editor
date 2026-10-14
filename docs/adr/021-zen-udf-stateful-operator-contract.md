@@ -2,7 +2,7 @@
 
 ## 状态
 
-proposed（2026-10-09 立项——verdict 侧起草 + 上游预评审通过后由本仓**立项
+accepted（2026-10-14 实施验收通过——T2 zen-udf 1.7.0 三件套逐项核验 + 全量 1143/1143 本地复现；实施回执见文末。履历：proposed（2026-10-09 立项——verdict 侧起草 + 上游预评审通过后由本仓**立项
 转移**（评审注记随文，R1-R4 已吸收进正文）。**立项先行理由**：verdict-005 §6
 预留引用挂点等待本 ADR proposed 落档（互等死锁的解法 = 区分「立项」与
 「accepted」）。**实施门序开启（2026-10-13）**：宿主已落章 verdict-005/006 accepted（velocity 冻结正式解除，全链 VEL-1..4 已实施部署）——zen-udf 侧实施（三字段契约/conformance 分档/双名注册）可启动，实施归上游会话。
@@ -229,3 +229,28 @@ velocityPack 是本契约的第一批消费者（velocity-udf-plan §11.3 合流
 
 归属按 ADR-000 §3.1：T2 归 zen-udf 实施仓（jdm）；T3 立法起草归本仓会话
 （CONTRACT.md 为跨仓契约物）；T1/T4 归 verdict。
+
+## 实施回执（2026-10-14，seal 会话验收——zen-udf 1.7.0）
+
+**T2 三件套验收通过**（jdm 仓 c990bdda + 发版 5fa7372d，npm 1.7.0 在架）：
+
+| ADR 条款 | 实现 | 验收证据 |
+| --- | --- | --- |
+| §1.1 三字段契约 | UdfSchema/UdfPackMeta 增 temporal/stateful/fidelity（注册面归一缺省）；**OQ1 裁定 = pack 级缺省 + tool 级覆盖**（tool() 透传 undefined 不冻结缺省，解析统一在注册面 schema） | tool.ts +14 / register.ts normalizeUdfSchema |
+| §1.2 replay 强制 | ports.replayPolicy（strict=RATE_NO_EVENT_TIME 结构化错误入 trace+outcome / degraded=TEMPORAL_FALLBACK 标注，缺省 degraded）；observe/act journal 读回不受检，**与 1.5.0 回放钉扎同通道**（journal/observed 携 packVersion，本处携时间档位）——评审注记 2026-10-13 勘误的「对齐点」闭合 | engine.ts replay 分支（逐行核验） |
+| §1.3 幂等 | ToolContext 传播三字段（宿主 HTTP/重试包装器执行禁重试纪律）；幂等键 requestId 单源贯穿既有 | ToolContext 扩展 |
+| §1.4 conformance 分档 | rateStoreConformance mode exact/approximate + epsilon——approximate ε 容差+单调性豁免；exact 唯一新增=**重试双计向量**（rate INCR 同参重试双计、pv 双计 uv 不双计——非幂等钉进契约） | rate-store-conformance.ts +92 |
+| §1.5 P4-B 双名注册 | trailing-window 域 + trailing_count_1h / trailing_distinct_1h 新名（契约字段全挂载）+ 旧名 rate_1h / group_distinct_1h 同 run alias + deprecated since 1.7.0（ADR-009 治理退役）——存量图永久可读 | rate-window.ts:143-215（逐行核验） |
+
+- **门禁本地复现**：zen-udf 全量 **1143/1143**（44 文件）+ ADR-021 套件 **7/7**（adr021-stateful-operator.test.ts）+ tsc 干净；
+- **窗口覆盖面**：1h（与既有注册面一致——1m/5m/1d/7d 历史上未注册，无 alias 义务）；
+- fidelity 已进 trace/observed（ε 口径结果侧可见，OQ2 两层对齐就位）。
+
+### 剩余清单（不阻塞 accepted）
+
+| # | 项 | 归属 |
+| --- | --- | --- |
+| 实施清单 #4 | CONTRACT.md 状态算子章（trailing 通式 + rolling 禁用词——1.7.0 代码注释已留「随 T3 章」钩子） | seal 会话（立法起草中） |
+| T4 | HaProxyRateStore 声明 interpolated + 目录重导出 | verdict 会话 |
+| 目录镜像 | verdict 侧 host-functions.json 尚无 trailing 条目（双名注册的目录面同步） | verdict 会话 |
+| T1 | 生产 DB 旧名引用计数 → 过渡期定档（仓内侧 0 引用已盘点） | verdict ops |
