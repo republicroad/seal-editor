@@ -1,6 +1,7 @@
 import { Sortable, SortableItem, SortableItemHandle } from '#reui/sortable';
 import React, { useEffect, useState } from 'react';
 
+import { useT } from '../../../theming/i18n';
 import { Form, Modal, Typography } from '../../primitives';
 import type { TableSchemaItem } from '../context/dt-store.context';
 
@@ -17,6 +18,7 @@ export type FieldsReorderProps = {
  * 重排结果仍以 onValueChange 全量列表回写（业务契约不变）。
  */
 export const FieldsReorder: React.FC<FieldsReorderProps> = (props) => {
+  const t = useT();
   const { isOpen, onDismiss, onSuccess, fields, getContainer } = props;
 
   const [columns, setColumns] = useState<TableSchemaItem[]>([]);
@@ -29,7 +31,7 @@ export const FieldsReorder: React.FC<FieldsReorderProps> = (props) => {
 
   return (
     <Modal
-      title='Reorder fields'
+      title={t('dialog.reorderFields')}
       open={isOpen}
       onCancel={onDismiss}
       width={360}

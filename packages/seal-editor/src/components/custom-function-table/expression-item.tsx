@@ -529,7 +529,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({
                     <div className='code-editor-container'>
                       <DiffCodeEditor
                         className='expression-list-item__value'
-                        placeholder='Expression'
+                        placeholder={t('expression.placeholder')}
                         maxRows={9}
                         disabled={disabled}
                         value={toOperatorExprDisplay(expression?.value)}

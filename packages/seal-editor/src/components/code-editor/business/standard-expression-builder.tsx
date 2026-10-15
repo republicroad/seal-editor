@@ -13,6 +13,7 @@ import React, { useEffect, useImperativeHandle, useMemo, useRef, useState } from
 
 import type { ColumnEnum, OutputFieldType } from '../../../helpers/schema';
 import { type DictionaryMap, useDictionaries } from '../../../theme';
+import { useT } from '../../../theming/i18n';
 import { AutosizeTextArea } from '../../autosize-text-area';
 import { DatePicker, InputNumber, Select } from '../../primitives';
 import { CodeEditorBase } from '../ce-base';
@@ -101,6 +102,7 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
   ({ value, onChange, disabled = false, fieldType, maxRows = 3 }, ref) => {
     const rootRef = useRef<HTMLDivElement>(null);
     const dictionaries = useDictionaries();
+    const t = useT();
     const ftType = fieldType?.type ?? 'auto';
     const styleVars = { ...BUILDER_TOKENS, '--b-max-rows': maxRows } as React.CSSProperties;
 
@@ -148,7 +150,7 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
                 setIsExprMode(false);
               }}
               disabled={disabled}
-              title='Currently: Expression. Click for value mode.'
+              title={t('builder.currentExpression')}
             >
               <SquareFunctionIcon size={14} />
             </button>
@@ -183,7 +185,7 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
           className='flex shrink-0 cursor-pointer items-center justify-center rounded-md border-0 bg-muted px-1.5 py-[var(--b-v-padding)] text-[11px] text-muted-foreground transition-colors min-h-[var(--b-height)] enabled:hover:bg-accent enabled:hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50'
           onClick={() => setIsExprMode(true)}
           disabled={disabled}
-          title='Currently: Value. Click for expression mode.'
+          title={t('builder.currentValue')}
         >
           {TypeIcon && <TypeIcon size={14} />}
         </button>

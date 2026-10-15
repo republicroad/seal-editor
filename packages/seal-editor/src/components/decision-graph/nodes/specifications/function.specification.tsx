@@ -3,6 +3,7 @@ import _ from 'lodash';
 import React from 'react';
 import { P, match } from 'ts-pattern';
 
+import { useT } from '../../../../theming/i18n';
 import { defaultFunctionValue } from '../../../function/helpers/libs';
 import { Button, Tooltip, Typography } from '../../../primitives';
 import { useDecisionGraphActions, useDecisionGraphState } from '../../context/dg-store.context';
@@ -74,6 +75,7 @@ export const functionSpecification: NodeSpecification<NodeFunctionData> = {
   renderNode: ({ id, data, selected, specification }) => {
     const graphActions = useDecisionGraphActions();
     const kind = useFunctionKind(id);
+    const t = useT();
     return (
       <GraphNode
         id={id}
@@ -81,7 +83,7 @@ export const functionSpecification: NodeSpecification<NodeFunctionData> = {
           ...specification,
           displayName:
             kind === FunctionKind.Stable ? (
-              'Function'
+              t('spec.function.name')
             ) : (
               <span>
                 {'Function v1 '}
@@ -117,11 +119,11 @@ export const useFunctionKind = (id: string) => {
   return kind;
 };
 
-const DeprecatedFunctionWarning: React.FC<{ size?: number }> = ({ size }) => (
-  <Tooltip
-    placement='top'
-    title='Function v1 will be deprecated in one of the upcoming releases. To use a new Function, drag and drop a new Function Node and copy your logic. For more information click "Documentation". '
-  >
-    <WarningFilled style={{ color: 'var(--seal-color-warning-text)', fontSize: size }} />
-  </Tooltip>
-);
+const DeprecatedFunctionWarning: React.FC<{ size?: number }> = ({ size }) => {
+  const t = useT();
+  return (
+    <Tooltip placement='top' title={t('spec.function.deprecation')}>
+      <WarningFilled style={{ color: 'var(--seal-color-warning-text)', fontSize: size }} />
+    </Tooltip>
+  );
+};

@@ -4,6 +4,7 @@ import { IconTile } from '#reui/icon-tile';
 import { Panel, useOnSelectionChange } from '@xyflow/react';
 import React from 'react';
 
+import { useT } from '../../../theming/i18n';
 import { Button } from '../../primitives';
 import { useDecisionGraphState } from '../context/dg-store.context';
 import { resolveCustomNode } from '../nodes/resolve-custom-node';
@@ -15,6 +16,7 @@ import { nodeSpecification } from '../nodes/specifications/specifications';
  * 关闭仅收起面板，重新选择节点即再次打开。
  */
 export const NodeInspector: React.FC = () => {
+  const t = useT();
   const [selected, setSelected] = React.useState<{ id: string; type: string; kind?: string; name?: string } | null>(
     null,
   );
@@ -75,7 +77,7 @@ export const NodeInspector: React.FC = () => {
             type='text'
             size='small'
             className='h-6 w-6 p-0'
-            aria-label='Close inspector'
+            aria-label={t('inspector.close')}
             icon={<CloseOutlined style={{ fontSize: 10 }} />}
             onClick={() => setClosed(true)}
           />

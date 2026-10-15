@@ -33,7 +33,7 @@ export const JsonToJsonSchemaDialog: React.FC<JsonToJsonSchemaDialogProps> = (pr
 
   return (
     <Modal
-      title='Convert to JSON Schema'
+      title={t('dialog.convertToJsonSchema')}
       open={isOpen}
       destroyOnClose
       onCancel={onDismiss}

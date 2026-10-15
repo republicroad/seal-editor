@@ -9,6 +9,7 @@ import type { z } from 'zod';
 
 import { useNodeType } from '../../../../helpers/node-type';
 import type { decisionTableSchema } from '../../../../helpers/schema';
+import { useT } from '../../../../theming/i18n';
 import { Button, Form } from '../../../primitives';
 import { DiffCodeEditor, DiffInput, DiffRadio, DiffSwitch } from '../../../shared';
 import { useDecisionGraphActions, useDecisionGraphState, useNodeDiff } from '../../context/dg-store.context';
@@ -324,6 +325,7 @@ export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData
     },
   }),
   renderNode: ({ id, data, selected, specification }) => {
+    const t = useT();
     const graphActions = useDecisionGraphActions();
     const { passThrough, executionMode } = useDecisionGraphState(({ decisionGraph }) => {
       const content = (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content as NodeDecisionTableData;
@@ -342,13 +344,14 @@ export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData
         helper={[executionMode === 'loop' && <SyncOutlined />, passThrough && <ArrowRightOutlined />]}
         actions={[
           <Button key='edit-table' type='text' onClick={() => graphActions.openTab(id)}>
-            Edit Table
+            {t('spec.dt.edit')}
           </Button>,
         ]}
       />
     );
   },
   renderSettings: ({ id }) => {
+    const t = useT();
     const graphActions = useDecisionGraphActions();
     const inputType = useNodeType(id);
     const { contentDiff } = useNodeDiff(id);
@@ -375,7 +378,7 @@ export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData
     };
 
     return (
-      <SettingsFrame title='Decision table'>
+      <SettingsFrame title={t('spec.dt.title')}>
         <Form.Item label={'Hit policy'}>
           <DiffRadio
             size={'small'}
@@ -396,7 +399,7 @@ export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData
             ]}
           />
         </Form.Item>
-        <Form.Item label='Passthrough'>
+        <Form.Item label={t('spec.common.passthrough')}>
           <DiffSwitch
             disabled={disabled}
             size={'small'}
@@ -406,7 +409,7 @@ export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData
             onChange={(e) => updateNode({ passThrough: e })}
           />
         </Form.Item>
-        <Form.Item label='Input field'>
+        <Form.Item label={t('spec.common.inputField')}>
           <DiffCodeEditor
             variableType={inputType}
             disabled={disabled}
@@ -419,7 +422,7 @@ export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData
             onChange={(val) => updateNode({ inputField: val?.trim() || null })}
           />
         </Form.Item>
-        <Form.Item label='Output path'>
+        <Form.Item label={t('spec.common.outputPath')}>
           <DiffInput
             size={'small'}
             readOnly={disabled}
@@ -429,7 +432,7 @@ export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData
             onChange={(e) => updateNode({ outputPath: e?.target?.value?.trim() || null })}
           />
         </Form.Item>
-        <Form.Item label='Execution mode'>
+        <Form.Item label={t('spec.common.executionMode')}>
           <DiffRadio
             size={'small'}
             disabled={disabled}
@@ -440,11 +443,11 @@ export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData
             options={[
               {
                 value: 'single',
-                label: 'Single',
+                label: t('spec.common.single'),
               },
               {
                 value: 'loop',
-                label: 'Loop',
+                label: t('spec.common.loop'),
               },
             ]}
           />

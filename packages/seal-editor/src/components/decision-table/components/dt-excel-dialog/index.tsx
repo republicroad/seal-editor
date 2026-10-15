@@ -387,7 +387,7 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
 
   return (
     <Modal
-      title='Map Excel data'
+      title={t('dialog.mapExcelData')}
       closable={{ 'aria-label': 'Custom Close Button' }}
       centered
       open={!!spreadSheetData}

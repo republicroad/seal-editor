@@ -5,6 +5,7 @@ import React from 'react';
 import type { z } from 'zod';
 
 import type { outputNodeSchema } from '../../../../helpers/schema';
+import { useT } from '../../../../theming/i18n';
 import { Button } from '../../../primitives';
 import { useDecisionGraphActions } from '../../context/dg-store.context';
 import type { Diff, DiffMetadata } from '../../dg-types';
@@ -29,6 +30,7 @@ export const outputSpecification: NodeSpecification<NodeOutputData> = {
   renderTab: ({ id }) => <TabJsonSchema id={id} type={'output'} />,
   renderNode: ({ id, data, selected, specification }) => {
     const graphActions = useDecisionGraphActions();
+    const t = useT();
     return (
       <GraphNode
         id={id}
@@ -38,7 +40,7 @@ export const outputSpecification: NodeSpecification<NodeOutputData> = {
         handleRight={false}
         actions={[
           <Button key='edit-table' type='text' onClick={() => graphActions.openTab(id)}>
-            Configure
+            {t('spec.common.configure')}
           </Button>,
         ]}
       />

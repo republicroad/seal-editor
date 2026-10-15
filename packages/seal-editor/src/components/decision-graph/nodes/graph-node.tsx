@@ -138,7 +138,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
                 type='text'
                 size='small'
                 className='h-6 w-6 p-0'
-                aria-label='Settings'
+                aria-label={t('spec.common.settings')}
                 icon={<EditOutlined />}
                 onClick={openSettings}
               />
@@ -147,7 +147,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
               type='text'
               size='small'
               className='h-6 w-6 p-0'
-              aria-label='Copy'
+              aria-label={t('node.copy')}
               icon={<CopyOutlined />}
               onClick={() => graphActions.copyNodes([id])}
             />
@@ -155,7 +155,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
               type='text'
               size='small'
               className='h-6 w-6 p-0'
-              aria-label='Duplicate'
+              aria-label={t('node.duplicate')}
               disabled={disabled}
               icon={<PlusOutlined />}
               onClick={() => graphActions.duplicateNodes([id])}
@@ -164,7 +164,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
               type='text'
               size='small'
               className='h-6 w-6 p-0 text-[var(--destructive)]'
-              aria-label='Delete'
+              aria-label={t('node.delete')}
               disabled={disabled}
               icon={<DeleteOutlined />}
               onClick={confirmDelete}
@@ -191,7 +191,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
           details={Settings ? <Settings id={id} /> : undefined}
           detailsOpen={detailsOpen}
           detailsTitle={match(currentDetails)
-            .with(Details.Settings, () => 'Settings')
+            .with(Details.Settings, () => t('spec.common.settings'))
             .otherwise(() => undefined)}
           onDetailsClose={() => setDetailsOpen(false)}
           actions={

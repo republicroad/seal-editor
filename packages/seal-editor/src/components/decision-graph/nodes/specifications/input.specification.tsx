@@ -57,7 +57,7 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
         handleLeft={false}
         actions={[
           <Button key='edit-table' type='text' onClick={() => graphActions.openTab(id)}>
-            Configure
+            {t('spec.common.configure')}
           </Button>,
         ]}
         menuItems={[

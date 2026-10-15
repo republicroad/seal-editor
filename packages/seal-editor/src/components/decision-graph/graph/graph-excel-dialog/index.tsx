@@ -376,7 +376,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
   return (
     <Modal
       className='seal-graph-excel-dialog'
-      title='Map Excel data'
+      title={t('dialog.mapExcelData')}
       closable={{ 'aria-label': 'Custom Close Button' }}
       centered
       open={!!excelData}
