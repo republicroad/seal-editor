@@ -14,6 +14,9 @@ export type ExpressionDollarHint = {
   kind: DollarHintKind;
   /** 涉及的输入字段名 */
   name: string;
+  /** 命中位置（value 内的字符偏移，CM lint 定位用） */
+  start: number;
+  end: number;
   /** 命中的 `$.<path>` 原文（空白归一） */
   ref?: string;
   /** 修复建议：剥 `$.` 前缀的裸名路径 */
@@ -49,6 +52,8 @@ export const analyzeExpressionValue = (
     hints.push({
       kind: 'input-ref-via-dollar',
       name,
+      start: match.index ?? 0,
+      end: (match.index ?? 0) + match[0].length,
       ref: normalizeWs(match[0]),
       suggestion: `${name}${rest}`,
     });

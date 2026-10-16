@@ -20,6 +20,8 @@ type TypeField = {
   rootKind: any;
   expressionType: 'standard' | 'unary';
   strict: boolean;
+  /** `$` 误用诊断的上下文（expression 行编辑器注入；null = 诊断关闭） */
+  dollarCtx?: { rowKeys: string[]; inputFieldNames: string[] } | null;
 };
 
 const defaultTypeField: TypeField = { types: [], rootKind: 'Any', expressionType: 'standard', strict: false };
@@ -28,6 +30,7 @@ export const updateVariableTypeEffect = StateEffect.define<VariableType | null>(
 export const updateExpressionTypeEffect = StateEffect.define<'standard' | 'unary'>();
 export const updateExpectedVariableTypeEffect = StateEffect.define<VariableType | null>();
 export const updateStrictModeEffect = StateEffect.define<boolean>();
+export const updateDollarContextEffect = StateEffect.define<{ rowKeys: string[]; inputFieldNames: string[] } | null>();
 
 export const typeField = StateField.define<TypeField>({
   create() {
@@ -53,16 +56,22 @@ export const typeField = StateField.define<TypeField>({
 
       const updateStrictMode = transaction.effects.find((e) => e.is(updateStrictModeEffect));
       const strict: boolean = match(updateStrictMode)
-        .with({ value: P.boolean }, ({ value }) => value)
+        .with({ value: P.boolean }, (e) => e.value)
         .otherwise(() => value.strict);
 
+      const updateDollarCtx = transaction.effects.find((e) => e.is(updateDollarContextEffect));
+      const dollarCtx = match(updateDollarCtx)
+        .with({ value: P.nonNullable }, (e) => e.value)
+        .with({ value: P.nullish }, () => null)
+        .otherwise(() => value.dollarCtx ?? null);
+
       if (!variableType) {
-        return { ...value, expressionType, expectedVariableType, strict };
+        return { ...value, expressionType, expectedVariableType, strict, dollarCtx };
       }
 
       // Triggered without effect and no changes, bail
       if (!transaction.docChanged && !updateExpressionType && !updateVariableType) {
-        return { ...value, expressionType, expectedVariableType, strict };
+        return { ...value, expressionType, expectedVariableType, strict, dollarCtx };
       }
 
       const source = transaction.newDoc.toString();
@@ -71,6 +80,7 @@ export const typeField = StateField.define<TypeField>({
         expressionType,
         expectedVariableType,
         strict,
+        dollarCtx,
         root: variableType,
         rootKind: variableType.toJson(),
         types: match(expressionType)
@@ -87,7 +97,8 @@ export const typeField = StateField.define<TypeField>({
       a.expressionType === b.expressionType &&
       a.root === b.root &&
       a.expectedVariableType === b.expectedVariableType &&
-      a.strict === b.strict
+      a.strict === b.strict &&
+      a.dollarCtx === b.dollarCtx
     );
   },
 });

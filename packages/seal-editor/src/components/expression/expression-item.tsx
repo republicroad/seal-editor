@@ -46,7 +46,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
     const rowKeys = expressions.map((entry) => entry.key?.trim() ?? '').filter(Boolean);
     const keyShadow = rowKeyShadowsInput(expression.key, inputFieldNames);
     const valueHints = analyzeExpressionValue(expression.value, { rowKeys, inputFieldNames });
-    return { keyShadow, valueHints };
+    return { keyShadow, valueHints, dollarContext: { rowKeys, inputFieldNames } };
   });
 
   const onChange = (update: Partial<Omit<ExpressionEntry, 'id'>>) => {
@@ -161,6 +161,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
         >
           <div>
             <DiffCodeEditor
+              dollarContext={dollarHints.dollarContext}
               // Consolidated on --ce-* tokens (HK-13): geometry now flows through
               // the same custom properties decision-table cells use (12px rhythm),
               // placeholder via the semantic token. pr-[60px] stays — reserved

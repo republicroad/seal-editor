@@ -12,7 +12,7 @@ describe('analyzeExpressionValue（C1：$.<输入字段> 静默丢行哨兵）',
 
   it('$.a 引输入字段（非行键）→ 提示改裸名', () => {
     expect(analyzeExpressionValue('$.a', opts)).toEqual([
-      { kind: 'input-ref-via-dollar', name: 'a', ref: '$.a', suggestion: 'a' },
+      { kind: 'input-ref-via-dollar', name: 'a', start: 0, end: 3, ref: '$.a', suggestion: 'a' },
     ]);
   });
 
@@ -26,13 +26,13 @@ describe('analyzeExpressionValue（C1：$.<输入字段> 静默丢行哨兵）',
 
   it('多段路径剥前缀给完整建议', () => {
     expect(analyzeExpressionValue('$.user.name', opts)).toEqual([
-      { kind: 'input-ref-via-dollar', name: 'user', ref: '$.user.name', suggestion: 'user.name' },
+      { kind: 'input-ref-via-dollar', name: 'user', start: 0, end: 11, ref: '$.user.name', suggestion: 'user.name' },
     ]);
   });
 
   it('同名去重 + 混合行键引用只报输入段', () => {
     expect(analyzeExpressionValue('$.a + $.a.b + $.c + $.d', opts)).toEqual([
-      { kind: 'input-ref-via-dollar', name: 'a', ref: '$.a', suggestion: 'a' },
+      { kind: 'input-ref-via-dollar', name: 'a', start: 0, end: 3, ref: '$.a', suggestion: 'a' },
     ]);
   });
 

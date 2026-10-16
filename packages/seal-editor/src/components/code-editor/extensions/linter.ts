@@ -4,10 +4,12 @@ import { P, match } from 'ts-pattern';
 
 import { codemirror } from '../../../helpers/codemirror';
 import { isWasmAvailable } from '../../../helpers/wasm';
+import { analyzeExpressionValue } from '../../../helpers/zen-dollar-hints';
 import { renderDiagnosticMessage } from './diagnostic';
 import type { ZenType } from './types';
 import {
   typeField,
+  updateDollarContextEffect,
   updateExpectedVariableTypeEffect,
   updateExpressionTypeEffect,
   updateStrictModeEffect,
@@ -107,17 +109,42 @@ export const zenLinter = (type: string) => {
         expectedVariableType: tFields.expectedVariableType,
       });
 
-      if (diagnostics.some((d) => d.severity === 'error')) {
+      // ADR-021/$ 语义哨兵（zen-reference §1.5）：`$.<输入字段>` 静默丢行——
+      // 上下文由 expression 行编辑器经 updateDollarContextEffect 注入（null = 关闭）。
+      const dollarDiagnostics: Diagnostic[] = tFields.dollarCtx
+        ? analyzeExpressionValue(source, tFields.dollarCtx).map((hint) => ({
+            from: hint.start,
+            to: hint.end,
+            severity: 'warning' as const,
+            message: `"${hint.ref}" reads an input field via $ — rows only cover row outputs; write "${hint.suggestion}" (bare name) or the row is silently dropped.`,
+            source: 'Dollar scope',
+            actions: hint.suggestion
+              ? [
+                  {
+                    name: `Use "${hint.suggestion}"`,
+                    apply: (lintView, fixFrom, fixTo) =>
+                      lintView.dispatch({
+                        changes: { from: fixFrom, to: fixTo, insert: hint.suggestion ?? '' },
+                      }),
+                  },
+                ]
+              : undefined,
+          }))
+        : [];
+
+      const allDiagnostics = [...diagnostics, ...dollarDiagnostics];
+
+      if (allDiagnostics.some((d) => d.severity === 'error')) {
         view.dom.setAttribute('data-severity', 'error');
-      } else if (diagnostics.some((d) => d.severity === 'warning')) {
+      } else if (allDiagnostics.some((d) => d.severity === 'warning')) {
         view.dom.setAttribute('data-severity', 'warning');
-      } else if (diagnostics.some((d) => d.severity === 'info')) {
+      } else if (allDiagnostics.some((d) => d.severity === 'info')) {
         view.dom.setAttribute('data-severity', 'info');
-      } else if (diagnostics.some((d) => d.severity === 'hint')) {
+      } else if (allDiagnostics.some((d) => d.severity === 'hint')) {
         view.dom.setAttribute('data-severity', 'hint');
       }
 
-      return diagnostics;
+      return allDiagnostics;
     },
     {
       needsRefresh: (update) => {
@@ -127,7 +154,8 @@ export const zenLinter = (type: string) => {
               effect.is(updateExpressionTypeEffect) ||
               effect.is(updateVariableTypeEffect) ||
               effect.is(updateExpectedVariableTypeEffect) ||
-              effect.is(updateStrictModeEffect),
+              effect.is(updateStrictModeEffect) ||
+              effect.is(updateDollarContextEffect),
           ),
         );
       },

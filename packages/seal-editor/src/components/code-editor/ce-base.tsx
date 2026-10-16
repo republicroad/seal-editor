@@ -11,6 +11,7 @@ import { composeRefs } from '../../helpers/compose-refs';
 import { isWasmAvailable } from '../../helpers/wasm';
 import { useThemeMode } from '../../theme';
 import {
+  updateDollarContextEffect,
   updateExpectedVariableTypeEffect,
   updateExpressionTypeEffect,
   updateStrictModeEffect,
@@ -48,6 +49,8 @@ export type CodeEditorBaseProps = {
   type?: 'unary' | 'standard' | 'template';
   lint?: boolean;
   strict?: boolean;
+  /** $ 误用诊断上下文（expression 行编辑器注入；缺省 = 诊断关闭） */
+  dollarContext?: { rowKeys: string[]; inputFieldNames: string[] } | null;
   fullHeight?: boolean;
   noStyle?: boolean;
   extension?: (params: ExtensionParams) => Extension;
@@ -68,6 +71,7 @@ export const CodeEditorBase = React.forwardRef<CodeEditorBaseRef, CodeEditorBase
       noStyle = false,
       fullHeight = false,
       strict = false,
+      dollarContext,
       maxRows,
       disabled,
       value,
@@ -294,6 +298,16 @@ export const CodeEditorBase = React.forwardRef<CodeEditorBaseRef, CodeEditorBase
         effects: updateStrictModeEffect.of(strict),
       });
     }, [strict]);
+
+    useEffect(() => {
+      if (!codeMirror.current) {
+        return;
+      }
+
+      codeMirror.current.dispatch({
+        effects: updateDollarContextEffect.of(dollarContext ?? null),
+      });
+    }, [dollarContext]);
 
     return (
       <div
