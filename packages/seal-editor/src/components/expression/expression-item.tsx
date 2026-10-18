@@ -46,7 +46,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
     const rowKeys = expressions.map((entry) => entry.key?.trim() ?? '').filter(Boolean);
     const keyShadow = rowKeyShadowsInput(expression.key, inputFieldNames);
     const valueHints = analyzeExpressionValue(expression.value, { rowKeys, inputFieldNames });
-    return { keyShadow, valueHints, dollarContext: { rowKeys, inputFieldNames } };
+    return { keyShadow, valueHints, dollarContext: { kind: 'expression-row' as const, rowKeys, inputFieldNames } };
   });
 
   const onChange = (update: Partial<Omit<ExpressionEntry, 'id'>>) => {

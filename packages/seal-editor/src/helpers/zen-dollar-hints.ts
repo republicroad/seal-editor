@@ -62,6 +62,20 @@ export const analyzeExpressionValue = (
 };
 
 /**
+ * C2 定位扫描：全表达式单元里所有 `$.` 导航的命中段（CM lint 定位用）。
+ */
+export const analyzeDollarNavigationPositions = (
+  value: string | null | undefined,
+): { start: number; end: number; ref: string }[] => {
+  if (!value) return [];
+  return [...value.matchAll(DOLLAR_PATH_RE)].map((m) => ({
+    start: m.index ?? 0,
+    end: (m.index ?? 0) + m[0].length,
+    ref: normalizeWs(m[0]),
+  }));
+};
+
+/**
  * C3：行键与顶层输入字段同名 → 裸名仍读输入、输出被行覆盖（同名三义 hazard）。
  * 只提示不阻断——同名写法本身合法。
  */

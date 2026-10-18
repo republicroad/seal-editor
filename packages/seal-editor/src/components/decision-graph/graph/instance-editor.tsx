@@ -1,6 +1,7 @@
 import { PlusSquareOutlined, UnorderedListOutlined } from '#icons';
 import { Alert, AlertTitle } from '#reui/alert';
 import { Empty, EmptyContent, EmptyMedia, EmptyTitle } from '#reui/empty';
+import clsx from 'clsx';
 import React, { useMemo, useState } from 'react';
 
 import type { FunctionScope, InstanceSchedule } from '../../../helpers/custom-function-schema';
@@ -145,12 +146,26 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
   }, [instances, selected]);
 
   // 引用源（C2）：兄弟实例键 → `$.<key>`；上次仿真输出为对象时展开一级字段 → `$.<key>.<field>`。
-  // 点击复制，宿主粘贴进 args 表达式即建隐式依赖边（ADR-015 增补）。
+  // 点击行为：聚焦参数存在 → 直接写入该参数（expression 信封，onClick 冒泡追踪的活跃行）；
+  // 未聚焦参数 → 回退复制。宿主粘贴进 args 表达式同样建隐式依赖边（ADR-015 增补）。
   const [copiedRef, setCopiedRef] = useState<string | null>(null);
+  const [activeParamName, setActiveParamName] = useState<string | null>(null);
   const copyRef = (ref: string) => {
     void navigator.clipboard?.writeText(ref).catch(() => {});
     setCopiedRef(ref);
     window.setTimeout(() => setCopiedRef((cur) => (cur === ref ? null : cur)), 1200);
+  };
+  const applyReference = (ref: string) => {
+    if (!selected || !activeParamName) {
+      copyRef(ref);
+      return;
+    }
+    updateInstance(selected.id, {
+      call: {
+        ...selected.call,
+        kwargs: { ...selected.call.kwargs, [activeParamName]: { mode: 'expression', value: ref } },
+      },
+    });
   };
   const referenceChips = useMemo(() => {
     if (!selected) return [] as { ref: string; hint?: string }[];
@@ -453,10 +468,12 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
                     <button
                       key={chip.ref}
                       type='button'
-                      title={t('cf.referenceCopy')}
+                      title={
+                        activeParamName ? t('cf.referenceInsert', { param: activeParamName }) : t('cf.referenceCopy')
+                      }
                       data-testid={`reference-chip-${chip.ref}`}
                       className='cursor-pointer rounded-sm border border-border bg-muted/40 px-1.5 py-0.5 font-mono text-[10px] hover:bg-muted/80'
-                      onClick={() => copyRef(chip.ref)}
+                      onClick={() => applyReference(chip.ref)}
                     >
                       {chip.ref}
                       {copiedRef === chip.ref && <span className='ml-1 opacity-60'>{t('cf.referenceCopied')}</span>}
@@ -500,7 +517,15 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
                     const typed: TypedValue = coerceToTypedValue(selected.call.kwargs[name]);
 
                     return (
-                      <div key={name} className='grid grid-cols-[120px_minmax(0,1fr)] items-center gap-2'>
+                      <div
+                        key={name}
+                        data-testid={`param-row-${name}`}
+                        className={clsx(
+                          'grid grid-cols-[120px_minmax(0,1fr)] items-center gap-2 rounded-md',
+                          activeParamName === name && 'bg-[var(--seal-color-warning-bg)]',
+                        )}
+                        onClick={() => setActiveParamName(name)}
+                      >
                         <div className='flex min-w-0 items-center gap-1'>
                           <Typography.Text className='truncate text-xs opacity-70' ellipsis>
                             {name}

@@ -11,6 +11,7 @@ import { composeRefs } from '../../helpers/compose-refs';
 import { isWasmAvailable } from '../../helpers/wasm';
 import { useThemeMode } from '../../theme';
 import {
+  type DollarLintContext,
   updateDollarContextEffect,
   updateExpectedVariableTypeEffect,
   updateExpressionTypeEffect,
@@ -50,7 +51,7 @@ export type CodeEditorBaseProps = {
   lint?: boolean;
   strict?: boolean;
   /** $ 误用诊断上下文（expression 行编辑器注入；缺省 = 诊断关闭） */
-  dollarContext?: { rowKeys: string[]; inputFieldNames: string[] } | null;
+  dollarContext?: DollarLintContext | null;
   fullHeight?: boolean;
   noStyle?: boolean;
   extension?: (params: ExtensionParams) => Extension;

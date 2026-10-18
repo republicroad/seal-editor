@@ -20,9 +20,12 @@ type TypeField = {
   rootKind: any;
   expressionType: 'standard' | 'unary';
   strict: boolean;
-  /** `$` 误用诊断的上下文（expression 行编辑器注入；null = 诊断关闭） */
-  dollarCtx?: { rowKeys: string[]; inputFieldNames: string[] } | null;
+  /** `$` 误用诊断的上下文（按表面注入；null = 诊断关闭） */
+  dollarCtx?: DollarLintContext | null;
 };
+
+export type DollarLintContext =
+  { kind: 'expression-row'; rowKeys: string[]; inputFieldNames: string[] } | { kind: 'dt-cell' };
 
 const defaultTypeField: TypeField = { types: [], rootKind: 'Any', expressionType: 'standard', strict: false };
 
@@ -30,7 +33,7 @@ export const updateVariableTypeEffect = StateEffect.define<VariableType | null>(
 export const updateExpressionTypeEffect = StateEffect.define<'standard' | 'unary'>();
 export const updateExpectedVariableTypeEffect = StateEffect.define<VariableType | null>();
 export const updateStrictModeEffect = StateEffect.define<boolean>();
-export const updateDollarContextEffect = StateEffect.define<{ rowKeys: string[]; inputFieldNames: string[] } | null>();
+export const updateDollarContextEffect = StateEffect.define<DollarLintContext | null>();
 
 export const typeField = StateField.define<TypeField>({
   create() {

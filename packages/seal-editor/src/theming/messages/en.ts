@@ -342,6 +342,7 @@ export const en = {
   'cf.dependsOnUnused': 'Declared but not referenced in args (ordering-only): {{deps}}',
   'cf.referenceSources': 'Reference sources',
   'cf.referenceSourcesHint': 'click to copy $. reference — paste into args to build an implicit dependency edge',
+  'cf.referenceInsert': 'Insert into {{param}}',
   'cf.referenceCopy': 'Copy reference',
   'cf.referenceCopied': 'copied',
   'cf.instanceEmpty': 'No instances yet',

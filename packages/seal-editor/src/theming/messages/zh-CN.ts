@@ -324,6 +324,7 @@ export const zhCN: Record<string, string> = {
   'cf.dependsOnUnused': '已声明但 args 未引用（仅排序用途）：{{deps}}',
   'cf.referenceSources': '引用源',
   'cf.referenceSourcesHint': '点击复制 $. 引用——粘贴进 args 即建隐式依赖边',
+  'cf.referenceInsert': '插入到参数 {{param}}',
   'cf.referenceCopy': '复制引用',
   'cf.referenceCopied': '已复制',
   'cf.dependsOn': '依赖',

@@ -1,10 +1,11 @@
 import type { Diagnostic } from '@codemirror/lint';
+import type { EditorView } from '@codemirror/view';
 import { VariableType, validateExpression, validateUnaryExpression } from '@gorules/zen-engine-wasm';
 import { P, match } from 'ts-pattern';
 
 import { codemirror } from '../../../helpers/codemirror';
 import { isWasmAvailable } from '../../../helpers/wasm';
-import { analyzeExpressionValue } from '../../../helpers/zen-dollar-hints';
+import { analyzeDollarNavigationPositions, analyzeExpressionValue } from '../../../helpers/zen-dollar-hints';
 import { renderDiagnosticMessage } from './diagnostic';
 import type { ZenType } from './types';
 import {
@@ -109,28 +110,51 @@ export const zenLinter = (type: string) => {
         expectedVariableType: tFields.expectedVariableType,
       });
 
-      // ADR-021/$ 语义哨兵（zen-reference §1.5）：`$.<输入字段>` 静默丢行——
-      // 上下文由 expression 行编辑器经 updateDollarContextEffect 注入（null = 关闭）。
-      const dollarDiagnostics: Diagnostic[] = tFields.dollarCtx
-        ? analyzeExpressionValue(source, tFields.dollarCtx).map((hint) => ({
-            from: hint.start,
-            to: hint.end,
+      // ADR-021/$ 语义哨兵（zen-reference §1.5）：按表面注入上下文分派诊断——
+      // expression-row：`$.<输入字段>` 静默丢行（bare-name 修复）；
+      // dt-cell：全表达式单元 `$.` 恒不命中（$root/裸名修复）。null = 关闭。
+      const dollarDiagnostics: Diagnostic[] = (() => {
+        const ctx = tFields.dollarCtx;
+        if (!ctx) {
+          return [];
+        }
+        if (ctx.kind === 'dt-cell') {
+          return analyzeDollarNavigationPositions(source).map((hit) => ({
+            from: hit.start,
+            to: hit.end,
             severity: 'warning' as const,
-            message: `"${hint.ref}" reads an input field via $ — rows only cover row outputs; write "${hint.suggestion}" (bare name) or the row is silently dropped.`,
+            message: `"${hit.ref}" never matches in table cells — use "$root." or the bare name instead.`,
             source: 'Dollar scope',
-            actions: hint.suggestion
-              ? [
-                  {
-                    name: `Use "${hint.suggestion}"`,
-                    apply: (lintView, fixFrom, fixTo) =>
-                      lintView.dispatch({
-                        changes: { from: fixFrom, to: fixTo, insert: hint.suggestion ?? '' },
-                      }),
-                  },
-                ]
-              : undefined,
-          }))
-        : [];
+            actions: [
+              {
+                name: 'Strip "$." prefix',
+                apply: (lintView: EditorView, fixFrom: number, fixTo: number) =>
+                  lintView.dispatch({
+                    changes: { from: fixFrom + 2, to: fixTo, insert: '' },
+                  }),
+              },
+            ],
+          }));
+        }
+        return analyzeExpressionValue(source, ctx).map((hint) => ({
+          from: hint.start,
+          to: hint.end,
+          severity: 'warning' as const,
+          message: `"${hint.ref}" reads an input field via $ — rows only cover row outputs; write "${hint.suggestion}" (bare name) or the row is silently dropped.`,
+          source: 'Dollar scope',
+          actions: hint.suggestion
+            ? [
+                {
+                  name: `Use "${hint.suggestion}"`,
+                  apply: (lintView: EditorView, fixFrom: number, fixTo: number) =>
+                    lintView.dispatch({
+                      changes: { from: fixFrom, to: fixTo, insert: hint.suggestion ?? '' },
+                    }),
+                },
+              ]
+            : undefined,
+        }));
+      })();
 
       const allDiagnostics = [...diagnostics, ...dollarDiagnostics];
 

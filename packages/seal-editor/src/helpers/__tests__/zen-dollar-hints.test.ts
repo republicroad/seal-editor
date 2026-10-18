@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  analyzeDollarNavigationPositions,
   analyzeExpressionValue,
   cellHasDollarNavigation,
   findTableCellDollarNavigation,
@@ -114,5 +115,19 @@ describe('findTableCellDollarNavigation（C2 表级扫描）', () => {
   it('空表安全', () => {
     expect(findTableCellDollarNavigation(null)).toEqual([]);
     expect(findTableCellDollarNavigation({})).toEqual([]);
+  });
+});
+
+describe('analyzeDollarNavigationPositions（C2 定位扫描）', () => {
+  it('命中段逐一定位', () => {
+    expect(analyzeDollarNavigationPositions('len($.a) + $.b[0]')).toEqual([
+      { start: 4, end: 7, ref: '$.a' },
+      { start: 11, end: 17, ref: '$.b[0]' },
+    ]);
+  });
+
+  it('空值安全', () => {
+    expect(analyzeDollarNavigationPositions(null)).toEqual([]);
+    expect(analyzeDollarNavigationPositions('')).toEqual([]);
   });
 });
