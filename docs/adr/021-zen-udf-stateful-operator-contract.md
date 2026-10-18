@@ -246,11 +246,11 @@ velocityPack 是本契约的第一批消费者（velocity-udf-plan §11.3 合流
 - **窗口覆盖面**：1h（与既有注册面一致——1m/5m/1d/7d 历史上未注册，无 alias 义务）；
 - fidelity 已进 trace/observed（ε 口径结果侧可见，OQ2 两层对齐就位）。
 
-### 剩余清单（不阻塞 accepted）
+### 剩余清单（不阻塞 accepted）——✅ 全部核销（2026-10-18 verdict 会话回执）
 
-| # | 项 | 归属 |
-| --- | --- | --- |
-| ~~实施清单 #4~~ | ✅ 2026-10-14 落地——CONTRACT §13 状态算子章（四节：声明字段/replay 强制/分档许可/命名通式与禁用词；§5.4 收录 RATE_NO_EVENT_TIME）+ §1.5 双名注册段补 ADR-021 引用。jdm 提交 c3a21519 | seal ✓ |
-| T4 | HaProxyRateStore 声明 interpolated + 目录重导出 | verdict 会话 |
-| 目录镜像 | verdict 侧 host-functions.json 尚无 trailing 条目（双名注册的目录面同步） | verdict 会话 |
-| T1 | 生产 DB 旧名引用计数 → 过渡期定档（仓内侧 0 引用已盘点） | verdict ops |
+| # | 项 | 归属 | 回执 |
+| --- | --- | --- | --- |
+| ~~实施清单 #4~~ | ✅ 2026-10-14 落地——CONTRACT §13 状态算子章（四节：声明字段/replay 强制/分档许可/命名通式与禁用词；§5.4 收录 RATE_NO_EVENT_TIME）+ §1.5 双名注册段补 ADR-021 引用。jdm 提交 c3a21519 | seal ✓ | — |
+| ~~T4~~ | ✅ 声明面落地——HaProxyRateStore 自报 interpolated（provenance `exact:false` + `structure:'bucket-counter'`；capabilities `exact:false`/`replayHorizonMs:null`/`windowTypes:['sliding']`；asOf → RATE_NO_EVENT_TIME fail-closed），保真披露闭环闭合；容器部署按宿主裁定后置（checklist 固化 verdict `docs/deploy/alicloud-checklist.md`，部署时验证）。verdict 提交 2b13a1f | verdict 会话 ✓ | 2026-10-18 |
+| ~~目录镜像~~ | ✅ 落地——verdict `host-functions.json` 已含 trailing-window 域镜像（新名 + 旧名 deprecated 元数据），随 ADR-021 消费轮上线生产。verdict 提交 5d99f91 | verdict 会话 ✓ | 2026-10-18 |
+| ~~T1~~ | ✅ 盘点完成——生产 dump 全量扫描 `rate_`/`group_distinct` 按名引用 **0 条**（operator-rename-audit，verdict 提交 e0dedda 脚本 + 2b13a1f 生产实证）；过渡期可短档，旧名退役无实质障碍 | verdict ops ✓ | 2026-10-18 |
