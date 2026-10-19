@@ -1,6 +1,7 @@
 import React, { useMemo, useRef } from 'react';
 import { P, match } from 'ts-pattern';
 
+import { computeColumnHitStats } from '../../../helpers/dt-column-hit-stats';
 import { getNodeData } from '../../../helpers/node-data';
 import { get } from '../../../helpers/utility';
 import { isWasmAvailable } from '../../../helpers/wasm';
@@ -87,6 +88,32 @@ export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id }) => {
     return { trace: nodeTrace, inputData: extendedInputData, snapshot: nodeSnapshot };
   }, [nodeTrace, nodeSnapshot, inputData]);
 
+  const fixturesRun = useDecisionGraphState(({ fixturesRun }) => fixturesRun);
+
+  // D2：Run all 命中统计——本节点规则命中 → 条件列参与计数（fixturesRun 图级报告，跨页签存续）
+  const runHitStats = useMemo(() => {
+    if (fixturesRun?.status !== 'done' || !fixturesRun.report) {
+      return undefined;
+    }
+    const ruleIds = fixturesRun.report.results.flatMap((r) =>
+      (r.ruleHits ?? []).filter((h) => h.nodeId === id).map((h) => h.ruleId),
+    );
+    if (ruleIds.length === 0) {
+      return undefined;
+    }
+    const nameOf = (columnId: string) => {
+      const col = [...(content?.inputs ?? []), ...(content?.outputs ?? [])].find((c) => c.id === columnId);
+      return col?.name ?? columnId;
+    };
+    return {
+      entries: computeColumnHitStats(content, ruleIds).map((s) => ({
+        name: nameOf(s.columnId),
+        count: s.count,
+      })),
+      total: ruleIds.length,
+    };
+  }, [fixturesRun, content, id]);
+
   return (
     <DecisionTable
       id={id}
@@ -100,6 +127,7 @@ export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id }) => {
       dictionaries={dictionaries}
       mode={mode}
       debug={debug}
+      runHitStats={runHitStats}
       onChange={(val) => {
         graphActions.updateNode(id, (draft) => {
           Object.assign(draft.content, val);

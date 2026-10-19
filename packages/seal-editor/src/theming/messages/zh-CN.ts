@@ -9,6 +9,7 @@ export const zhCN: Record<string, string> = {
   'node.duplicate': '建立副本',
   'node.delete': '删除',
   'inspector.close': '关闭检查器',
+  'dt.runHitStats': 'Run 命中',
   'spec.dt.title': '决策表',
   'spec.expression.title': '表达式',
   'spec.common.passthrough': '透传',

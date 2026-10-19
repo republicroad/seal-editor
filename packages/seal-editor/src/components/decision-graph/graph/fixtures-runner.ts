@@ -23,6 +23,8 @@ export type ExampleRunResult = {
   error?: string;
   durationMs?: number;
   traceHits?: string[];
+  /** D2：决策表节点的规则级命中（nodeId = 命中的表节点，ruleId = 命中规则行 _id） */
+  ruleHits?: { nodeId: string; ruleId: string }[];
 };
 
 export type ExampleRunReport = {

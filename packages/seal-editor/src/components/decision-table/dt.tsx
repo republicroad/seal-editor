@@ -16,12 +16,16 @@ import { Table } from './table/table';
 
 export type { TableScrollApi } from './table/table';
 
+export type DecisionTableRunHitStat = { name: string; count: number };
+
 export type DecisionTableProps = {
   id?: string;
   tableHeight: string | number;
   mountDialogsOnBody?: boolean;
   scrollContainerRef?: React.MutableRefObject<HTMLDivElement | null>;
   scrollApiRef?: React.MutableRefObject<TableScrollApi | null>;
+  /** D2：Run all 后的条件列命中统计（图级 Run all 注入；standalone 传入亦可） */
+  runHitStats?: { entries: { name: string; count: number }[]; total: number } | undefined;
 } & DecisionTableContextProps &
   DecisionTableEmptyType;
 
@@ -31,6 +35,7 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
   mountDialogsOnBody = false,
   scrollContainerRef,
   scrollApiRef,
+  runHitStats,
   ...props
 }) => {
   const [_, setMounted] = useState(false);
@@ -53,6 +58,7 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
           <DecisionTableProvider>
             <DecisionTableDialogProvider getContainer={mountDialogsOnBody ? undefined : getContainer}>
               <DecisionTableCommandBar />
+              <RunHitStatsStrip runHitStats={runHitStats} />
               <DollarNavNotice />
               <DictionaryBridge>
                 <Table
@@ -69,6 +75,25 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
         )}
       </div>
     </SafeBoundary>
+  );
+};
+
+/** D2 统计条：Run all 后的条件列命中计数（entries 由 TabDecisionTable 从 fixturesRun 聚合）。 */
+const RunHitStatsStrip: React.FC<{ runHitStats?: DecisionTableProps['runHitStats'] }> = ({ runHitStats }) => {
+  const t = useT();
+  if (!runHitStats || runHitStats.entries.length === 0) {
+    return null;
+  }
+  const entries = runHitStats.entries.map((entry) => `${entry.name}: ${entry.count}/${runHitStats.total}`);
+  return (
+    <div
+      role='status'
+      data-testid='run-hit-stats'
+      className='flex items-center gap-2 border-b border-border bg-[var(--seal-color-info-bg)] px-3 py-1.5 text-xs text-[color:var(--seal-color-info-text)]'
+    >
+      <span className='shrink-0 font-medium'>{t('dt.runHitStats')}</span>
+      <span className='truncate'>{entries.join(' · ')}</span>
+    </div>
   );
 };
 

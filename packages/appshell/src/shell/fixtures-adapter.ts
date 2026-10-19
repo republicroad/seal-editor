@@ -13,22 +13,43 @@ import type { SimulateHandler } from './types';
  */
 export const createSimulateFixturesRunner = (simulateHandler: SimulateHandler): FixturesRunner => {
   return async (graph: DecisionGraphType, fixtures: ContractFixture[]): Promise<ExampleRunReport> => {
+    // D2：规则级命中的 side-channel——runner 契约只透传 traceHits（node ids），
+    // ruleHits 由本闭包捕获后在报告侧合入（ExampleRunResult.ruleHits，kernel 可选字段）
+    const ruleHitsByIndex: { nodeId: string; ruleId: string }[][] = [];
+
     const report = await runDecisionTests({
       executor: async (fixture) => {
         const outcome = await simulateHandler(graph, fixture.input);
         const { simulation } = outcome;
 
         if (simulation.error) {
+          ruleHitsByIndex.push([]);
           return { error: simulation.error.message ?? simulation.error.title ?? 'simulation error' };
         }
 
+        const trace = simulation.result?.trace ?? {};
+        const ruleHits = Object.entries(trace).flatMap(([nodeId, nodeTrace]) => {
+          const ruleId = (nodeTrace as { traceData?: { rule?: { _id?: string } } } | undefined)?.traceData?.rule?._id;
+          return ruleId ? [{ nodeId, ruleId }] : [];
+        });
+        ruleHitsByIndex.push(ruleHits);
+
         return {
           result: simulation.result?.result,
-          traceHits: simulation.result ? Object.keys(simulation.result.trace ?? {}) : undefined,
+          traceHits: Object.keys(trace),
         };
       },
       fixtures,
     });
+
+    // 按用例序合入（runDecisionTests 保持 executor 调用序）
+    return {
+      ...report,
+      results: report.results.map((r, index) => ({
+        ...r,
+        ruleHits: ruleHitsByIndex[index],
+      })),
+    };
 
     // 结构性兼容：zen-udf FixtureReport 与 kernel ExampleRunReport 同形
     //（CONTRACT §10 测试契约），此处赋值即编译期校验

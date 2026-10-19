@@ -14,6 +14,7 @@ export const en = {
   'node.duplicate': 'Duplicate',
   'node.delete': 'Delete',
   'inspector.close': 'Close inspector',
+  'dt.runHitStats': 'Run hits',
   'spec.dt.title': 'Decision table',
   'spec.expression.title': 'Expression',
   'spec.common.passthrough': 'Passthrough',
