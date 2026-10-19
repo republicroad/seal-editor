@@ -18,6 +18,17 @@ import {
   zenKindToString,
 } from './types';
 
+/** E 恒值比较哨兵：比较符两侧均为字面量 → 条件恒定（作者笔误高发信号）。hint 级，不求值。 */
+export const findConstantComparisons = (source: string): { start: number; end: number; ref: string }[] => {
+  const re =
+    /(?<![\w'"])(?:'[^']*'|"[^"]*"|-?\d+(?:\.\d+)?)\s*(===|!==|==|!=|>=|<=|>|<)\s*(?:'[^']*'|"[^"]*"|-?\d+(?:\.\d+)?)(?![\w'"])/g;
+  return [...source.matchAll(re)].map((m) => ({
+    start: m.index ?? 0,
+    end: (m.index ?? 0) + m[0].length,
+    ref: m[0].replace(/\s+/g, ' '),
+  }));
+};
+
 type ExpressionError = {
   type: string;
   source: string;
@@ -119,22 +130,33 @@ export const zenLinter = (type: string) => {
           return [];
         }
         if (ctx.kind === 'dt-cell') {
-          return analyzeDollarNavigationPositions(source).map((hit) => ({
+          const constantHints = findConstantComparisons(source).map((hit) => ({
             from: hit.start,
             to: hit.end,
-            severity: 'warning' as const,
-            message: `"${hit.ref}" never matches in table cells — use "$root." or the bare name instead.`,
-            source: 'Dollar scope',
-            actions: [
-              {
-                name: 'Strip "$." prefix',
-                apply: (lintView: EditorView, fixFrom: number, fixTo: number) =>
-                  lintView.dispatch({
-                    changes: { from: fixFrom + 2, to: fixTo, insert: '' },
-                  }),
-              },
-            ],
+            severity: 'hint' as const,
+            message:
+              'Constant comparison — both sides are literals, so the condition never varies. Confirm this is intentional.',
+            source: 'Constant comparison',
           }));
+          return [
+            ...constantHints,
+            ...analyzeDollarNavigationPositions(source).map((hit) => ({
+              from: hit.start,
+              to: hit.end,
+              severity: 'warning' as const,
+              message: `"${hit.ref}" never matches in table cells — use "$root." or the bare name instead.`,
+              source: 'Dollar scope',
+              actions: [
+                {
+                  name: 'Strip "$." prefix',
+                  apply: (lintView: EditorView, fixFrom: number, fixTo: number) =>
+                    lintView.dispatch({
+                      changes: { from: fixFrom + 2, to: fixTo, insert: '' },
+                    }),
+                },
+              ],
+            })),
+          ];
         }
         return analyzeExpressionValue(source, ctx).map((hint) => ({
           from: hint.start,

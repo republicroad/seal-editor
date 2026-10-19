@@ -342,6 +342,9 @@ export const en = {
   'cf.dependsOnUnused': 'Declared but not referenced in args (ordering-only): {{deps}}',
   'cf.referenceSources': 'Reference sources',
   'cf.referenceSourcesHint': 'click to copy $. reference — paste into args to build an implicit dependency edge',
+  'request.fixturesSummary': '{{total}} cases: {{passed}} passed, {{failed}} failed, {{ms}}ms total',
+  'dt.constantComparison':
+    'Constant comparison — both sides are literals, so the condition never varies. Confirm this is intentional.',
   'cf.referenceInsert': 'Insert into {{param}}',
   'cf.referenceCopy': 'Copy reference',
   'cf.referenceCopied': 'copied',

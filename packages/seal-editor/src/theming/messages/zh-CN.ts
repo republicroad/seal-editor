@@ -324,6 +324,8 @@ export const zhCN: Record<string, string> = {
   'cf.dependsOnUnused': '已声明但 args 未引用（仅排序用途）：{{deps}}',
   'cf.referenceSources': '引用源',
   'cf.referenceSourcesHint': '点击复制 $. 引用——粘贴进 args 即建隐式依赖边',
+  'request.fixturesSummary': '共 {{total}} 条用例：通过 {{passed}} · 失败 {{failed}} · 累计 {{ms}}ms',
+  'dt.constantComparison': '常量比较——两侧均为字面量，条件结果恒定。请确认是否有意为之。',
   'cf.referenceInsert': '插入到参数 {{param}}',
   'cf.referenceCopy': '复制引用',
   'cf.referenceCopied': '已复制',

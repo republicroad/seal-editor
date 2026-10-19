@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import { useT } from '../../../theming/i18n';
 import { Button, Tooltip, Typography } from '../../primitives';
@@ -9,6 +9,7 @@ import type { ExampleRunReport } from './fixtures-runner';
 /** Run all 结果矩阵（ADR-013 §3）：行序 = 用例序，「调试」= 选中 + 打开 simulator 抽屉 */
 const RunMatrix: React.FC<{ report: ExampleRunReport; onDebug: (index: number) => void }> = ({ report, onDebug }) => {
   const t = useT();
+  const totalMs = useMemo(() => report.results.reduce((sum, r) => sum + (r.durationMs ?? 0), 0), [report]);
 
   return (
     <div className='min-h-0 flex-1 overflow-y-auto'>
@@ -45,6 +46,19 @@ const RunMatrix: React.FC<{ report: ExampleRunReport; onDebug: (index: number) =
           </Button>
         </div>
       ))}
+      <div
+        className='sticky bottom-0 flex items-center gap-2 border-t border-border bg-[var(--seal-color-bg-container)] px-3 py-1.5 text-xs opacity-70'
+        data-testid='fixtures-summary'
+      >
+        <span>
+          {t('request.fixturesSummary', {
+            total: report.passed + report.failed,
+            passed: report.passed,
+            failed: report.failed,
+            ms: totalMs,
+          })}
+        </span>
+      </div>
     </div>
   );
 };
