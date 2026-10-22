@@ -32,6 +32,7 @@
 | [ADR-020](./020-verdict-tenant-governance-model.md) | verdict 租户与治理模型：租户数据边界/双层治理（发布 gate+execute 前置）/fail-closed 装配/配额框架（账实核对评审已落档，G-G1 执行边界为唯一必修） | accepted（修改后接受） | 2026-10 |
 | [ADR-021](./021-zen-udf-stateful-operator-contract.md) | zen-udf 状态算子契约：时间档位/保真披露（fidelity）/幂等键单源/算子改名双名过渡 + conformance 分档（verdict 起草·上游预评审·立项转移，待 verdict-005/006 落章实施） | proposed | 2026-10 |
 | [ADR-022](./022-zen-udf-write-path-switch-plan.md) | 自定义节点调用表达式写路径切具名嵌套施工计划——`{$call, kwargs}` canonical（账实核对后剩余约 0.5 天：buildDefault/standalone 表格面/歧义检测器） | accepted（施工定稿） | 2026-10 |
+| [ADR-023](./023-package-css-embedding-isolation.md) | 包 CSS 嵌入隔离：dist 层化（@layer seal-editor）/ LEGACY `:root` 接管退役 / 主题文档写受控化 syncDocumentTheme（verdict 起草——生产三连实证：暗色翻浅/侧栏 0×0/主题第二写者；待上游预评审） | proposed | 2026-10 |
 
 ## 状态定义
 
