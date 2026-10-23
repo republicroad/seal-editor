@@ -108,3 +108,37 @@ breaking——无壳独立应用需挂 `.seal-root` 或 `data-seal-standalone`�
 utilities 恒胜——编辑器内部若存在依赖"后加载反超宿主"的隐式行为需自查（层内次序
 保留，理论无影响，冒烟表覆盖）；`--seal-*` 变量继承机制不受层优先级影响（ISLAND
 作用域声明在 `.seal-root` 祖先上，靠继承生效），已核。
+
+## 上游预评审注记（2026-10-23，seal 会话——上游侧预评审）
+
+### 账实核对（四项全实证）
+
+1. ✓ P1：`tokens.css:76` LEGACY `:root:not(:has(.seal-root))` 源码在案，
+   `dist/style.css` 同模式 ×1（构建产物带出实证）；
+2. ✓ P2：`dist/style.css` 含无作用域 `.hidden{...}` ×1；与宿主同名 cascade
+   layer 按 CSS 规范合并、文档序定胜——机制成立（`.hidden` vs `.lg\:flex`
+   的移动优先模式案例典型）；
+3. ✓ P3：theme.provider `Automatic` 缺省回退（:44）+ `documentElement`
+   classList 写（:70）——第二写者实证；
+4. ✓ 宿主兜底三件（verdict 407fa63/ec522f8/bf817c7）在案——「每宿主重交学费」
+   的不可长期化判断成立。
+
+### 三处补充（吸收后可转 accepted/实施）
+
+1. **实施清单 #4 路径勘误 + 回归面升级**：`apps/storybook` 不存在——storybook
+   在 `packages/seal-editor`（test:storybook）。自查范围 MUST 含 `.storybook/
+   preview` 装饰器：若 stories 未挂 `.seal-root`，LEGACY 退役当天 storybook
+   全体丢 token——**这是 D2 的最大回归面**，退役前先在 preview 挂 `.seal-root`
+   并入冒烟表；
+2. **D2 分两步（第三方迁移窗口）**：无壳独立应用含第三方集成者，breaking 直落
+   minor 不妥——①1.x：LEGACY 保留但挂 `console.warn` 弃用告警（一次）+ 文档
+   标注迁移路径；②2.0：退役。开放问题 3 的「1.x + codemod」按此两步落地；
+3. **开放问题裁定建议**：①层名单层 `seal-editor` 起步（appshell dist 3.4KB
+   非 Tailwind，分包粒度收益不抵宿主双预声明成本；后续可并入）；②D3 缺省
+   `true`（独立应用不升级代码不受影响——与 ADR 倾向一致，赞同）。
+
+### 结论
+
+**修改后接受（方向正确、四项事实全实证；吸收三处补充后可转 accepted）**。
+实施顺序建议：先 #4 回归面自查（storybook/独立入口挂 `.seal-root`）→ D1 层化
++ 构建守卫（#5）→ D3 → D2 分两步随 2.0。本注记即为复核基线。
