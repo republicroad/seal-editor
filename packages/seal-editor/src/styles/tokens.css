@@ -45,7 +45,10 @@
   --error-line-bg: #fff1f0;
 }
 
-.seal-root[data-mode='dark'] {
+.seal-root[data-mode='dark'],
+/* ADR-023 #4：data-mode 在 html（provider 缺省注入点）而 .seal-root 可能在 body——
+   祖先形态兼容该拆分；data-mode 与 .seal-root 同元素时原形态仍命中 */
+[data-mode='dark'] .seal-root {
   --background: var(--seal-color-bg-layout, #000000);
   --foreground: var(--seal-color-text, rgba(255, 255, 255, 0.85));
   --card: var(--seal-color-bg-elevated, #1f1f1f);
@@ -72,7 +75,9 @@
   --error-line-bg: #4e3534;
 }
 
-/* ── LEGACY fallback (no island on the page) ───────────────────────────── */
+/* ── LEGACY fallback（⚠ ADR-023 D2：1.x 迁移窗口，2.0 退役——宿主请挂 .seal-root）
+ * 无岛页面兜底：宿主迁移信号 = 控制台 [seal-editor] LEGACY 告警（kernel 入口检测）。
+ * ───────────────────────────────────────────────────────────────────── */
 :root:not(:has(.seal-root)),
 [data-mode='light']:not(:has(.seal-root)) {
   --radius: 0.5rem;

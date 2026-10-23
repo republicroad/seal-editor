@@ -37,7 +37,7 @@
     "./dist/style.css": "./dist/style.css"
   },
   "scripts": {
-    "build": "vite build && node ../../scripts/clean-dist.mjs",
+    "build": "vite build && node ../../scripts/clean-dist.mjs && node ../../scripts/wrap-dist-css.mjs",
     "build:watch": "vite build --watch",
     "storybook": "storybook dev -p 9009",
     "build:storybook": "storybook build -o docs",

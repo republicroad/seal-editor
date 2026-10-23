@@ -50,6 +50,10 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # ADR-023 #5：dist 层化守卫（canary——LEGACY 禁令随 2.0 启用）
+      - name: Guard — dist CSS layered (ADR-023)
+        run: node scripts/guard-dist-css.mjs
+
       # lerna scope is packages/* only (lerna.json) — the demo apps are
       # registry-pinned consumers and must stay outside the version loop,
       # but their builds still gate on CI explicitly

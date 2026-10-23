@@ -33,10 +33,12 @@ type ThemeContextState = {
 
 export const ThemeContext = createContext<ThemeContextState>({} as any);
 
-export const ThemeContextProvider: React.FC<{ children: React.ReactNode; options?: ThemeProviderOptions }> = ({
-  children,
-  options,
-}) => {
+export const ThemeContextProvider: React.FC<{
+  children: React.ReactNode;
+  options?: ThemeProviderOptions;
+  /** ADR-023 D3：文档主题写受控化——false 时本 provider 不写 documentElement/body（宿主单写者场景）；缺省 true 兼容 */
+  syncDocumentTheme?: boolean;
+}> = ({ children, options, syncDocumentTheme = true }) => {
   const [themePreference, setThemePreferenceInternal] = useState<ThemePreference>(() => {
     return match(readStorage('themePreference'))
       .with('dark', () => ThemePreference.Dark)
@@ -66,9 +68,13 @@ export const ThemeContextProvider: React.FC<{ children: React.ReactNode; options
   }, []);
 
   useEffect(() => {
+    // ADR-023 D3：syncDocumentTheme=false 时宿主为唯一主题写者（文档写收进开关）
+    if (!syncDocumentTheme) {
+      return;
+    }
     document.body.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light');
     document.documentElement.classList.toggle('dark', isDarkTheme);
-  }, [isDarkTheme]);
+  }, [isDarkTheme, syncDocumentTheme]);
 
   const setThemePreference = (preference: ThemePreference) => {
     setThemePreferenceInternal(preference);
