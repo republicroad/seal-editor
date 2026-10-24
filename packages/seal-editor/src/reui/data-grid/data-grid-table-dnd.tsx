@@ -281,7 +281,10 @@ function DataGridTableDnd<TData extends object>({
             })}
           </DataGridTableHead>
 
-          {(props.tableLayout?.stripped || !props.tableLayout?.rowBorder) && <DataGridTableRowSpacer />}
+          {/* headerSticky 时表头半透明层与表体视觉融合，垫片会露成一条透明带 */}
+          {(props.tableLayout?.stripped || !props.tableLayout?.rowBorder) && !props.tableLayout?.headerSticky && (
+            <DataGridTableRowSpacer />
+          )}
 
           <DataGridTableBody>
             <MemoizedDataGridTableDndBodyRows table={table} />
