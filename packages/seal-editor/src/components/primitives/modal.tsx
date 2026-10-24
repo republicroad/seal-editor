@@ -69,7 +69,9 @@ export const Modal: React.FC<{
         ) : null}
         {body ? <div className='min-h-0 overflow-y-auto'>{body}</div> : null}
         {footer !== null ? (
-          <DialogFooter className='mt-4'>
+          // 分隔线：矮视口下（弹层被 100dvh-48 压缩时）footer 与滚动内容的
+          // 界线必须明确，否则按钮视觉上与表格/表单内容"重合"
+          <DialogFooter className='mt-2 border-t border-[var(--border)] pt-3'>
             {footer ?? (
               <>
                 <UiButton variant='outline' onClick={() => onCancel?.()}>

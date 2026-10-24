@@ -397,6 +397,8 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
       destroyOnClose
       width={900}
       getContainer={getContainer}
+      /* 矮视口下（弹层被 100dvh-48 压缩）压缩固定开销，把空间让给滚动区 */
+      className='gap-2 p-3'
     >
       <div style={{ padding: '8px 0' }}>
         {/* Inputs Section */}
@@ -523,7 +525,8 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
           </div>
         </div>
 
-        {/* Preview Section — WS2-B3：映射前先看到实际数据行 */}
+        {/* Preview Section — WS2-B3：映射前先看到实际数据行。
+            height 240→180：预览内部自滚动，矮视口下少占滚动流 */}
         {spreadSheetData && (
           <>
             <div
@@ -533,7 +536,7 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
                 Preview
               </Typography.Text>
             </div>
-            <ExcelPreviewGrid sheet={spreadSheetData} />
+            <ExcelPreviewGrid sheet={spreadSheetData} height={180} />
           </>
         )}
       </div>
