@@ -3,6 +3,7 @@ import { CommandIcon } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { useT } from '../../../theming/i18n';
+import { useSealPortalContainer } from '../../../theming/portal-context';
 import { useDecisionGraphActions, useDecisionGraphState } from '../context/dg-store.context';
 import type { CustomNodeSpecification } from '../nodes/custom-node';
 import type { NodeSpecification } from '../nodes/specifications/specification-types';
@@ -29,6 +30,7 @@ export const GraphCommandMenu: React.FC<{
   specifications: Array<NodeSpecification | CustomNodeSpecification<object, any>>;
 }> = ({ addNode, specifications }) => {
   const t = useT();
+  const sealContainer = useSealPortalContainer();
   const graphActions = useDecisionGraphActions();
   const { commandMenuOpen, panels, activePanelId, nodes, extraCommands } = useDecisionGraphState(
     ({ commandMenuOpen, panels, activePanel, decisionGraph, extraCommands }) => ({
@@ -137,17 +139,22 @@ export const GraphCommandMenu: React.FC<{
         }
       }}
     >
-      {/* 隐形锚点：弹层定位于画布区顶部居中（VS Code 调色板位） */}
-      <ComboboxPrimitive.Trigger
-        render={
-          <span
-            aria-hidden
-            style={{ position: 'absolute', left: '50%', top: 10, width: 1, height: 1, overflow: 'hidden' }}
-          />
-        }
-      />
-      <ComboboxPrimitive.Portal>
-        <ComboboxPrimitive.Positioner side='bottom' align='center' sideOffset={6}>
+      {/* container 必传：缺省 portal 到 body 即落在 .seal-root 岛外，--card 等
+          token 不达 → 调色板背景透明（HK-14 同款，全家 overlay 惯例） */}
+      <ComboboxPrimitive.Portal container={sealContainer}>
+        {/* 虚拟锚点：iframe 视口顶部居中（VS Code 调色板位）——DOM 锚（absolute
+            /fixed）的包含块都会被 transform 祖先劫持且随视图漂移（画布视图 vs
+            节点页签视图定位语境不同，页签一开 palette 就偏）；虚拟矩形对 DOM
+            语境免疫 */}
+        <ComboboxPrimitive.Positioner
+          anchor={{
+            getBoundingClientRect: () => new DOMRect(window.innerWidth / 2, 10, 0, 0),
+          }}
+          side='bottom'
+          align='center'
+          sideOffset={6}
+          className='z-50'
+        >
           <ComboboxPrimitive.Popup
             data-testid='graph-command-menu'
             className='z-50 w-[460px] max-w-[90vw] overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-[0_16px_40px_rgba(0,0,0,0.18)]'
