@@ -466,6 +466,17 @@ export const Diff: Story = {
 const buildOfflineSimulation = (graph: DecisionGraphType, context: unknown): Simulation => {
   const trace: Record<string, any> = {};
   (graph?.nodes ?? []).forEach((node, index) => {
+    // dt 节点演示前两行命中（真实求值由宿主引擎负责；offline demo 演示行级命中
+    // UI 分层——debugIndex 选中行整行强高亮，其余命中行淡染 + 行头点标）
+    const content: any = node.content;
+    const traceData =
+      node.type === 'decisionTableNode' && content?.rules?.length
+        ? content.rules.slice(0, 2).map((rule: any, i: number) => ({
+            index: i,
+            reference_map: {},
+            rule: { _id: rule._id },
+          }))
+        : null;
     trace[node.id] = {
       id: node.id,
       name: node.name,
@@ -473,8 +484,10 @@ const buildOfflineSimulation = (graph: DecisionGraphType, context: unknown): Sim
       order: index,
       performance: '—',
       input: context ?? null,
-      output: null,
-      traceData: null,
+      // output 也回填：getNodeData 依赖上游 trace 输出投影节点输入，置 null 会
+      // 让 dt/expression 页签的 debug 整体缺席（表头引用值与行级命中都不亮）
+      output: context ?? null,
+      traceData,
     };
   });
 

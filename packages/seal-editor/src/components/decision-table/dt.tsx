@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
+import type { InstantEvalStatus } from '../../helpers/dt-instant-eval';
 import { findTableCellDollarNavigation } from '../../helpers/zen-dollar-hints';
 import { DictionaryProvider } from '../../theme';
 import { useT } from '../../theming/i18n';
@@ -26,6 +27,8 @@ export type DecisionTableProps = {
   scrollApiRef?: React.MutableRefObject<TableScrollApi | null>;
   /** D2：Run all 后的条件列命中统计（图级 Run all 注入；standalone 传入亦可） */
   runHitStats?: { entries: { name: string; count: number }[]; total: number } | undefined;
+  /** A3 即时求值状态面（图级 dt 页签注入；suspended/degraded 时显示提示条） */
+  instantEvalStatus?: InstantEvalStatus;
 } & DecisionTableContextProps &
   DecisionTableEmptyType;
 
@@ -36,6 +39,7 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
   scrollContainerRef,
   scrollApiRef,
   runHitStats,
+  instantEvalStatus,
   ...props
 }) => {
   const [_, setMounted] = useState(false);
@@ -59,6 +63,7 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
             <DecisionTableDialogProvider getContainer={mountDialogsOnBody ? undefined : getContainer}>
               <DecisionTableCommandBar />
               <RunHitStatsStrip runHitStats={runHitStats} />
+              <InstantEvalStrip status={instantEvalStatus} />
               <DollarNavNotice />
               <DictionaryBridge>
                 <Table
@@ -93,6 +98,23 @@ const RunHitStatsStrip: React.FC<{ runHitStats?: DecisionTableProps['runHitStats
     >
       <span className='shrink-0 font-medium'>{t('dt.runHitStats')}</span>
       <span className='truncate'>{entries.join(' · ')}</span>
+    </div>
+  );
+};
+
+/** A3 即时求值状态条：挂起/降级时解释徽章为何静止（active/idle 不占视觉） */
+const InstantEvalStrip: React.FC<{ status?: InstantEvalStatus }> = ({ status }) => {
+  const t = useT();
+  if (!status || status === 'active') {
+    return null;
+  }
+  return (
+    <div
+      role='status'
+      data-testid='instant-eval-strip'
+      className='flex items-center gap-2 border-b border-border bg-[var(--seal-color-warning-bg)] px-3 py-1.5 text-xs text-[color:var(--seal-color-warning-text)]'
+    >
+      <span className='truncate'>{t(`dt.instantEval.${status}`)}</span>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import { VariableType } from '@gorules/zen-engine-wasm';
 import json5 from 'json5';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
 import {
@@ -257,6 +257,20 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
       });
     }
   };
+
+  // A3 即时求值：dt 页签内容变更经 store 计数器请求复跑——按当前请求输入执行
+  // （复用 handleRun = 校验/错误提示单源）；初始 tick 不触发
+  const simulateRequestTick = useDecisionGraphState((s) => s.simulateRequestTick);
+  const lastSeenTick = useRef(simulateRequestTick);
+  useEffect(() => {
+    if (simulateRequestTick === lastSeenTick.current) {
+      return;
+    }
+    lastSeenTick.current = simulateRequestTick;
+    handleRun();
+    // 仅计数器变化触发；handleRun 闭包取当次渲染的请求值
+     
+  }, [simulateRequestTick]);
 
   return (
     <React.Fragment>

@@ -14,6 +14,7 @@ import { P, match } from 'ts-pattern';
 import { z } from 'zod';
 
 import { setRefValue } from '../../../helpers/compose-refs';
+import { deriveHitRuleIds } from '../../../helpers/dt-hit-projection';
 import { useThemeMode } from '../../../theme';
 import { useT } from '../../../theming/i18n';
 import { Button, Typography } from '../../primitives';
@@ -90,7 +91,12 @@ const dtTableFeatures = dataGridFeatures;
  * data-grid：行级 diff 三态走 getRowStatus，cursor/simulator-active 行高亮走
  * getRowClassName 扩展，行拖拽换 grid 原生 DndRows（落点仍是 swapRows）。
  */
-const IndexCell: React.FC<{ row: { index: number; id: string } }> = ({ row }) => {
+const IndexCell: React.FC<{
+  row: { index: number; id: string };
+  /** A3 行级命中点标：debugIndex 选中行走整行强高亮，其余命中行在行头点标 */
+  hit?: boolean;
+}> = ({ row, hit }) => {
+  const t = useT();
   const tableActions = useDecisionTableActions();
   const { disabled } = useDecisionTableState(({ disabled }) => ({ disabled }));
   const [hover, setHover] = useState(false);
@@ -104,6 +110,13 @@ const IndexCell: React.FC<{ row: { index: number; id: string } }> = ({ row }) =>
     >
       <TableRowHoverActions rowIndex={row.index} visible={hover && !disabled} disabled={disabled} />
       <DataGridTableDndRowHandle disabled={disabled} />
+      {hit && (
+        <span
+          data-testid='row-hit-dot'
+          title={t('dt.rowHit')}
+          className='mr-1 inline-block size-1.5 shrink-0 rounded-full bg-[var(--primary)]'
+        />
+      )}
       <Typography>{row.index + 1}</Typography>
     </div>
   );
@@ -159,12 +172,18 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
     .with(P.array(), (t) => t?.[debugIndex]?.rule?._id)
     .otherwise((t) => (t as any)?.rule?._id);
 
+  // A3 行级命中投影：traceData 全量命中规则集合——collect 多行命中可见
+  // （debugIndex 选中行仍走 activeRuleId 强高亮，其余命中行淡染 + 行头点标）
+  const hitRuleIds = useMemo(() => deriveHitRuleIds(debug?.trace?.traceData), [debug?.trace]);
+
   const columns = React.useMemo<ColumnDef<any, any, any>[]>(
     () => [
       {
         id: '__index',
         header: () => null,
-        cell: ({ row }) => <IndexCell row={row} />,
+        cell: ({ row }) => (
+          <IndexCell row={row} hit={!disabled && row.id !== activeRuleId && hitRuleIds.has(row.id as string)} />
+        ),
         size: 44,
         enableResizing: false,
         enableSorting: false,
@@ -223,7 +242,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         meta: { cellEdit: { clearValue: '', editable: () => !disabled } },
       },
     ],
-    [permission, disabled, inputs, outputs, minColWidth, colWidth],
+    [permission, disabled, inputs, outputs, minColWidth, colWidth, activeRuleId, hitRuleIds],
   );
 
   // A' 单格聚焦（Phase 2 备选立项）：grid 焦点经受控 cellSelection 桥接回
@@ -310,9 +329,14 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
           activeRuleId &&
           rowOriginal?._id === activeRuleId &&
           'bg-[var(--seal-color-success-bg)]!',
+        // 其余命中行（collect 多命中/非选中 trace 条目）：淡染与选中行分层
+        !rowOriginal?._diff?.status &&
+          rowOriginal?._id !== activeRuleId &&
+          hitRuleIds.has(rowOriginal?._id) &&
+          'bg-[color-mix(in_srgb,var(--seal-color-success-bg)_55%,transparent)]!',
         !rowOriginal?._diff?.status && disabled && 'bg-black/[0.02]',
       ),
-    [cursor?.y, activeRuleId, disabled],
+    [cursor?.y, activeRuleId, disabled, hitRuleIds],
   );
   // 字段级 diff 着色 + cursor 格描边（旧 TableRow td 语义的 cell 级移植）
   const getCellClassName = useCallback(

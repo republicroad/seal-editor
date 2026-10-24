@@ -1,7 +1,12 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { P, match } from 'ts-pattern';
 
 import { computeColumnHitStats } from '../../../helpers/dt-column-hit-stats';
+import {
+  type InstantEvalStatus,
+  instantEvalStructureSignature,
+  resolveInstantEvalStatus,
+} from '../../../helpers/dt-instant-eval';
 import { getNodeData } from '../../../helpers/node-data';
 import { get } from '../../../helpers/utility';
 import { isWasmAvailable } from '../../../helpers/wasm';
@@ -71,6 +76,56 @@ export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id }) => {
     content: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content as NodeDecisionTableData,
   }));
 
+  // A3 即时求值（规划档推荐案）：参数值变更防抖 400ms 复跑 simulator；
+  // 结构变更挂起、大表降级——挂起/降级时徽章随既有结果静止显示。
+  // lastRunSig 在每次 simulate 结果落定时刷新（此时结构与签名必然一致）。
+  const simulate = useDecisionGraphState(({ simulate }) => simulate);
+  const [instantEvalStatus, setInstantEvalStatus] = useState<InstantEvalStatus | undefined>(undefined);
+  const lastRunSigRef = useRef<string | undefined>(undefined);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSimulateRef = useRef(simulate);
+  const contentRef = useRef(content);
+  contentRef.current = content;
+
+  // simulate 结果落定 → 刷新 lastRunSig、解除挂起/降级显示（新结果已携带新结构）
+  useEffect(() => {
+    if (simulate && simulate !== lastSimulateRef.current) {
+      lastSimulateRef.current = simulate;
+      lastRunSigRef.current = instantEvalStructureSignature(contentRef.current);
+      setInstantEvalStatus((cur) => (cur === 'suspended' || cur === 'degraded' ? 'active' : cur));
+    }
+  }, [simulate]);
+
+  useEffect(() => {
+    if (!content) {
+      return undefined;
+    }
+    const rowCount = content.rules?.length ?? 0;
+    const nextSig = instantEvalStructureSignature({
+      rows: content.rules,
+      inputs: content.inputs,
+      outputs: content.outputs,
+    });
+    const status = resolveInstantEvalStatus({
+      rowCount,
+      nextSig,
+      lastRunSig: lastRunSigRef.current,
+      hasSimulateResult: !!lastSimulateRef.current?.result,
+    });
+    setInstantEvalStatus(status);
+    if (status !== 'active') {
+      return undefined;
+    }
+    debounceRef.current = setTimeout(() => {
+      graphActions.requestSimulation();
+    }, 400);
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [content, graphActions]);
+
   const debug = useMemo(() => {
     if (!nodeTrace || !inputData || !nodeSnapshot) {
       return undefined;
@@ -128,6 +183,7 @@ export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id }) => {
       mode={mode}
       debug={debug}
       runHitStats={runHitStats}
+      instantEvalStatus={instantEvalStatus}
       onChange={(val) => {
         graphActions.updateNode(id, (draft) => {
           Object.assign(draft.content, val);

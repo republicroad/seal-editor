@@ -110,6 +110,9 @@ export type DecisionGraphStoreType = {
 
     simulate?: Simulation;
 
+    /** A3 即时求值：重跑请求计数器——dt 页签内容变更时递增，simulator 请求面板监听后按当前输入复跑 */
+    simulateRequestTick: number;
+
     /** Run 历史（新运行头部追加） */
     simulateRuns: SimulateRunEntry[];
 
@@ -195,6 +198,8 @@ export type DecisionGraphStoreType = {
 
     /** Run 历史追加（头部插入，裁到栈深；pin 条目豁免淘汰） */
     pushSimulateRun: (entry: SimulateRunEntry) => void;
+    /** A3 即时求值：请求 simulator 按当前输入复跑一次（计数器语义，面板监听） */
+    requestSimulation: () => void;
     /** ⌘K 调色板开合 */
     setCommandMenuOpen: (open: boolean) => void;
     /** 宿主注入扩展命令 */
@@ -277,6 +282,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       create<DecisionGraphStoreType['state']>()(() => ({
         id: undefined,
         simulate: undefined,
+        simulateRequestTick: 0,
         simulateRuns: [],
         commandMenuOpen: false,
         extraCommands: [],
@@ -762,6 +768,11 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       },
       setExtraCommands: (commands) => {
         stateStore.setState({ extraCommands: commands });
+      },
+      // A3 即时求值：计数器递增——simulator 请求面板监听后按当前输入复跑
+      requestSimulation: () => {
+        const { simulateRequestTick } = stateStore.getState();
+        stateStore.setState({ simulateRequestTick: simulateRequestTick + 1 });
       },
       pushSimulateRun: (entry) => {
         const { simulateRuns } = stateStore.getState();
