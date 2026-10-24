@@ -1,4 +1,5 @@
 import { AutoLayoutOutlined, CloudDownloadOutlined, CloudUploadOutlined } from '#icons';
+import { Grid2x2Icon, LockIcon, LockOpenIcon, MagnetIcon } from 'lucide-react';
 import { CommandIcon } from 'lucide-react';
 import React, { Fragment, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -29,16 +30,27 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
   const excelFileInput = useRef<HTMLInputElement>(null);
   const [excelGraphData, setExcelGraphData] = useState<ParsedExcelData[] | null>();
 
-  const { setDecisionGraph, setActivePanel, setCommandMenuOpen, autoLayout } = useDecisionGraphActions();
-  const { disabled, panels, activePanel, viewConfig, commandMenuOpen } = useDecisionGraphState(
-    ({ disabled, panels, activePanel, viewConfig, commandMenuOpen }) => ({
-      disabled,
-      panels,
-      activePanel,
-      viewConfig,
-      commandMenuOpen,
-    }),
-  );
+  const {
+    setDecisionGraph,
+    setActivePanel,
+    setCommandMenuOpen,
+    autoLayout,
+    alignNodesToGrid,
+    setCanvasLocked,
+    setSnapToGrid,
+  } = useDecisionGraphActions();
+  const { disabled, panels, activePanel, viewConfig, commandMenuOpen, canvasLocked, snapToGrid } =
+    useDecisionGraphState(
+      ({ disabled, panels, activePanel, viewConfig, commandMenuOpen, canvasLocked, snapToGrid }) => ({
+        disabled,
+        panels,
+        activePanel,
+        viewConfig,
+        commandMenuOpen,
+        canvasLocked,
+        snapToGrid,
+      }),
+    );
 
   const handleUploadInput = async (event: any) => {
     const fileList = event?.target?.files as FileList;
@@ -315,17 +327,58 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
         <div className='flex w-12 min-w-12 flex-col items-center justify-between gap-2 border-r border-r-[var(--border)] py-2'>
           <div className={'flex flex-col items-center gap-2'}>
             {!disabled && (
-              <Tooltip title={t('dg.toolbar.autoLayout')} placement={'right'}>
-                <Button
-                  type={'text'}
-                  aria-label={t('dg.toolbar.autoLayout')}
-                  disabled={disabled}
-                  icon={<AutoLayoutOutlined />}
-                  onClick={() => {
-                    autoLayout().catch((e: unknown) => toast.error(e instanceof Error ? e.message : String(e)));
-                  }}
-                />
-              </Tooltip>
+              <>
+                <Tooltip title={t('dg.toolbar.autoLayout')} placement={'right'}>
+                  <Button
+                    type={'text'}
+                    aria-label={t('dg.toolbar.autoLayout')}
+                    disabled={disabled}
+                    icon={<AutoLayoutOutlined />}
+                    onClick={() => {
+                      autoLayout().catch((e: unknown) => toast.error(e instanceof Error ? e.message : String(e)));
+                    }}
+                  />
+                </Tooltip>
+                {/* B2 对齐网格：全量节点位置取整到 snapGrid（整理 = 局部对齐，与 auto-layout 全图重排互补） */}
+                <Tooltip title={t('dg.toolbar.alignToGrid')} placement={'right'}>
+                  <Button
+                    type={'text'}
+                    aria-label={t('dg.toolbar.alignToGrid')}
+                    disabled={disabled}
+                    icon={<MagnetIcon className='size-4' />}
+                    onClick={() => {
+                      alignNodesToGrid();
+                      toast.success(t('dg.toolbar.alignedToGrid'));
+                    }}
+                  />
+                </Tooltip>
+                {/* B1 画布锁：锁定拖拽/连线/重连，保留平移缩放（评审与演示防误拖） */}
+                <Tooltip
+                  title={canvasLocked ? t('dg.toolbar.unlockCanvas') : t('dg.toolbar.lockCanvas')}
+                  placement={'right'}
+                >
+                  <Button
+                    type={'text'}
+                    aria-label={canvasLocked ? t('dg.toolbar.unlockCanvas') : t('dg.toolbar.lockCanvas')}
+                    aria-pressed={canvasLocked}
+                    data-testid='canvas-lock-toggle'
+                    icon={canvasLocked ? <LockIcon className='size-4' /> : <LockOpenIcon className='size-4' />}
+                    className={canvasLocked ? 'bg-primary/10 text-primary' : undefined}
+                    onClick={() => setCanvasLocked(!canvasLocked)}
+                  />
+                </Tooltip>
+                <Tooltip title={t('dg.toolbar.snapToGrid')} placement={'right'}>
+                  <Button
+                    type={'text'}
+                    aria-label={t('dg.toolbar.snapToGrid')}
+                    aria-pressed={snapToGrid}
+                    data-testid='snap-to-grid-toggle'
+                    icon={<Grid2x2Icon className='size-4' />}
+                    className={snapToGrid ? 'bg-primary/10 text-primary' : undefined}
+                    onClick={() => setSnapToGrid(!snapToGrid)}
+                  />
+                </Tooltip>
+              </>
             )}
             {!disabled && (
               <Dropdown menu={{ items: uploadItems }} placement='bottomRight' trigger={['click']} arrow>

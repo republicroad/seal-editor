@@ -107,12 +107,14 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
   const graphReferences = useDecisionGraphReferences((s) => s);
   const { onReactFlowInit } = useDecisionGraphListeners(({ onReactFlowInit }) => ({ onReactFlowInit }));
   const { modal } = App.useApp();
-  const { disabled, hasInputNode, components, customNodes, id } = useDecisionGraphState(
-    ({ id, disabled, components, customNodes, decisionGraph }) => ({
+  const { disabled, hasInputNode, components, customNodes, id, canvasLocked, snapToGrid } = useDecisionGraphState(
+    ({ id, disabled, components, customNodes, decisionGraph, canvasLocked, snapToGrid }) => ({
       id,
       disabled,
       components,
       customNodes,
+      canvasLocked,
+      snapToGrid,
       hasInputNode: (decisionGraph?.nodes || []).some((n) => n.type === NodeKind.Input),
     }),
   );
@@ -377,7 +379,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
                 }
                 onReactFlowInit?.(instance);
               }}
-              snapToGrid={true}
+              snapToGrid={snapToGrid}
               snapGrid={[5, 5]}
               minZoom={0.25}
               selectionMode={SelectionMode.Partial}
@@ -388,9 +390,9 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               onConnect={onConnect}
               isValidConnection={isValidConnection}
               proOptions={reactFlowProOptions}
-              nodesConnectable={!disabled}
-              nodesDraggable={!disabled}
-              edgesReconnectable={!disabled}
+              nodesConnectable={!disabled && !canvasLocked}
+              nodesDraggable={!disabled && !canvasLocked}
+              edgesReconnectable={!disabled && !canvasLocked}
               onNodesChange={graphActions.handleNodesChange}
               onEdgesChange={graphActions.handleEdgesChange}
               onNodesDelete={(e) => {

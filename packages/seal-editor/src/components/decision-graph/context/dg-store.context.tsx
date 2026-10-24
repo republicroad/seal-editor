@@ -10,6 +10,7 @@ import type { StoreApi, UseBoundStore } from 'zustand';
 import { create, useStore } from 'zustand';
 
 import { computeAutoLayout } from '../../../helpers/auto-layout';
+import { snapNodesToGrid } from '../../../helpers/graph-align';
 import { useMemoEquality } from '../../../helpers/use-memoized-selector';
 import { normalizeCustomNodeExpressions } from '../../../helpers/utility';
 import type { DictionaryMap } from '../../../theme';
@@ -119,6 +120,12 @@ export type DecisionGraphStoreType = {
     /** ⌘K 全局调色板开合（批 20：GraphSideToolbar 触发钮与弹层分居两处，经 store 联通） */
     commandMenuOpen: boolean;
 
+    /** 画布锁（flow-1 形态参照）：锁定节点拖拽/连线/重连，保留平移缩放与选择 */
+    canvasLocked: boolean;
+
+    /** 网格吸附开关（拖拽过程吸附；snapGrid [5,5] 常开） */
+    snapToGrid: boolean;
+
     /** ⌘K 二期：宿主注入的扩展命令（保存/验证/导出/皮肤等） */
     extraCommands: Array<{
       id: string;
@@ -202,6 +209,12 @@ export type DecisionGraphStoreType = {
     requestSimulation: () => void;
     /** ⌘K 调色板开合 */
     setCommandMenuOpen: (open: boolean) => void;
+    /** 画布锁切换 */
+    setCanvasLocked: (locked: boolean) => void;
+    /** 网格吸附切换 */
+    setSnapToGrid: (on: boolean) => void;
+    /** 节点位置对齐网格（B2 整理动作：全量节点取整到 snapGrid） */
+    alignNodesToGrid: () => void;
     /** 宿主注入扩展命令 */
     setExtraCommands: (
       commands: Array<{
@@ -285,6 +298,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         simulateRequestTick: 0,
         simulateRuns: [],
         commandMenuOpen: false,
+        canvasLocked: false,
+        snapToGrid: true,
         extraCommands: [],
         decisionGraph: { nodes: [], edges: [] },
         hoveredEdgeId: null,
@@ -765,6 +780,26 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       },
       setCommandMenuOpen: (open) => {
         stateStore.setState({ commandMenuOpen: open });
+      },
+      setCanvasLocked: (locked) => {
+        stateStore.setState({ canvasLocked: locked });
+      },
+      setSnapToGrid: (on) => {
+        stateStore.setState({ snapToGrid: on });
+      },
+      // B2 整理动作：全量节点位置取整到 snapGrid（[5,5]，与拖拽吸附同栅格）
+      alignNodesToGrid: () => {
+        const { decisionGraph } = stateStore.getState();
+        if (!decisionGraph) {
+          return;
+        }
+        const aligned = snapNodesToGrid(decisionGraph.nodes as Array<{ position: { x: number; y: number } }>);
+        stateStore.setState({
+          decisionGraph: {
+            ...decisionGraph,
+            nodes: decisionGraph.nodes.map((node, i) => ({ ...node, position: aligned[i].position })),
+          } as typeof decisionGraph,
+        });
       },
       setExtraCommands: (commands) => {
         stateStore.setState({ extraCommands: commands });
