@@ -91,10 +91,14 @@ export const GraphComponents: React.FC<GraphComponentsProps> = React.memo(({ inp
   }, [innerGroups, search]);
 
   const customCount = customComponents.length + customNodes.length;
+  // 搜索框阈值口径 = 全量节点（核心 6 类 + 自定义组件/节点）而非仅自定义——
+  // 默认即在位（核心 6 > 5 已过线）；取未过滤的 innerGroups，避免输入过滤后
+  // 命中数跌破阈值导致搜索框中途卸载
+  const totalCount = (innerGroups.core?.length ?? 0) + customCount;
 
   return (
     <div>
-      {customCount > 5 && (
+      {totalCount > 5 && (
         <Input
           placeholder={'Search components...'}
           value={search}
