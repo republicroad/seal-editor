@@ -70,7 +70,9 @@ const renderMenuItems = (
           key={itemKey}
           disabled={item.disabled}
           variant={item.danger ? 'destructive' : 'default'}
-          onSelect={handleSelect}
+          // base-ui Menu.Item 只有 onClick（onSelect 是 Radix API——传给 base-ui
+          // 会落到原生 select 事件上，菜单条目全部静默失效）
+          onClick={handleSelect}
         >
           {item.icon}
           {item.label}
