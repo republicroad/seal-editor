@@ -292,7 +292,7 @@ export const Function: React.FC<FunctionProps> = ({
               <Panel minSize={25}>
                 {!disableDebug && (
                   <FunctionDebugger
-                    libraries={functionLibraries}
+                    libraries={libraries}
                     trace={trace}
                     editor={editor}
                     editorValue={value}

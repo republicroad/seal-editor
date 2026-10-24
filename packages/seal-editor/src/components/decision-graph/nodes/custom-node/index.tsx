@@ -114,6 +114,8 @@ export type BaseNode<
   icon?: React.ReactNode;
   color?: string;
   displayName: string;
+  /** ADR-024 D3：节点文档深链（graph-node ⋯ 菜单 Documentation 项） */
+  documentationUrl?: string;
   shortDescription?: string;
   group?: string;
   searchKeywords?: string[];
@@ -144,6 +146,7 @@ export const createJdmNode = <
     color: n.color,
     displayName: n.displayName,
     group: n.group,
+    documentationUrl: n.documentationUrl,
     shortDescription: n.shortDescription,
     searchKeywords: n.searchKeywords,
     meta: n.meta,

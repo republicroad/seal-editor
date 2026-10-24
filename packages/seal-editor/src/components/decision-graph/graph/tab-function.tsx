@@ -45,8 +45,8 @@ export const TabFunction: React.FC<TabFunctionProps> = ({ id }) => {
     },
   });
   const nodeType = useNodeType(id);
-  const { nodeTrace, disabled, content, nodeError, viewConfig } = useDecisionGraphState(
-    ({ simulate, disabled, decisionGraph, viewConfig }) => ({
+  const { nodeTrace, disabled, content, nodeError, viewConfig, functionLibraries } = useDecisionGraphState(
+    ({ simulate, disabled, decisionGraph, viewConfig, functionLibraries }) => ({
       nodeTrace: match(simulate)
         .with({ result: P._ }, ({ result }) => result?.trace?.[id])
         .otherwise(() => null),
@@ -56,6 +56,7 @@ export const TabFunction: React.FC<TabFunctionProps> = ({ id }) => {
       disabled,
       content: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content,
       viewConfig,
+      functionLibraries,
     }),
   );
 
@@ -85,6 +86,7 @@ export const TabFunction: React.FC<TabFunctionProps> = ({ id }) => {
   return (
     <Suspense fallback={<Spin />}>
       <Function
+        libraries={functionLibraries?.length ? functionLibraries : undefined}
         onMonacoReady={(monaco) => setMonaco(monaco)}
         onEditorMount={(editor) => {
           editorRef.current = editor;

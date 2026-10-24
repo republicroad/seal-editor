@@ -5,6 +5,7 @@ import { useDebouncedCallback } from 'use-debounce';
 
 import type { DictionaryMap } from '../../theme';
 import type { JdmUiMode } from '../decision-table/context/dt-store.context';
+import { type FunctionLibrary, functionLibraries as builtinFunctionLibraries } from '../function/helpers/libs';
 import {
   type DecisionGraphStoreType,
   useDecisionGraphActions,
@@ -30,6 +31,8 @@ export type DecisionGraphEmptyType = {
 
   components?: DecisionGraphStoreType['state']['components'];
   customNodes?: DecisionGraphStoreType['state']['customNodes'];
+  /** ADR-024 D2：函数参考面板目录（Libraries 页签）；缺省内置表（big.js/dayjs/http/zen…） */
+  functionLibraries?: FunctionLibrary[];
 
   /** 治理谓词（批 23）：按 namespace/kind 过滤 customNodes——缺省不过滤（全量可用） */
   allowedNamespaces?: Set<string>;
@@ -83,6 +86,7 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
   onChange,
   components,
   customNodes,
+  functionLibraries,
   allowedNamespaces,
   extraCommands,
   defaultActivePanel,
@@ -141,6 +145,8 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
       disabled,
       components: Array.isArray(components) ? components : [],
       customNodes: Array.isArray(filteredCustomNodes) ? filteredCustomNodes : [],
+      functionLibraries:
+        functionLibraries && functionLibraries.length > 0 ? functionLibraries : builtinFunctionLibraries,
       extraCommands: Array.isArray(extraCommands) ? extraCommands : [],
       panels,
       viewConfig,
@@ -154,6 +160,7 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
     disabled,
     components,
     filteredCustomNodes,
+    functionLibraries,
     allowedNamespaces,
     extraCommands,
     panels,

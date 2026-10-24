@@ -15,6 +15,7 @@ import { normalizeCustomNodeExpressions } from '../../../helpers/utility';
 import type { DictionaryMap } from '../../../theme';
 import type { CodeEditorProps } from '../../code-editor';
 import type { JdmUiMode } from '../../decision-table/context/dt-store.context';
+import type { FunctionLibrary } from '../../function/helpers/libs';
 import type { DecisionEdge, DecisionGraphType, DecisionNode } from '../dg-types';
 import { privateSymbol } from '../dg-types';
 import { mapToGraphEdge, mapToGraphEdges, mapToGraphNode, mapToGraphNodes } from '../dg-util';
@@ -99,6 +100,9 @@ export type DecisionGraphStoreType = {
     canRedo: boolean;
 
     customNodes: CustomNodeSpecification<object, any>[];
+
+    /** ADR-024 D2：函数参考面板目录（Libraries 页签；缺省内置表，宿主可注入） */
+    functionLibraries: FunctionLibrary[];
 
     panels?: PanelType[];
     activePanel?: string;
@@ -284,6 +288,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         disabled: false,
         components: [],
         customNodes: [],
+        functionLibraries: [],
         activePanel: undefined,
         panels: [],
         user: '',

@@ -67,6 +67,8 @@ export interface CustomNodeNamespace {
   /** ADR-009 #1/#2：pack 元数据（zen-udf 0.9.0 setPackMeta → 视图透传；parse 形状守卫天然兼容）。
    *  缺省 = 无徽标（向后兼容旧载荷）。 */
   meta?: UdfPackMeta;
+  /** ADR-024 D4：命名空间文档深链（节点 ⋯ 菜单 Documentation 项）；缺省无（向后兼容旧载荷） */
+  documentationUrl?: string;
 }
 
 export type CustomNodeExpression = {

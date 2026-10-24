@@ -33,6 +33,8 @@ export type CustomNodePlan = {
   searchKeywords?: string[];
   /** ADR-009：pack 元数据透传（目录 origin 徽标） */
   meta?: CustomNodeNamespace['meta'];
+  /** ADR-024 D4：命名空间文档深链（载荷有则透传，宿主负责语义） */
+  documentationUrl?: string;
   seed: (params: { index: number }) => { name: string; config: CustomNodeConfig };
 };
 
@@ -46,6 +48,7 @@ export const containerPlan = (namespace: CustomNodeNamespace): CustomNodePlan =>
     shortDescription: firstLine(namespace.description) ?? `函数集合(${toolCount})`,
     tools: namespace.tools ?? [],
     meta: namespace.meta,
+    documentationUrl: namespace.documentationUrl,
     searchKeywords: Array.from(
       new Set(
         (namespace.tools ?? [])

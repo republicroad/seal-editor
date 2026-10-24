@@ -1,7 +1,7 @@
 # ADR-024：函数参考面板宿主注入——Libraries 目录可配 + documentationUrl 构造链保全
 
 - 日期：2026-10-24
-- 状态：**proposed**（2026-10-24 verdict 侧起草，待上游预评审）
+- 状态：**implemented（2026-10-24 同日实施——verdict 起草即上游实施的一体化工作流；实施回执见文末）**。履历：proposed（2026-10-24 verdict 侧起草）
 - 消费面实证仓：verdict（批次 30「编辑器表达式体验」；宿主过渡态见背景 §4）
 - 关联：ADR-008（宿主体验提案族）、ADR-009（函数生态分层与 namespace 治理——
   本 ADR 是治理模型的**消费端补全**：目录能下发，参考面也要能下发）、
@@ -99,3 +99,17 @@
 **负面/约束**：API 面积 +1（一个 prop、一个导出、两处透传——均为可空可选，
 兼容零破坏）；`Dg` 缺省保留期间宿主必须显式注入才能获得正确目录（文档须写明）；
 D4 只保全不合成——宿主不下发就继续没有（这与治理模型一致：目录是宿主资产）。
+
+## 实施回执（2026-10-24，起草同日实施）
+
+- **D1** ✅ function/index.ts 导出 FunctionLibrary 类型（components 桶 → 包入口可达）；
+- **D2** ✅ ①Function 组件调试器调用点由写死内置表改读自身 libraries prop（原 hardcode 连自家
+  prop 都未达面板——monaco 补全吃 prop、调试器吃内置表的双轨分裂一并修复）；
+  ②DecisionGraph 新 prop functionLibraries（经 DecisionGraphEmptyType 入 DecisionGraphProps 面）；
+  ③store 通路：state.functionLibraries + dg-empty 解析缺省（宿主未注入 → 内置表）；
+  ④TabFunction 从 store 读取传 Function（SkinnedDecisionGraph 经 extends + restProps 零补丁转发）；
+- **D3** ✅ BaseNode 加 documentationUrl，createJdmNode 透传进 CustomNodeSpecification；
+- **D4** ✅ 载荷类型 CustomNodeNamespace + CustomNodePlan + containerPlan + planToJdmNode
+  四点 documentationUrl 透传（载荷有则透传、不合成）；
+- **测试** ✅ function-debugger-libraries.test.tsx（宿主目录渲染 + 不回落内置表）+ 沿用
+  dropdown-menu-items.test.tsx（菜单激活回归）；全量 617（editor）+ 231（appshell）绿。
