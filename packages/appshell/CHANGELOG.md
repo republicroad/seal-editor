@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.38.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.37.0...@republicroad/seal-appshell@1.38.0) (2026-10-24)
+
+### Features
+
+- **seal-appshell:** theme.provider syncDocumentTheme prop（缺省 true 兼容——宿主单写者场景文档写关闭，ADR-023 D3）
+
 # [1.37.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.36.0...@republicroad/seal-appshell@1.37.0) (2026-10-08)
 
 ### Features

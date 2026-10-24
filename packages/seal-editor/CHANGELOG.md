@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.35.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.34.0...@republicroad/seal-editor@1.35.0) (2026-10-24)
+
+### Features
+
+- **seal-editor:** 包 CSS 嵌入隔离（ADR-023 D1）——dist/style.css 构建后包进 @layer seal-editor（宿主 utilities 恒胜，嵌入安全成包默认性质；P1 :root 接管/P2 工具类反超治本）+ dark token 祖先形态宽容（data-mode 与 .seal-root 拆分兼容）
+- **seal-editor:** LEGACY :root token 注入迁移告警（1.x 迁移窗口，2.0 退役——挂 .seal-root 后消失，ADR-023）
+
+### Miscellaneous
+
+- LEGACY 注入的宿主迁移指引随 CHANGELOG/ADR-023 发布
+
 # [1.34.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.33.0...@republicroad/seal-editor@1.34.0) (2026-10-12)
 
 ### Features
