@@ -374,6 +374,22 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
               {selectedFn && typeof selectedFn.description === 'string' && selectedFn.description && (
                 <div className='pl-[122px] text-[11px] leading-relaxed opacity-50'>{selectedFn.description}</div>
               )}
+              {/* ADR-024 开放问题收口：工具载荷带 documentationUrl 时渲染文档入口
+                  （载荷字段经 parse 原样透传，此前消费端缺；与图节点 ⋯ 菜单
+                  Documentation 项同语义） */}
+              {selectedFn && typeof selectedFn.documentationUrl === 'string' && selectedFn.documentationUrl && (
+                <div className='pl-[122px]'>
+                  <a
+                    href={selectedFn.documentationUrl}
+                    target='_blank'
+                    rel='noreferrer'
+                    data-testid='instance-documentation-link'
+                    className='text-[11px] text-primary underline-offset-2 hover:underline'
+                  >
+                    {t('cf.documentation')} ↗
+                  </a>
+                </div>
+              )}
               <div className='grid grid-cols-[120px_minmax(0,1fr)] items-center gap-2'>
                 <Typography.Text className='text-xs opacity-70'>{t('cf.paramKey')}</Typography.Text>
                 <div className='flex flex-col gap-1'>

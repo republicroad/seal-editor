@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -290,6 +290,23 @@ describe('InstanceEditor（主从编辑器深化）', () => {
     render(<InstanceEditor instances={[]} functionScope={SCOPE} onChange={vi.fn()} />);
     expect(screen.getByText('No instances yet')).toBeTruthy();
     expect(screen.getByText('Select an instance on the left to edit')).toBeTruthy();
+  });
+
+  it('工具载荷带 documentationUrl 渲染文档入口（ADR-024 收口）；缺省不渲染', () => {
+    const scopeWithDoc = {
+      ...SCOPE,
+      functions: SCOPE.functions.map((f: Record<string, unknown>) =>
+        f.name === 'fraud_score' ? { ...f, documentationUrl: '/docs/functions/fraud' } : f,
+      ),
+    };
+    render(<InstanceEditor instances={INSTANCES} functionScope={scopeWithDoc} onChange={vi.fn()} />);
+    const link = screen.getByTestId('instance-documentation-link');
+    expect(link.getAttribute('href')).toBe('/docs/functions/fraud');
+    expect(link.getAttribute('target')).toBe('_blank');
+
+    cleanup();
+    render(<InstanceEditor instances={INSTANCES} functionScope={SCOPE} onChange={vi.fn()} />);
+    expect(screen.queryByTestId('instance-documentation-link')).toBeNull();
   });
 });
 

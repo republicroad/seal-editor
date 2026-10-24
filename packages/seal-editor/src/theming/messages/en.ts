@@ -352,6 +352,7 @@ export const en = {
   'cf.instanceEmpty': 'No instances yet',
   'cf.selectInstance': 'Select an instance on the left to edit',
   'cf.noParams': 'This function declares no parameters',
+  'cf.documentation': 'Documentation',
   'cf.unknownFunction': 'Function not in scope — pick one from the catalog',
   'cf.result': 'Result',
   'cf.lastRunHint': 'From the last simulation run — re-run after edits to refresh',

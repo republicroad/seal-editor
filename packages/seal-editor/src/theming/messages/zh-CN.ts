@@ -334,6 +334,7 @@ export const zhCN: Record<string, string> = {
   'cf.instanceEmpty': '暂无函数实例',
   'cf.selectInstance': '在左侧选择一个实例进行编辑',
   'cf.noParams': '该函数未声明参数',
+  'cf.documentation': '函数文档',
   'cf.unknownFunction': '函数未登记——请从目录重选',
   'cf.result': '返回值',
   'cf.lastRunHint': '上次仿真结果，图变更后重新运行以刷新',
