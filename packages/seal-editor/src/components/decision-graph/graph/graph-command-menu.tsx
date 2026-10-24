@@ -1,6 +1,7 @@
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox';
+import clsx from 'clsx';
 import { CommandIcon } from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useT } from '../../../theming/i18n';
 import { useSealPortalContainer } from '../../../theming/portal-context';
@@ -16,6 +17,9 @@ type CommandItem = {
   keywords: string;
   run: () => void;
 };
+
+/** recent 命令（⌘K 二期）：执行序上浮，去重 cap 3（localStorage 不可用静默降级） */
+const RECENT_KEY = 'seal.dg.command.recent';
 
 /**
  * ⌘K 全局调色板（批 20）：节点添加 / 面板开合 / 节点跳转 三组条目，
@@ -106,13 +110,65 @@ export const GraphCommandMenu: React.FC<{
     return [...extra, ...panelItems, ...gotoItems, ...addItems];
   }, [panels, activePanelId, nodes, specifications, extraCommands, addNode, graphActions]);
 
+  // recent 命令上浮：仅空 query 生效（有过滤意图时排序权归匹配本身）；
+  // 每次开面板重读一次 localStorage（执行写回后的下一次打开可见）
+  const recentIds = useMemo(() => {
+    if (!commandMenuOpen) {
+      return [];
+    }
+    try {
+      return JSON.parse(window.localStorage.getItem(RECENT_KEY) ?? '[]') as string[];
+    } catch {
+      return [];
+    }
+  }, [commandMenuOpen]);
+
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
+    const source =
+      q || recentIds.length === 0
+        ? items
+        : [
+            ...recentIds
+              .map((id) => items.find((item) => item.id === id))
+              .filter((item): item is CommandItem => Boolean(item)),
+            ...items.filter((item) => !recentIds.includes(item.id)),
+          ];
     if (!q) {
-      return items;
+      return source;
     }
-    return items.filter((item) => `${item.label} ${item.keywords}`.toLowerCase().includes(q));
-  }, [items, query]);
+    return source.filter((item) => `${item.label} ${item.keywords}`.toLowerCase().includes(q));
+  }, [items, query, recentIds]);
+
+  // ⌘K 二期：↑↓ 高亮导航——Base UI children 渲染模式无内建高亮/键盘序，
+  // activeIndex 自管（Enter 提交高亮项，缺省 0=首匹配，与旧「Enter=首匹配」兼容）
+  const [activeIndex, setActiveIndex] = useState(0);
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [query, commandMenuOpen]);
+
+  const listRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!commandMenuOpen) {
+      return;
+    }
+    // jsdom 无 scrollIntoView——可选链调用兜底
+    listRef.current?.querySelector('[data-command-active]')?.scrollIntoView?.({ block: 'nearest' });
+  }, [activeIndex, commandMenuOpen]);
+
+  const commit = (command: CommandItem) => {
+    graphActions.setCommandMenuOpen(false);
+    setQuery('');
+    // recent 命令：执行序上浮（去重 cap 3，空 query 时置顶）
+    try {
+      const raw = JSON.parse(window.localStorage.getItem(RECENT_KEY) ?? '[]') as string[];
+      const next = [command.id, ...raw.filter((id) => id !== command.id)].slice(0, 3);
+      window.localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+    } catch {
+      /* localStorage 不可用（隐私模式等）静默降级 */
+    }
+    queueMicrotask(() => command.run());
+  };
 
   const groupLabel: Record<CommandItem['group'], string> = {
     add: t('dg.command.groupAdd'),
@@ -133,9 +189,7 @@ export const GraphCommandMenu: React.FC<{
       onValueChange={(value) => {
         const command = (Array.isArray(visible) ? visible : []).find((item) => item === value);
         if (command) {
-          graphActions.setCommandMenuOpen(false);
-          setQuery('');
-          queueMicrotask(() => command.run());
+          commit(command);
         }
       }}
     >
@@ -162,26 +216,40 @@ export const GraphCommandMenu: React.FC<{
             <ComboboxPrimitive.Input
               data-testid='graph-command-input'
               onKeyDown={(event) => {
-                // Enter 提交首个匹配（Base UI children 渲染模式无内建高亮——
-                // 以首匹配为默认提交对象，与查询排序一致）
+                // ↑↓ 移动高亮（children 渲染模式自管序）；Enter 提交高亮项
+                if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                  if (visible.length === 0) {
+                    return;
+                  }
+                  event.preventDefault();
+                  setActiveIndex((i) =>
+                    event.key === 'ArrowDown' ? (i + 1) % visible.length : (i - 1 + visible.length) % visible.length,
+                  );
+                  return;
+                }
                 if (event.key === 'Enter' && visible.length > 0) {
                   event.preventDefault();
-                  const command = visible[0];
-                  graphActions.setCommandMenuOpen(false);
-                  setQuery('');
-                  queueMicrotask(() => command.run());
+                  commit(visible[Math.min(activeIndex, visible.length - 1)]);
                 }
               }}
               placeholder={t('dg.command.placeholder')}
               className='h-10 w-full border-b border-[var(--border)] bg-transparent px-3 text-sm outline-none'
             />
-            <ComboboxPrimitive.List className='max-h-[320px] overflow-y-auto p-1'>
-              {visible.map((item) => (
+            <ComboboxPrimitive.List ref={listRef} className='max-h-[320px] overflow-y-auto p-1'>
+              {visible.map((item, index) => (
                 <ComboboxPrimitive.Item
                   key={item.id}
                   value={item}
                   data-testid='graph-command-item'
-                  className='flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-xs outline-none data-highlighted:bg-accent data-highlighted:text-accent-foreground'
+                  data-command-active={index === activeIndex || undefined}
+                  onMouseMove={() => setActiveIndex(index)}
+                  // 视觉统一走自管 activeIndex（Base UI children 渲染模式内部仍有
+                  // 一套 arrow 高亮——data-highlighted 钩子移除，避免双高亮叠加；
+                  // Enter/箭头已 preventDefault 让位，内部序不参与提交）
+                  className={clsx(
+                    'flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-xs outline-none',
+                    index === activeIndex && 'bg-accent text-accent-foreground',
+                  )}
                 >
                   {item.icon}
                   <span className='min-w-0 flex-1 truncate'>{item.label}</span>

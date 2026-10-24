@@ -51,6 +51,8 @@ const seedGraph = () => {
 describe('GraphCommandMenu（⌘K 全局调色板）', () => {
   beforeEach(() => {
     ctx = null;
+    // recent 上浮跨测试泄漏（执行路径写回 localStorage）——每例清键
+    window.localStorage.removeItem('seal.dg.command.recent');
   });
 
   it('Ctrl/⌘+K 开合；输入控件内让位', async () => {
@@ -81,7 +83,6 @@ describe('GraphCommandMenu（⌘K 全局调色板）', () => {
     // 弹层挂载异步（Base UI portal）
 
     await new Promise((r) => setTimeout(r, 300));
-    console.log('LABELS=', JSON.stringify(screen.queryAllByTestId('graph-command-item').map((el) => el.textContent)));
     await waitFor(() => expect(screen.getAllByTestId('graph-command-item').length).toBeGreaterThan(2));
     const labels = () => screen.getAllByTestId('graph-command-item').map((el) => el.textContent ?? '');
     expect(labels().some((text) => text.includes('Decision table'))).toBe(true);
@@ -121,5 +122,56 @@ describe('GraphCommandMenu（⌘K 全局调色板）', () => {
 
     await waitFor(() => expect(addNode).toHaveBeenCalled());
     await waitFor(() => expect(ctx!.stateStore.getState().commandMenuOpen).toBe(false));
+  });
+
+  it('↑↓ 移动高亮、Enter 提交高亮项（非首匹配）', async () => {
+    const addNode = vi.fn().mockResolvedValue(undefined);
+    renderMenu(addNode);
+    act(() => seedGraph());
+    act(() => {
+      ctx!.stateStore.setState({ commandMenuOpen: true });
+    });
+    const input = await waitFor(() => screen.getByTestId('graph-command-input'));
+
+    await waitFor(() => expect(screen.getAllByTestId('graph-command-item').length).toBeGreaterThan(1));
+    // 缺省高亮首项
+    expect(document.querySelector('[data-command-active]')).toBeTruthy();
+
+    // 移到 Decision table（add 组）条目再 Enter——验证提交的是高亮项而非首匹配
+    const items = () => screen.getAllByTestId('graph-command-item');
+    const targetIndex = items().findIndex((el) => el.textContent?.includes('Decision table'));
+    expect(targetIndex).toBeGreaterThan(0);
+    for (let i = 0; i < targetIndex; i++) {
+      await userEvent.type(input, '{ArrowDown}');
+    }
+    await waitFor(() => expect(document.querySelector('[data-command-active]')).toBe(items()[targetIndex]));
+
+    await userEvent.type(input, '{Enter}');
+    await waitFor(() => expect(addNode).toHaveBeenCalled());
+    await waitFor(() => expect(ctx!.stateStore.getState().commandMenuOpen).toBe(false));
+  });
+
+  it('recent 命令空 query 上浮、执行后写回 localStorage', async () => {
+    window.localStorage.setItem('seal.dg.command.recent', JSON.stringify(['panel:simulator']));
+    try {
+      const addNode = vi.fn().mockResolvedValue(undefined);
+      renderMenu(addNode);
+      act(() => seedGraph());
+      act(() => {
+        ctx!.stateStore.setState({ commandMenuOpen: true });
+      });
+      await waitFor(() => expect(screen.getAllByTestId('graph-command-item').length).toBeGreaterThan(1));
+
+      const labels = () => screen.getAllByTestId('graph-command-item').map((el) => el.textContent ?? '');
+      // Simulator（recent）上浮到首位
+      await waitFor(() => expect(labels()[0]).toContain('Simulator'));
+
+      await userEvent.click(screen.getAllByTestId('graph-command-item')[0]);
+      await waitFor(() =>
+        expect(JSON.parse(window.localStorage.getItem('seal.dg.command.recent') ?? '[]')).toContain('panel:simulator'),
+      );
+    } finally {
+      window.localStorage.removeItem('seal.dg.command.recent');
+    }
   });
 });
