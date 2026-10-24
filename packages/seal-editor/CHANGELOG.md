@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.37.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.36.0...@republicroad/seal-editor@1.37.0) (2026-10-24)
+
+### Bug Fixes
+
+- **data-grid:** headerSticky 下抑制表体垫片——空 h-2 spacer 躺在半透明 sticky 表头下方露成 8px 间隙（dt rowBorder:false + headerSticky 形态）；四表体变体调用点同修
+- **ui:** 浮层 Positioner 统一 z-50——Base UI Positioner 以 transform 定位自建层叠上下文，Popup 上的 z 出不去（名义 50 实际 0），sticky 表头 z-40 压住 dt 增列/字段编辑浮层；五件套缺省 z-50 + positionerClassName 逃生舱 + primitives overlayClassName 重路由（取代 7525fa04 的 Popup z-[60] 方案）
+- **graph:** 命令面板透明与居中双修——Combobox Portal 补 container（缺省落 body 在 .seal-root 岛外 token 不达致背景透明）；DOM 锚包含块被 transform 祖先劫持随视图漂移，改 floating-ui 虚拟锚定 iframe 视口顶心；Positioner 补 z-50
+
+### Features
+
+- **graph:** 节点搜索默认在位——Components 面板搜索阈值口径从「仅自定义 >5」改为全量节点（核心 6 类 + 自定义），零自定义节点亦可用；口径取未过滤 innerGroups 防输入中途卸载
+
 # [1.36.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.24.0...@republicroad/seal-editor@1.36.0) (2026-10-24)
 
 ### Bug Fixes
