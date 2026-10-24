@@ -29,6 +29,9 @@
 > **2026-10-15 复查**：组件 27 持平（零新增，六新组件判定全维持）；blocks 636→654（+18：chart+5/data-grid+5/ai-agents+4/application+2/solutions+2）。
 > 增量要点：data-grid 新 advanced 类（格内 sparkline+KPI 带+undo toast）= dt 命中统计可视化的形态参照（非直接可用）；ai-agents 四个新 copilot 变体（corner popup/docs assistant/voice/structured answers）加厚触发项基座（ai-chat-2 仍为首选）。模板 MCP 仍不可枚举，判定不变。
 
+> **2026-10-24 复查**：组件 27 持平；blocks **+4 = flow 类目全新**（10-15 复查后新增，4 block 全部 @xyflow/react 栈、pro 档）——①flow-1 Automation Builder（undo/redo + canvas lock + snap-to-grid + minimap + **未保存编辑 Update 钮** + 节点工具栏/右键增删复制 + docked inspector）；②flow-2 AI Agent Builder（**dagre 树布局——与本仓 auto-layout 同栈** + 命名分支路径 + connector 加步钮 + Run test 统计 passed/failed/skipped）；③flow-3 Pipeline Run Monitor（6 运行态 + 失败任务重试/聚焦 + 审批门）；④flow-4 Growth Impact Map（KPI 驱动树，与仓无关）。另：whiteboard 类（Excalidraw ×2，历次复查未录）——自由绘图非规则编辑器形态，维持否决清单同款裁定。
+> 判定：**独立 demo 应用形态，非可嵌入组件——不安装**（同 data-grid 组裁定；决策图节点语义/契约面是 jdm 立法资产，graph.tsx 深度定制不换装）。形态参照三处入册：①flow-1 未保存 Update 钮 ↔ ADR-008 dirty 契约（host-owned）+ auto-persist SyncStatusBadge 的 UI 语义参照；②flow-3 运行态+失败重试聚焦 ↔ simulator/TrustChain trace 展示参照；③canvas lock / snap-to-grid 为图编辑器增强候选（未挂触发项，宿主需求驱动）。模板仍 MCP 不可枚举（10-15 结论维持），整页站定位对组件库不适用。
+
 ### 新组件判定（6 项）
 
 | 组件 | 判定 | 落点/理由 |
