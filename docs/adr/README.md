@@ -33,6 +33,7 @@
 | [ADR-021](./021-zen-udf-stateful-operator-contract.md) | zen-udf 状态算子契约：时间档位/保真披露（fidelity）/幂等键单源/算子改名双名过渡 + conformance 分档（verdict 起草·上游预评审·立项转移，待 verdict-005/006 落章实施） | proposed | 2026-10 |
 | [ADR-022](./022-zen-udf-write-path-switch-plan.md) | 自定义节点调用表达式写路径切具名嵌套施工计划——`{$call, kwargs}` canonical（账实核对后剩余约 0.5 天：buildDefault/standalone 表格面/歧义检测器） | accepted（施工定稿） | 2026-10 |
 | [ADR-023](./023-package-css-embedding-isolation.md) | 包 CSS 嵌入隔离：dist 层化（@layer seal-editor）/ LEGACY `:root` 接管退役 / 主题文档写受控化 syncDocumentTheme（verdict 起草——生产三连实证：暗色翻浅/侧栏 0×0/主题第二写者；待上游预评审） | proposed | 2026-10 |
+| [ADR-024](./024-function-library-panel-host-injection.md) | 函数参考面板宿主注入：Libraries 目录可配（functionLibraries prop）/ documentationUrl 构造链保全（BaseNode + appshell an/Fn）/ FunctionLibrary 导出（verdict 起草——批次 30 宿主 map 过渡态实证；ADR-009 消费端补全；待上游预评审） | proposed | 2026-10 |
 
 ## 状态定义
 
