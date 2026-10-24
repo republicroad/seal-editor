@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.35.1](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.35.0...@republicroad/seal-editor@1.35.1) (2026-10-24)
+
+### Bug Fixes
+
+- **seal-editor:** 1.35.0 发布产物漏层化修复——wrap 下沉为 vite closeBundle 插件（任一 build 路径含 prepublishOnly 裸构建均自动包裹；1.35.0 的 wrap 只链在 pnpm run build，prepublishOnly 重建出未层化 dist 上架）
+
 # [1.35.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.34.0...@republicroad/seal-editor@1.35.0) (2026-10-24)
 
 ### Features

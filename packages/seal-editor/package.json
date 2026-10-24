@@ -1,6 +1,6 @@
 {
   "name": "@republicroad/seal-editor",
-  "version": "1.35.0",
+  "version": "1.35.1",
   "description": "",
   "author": "GoRules <hi@gorules.io> (https://gorules.io)",
   "homepage": "https://github.com/republicroad/seal-editor",
@@ -45,7 +45,7 @@
     "test:watch": "vitest",
     "test:storybook": "concurrently -k -s first -n SB,TST \"storybook build -o docs --quiet && http-server docs -p 9009 --silent\" \"wait-on tcp:127.0.0.1:9009 && test-storybook --url http://127.0.0.1:9009\"",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "vite build"
+    "prepublishOnly": "vite build && node ../../scripts/wrap-dist-css.mjs"
   },
   "dependencies": {
     "@base-ui/react": "catalog:",

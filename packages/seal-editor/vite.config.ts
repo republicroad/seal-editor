@@ -1,15 +1,44 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react-swc';
+import { readFileSync, writeFileSync } from 'node:fs';
 import * as path from 'path';
 import { visualizer } from 'rollup-plugin-visualizer';
 import dts from 'unplugin-dts/vite';
-import { defineConfig } from 'vite';
+import { type Plugin, defineConfig } from 'vite';
 import wasm from 'vite-plugin-wasm';
 
 import packageJson from './package.json' with { type: 'json' };
 
+/**
+ * ADR-023 D1：dist/style.css 包裹进 @layer seal-editor——宿主 utilities 恒胜，
+ * 嵌入安全成包默认性质。挂在 closeBundle（写在磁盘之后）：**任何** vite build
+ * 路径（含 pnpm publish 触发的 prepublishOnly 裸构建）都自动包裹——1.35.0 的
+ * 教训：wrap 只链在 pnpm run build，prepublishOnly 重建出未层化 dist 上架。
+ * 与 scripts/wrap-dist-css.mjs 同转换（CLI 版含 --check/--strict 守卫语义）。
+ */
+const wrapDistCssPlugin = (): Plugin => ({
+  name: 'adr-023-wrap-dist-css',
+  apply: 'build',
+  closeBundle() {
+    const cssPath = path.resolve(import.meta.dirname, 'dist', 'style.css');
+    let css: string;
+    try {
+      css = readFileSync(cssPath, 'utf8');
+    } catch {
+      return; // 无 css 产物（理论不可达——lib 构建恒产 style.css）
+    }
+    if (css.trimStart().startsWith('@layer seal-editor')) {
+      return; // 已包裹（幂等）
+    }
+    // 剥顶层裸 @layer 声明（`@layer a, b;`——保留会向宿主全局层序声明层名）
+    const stripped = css.replace(/^@layer\s+[^;{}]*;\s*$/gm, '');
+    writeFileSync(cssPath, `@layer seal-editor {\n${stripped.trimEnd()}\n}\n`, 'utf8');
+  },
+});
+
 export default defineConfig({
   plugins: [
+    wrapDistCssPlugin(),
     react(),
     wasm(),
     dts({ include: ['src/**/*.ts', 'src/**/*.tsx'], bundleTypes: true }),
