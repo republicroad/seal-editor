@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.38.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.37.0...@republicroad/seal-editor@1.38.0) (2026-10-25)
+
+### Bug Fixes
+
+- **ui:** Map Excel 弹层矮视口 footer 与 Preview 重合——Modal footer 加顶部分隔线（全 Modal 普适）+ 对话框压缩固定开销（body 滚动区 60→95px）+ Preview 高度 240→180
+
+### Features
+
+- **graph:** ⌘K 调色板二期——↑↓ 高亮导航（自管 activeIndex + scrollIntoView 跟随 + Enter 提交高亮项）+ recent 命令上浮（localStorage 去重 cap3，仅空 query 生效）
+- **graph:** $call 实例编辑器 documentationUrl 文档入口（ADR-024 开放问题收口）+ i18n 双语词条
+
 # [1.37.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.36.0...@republicroad/seal-editor@1.37.0) (2026-10-24)
 
 ### Bug Fixes
