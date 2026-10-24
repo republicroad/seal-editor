@@ -20,7 +20,7 @@ export interface PopoverProps {
   children?: React.ReactNode;
 }
 
-export const Popover: React.FC<PopoverProps> = ({ open, onOpenChange, content, children }) => (
+export const Popover: React.FC<PopoverProps> = ({ open, onOpenChange, content, overlayClassName, children }) => (
   <UiPopover open={open} onOpenChange={onOpenChange}>
     {/*
      * Wrap the child in a real DOM element unconditionally: Base UI
@@ -29,6 +29,6 @@ export const Popover: React.FC<PopoverProps> = ({ open, onOpenChange, content, c
      * Button, as dialog row actions do) silently drops them.
      */}
     <UiPopoverTrigger render={<span className='inline-flex'>{children}</span>} />
-    <UiPopoverContent>{content}</UiPopoverContent>
+    <UiPopoverContent className={overlayClassName}>{content}</UiPopoverContent>
   </UiPopover>
 );

@@ -32,6 +32,7 @@ export const FieldEditPopover: React.FC<FieldEditPopoverProps> = ({
 }) => (
   <Popover
     placement='bottomLeft'
+    overlayClassName={'z-[60]'}
     trigger={['click']}
     destroyTooltipOnHide
     arrow={false}
