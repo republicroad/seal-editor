@@ -3,6 +3,53 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.36.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.24.0...@republicroad/seal-editor@1.36.0) (2026-10-24)
+
+### Bug Fixes
+
+- **dropdown:** 菜单条目 onClick 接线——onSelect 是 Radix API，base-ui Menu.Item 只有 onClick（未识别 prop 落原生 select 事件，节点菜单 Documentation/Copy/Duplicate/Delete 全部静默失效）；附激活回归测试 ([b2c2715](https://github.com/republicroad/seal-editor/commit/b2c271594b77aa0d0f67c743cef5a987af4e226a))
+- **dt:** 字段编辑浮层 z 提升至 sticky 表头之上——primitives Popover 补 overlayClassName 透传（此前声明未使用被静默丢弃）；field-edit-popover 挂 z-[60] 压过 headerSticky z-40 ([7525fa0](https://github.com/republicroad/seal-editor/commit/7525fa04e8b3e6db9212f89483917179b044ce60))
+- **release:** 1.35.1——wrap 下沉 vite closeBundle 插件，修复发布产物漏层化（1.35.0 的 wrap 只链在 pnpm run build，prepublishOnly 裸构建覆盖；任一构建路径现均自动包裹） ([cda88d1](https://github.com/republicroad/seal-editor/commit/cda88d1d7d83a5c7c8e41e7adfd5fc7d5a7f5343))
+- **seal-editor:** dg-infer 推理循环 return→continue——祖传空转修复（上游 jdm 同缺陷），inferTypes 首次真正执行 + 6 条行为守卫 ([bdaf403](https://github.com/republicroad/seal-editor/commit/bdaf403dec324e831761317ecbf9396ee7515bcd))
+- **seal-editor:** primitives test 禁用 pointer-events 检查——CI Select 动画期 flake 根治 ([14b739c](https://github.com/republicroad/seal-editor/commit/14b739c9c12892e89932614788c2754f9a2cd3d8))
+- **seal-editor:** Run 历史 story play 断言包 waitFor——点击展开异步渲染 ([447c511](https://github.com/republicroad/seal-editor/commit/447c5110eba52eb1f790354dd976f5034f4363cd))
+- **seal-editor:** story snapshot 类型断言——Simulation 联合收窄（CI Type check） ([8f5ed81](https://github.com/republicroad/seal-editor/commit/8f5ed81c13002842b43366df205ba77c0c55a4de))
+- **seal-editor:** story 补 waitFor 导入 ([e65dd22](https://github.com/republicroad/seal-editor/commit/e65dd228bff08258674d099412798bae421e6d46))
+- **seal-editor:** 表达式补全源惰性取用——UDF schema 晚注入不再空手 ([b55c16b](https://github.com/republicroad/seal-editor/commit/b55c16ba92367f278afcb242facf19491e0760a5))
+- **story:** auto-layout 布局稳定等待根治偶发红 + storybook monaco 同源静态化 ([342a881](https://github.com/republicroad/seal-editor/commit/342a88138c2b67a0f682c26ff283c4a2a5a5bb2c))
+
+### Features
+
+- **adr-023:** 包 CSS 嵌入隔离实施——D1 层化+守卫+D3 文档写受控+首方 ISLAND 挂载（预评审三处补充吸收） ([e7a9610](https://github.com/republicroad/seal-editor/commit/e7a96104721c127957bfe7a282d8b1536ab0bc03)), closes [#5](https://github.com/republicroad/seal-editor/issues/5) [#4](https://github.com/republicroad/seal-editor/issues/4) [#2](https://github.com/republicroad/seal-editor/issues/2) [#6](https://github.com/republicroad/seal-editor/issues/6)
+- **appshell:** crypto 待摘要内容切 TypedInput 万能值 + 仿真 toast i18n + Server run 事件桥 ([47e9c04](https://github.com/republicroad/seal-editor/commit/47e9c04477fd1f0b369b6815bc7949a02dc49ba7))
+- **appshell:** 版本历史 unified patch 行级 diff（LCS 工具 + code-block 渲染）+ REPL 缺省 code-block 化 ([da33396](https://github.com/republicroad/seal-editor/commit/da33396240247ed1d35f12980c71c89efbccf8d9))
+- **editor,appshell:** ADR-024 实施——函数参考面板宿主注入 + documentationUrl 构造链保全 ([7842616](https://github.com/republicroad/seal-editor/commit/7842616581215c65d70745bbec683189233cf26c))
+- **kernel:** $ 诊断按表面分派（dt 单元波浪线）+ 引用源点击插入——轨道 A/B/C 落地 ([e783426](https://github.com/republicroad/seal-editor/commit/e78342614aa5136587e09c8f51333ca411570f09))
+- **kernel:** $ 语义误用静态提示三件套——zen-reference §1.5 实测矩阵的编辑器面落地 ([130c9d1](https://github.com/republicroad/seal-editor/commit/130c9d1245b180d7c7183f8acef91cb75879b997))
+- **kernel:** $ 误用诊断下沉 CM6 lint——从行下警告线到编辑时波浪线+快速修复 ([34dda6f](https://github.com/republicroad/seal-editor/commit/34dda6f73cf01286e58d3ff85f725a9b7e12f9b8))
+- **kernel:** ADR-022 写路径切规范形收尾——standalone 表格面 {$call, kwargs} 化（arg_exprs 停写/规范形直读/prior 额外键保真）+ 漂移带 kwargsKeyCollision 歧义判定 + 验收 580 绿实施回执 ([3ae268f](https://github.com/republicroad/seal-editor/commit/3ae268f6ec0bc8d27a694e57f015d5a32bd4715c))
+- **kernel:** dt 主表列级命中统计（D2）——fixturesRun 规则命中桥接进 dt 视图 ([e7008a6](https://github.com/republicroad/seal-editor/commit/e7008a6d978a0db6efe08b0565203f503619db19))
+- **kernel:** dt 命中统计汇总条（D）+ 恒值比较哨兵（E） ([99bdff3](https://github.com/republicroad/seal-editor/commit/99bdff37799e7a56dd145c81fdb0ea38a6a254cc))
+- **kernel:** i18n 覆盖第二期——规格面板/画布卡/散点 26 处接线 ([7c836ba](https://github.com/republicroad/seal-editor/commit/7c836bace64beb05a45f963e44e3d5cfa084a0a4))
+- **kernel:** 实例依赖编辑入口 + 引用源面板 + 依赖声明漂移预检——ADR-015 增补编辑面收口 ([916193f](https://github.com/republicroad/seal-editor/commit/916193f6c8c8b615e5332fedf41188b2408a608c))
+- **reui:** data-grid i18n 单 prop 全接线 + footer 组合能力示例——轨道 A 落地 ([49d307c](https://github.com/republicroad/seal-editor/commit/49d307c062360bc2d87069b25e522bfd64b32fea))
+- **seal-editor+appshell:** PackAuthoring 活文档故事 + tester 组内仲裁语义（kind 收窄候选/tester 分流，OQ1 闭合）+ VersionLineDiff/runs code-block 故事 ([c26aa0c](https://github.com/republicroad/seal-editor/commit/c26aa0c142f515599d8d6f44007bb0fb2af573d5))
+- **seal-editor+appshell:** reui 填缝——JSON 复制/骨架屏/toast 扩展 ([2a7a4ca](https://github.com/republicroad/seal-editor/commit/2a7a4ca781e4daeb9d1dd3f5ecd4b52469b8dd83))
+- **seal-editor:** ⌘K 二期——宿主 extraCommands 注入 ([7d0efbc](https://github.com/republicroad/seal-editor/commit/7d0efbcf60cd6ea1b20a74aa28435df0df830628))
+- **seal-editor:** ⌘K 全局调色板——节点添加/面板开合/节点跳转三组条目 ([00a46cd](https://github.com/republicroad/seal-editor/commit/00a46cdaab4c1f51d6adeed098d62a135341b187))
+- **seal-editor:** ADR-017 [#1](https://github.com/republicroad/seal-editor/issues/1)-[#3](https://github.com/republicroad/seal-editor/issues/3) tester+rank 注册表——resolveCustomNode 六处消费点收敛 + renderTab 上下文增补 + definePack 糖（dg-infer 死路径修复） ([a48aac8](https://github.com/republicroad/seal-editor/commit/a48aac8c71c6328faf84806b899de27977e6b01c))
+- **seal-editor:** cascader 移植——裁剪版 8 文件 + scroll-area/spinner 前置，懒 chunk 隔离 ([f2d9e81](https://github.com/republicroad/seal-editor/commit/f2d9e81822f1a0b08d55e8a28b86cce0a130b64d))
+- **seal-editor:** dt 字段绑定浏览选择器——cascader 复用（零新增包体） ([8dfb2ed](https://github.com/republicroad/seal-editor/commit/8dfb2ed17561a805494ccbc1f5c20d51159f2ce6))
+- **seal-editor:** dt 编辑形态升级——剪贴板启用/填充柄/格子 undo-redo/rejected 反馈 ([f4746fe](https://github.com/republicroad/seal-editor/commit/f4746fe0e55d36b1cf21ad05131b59bcf861bf6f))
+- **seal-editor:** FieldPicker 层级化——cascader 树搜索弹层换装（插入语义不变） ([7a7ffe4](https://github.com/republicroad/seal-editor/commit/7a7ffe43ede57dac58b5da267ba25ca927af599d))
+- **seal-editor:** reui code-block 裁剪移植 + run 历史详情 code-block 渲染（shiki 动态 chunk 隔离） ([f0df5a6](https://github.com/republicroad/seal-editor/commit/f0df5a6f8c4f2fecae65e470511d9534914cc5e2))
+- **seal-editor:** Run 历史持久化——元数据环形常驻 + pin 载荷保留（混合方案） ([b2eb5b0](https://github.com/republicroad/seal-editor/commit/b2eb5b00a810c62ad5d6c8c860b47e430c37d918))
+- **seal-editor:** timeline 原语移植 + 仿真 Run 历史时间线（可展开回看） ([02db945](https://github.com/republicroad/seal-editor/commit/02db9451006eed8d94fc06e67071f2856f0bf679))
+- **seal-editor:** 治理谓词 allowedNamespaces——按 namespace/kind 过滤 customNodes ([31ca220](https://github.com/republicroad/seal-editor/commit/31ca220eb1ee9219d3520d6d5372b3d34dd401ff))
+- **seal-editor:** 画布执行成功徽标 Motion Icon 接线 ([5fbaf98](https://github.com/republicroad/seal-editor/commit/5fbaf98b30dd93bd60ea76deff54b95012d2d660))
+- **seal-editor:** 自定义函数编辑器深化——依赖调度可视化 + empty/alert 规范化 + TypedInput 公共导出 ([81939c3](https://github.com/republicroad/seal-editor/commit/81939c37fac9d7f0943f2f23d38526f2e9e89ca3))
+- **seal-editor:** 面板 dock 上缘拖拽可视化 + 双击重置（可拖高度早已实装——缺的是可发现性） ([c444e99](https://github.com/republicroad/seal-editor/commit/c444e99d7fda66aa71b19c7184bfc71b07fc79a6))
+
 # [1.35.1](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.35.0...@republicroad/seal-editor@1.35.1) (2026-10-24)
 
 ### Bug Fixes

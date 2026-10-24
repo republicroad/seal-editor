@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.39.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.31.0...@republicroad/seal-appshell@1.39.0) (2026-10-24)
+
+### Bug Fixes
+
+- **appshell:** 侧栏按钮计数断言 3→4——⌘K 触发钮入侧栏（批 20） ([81ed346](https://github.com/republicroad/seal-editor/commit/81ed3468a113f38679689a04376f6f98e726cf88))
+
+### Features
+
+- **adr-023:** 包 CSS 嵌入隔离实施——D1 层化+守卫+D3 文档写受控+首方 ISLAND 挂载（预评审三处补充吸收） ([e7a9610](https://github.com/republicroad/seal-editor/commit/e7a96104721c127957bfe7a282d8b1536ab0bc03)), closes [#5](https://github.com/republicroad/seal-editor/issues/5) [#4](https://github.com/republicroad/seal-editor/issues/4) [#2](https://github.com/republicroad/seal-editor/issues/2) [#6](https://github.com/republicroad/seal-editor/issues/6)
+- **appshell:** crypto 待摘要内容切 TypedInput 万能值 + 仿真 toast i18n + Server run 事件桥 ([47e9c04](https://github.com/republicroad/seal-editor/commit/47e9c04477fd1f0b369b6815bc7949a02dc49ba7))
+- **appshell:** http 节点编辑升级——url 万能值信封直写 + NumberField + persistConfig 键主权 ([a113d1d](https://github.com/republicroad/seal-editor/commit/a113d1d260b2d447e93e62d0f8a958b5b125d53c))
+- **appshell:** SkinnedDecisionGraph runsPersistenceKey 透传——宿主传键即启用 Run 历史持久化 ([5672992](https://github.com/republicroad/seal-editor/commit/567299296b91da67c2d132ddcecbb81494aca19a))
+- **appshell:** 仿真完成 toast——seal:simulation-finished 事件桥 + Toaster 挂载 ([bee3f87](https://github.com/republicroad/seal-editor/commit/bee3f87ea621eee4393c5c2a681f8a1f8fb8bff1))
+- **appshell:** 版本历史 unified patch 行级 diff（LCS 工具 + code-block 渲染）+ REPL 缺省 code-block 化 ([da33396](https://github.com/republicroad/seal-editor/commit/da33396240247ed1d35f12980c71c89efbccf8d9))
+- **editor,appshell:** ADR-024 实施——函数参考面板宿主注入 + documentationUrl 构造链保全 ([7842616](https://github.com/republicroad/seal-editor/commit/7842616581215c65d70745bbec683189233cf26c))
+- **kernel:** dt 主表列级命中统计（D2）——fixturesRun 规则命中桥接进 dt 视图 ([e7008a6](https://github.com/republicroad/seal-editor/commit/e7008a6d978a0db6efe08b0565203f503619db19))
+- **seal-editor+appshell:** allowedNamespaces 治理谓词全链落地 ([10e9fdd](https://github.com/republicroad/seal-editor/commit/10e9fdd02145178af34e34345669dfc776cc6016))
+- **seal-editor+appshell:** PackAuthoring 活文档故事 + tester 组内仲裁语义（kind 收窄候选/tester 分流，OQ1 闭合）+ VersionLineDiff/runs code-block 故事 ([c26aa0c](https://github.com/republicroad/seal-editor/commit/c26aa0c142f515599d8d6f44007bb0fb2af573d5))
+- **seal-editor:** ⌘K 二期——宿主 extraCommands 注入 ([7d0efbc](https://github.com/republicroad/seal-editor/commit/7d0efbcf60cd6ea1b20a74aa28435df0df830628))
+
 # [1.38.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.37.0...@republicroad/seal-appshell@1.38.0) (2026-10-24)
 
 ### Features
