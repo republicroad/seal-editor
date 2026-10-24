@@ -27,7 +27,14 @@ const ContextMenuContent = React.forwardRef<
   const sealContainer = useSealPortalContainer();
   return (
     <ContextMenuPrimitive.Portal container={sealContainer}>
-      <ContextMenuPrimitive.Positioner side={side} sideOffset={sideOffset} align={align} alignOffset={alignOffset}>
+      {/* z 落 Positioner：transform 定位自建层叠上下文，Popup 的 z 出不去 */}
+      <ContextMenuPrimitive.Positioner
+        className='z-50'
+        side={side}
+        sideOffset={sideOffset}
+        align={align}
+        alignOffset={alignOffset}
+      >
         <ContextMenuPrimitive.Popup
           ref={ref}
           data-slot='context-menu-content'
@@ -107,7 +114,14 @@ const ContextMenuSubContent = React.forwardRef<
   const sealContainer = useSealPortalContainer();
   return (
     <ContextMenuPrimitive.Portal container={sealContainer}>
-      <ContextMenuPrimitive.Positioner side={side} sideOffset={sideOffset} align={align} alignOffset={alignOffset}>
+      {/* z 落 Positioner：transform 定位自建层叠上下文，Popup 的 z 出不去 */}
+      <ContextMenuPrimitive.Positioner
+        className='z-50'
+        side={side}
+        sideOffset={sideOffset}
+        align={align}
+        alignOffset={alignOffset}
+      >
         <ContextMenuPrimitive.Popup
           ref={ref}
           data-slot='context-menu-sub-content'

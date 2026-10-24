@@ -29,7 +29,14 @@ function DropdownMenuContent({
   const sealContainer = useSealPortalContainer();
   return (
     <MenuPrimitive.Portal container={sealContainer}>
-      <MenuPrimitive.Positioner side={side} sideOffset={sideOffset} align={align} alignOffset={alignOffset}>
+      {/* z 落 Positioner：transform 定位自建层叠上下文，Popup 的 z 出不去 */}
+      <MenuPrimitive.Positioner
+        className='z-50'
+        side={side}
+        sideOffset={sideOffset}
+        align={align}
+        alignOffset={alignOffset}
+      >
         <MenuPrimitive.Popup
           data-slot='dropdown-menu-content'
           className={cn(
@@ -201,7 +208,14 @@ function DropdownMenuSubContent({
   const sealContainer = useSealPortalContainer();
   return (
     <MenuPrimitive.Portal container={sealContainer}>
-      <MenuPrimitive.Positioner side={side} sideOffset={sideOffset} align={align} alignOffset={alignOffset}>
+      {/* z 落 Positioner：transform 定位自建层叠上下文，Popup 的 z 出不去 */}
+      <MenuPrimitive.Positioner
+        className='z-50'
+        side={side}
+        sideOffset={sideOffset}
+        align={align}
+        alignOffset={alignOffset}
+      >
         <MenuPrimitive.Popup
           data-slot='dropdown-menu-sub-content'
           className={cn(

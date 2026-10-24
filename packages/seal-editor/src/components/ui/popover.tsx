@@ -14,17 +14,28 @@ function PopoverTrigger({ ...props }: React.ComponentProps<typeof PopoverPrimiti
 
 function PopoverContent({
   className,
+  positionerClassName,
   align = 'center',
   alignOffset,
   side = 'bottom',
   sideOffset = 4,
   ...props
 }: React.ComponentProps<typeof PopoverPrimitive.Popup> &
-  Pick<PopoverPrimitive.Positioner.Props, 'side' | 'sideOffset' | 'align' | 'alignOffset'>) {
+  Pick<PopoverPrimitive.Positioner.Props, 'side' | 'sideOffset' | 'align' | 'alignOffset'> & {
+    positionerClassName?: string;
+  }) {
   const sealContainer = useSealPortalContainer();
   return (
     <PopoverPrimitive.Portal container={sealContainer}>
-      <PopoverPrimitive.Positioner side={side} sideOffset={sideOffset} align={align} alignOffset={alignOffset}>
+      {/* z 语义必须落在 Positioner：它以 transform 定位、自建层叠上下文，
+          Popup 上的 z 只在其内部排序，压不过页面 chrome（如 sticky 表头 z-40） */}
+      <PopoverPrimitive.Positioner
+        className={cn('z-50', positionerClassName)}
+        side={side}
+        sideOffset={sideOffset}
+        align={align}
+        alignOffset={alignOffset}
+      >
         <PopoverPrimitive.Popup
           data-slot='popover-content'
           className={cn(

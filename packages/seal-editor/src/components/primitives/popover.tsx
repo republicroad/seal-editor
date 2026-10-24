@@ -29,6 +29,8 @@ export const Popover: React.FC<PopoverProps> = ({ open, onOpenChange, content, o
      * Button, as dialog row actions do) silently drops them.
      */}
     <UiPopoverTrigger render={<span className='inline-flex'>{children}</span>} />
-    <UiPopoverContent className={overlayClassName}>{content}</UiPopoverContent>
+    {/* overlayClassName = 层叠语义，落 Positioner（transform 自建层叠上下文，
+        落在 Popup 上出不去）；布局类走 content 内部自行控制 */}
+    <UiPopoverContent positionerClassName={overlayClassName}>{content}</UiPopoverContent>
   </UiPopover>
 );

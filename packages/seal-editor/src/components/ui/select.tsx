@@ -43,6 +43,7 @@ function SelectTrigger({
 
 function SelectContent({
   className,
+  positionerClassName,
   children,
   alignItemWithTrigger = true,
   align = 'center',
@@ -51,11 +52,16 @@ function SelectContent({
   alignOffset,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Popup> &
-  Pick<SelectPrimitive.Positioner.Props, 'alignItemWithTrigger' | 'side' | 'sideOffset' | 'align' | 'alignOffset'>) {
+  Pick<SelectPrimitive.Positioner.Props, 'alignItemWithTrigger' | 'side' | 'sideOffset' | 'align' | 'alignOffset'> & {
+    positionerClassName?: string;
+  }) {
   const sealContainer = useSealPortalContainer();
   return (
     <SelectPrimitive.Portal container={sealContainer}>
+      {/* z 语义必须落在 Positioner：它以 transform 定位、自建层叠上下文，
+          Popup 上的 z 只在其内部排序，压不过页面 chrome（如 sticky 表头 z-40） */}
       <SelectPrimitive.Positioner
+        className={cn('z-50', positionerClassName)}
         alignItemWithTrigger={alignItemWithTrigger}
         side={side}
         sideOffset={sideOffset}

@@ -75,6 +75,7 @@ export const Select: React.FC<SelectProps> = ({
   filterOption: _filterOption,
   optionLabelProp: _optionLabelProp,
   maxCount: _maxCount,
+  overlayClassName,
   className,
   style,
 }) => {
@@ -143,7 +144,7 @@ export const Select: React.FC<SelectProps> = ({
               fallback is intentionally dropped — behavior preserved. */}
           <SelectPrimitiveValue>{selected?.label}</SelectPrimitiveValue>
         </SelectPrimitiveTrigger>
-        <SelectPrimitiveContent alignItemWithTrigger={false}>
+        <SelectPrimitiveContent alignItemWithTrigger={false} positionerClassName={overlayClassName}>
           {dropdownRender ? dropdownRender(menu) : menu}
         </SelectPrimitiveContent>
       </SelectPrimitiveRoot>
