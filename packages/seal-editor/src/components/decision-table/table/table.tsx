@@ -183,6 +183,29 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
     .with(P.array(), (t) => t?.[debugIndex]?.rule?._id)
     .otherwise((t) => (t as any)?.rule?._id);
 
+  // Description 列 auto-fit（DMN 注解列惯例）：按最长描述估宽 clamp [160, 480]；
+  // 用户手拖/持久化列宽经 columnSizing 覆盖 def size，不受影响
+  const descriptionAutoSize = useMemo(() => {
+    const descriptions = (rules ?? []).map((r: any) => String(r?._description ?? '')).filter(Boolean);
+    if (descriptions.length === 0) {
+      return colWidth;
+    }
+    let widest = 0;
+    try {
+      const ctx = document.createElement('canvas').getContext('2d');
+      if (ctx) {
+        ctx.font = '13px system-ui, sans-serif';
+        widest = descriptions.reduce((max, text) => Math.max(max, ctx.measureText(text).width), 0);
+      }
+    } catch {
+      /* jsdom 无 canvas——回退字符估算 */
+    }
+    if (widest === 0) {
+      widest = Math.max(...descriptions.map((text) => text.length)) * 7;
+    }
+    return Math.round(Math.min(480, Math.max(160, widest + 34)));
+  }, [rules, colWidth]);
+
   // A3 行级命中投影：traceData 全量命中规则集合——collect 多行命中可见
   // （debugIndex 选中行仍走 activeRuleId 强高亮，其余命中行淡染 + 行头点标）
   const hitRuleIds = useMemo(() => deriveHitRuleIds(debug?.trace?.traceData), [debug?.trace]);
@@ -253,11 +276,22 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
           </div>
         ),
         minSize: minColWidth,
-        size: colWidth,
+        size: descriptionAutoSize,
         meta: { cellEdit: { clearValue: '', editable: () => !disabled } },
       },
     ],
-    [permission, disabled, inputs, outputs, minColWidth, colWidth, activeRuleId, hitRuleIds, deadRowIds],
+    [
+      permission,
+      disabled,
+      inputs,
+      outputs,
+      minColWidth,
+      colWidth,
+      activeRuleId,
+      hitRuleIds,
+      deadRowIds,
+      descriptionAutoSize,
+    ],
   );
 
   // A' 单格聚焦（Phase 2 备选立项）：grid 焦点经受控 cellSelection 桥接回
@@ -325,6 +359,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
   );
 
   // 行级语义（渲染期闭包读取，见上方订阅说明）
+
   const getRowStatus = useCallback(
     (rowOriginal: any): 'new' | 'dirty' | 'deleted' | undefined =>
       rowOriginal?._diff?.status === 'added'
