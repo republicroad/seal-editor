@@ -117,6 +117,8 @@ export const en = {
 
   // ── excel dialog ──
   'dt.excel.title': 'Map Excel data',
+  'dt.excel.tabMapping': 'Field mapping',
+  'dt.excel.tabPreview': 'Data preview',
   'dt.excel.input': 'Input',
   'dt.excel.output': 'Output',
   'dt.excel.enterFieldName': 'Enter field name',
@@ -200,6 +202,8 @@ export const en = {
   'dg.schema.importFromJson': 'Import from JSON',
   'dg.excel.wrapQuotes': 'Wrap value in quotes',
   'dg.excel.enterFieldName': 'Enter field name',
+  'dg.excel.tabMapping': 'Field mapping',
+  'dg.excel.tabPreview': 'Data preview',
   'dg.condition.removeConfirm': 'Remove condition?',
   'dg.condition.namePlaceholder': 'Path name',
   'dt.toolbar.rowRemoved': 'Row removed',

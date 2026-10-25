@@ -17,6 +17,7 @@ import {
   Radio,
   Select,
   Steps,
+  Tabs,
   Tag,
   Tooltip,
   Typography,
@@ -48,6 +49,8 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
   const t = useT();
   const dataGridI18n = useDataGridI18n();
   const [currentStep, setCurrentStep] = useState<number>(0);
+  /** A2 最佳实践组合：正文 Tab——映射/预览各自全宽 */
+  const [bodyTab, setBodyTab] = useState<'mapping' | 'preview'>('mapping');
   const steps = useMemo(() => excelData?.map((item) => ({ key: item.id, title: item.name })), [excelData]);
 
   const [items, setItems] = useState<ItemValue[]>([]);
@@ -111,6 +114,14 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
   const sheetHeaders: SheetHeader[] = excelData?.[currentStep]?.headers ?? [];
   const stepSelected = selectedItems?.[stepKeyOf(currentStep)];
 
+  // A2 样例值（Airtable 模式）：按 headerId 取该列前 3 条非空采样
+  const sampleValuesOf = (headerId: string): string[] =>
+    (excelData?.[currentStep]?.rules ?? [])
+      .map((rule) => rule.find((cell) => cell.headerId === headerId)?.value)
+      .filter((v) => v !== undefined && v !== null && String(v) !== '')
+      .slice(0, 3)
+      .map((v) => String(v));
+
   /**
    * WS2-B2：逐表头映射行进 data-grid——一行一条 Excel 列
    * （列名 → 字段选择 → Input/Output → 引号包裹），状态机与清扫逻辑不变。
@@ -120,12 +131,17 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
       {
         id: 'excel',
         header: 'Excel columns',
-        cell: ({ row }) => (
-          <div className='flex h-9 items-center rounded-lg border border-[var(--border)] bg-[var(--background)] px-3'>
-            <Typography.Text>{row.original.name || row.original.value}</Typography.Text>
-          </div>
-        ),
-        size: 180,
+        cell: ({ row }) => {
+          const samples = row.original.id ? sampleValuesOf(row.original.id) : [];
+          return (
+            // A2 样例值（Airtable 模式）：映射行内嵌该列真实采样——逐列验证无需切预览
+            <div className='rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-1.5'>
+              <Typography.Text>{row.original.name || row.original.value}</Typography.Text>
+              <div className='mt-0.5 truncate text-[10px] opacity-50'>{samples.join(' · ') || '—'}</div>
+            </div>
+          );
+        },
+        size: 200,
       },
       {
         id: 'field',
@@ -367,7 +383,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
         size: 60,
       },
     ],
-    [currentStep, stepSelected, items, newItemName, headerWrapStates, t],
+    [currentStep, stepSelected, items, newItemName, headerWrapStates, t, excelData],
   );
 
   const mappingTable = useTable({
@@ -425,24 +441,30 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
       }
     >
       <Steps current={currentStep} items={steps} />
-      {/* 左右分屏：映射左 / 预览右——上下堆叠时两者抢垂直空间（矮视口只见其一），
-          分屏后各自独立滚动共享全高，映射列与数据行同屏对照 */}
-      <div className='flex h-full min-h-0 flex-1 gap-3 pt-2'>
-        <div className='min-w-0 flex-1 overflow-y-auto rounded-lg border border-[var(--border)] p-1'>
-          <DataGrid table={mappingTable} recordCount={sheetHeaders.length} i18n={dataGridI18n}>
-            <DataGridContainer>
-              <DataGridTable />
-            </DataGridContainer>
-          </DataGrid>
-        </div>
-        {excelData?.[currentStep] && (
-          <div className='flex w-[420px] shrink-0 flex-col'>
-            <Typography.Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>
-              Preview
-            </Typography.Text>
-            <div className='min-h-0 flex-1'>
-              <ExcelPreviewGrid sheet={excelData[currentStep]} height='100%' />
+      {/* A2 最佳实践组合：映射/预览正文 Tab 切换（各自全宽，宽表不被窄栏裁剪）
+          + 映射行内嵌样例值（逐列验证零切换） */}
+      <Tabs
+        className='mt-2'
+        items={[
+          { key: 'mapping', label: t('dg.excel.tabMapping') },
+          { key: 'preview', label: `${t('dg.excel.tabPreview')} (${sheetHeaders.length})` },
+        ]}
+        onChange={(key) => setBodyTab(key as 'mapping' | 'preview')}
+      />
+      <div className='flex h-full min-h-0 flex-1 flex-col pt-2'>
+        {bodyTab === 'mapping' ? (
+          <div className='flex h-full min-h-0 flex-1 gap-3'>
+            <div className='min-w-0 flex-1 overflow-y-auto rounded-lg border border-[var(--border)] p-1'>
+              <DataGrid table={mappingTable} recordCount={sheetHeaders.length} i18n={dataGridI18n}>
+                <DataGridContainer>
+                  <DataGridTable />
+                </DataGridContainer>
+              </DataGrid>
             </div>
+          </div>
+        ) : (
+          <div className='min-h-0 flex-1'>
+            {excelData?.[currentStep] && <ExcelPreviewGrid sheet={excelData[currentStep]} height='100%' />}
           </div>
         )}
       </div>

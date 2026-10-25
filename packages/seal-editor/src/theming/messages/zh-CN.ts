@@ -109,6 +109,8 @@ export const zhCN: Record<string, string> = {
   'dt.toolbar.simulationIndex': '仿真索引:',
 
   'dt.excel.title': '映射 Excel 数据',
+  'dt.excel.tabMapping': '字段映射',
+  'dt.excel.tabPreview': '数据预览',
   'dt.excel.input': '输入',
   'dt.excel.output': '输出',
   'dt.excel.enterFieldName': '输入字段名',
@@ -190,6 +192,8 @@ export const zhCN: Record<string, string> = {
   'dg.schema.importFromJson': '从 JSON 导入',
   'dg.excel.wrapQuotes': '值包裹引号',
   'dg.excel.enterFieldName': '输入字段名',
+  'dg.excel.tabMapping': '字段映射',
+  'dg.excel.tabPreview': '数据预览',
   'dg.condition.removeConfirm': '移除此条件？',
   'dg.condition.namePlaceholder': '路径名',
   'dt.toolbar.rowRemoved': '已删除该行',
