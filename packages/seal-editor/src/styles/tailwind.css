@@ -458,6 +458,21 @@
     pointer-events: all;
   }
 
+  /* A1 图可读性：边插入钮 hover 门控——常显按钮会盖住短边端口的连线拖拽
+     （Request 源句柄被 + 钮覆盖，连接拖拽无法发起）；idle 隐藏，hover 边路径淡入。
+     容器与按钮双门控（子元素 pointer-events:auto 会覆写父级 none）。 */
+  .seal-edge-insert-toolbar[data-visible='false'],
+  .seal-edge-add-button[data-visible='false'] {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .seal-edge-insert-toolbar[data-visible='true'],
+  .seal-edge-add-button[data-visible='true'] {
+    opacity: 1;
+    pointer-events: all;
+  }
+
   /* Sidebar palette items: dim node previews when not draggable */
   .draggable-component[draggable='false'] {
     cursor: not-allowed;

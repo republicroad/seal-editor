@@ -164,8 +164,9 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
       <EdgeLabelRenderer>
         {labelChip}
         <div
+          data-visible={isHovered || picking}
           className={
-            'nodrag nopan absolute z-[1000] flex items-center justify-center gap-1 text-xs pointer-events-auto'
+            'seal-edge-insert-toolbar nodrag nopan absolute z-[1000] flex items-center justify-center gap-1 text-xs'
           }
           style={{
             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,

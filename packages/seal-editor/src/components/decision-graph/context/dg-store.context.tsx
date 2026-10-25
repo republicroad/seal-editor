@@ -17,7 +17,7 @@ import type { DictionaryMap } from '../../../theme';
 import type { CodeEditorProps } from '../../code-editor';
 import type { JdmUiMode } from '../../decision-table/context/dt-store.context';
 import type { FunctionLibrary } from '../../function/helpers/libs';
-import type { DecisionEdge, DecisionGraphType, DecisionNode } from '../dg-types';
+import type { DecisionEdge, DecisionGraphAnnotation, DecisionGraphType, DecisionNode } from '../dg-types';
 import { privateSymbol } from '../dg-types';
 import { mapToGraphEdge, mapToGraphEdges, mapToGraphNode, mapToGraphNodes } from '../dg-util';
 import { buildContractFixtures, listInputNodes, runFixturesForNode } from '../graph/fixtures-run';
@@ -215,6 +215,14 @@ export type DecisionGraphStoreType = {
     setSnapToGrid: (on: boolean) => void;
     /** 节点位置对齐网格（B2 整理动作：全量节点取整到 snapGrid） */
     alignNodesToGrid: () => void;
+    /** B1 注释框：新增（同时向 React Flow 注入 annotation- 前缀节点） */
+    addAnnotation: (position: { x: number; y: number }) => void;
+    /** B1 注释框：文本/几何更新（不进 undo 栈——文本逐键不刷栈） */
+    updateAnnotation: (id: string, patch: Partial<DecisionGraphAnnotation>) => void;
+    /** B1 注释框：删除（同时移除 React Flow 节点） */
+    removeAnnotation: (id: string) => void;
+    /** B1 注释框：React Flow 节点变更路由（拖拽/缩放/删除——带 annotation- 前缀） */
+    applyAnnotationChanges: (changes: NodeChange[]) => void;
     /** 宿主注入扩展命令 */
     setExtraCommands: (
       commands: Array<{
@@ -800,6 +808,111 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
             nodes: decisionGraph.nodes.map((node, i) => ({ ...node, position: aligned[i].position })),
           } as typeof decisionGraph,
         });
+      },
+      // B1 注释框：新增——pushUndo + 双写（RF 视图节点 + decisionGraph.annotations 持久化）
+      addAnnotation: (position) => {
+        const annotation: DecisionGraphAnnotation = {
+          id: crypto.randomUUID(),
+          text: '',
+          position,
+          width: 220,
+          height: 140,
+        };
+        pushUndo();
+        const { nodesState } = referenceStore.getState();
+        nodesState.current[1]?.((nodes) =>
+          nodes.concat({
+            id: `annotation-${annotation.id}`,
+            type: 'annotationNode',
+            position: annotation.position,
+            data: { text: annotation.text },
+            style: { width: annotation.width, height: annotation.height },
+            zIndex: -1,
+          } as any),
+        );
+        const { decisionGraph } = stateStore.getState();
+        const next = produce(decisionGraph, (draft) => {
+          draft.annotations = [...(draft.annotations || []), annotation];
+        });
+        stateStore.setState({ decisionGraph: next });
+        listenerStore.getState().onChange?.(next);
+      },
+      // 文本/几何直接更新（不 pushUndo——文本逐键不刷 undo 栈）
+      updateAnnotation: (id, patch) => {
+        const { decisionGraph } = stateStore.getState();
+        if (!(decisionGraph.annotations || []).some((a) => a.id === id)) {
+          return;
+        }
+        const next = produce(decisionGraph, (draft) => {
+          const annotation = draft.annotations?.find((a) => a.id === id);
+          if (annotation) {
+            Object.assign(annotation, patch);
+          }
+        });
+        stateStore.setState({ decisionGraph: next });
+        listenerStore.getState().onChange?.(next);
+      },
+      removeAnnotation: (id) => {
+        pushUndo();
+        const { nodesState } = referenceStore.getState();
+        nodesState.current[1]?.((nodes) => nodes.filter((n) => n.id !== `annotation-${id}`));
+        const { decisionGraph } = stateStore.getState();
+        const next = produce(decisionGraph, (draft) => {
+          draft.annotations = (draft.annotations || []).filter((a) => a.id !== id);
+        });
+        stateStore.setState({ decisionGraph: next });
+        listenerStore.getState().onChange?.(next);
+      },
+      // React Flow 节点变更路由（annotation- 前缀）：视图双写 + 几何持久化；
+      // 拖拽会话追踪与节点同款（拖起 pushUndo 捕获前态）
+      applyAnnotationChanges: (changes) => {
+        const { nodesState } = referenceStore.getState();
+        const [, , onNodesChange] = nodesState.current;
+        onNodesChange?.(changes);
+
+        const dragStart = changes.some((c) => c.type === 'position' && 'dragging' in c && c.dragging === true);
+        if (dragStart && !dragSessionRef.current) {
+          pushUndo();
+          dragSessionRef.current = true;
+        }
+        if (changes.some((c) => c.type === 'position' && 'dragging' in c && c.dragging === false)) {
+          dragSessionRef.current = false;
+        }
+
+        const { decisionGraph } = stateStore.getState();
+        if ((decisionGraph.annotations || []).length === 0) {
+          return;
+        }
+        const next = produce(decisionGraph, (draft) => {
+          draft.annotations ??= [];
+          changes.forEach((c) => {
+            const cid = (c as { id?: string }).id;
+            if (!cid) {
+              return;
+            }
+            const id = String(cid).replace(/^annotation-/, '');
+            const annotation = draft.annotations?.find((a) => a.id === id);
+            if (!annotation) {
+              return;
+            }
+            if (c.type === 'position' && c.position) {
+              annotation.position = c.position;
+            }
+            if (c.type === 'dimensions' && c.dimensions) {
+              if (c.dimensions.width) {
+                annotation.width = c.dimensions.width;
+              }
+              if (c.dimensions.height) {
+                annotation.height = c.dimensions.height;
+              }
+            }
+            if (c.type === 'remove') {
+              draft.annotations = (draft.annotations || []).filter((a) => a.id !== id);
+            }
+          });
+        });
+        stateStore.setState({ decisionGraph: next });
+        listenerStore.getState().onChange?.(next);
       },
       setExtraCommands: (commands) => {
         stateStore.setState({ extraCommands: commands });

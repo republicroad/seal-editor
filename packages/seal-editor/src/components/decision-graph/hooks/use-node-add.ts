@@ -100,7 +100,10 @@ export const useNodeAdd = ({
 
     const parsed = nodeSchema.safeParse(newNode);
     if (parsed.success) {
-      return addNodes([nodeSchema.parse(newNode)]);
+      // B2 拖线释放建节点需要新建节点的 id（连线回源句柄）——返回已入库节点
+      const added = nodeSchema.parse(newNode);
+      addNodes([added]);
+      return added;
     }
     toast.error(parsed.error?.message);
   };

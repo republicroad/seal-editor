@@ -22,7 +22,7 @@ export const useGraphDnd = ({
   reactFlowWrapper: MutableRefObject<HTMLDivElement | null>;
   reactFlowInstance: MutableRefObject<ReactFlowInstance | null>;
   addNodes: AddNodes;
-  addNode: (type: string, position?: XYPosition, component?: string) => Promise<void>;
+  addNode: (type: string, position?: XYPosition, component?: string) => Promise<unknown>;
 }) => {
   const onDrop = (event: DragEvent) => {
     event.preventDefault();

@@ -30,7 +30,7 @@ const RECENT_KEY = 'seal.dg.command.recent';
  * dg-store（触发钮与弹层分居两处，经 store 联通）。
  */
 export const GraphCommandMenu: React.FC<{
-  addNode: (type: string, position?: { x: number; y: number }, component?: string) => Promise<void> | void;
+  addNode: (type: string, position?: { x: number; y: number }, component?: string) => Promise<unknown> | void;
   /** 全量节点规格清单（内置 + 宿主自定义），由调用方合并（避开 specifications 环） */
   specifications: Array<NodeSpecification | CustomNodeSpecification<object, any>>;
 }> = ({ addNode, specifications }) => {

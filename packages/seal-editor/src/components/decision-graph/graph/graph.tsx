@@ -5,6 +5,7 @@ import {
   ControlButton,
   Controls,
   MiniMap,
+  type NodeChange,
   ReactFlow,
   SelectionMode,
   getOutgoers,
@@ -14,6 +15,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal';
+import { StickyNoteIcon } from 'lucide-react';
 import React, { type MutableRefObject, forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
 
 import { useT } from '../../../theming/i18n';
@@ -34,6 +36,7 @@ import { useGraphClipboard } from '../hooks/use-graph-clipboard';
 import { useGraphDnd } from '../hooks/use-graph-dnd';
 import { componentsOpenedKey, useGraphSerializers } from '../hooks/use-graph-serializers';
 import { useNodeAdd } from '../hooks/use-node-add';
+import { AnnotationNode } from '../nodes/annotation-node';
 import type { CustomNodeSpecification } from '../nodes/custom-node';
 import { GraphNode } from '../nodes/graph-node';
 import { resolveCustomNode } from '../nodes/resolve-custom-node';
@@ -104,20 +107,21 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
   const raw = useDecisionGraphRaw();
   const registry = useSerializerRegistry();
   const graphActions = useDecisionGraphActions();
+  const t = useT();
   const graphReferences = useDecisionGraphReferences((s) => s);
   const { onReactFlowInit } = useDecisionGraphListeners(({ onReactFlowInit }) => ({ onReactFlowInit }));
   const { modal } = App.useApp();
-  const { disabled, hasInputNode, components, customNodes, id, canvasLocked, snapToGrid } = useDecisionGraphState(
-    ({ id, disabled, components, customNodes, decisionGraph, canvasLocked, snapToGrid }) => ({
+  const { disabled, hasInputNode, components, customNodes, id, canvasLocked, snapToGrid, annotations } =
+    useDecisionGraphState(({ id, disabled, components, customNodes, decisionGraph, canvasLocked, snapToGrid }) => ({
       id,
       disabled,
       components,
       customNodes,
       canvasLocked,
       snapToGrid,
+      annotations: decisionGraph?.annotations,
       hasInputNode: (decisionGraph?.nodes || []).some((n) => n.type === NodeKind.Input),
-    }),
-  );
+    }));
 
   graphReferences.nodesState.current = nodesState;
   graphReferences.edgesState.current = edgesState;
@@ -192,7 +196,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
           },
         ),
       }),
-      { ...getDefaultNodeTypes(), customNode: customNodeRenderer },
+      { ...getDefaultNodeTypes(), customNode: customNodeRenderer, annotationNode: AnnotationNode },
     );
   }, [components, customNodeRenderer]);
 
@@ -203,6 +207,98 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
     components,
     addNodes: graphActions.addNodes,
   });
+
+  // B1 注释框：annotations → React Flow 背景便签节点（zIndex -1，语义图节点之上不参与引擎）
+  const annotationFlowNodes = useMemo<Node[]>(
+    () =>
+      (annotations ?? []).map((a) => ({
+        id: `annotation-${a.id}`,
+        type: 'annotationNode',
+        position: a.position,
+        data: { text: a.text },
+        style: { width: a.width, height: a.height },
+        zIndex: -1,
+      })),
+    [annotations],
+  );
+  const flowNodes = useMemo<Node[]>(
+    () => [...nodesState[0], ...annotationFlowNodes],
+    [nodesState[0], annotationFlowNodes],
+  );
+
+  // 变更路由：annotation- 前缀 → 注释动作（几何持久化到 annotations）；其余 → 语义图节点
+  const handleRoutedNodesChange = React.useCallback(
+    (changes: NodeChange[]) => {
+      const annotationChanges = changes.filter((c) =>
+        String((c as { id?: string }).id ?? '').startsWith('annotation-'),
+      );
+      const rest = changes.filter((c) => !String((c as { id?: string }).id ?? '').startsWith('annotation-'));
+      if (annotationChanges.length > 0) {
+        graphActions.applyAnnotationChanges(annotationChanges);
+      }
+      if (rest.length > 0) {
+        graphActions.handleNodesChange(rest);
+      }
+    },
+    [graphActions],
+  );
+
+  // B2 拖线悬空释放：从端口拉线落空白处 → 原地弹节点搜索（n8n/ComfyUI 模式）
+  const [connectMenu, setConnectMenu] = useState<{
+    screenX: number;
+    screenY: number;
+    flowX: number;
+    flowY: number;
+    fromNodeId: string;
+    fromHandleId: string | null;
+  } | null>(null);
+  const [connectMenuQuery, setConnectMenuQuery] = useState('');
+
+  const onConnectEnd = (event: MouseEvent | TouchEvent, connectionState: any) => {
+    if (
+      disabled ||
+      connectMenu ||
+      connectionState?.isValid ||
+      !connectionState?.fromHandle ||
+      !connectionState?.fromNode
+    ) {
+      return;
+    }
+    const coords = 'changedTouches' in event ? event.changedTouches[0] : (event as MouseEvent);
+    const flow = reactFlowInstance.current?.screenToFlowPosition({ x: coords.clientX, y: coords.clientY });
+    if (!flow) {
+      return;
+    }
+    setConnectMenuQuery('');
+    setConnectMenu({
+      screenX: coords.clientX,
+      screenY: coords.clientY,
+      flowX: flow.x,
+      flowY: flow.y,
+      fromNodeId: connectionState.fromNode.id,
+      fromHandleId: connectionState.fromHandle.id ?? null,
+    });
+  };
+
+  const handleCreateFromMenu = async (spec: { type?: string; kind?: string }) => {
+    if (!connectMenu) {
+      return;
+    }
+    const created = await addNodeInner(
+      spec.type ?? 'customNode',
+      { x: connectMenu.flowX, y: connectMenu.flowY },
+      spec.kind,
+    );
+    if (created && connectMenu.fromNodeId) {
+      onConnect({
+        source: connectMenu.fromNodeId,
+        sourceHandle: connectMenu.fromHandleId,
+        target: created.id,
+        targetHandle: null,
+      });
+    }
+    setConnectMenu(null);
+  };
 
   const isValidConnection = (connection: Connection | Edge): boolean => {
     // Disallow self-reference
@@ -367,7 +463,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               elevateNodesOnSelect={true}
               zoomOnDoubleClick={false}
               connectionRadius={35}
-              nodes={nodesState[0]}
+              nodes={flowNodes}
               edges={edgesState[0]}
               defaultViewport={initialViewport.current}
               fitView={!initialViewport.current}
@@ -393,10 +489,16 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               nodesConnectable={!disabled && !canvasLocked}
               nodesDraggable={!disabled && !canvasLocked}
               edgesReconnectable={!disabled && !canvasLocked}
-              onNodesChange={graphActions.handleNodesChange}
+              onNodesChange={handleRoutedNodesChange}
               onEdgesChange={graphActions.handleEdgesChange}
+              onConnectEnd={onConnectEnd}
               onNodesDelete={(e) => {
                 e.forEach((node) => {
+                  // B1 注释框删除路由（annotation- 前缀不触及语义图/页签）
+                  if (String(node.id).startsWith('annotation-')) {
+                    graphActions.removeAnnotation(String(node.id).replace(/^annotation-/, ''));
+                    return;
+                  }
                   graphActions.closeTab(node?.id);
                 });
               }}
@@ -407,11 +509,87 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
                 <ControlButton onClick={() => graphActions.toggleCompactMode()}>
                   <CompressOutlined />
                 </ControlButton>
+                {/* B1 图可读性：注释框（背景便签，画布中心 1/3 处落位） */}
+                <ControlButton
+                  title={t('dg.toolbar.addAnnotation')}
+                  aria-label={t('dg.toolbar.addAnnotation')}
+                  data-testid='add-annotation'
+                  onClick={() => {
+                    const rect = reactFlowWrapper.current?.getBoundingClientRect();
+                    if (!rect || !reactFlowInstance.current) {
+                      return;
+                    }
+                    const flow = reactFlowInstance.current.screenToFlowPosition({
+                      x: rect.left + rect.width / 2,
+                      y: rect.top + rect.height / 3,
+                    });
+                    graphActions.addAnnotation(flow);
+                  }}
+                >
+                  <StickyNoteIcon className='size-3' />
+                </ControlButton>
               </Controls>
               <MiniMap pannable zoomable position='bottom-left' />
               <Background id={id} color='var(--border)' gap={20} />
               <NodeInspector />
             </ReactFlow>
+            {/* B2 拖线悬空释放 → 节点搜索菜单（fixed 定位在释放点；backdrop 点击/Esc 关闭） */}
+            {connectMenu && (
+              <>
+                <div
+                  className='fixed inset-0 z-[59]'
+                  onPointerDown={() => setConnectMenu(null)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      setConnectMenu(null);
+                    }
+                  }}
+                />
+                <div
+                  data-testid='connect-menu'
+                  className='fixed z-[60] w-64 rounded-lg border border-[var(--border)] bg-[var(--card)] p-1 shadow-lg'
+                  style={{ left: connectMenu.screenX, top: connectMenu.screenY }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  <input
+                    autoFocus
+                    placeholder={t('dg.connectMenu.search')}
+                    className='mb-1 w-full border-b border-[var(--border)] bg-transparent px-2 py-1.5 text-xs outline-none'
+                    value={connectMenuQuery}
+                    onChange={(e) => setConnectMenuQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        setConnectMenu(null);
+                      }
+                    }}
+                  />
+                  <div className='max-h-56 overflow-y-auto'>
+                    {[...Object.values(nodeSpecification), ...components, ...customNodes]
+                      .filter((spec) =>
+                        `${(spec as any).displayName ?? ''} ${(spec as any).type ?? ''} ${(spec as any).kind ?? ''}`
+                          .toLowerCase()
+                          .includes(connectMenuQuery.toLowerCase()),
+                      )
+                      .map((spec, index) => (
+                        <button
+                          key={(spec as any).type ?? (spec as any).kind ?? index}
+                          type='button'
+                          className='flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-accent'
+                          onClick={() =>
+                            void handleCreateFromMenu({
+                              type: (spec as any).type,
+                              kind: (spec as any).kind,
+                            })
+                          }
+                        >
+                          {(spec as any).icon}
+                          <span className='truncate'>{(spec as any).displayName}</span>
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
         {!disabled && (
