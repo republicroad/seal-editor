@@ -47,7 +47,6 @@ export interface SelectProps {
   tokenSeparators?: string[];
   maxCount?: number;
   overlayClassName?: string;
-  needConfirm?: boolean;
   className?: string;
   style?: React.CSSProperties;
 }

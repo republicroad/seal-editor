@@ -41,7 +41,7 @@
 | --- | --- | --- |
 | `data-seal-standalone` 显式形态 | ADR-023 ISLAND 兼容实证 | 已裁定**可省略**（`.seal-root` 通吃）——不进 2.0 |
 | excel 对话框 Steps 图级向导 | WS2-B3 | 非破坏性，1.x 演进 |
-| `DecisionGraphProps` 死 prop 清点（placement 类静默丢弃族） | 本会话 ⌘K/浮层排查 | 2.0 前一次性 sweep（单独清单，随窗口开） |
+| ~~`DecisionGraphProps` 死 prop 清点~~ | 本会话 ⌘K/浮层排查 | ✅ **primitives 层 sweep 已完成（1.40.0 后批）**：popover placement 接线修复（bottomLeft 等此前被静默丢弃）+ disabled 守卫 + 非 click trigger 开发告警 + 6 文件 antd-ism 归档（title/arrow/destroyTooltipOnHide/defaultOpen/needConfirm 删除/checkedChildren 族/variant/format/tabs type）——ui 层直传组件无此面；`DecisionGraphProps` 本体 sweep 并入 2.0 窗口 |
 
 ## 触发与协调
 

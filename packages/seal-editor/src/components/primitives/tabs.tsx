@@ -35,6 +35,8 @@ export const Tabs: React.FC<TabsProps> = ({
   rootClassName,
   style,
   tabBarExtraContent,
+  // A1 sweep 归档：仅 line 形态实现（editable-card 挂 2.0 视需求）
+  type: _type,
 }) => {
   const list = items ?? [];
   const [uncontrolled, setUncontrolled] = React.useState<string>(defaultActiveKey ?? list[0]?.key ?? '');

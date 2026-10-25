@@ -27,6 +27,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   className,
   style,
   placeholder,
+  // A1 sweep 归档：variant 线体未实现；format 硬编码 YYYY-MM-DD（挂 2.0 值格式语义）
+  variant: _variant,
+  format: _format,
 }) => (
   <input
     type='date'
