@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.40.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.39.0...@republicroad/seal-editor@1.40.0) (2026-10-25)
+
+### Features
+
+- **kernel:** dt 死行检测——Run all 报告行级命中对偶：从未被命中的行琥珀点标（行头）+ Run 命中统计条死行计数
+- **graph:** ⌘K 补完——分组标题行渲染 + fuzzy 子序列匹配（缩写检索：cw→Cart Weight）
+
 # [1.39.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.38.0...@republicroad/seal-editor@1.39.0) (2026-10-25)
 
 ### Features
