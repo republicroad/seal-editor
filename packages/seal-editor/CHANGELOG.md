@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.41.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.40.0...@republicroad/seal-editor@1.41.0) (2026-10-25)
+
+### Bug Fixes
+
+- **primitives:** 死 prop sweep——popover placement 接线修复（antd 语义→Base UI side/align 映射，bottomLeft 等此前被静默丢弃）+ disabled 守卫 + 非 click trigger 开发告警；select 死类型成员 needConfirm 删除；date-picker/switch/tabs antd-ism 归档注释（挂 2.0 视需求）
+
 # [1.40.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.39.0...@republicroad/seal-editor@1.40.0) (2026-10-25)
 
 ### Features
