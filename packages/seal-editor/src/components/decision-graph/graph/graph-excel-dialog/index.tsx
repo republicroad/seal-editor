@@ -327,12 +327,16 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
       },
       {
         id: 'wrap',
+        // 列头图标与下方复选框同为水平居中（复选框格 justifyContent:center，
+        // 图标此前 inline-flex 靠左随表头 padding——两者左右错位）
         header: () => (
-          <Tooltip title={t('dg.excel.wrapQuotes')}>
-            <span className='inline-flex cursor-pointer text-[var(--muted-foreground)] [&_svg]:block'>
-              <InformationIcon className='size-3.5' />
-            </span>
-          </Tooltip>
+          <div className='flex justify-center'>
+            <Tooltip title={t('dg.excel.wrapQuotes')}>
+              <span className='inline-flex cursor-pointer text-[var(--muted-foreground)] [&_svg]:block'>
+                <InformationIcon className='size-3.5' />
+              </span>
+            </Tooltip>
+          </div>
         ),
         cell: ({ row }) => {
           const header = row.original;
