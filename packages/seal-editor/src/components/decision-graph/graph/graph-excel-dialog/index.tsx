@@ -375,7 +375,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
 
   return (
     <Modal
-      className='seal-graph-excel-dialog'
+      className='seal-graph-excel-dialog gap-2 p-3'
       title={t('dialog.mapExcelData')}
       closable={{ 'aria-label': 'Custom Close Button' }}
       centered
@@ -383,11 +383,42 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
       onCancel={handleCancel}
       destroyOnClose={true}
       width={880}
-      footer={[
-        <Button key='cancel' onClick={handleCancel}>
-          Cancel
-        </Button>,
-      ]}
+      // 向导按钮组入 footer（A1 重合修复）：Done 此前在内容流里随滚动与
+      // Preview 重合——footer 钉底后 Previous 左对齐，Next/Done/Cancel 右对齐
+      footer={
+        <>
+          {currentStep > 0 && (
+            <Button style={{ marginRight: 'auto' }} onClick={() => setCurrentStep(currentStep - 1)}>
+              Previous
+            </Button>
+          )}
+          {currentStep < (excelData || []).length - 1 && (
+            <Button
+              type='primary'
+              disabled={!selectedItems?.[stepKeyOf(currentStep)] || isEmpty(selectedItems[stepKeyOf(currentStep)])}
+              onClick={() => {
+                setCurrentStep(currentStep + 1);
+              }}
+            >
+              Next
+            </Button>
+          )}
+          {currentStep === (excelData || []).length - 1 && (
+            <Button
+              type='primary'
+              disabled={!selectedItems?.[stepKeyOf(currentStep)] || isEmpty(selectedItems[stepKeyOf(currentStep)])}
+              onClick={() => {
+                if (selectedItems && excelData) {
+                  handleSuccess(assembleMergedData(excelData, selectedItems, headerWrapStates));
+                }
+              }}
+            >
+              Done
+            </Button>
+          )}
+          <Button onClick={handleCancel}>Cancel</Button>
+        </>
+      }
     >
       <Steps current={currentStep} items={steps} />
       <div className='py-2'>
@@ -397,51 +428,15 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
           </DataGridContainer>
         </DataGrid>
       </div>
-      {/* WS2-B3：当前 sheet 的实际数据行预览（行虚拟化） */}
+      {/* WS2-B3：当前 sheet 的实际数据行预览（行虚拟化）；height 180 同 dt 对话框矮视口处理 */}
       {excelData?.[currentStep] && (
         <div className='pt-2'>
           <Typography.Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>
             Preview
           </Typography.Text>
-          <ExcelPreviewGrid sheet={excelData[currentStep]} />
+          <ExcelPreviewGrid sheet={excelData[currentStep]} height={180} />
         </div>
       )}
-      <div style={{ marginTop: 24 }}>
-        {currentStep < (excelData || []).length - 1 && (
-          <Button
-            type='primary'
-            disabled={!selectedItems?.[stepKeyOf(currentStep)] || isEmpty(selectedItems[stepKeyOf(currentStep)])}
-            onClick={() => {
-              setCurrentStep(currentStep + 1);
-            }}
-          >
-            Next
-          </Button>
-        )}
-        {currentStep === (excelData || []).length - 1 && (
-          <Button
-            type='primary'
-            disabled={!selectedItems?.[stepKeyOf(currentStep)] || isEmpty(selectedItems[stepKeyOf(currentStep)])}
-            onClick={() => {
-              if (selectedItems && excelData) {
-                handleSuccess(assembleMergedData(excelData, selectedItems, headerWrapStates));
-              }
-            }}
-          >
-            Done
-          </Button>
-        )}
-        {currentStep > 0 && (
-          <Button
-            style={{ margin: '0 8px' }}
-            onClick={() => {
-              setCurrentStep(currentStep - 1);
-            }}
-          >
-            Previous
-          </Button>
-        )}
-      </div>
     </Modal>
   );
 };
