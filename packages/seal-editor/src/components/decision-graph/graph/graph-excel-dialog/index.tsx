@@ -132,14 +132,25 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
         id: 'excel',
         header: 'Excel columns',
         // 只读信息去输入框化（A2 美化）：列名 medium 字重 + 等宽弱化样例值
+        // ① 映射完成度着色（语义色纪律）：未映射 = 琥珀点 + 名字弱化，已映射安静
         cell: ({ row }) => {
           const samples = row.original.id ? sampleValuesOf(row.original.id) : [];
+          const mapped = Boolean(stepSelected?.[row.original.id as string]);
           return (
             <div className='py-0.5'>
-              <Typography.Text className='text-[13px] font-medium'>
-                {row.original.name || row.original.value}
-              </Typography.Text>
-              <div className='mt-0.5 truncate font-mono text-[10px] opacity-50'>{samples.join(' · ') || '—'}</div>
+              <div className='flex items-center gap-1.5'>
+                {!mapped && (
+                  <span
+                    data-testid='unmapped-dot'
+                    title={t('dg.excel.unmapped')}
+                    className='size-1.5 shrink-0 rounded-full bg-amber-500'
+                  />
+                )}
+                <Typography.Text className={clsx('text-[13px]', !mapped && 'opacity-60')}>
+                  {row.original.name || row.original.value}
+                </Typography.Text>
+              </div>
+              <div className='mt-0.5 truncate pl-3 font-mono text-[10px] opacity-50'>{samples.join(' · ') || '—'}</div>
             </div>
           );
         },
@@ -472,6 +483,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
                 recordCount={sheetHeaders.length}
                 i18n={dataGridI18n}
                 tableLayout={{ rowBorder: false }}
+                tableClassNames={{ header: 'bg-muted/50' }}
                 getRowClassName={() => 'transition-colors hover:bg-muted/40'}
               >
                 <DataGridContainer>

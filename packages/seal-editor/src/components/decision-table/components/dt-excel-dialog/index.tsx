@@ -78,6 +78,7 @@ const MappingGrid: React.FC<{
         id: 'tableColumn',
         header: 'Table column',
         cell: ({ row }) => (
+          // ① 映射完成度着色：未选 Excel 列（且行启用）= 琥珀点 + 名字弱化
           <div
             style={{
               display: 'flex',
@@ -87,7 +88,20 @@ const MappingGrid: React.FC<{
               opacity: disabledColumns[row.original.id] ? 0.4 : 1,
             }}
           >
-            <Typography.Text style={{ fontSize: 13, lineHeight: '18px' }}>{row.original.name}</Typography.Text>
+            <div className='flex items-center gap-1.5'>
+              {!row.original.excelHeaderId && !disabledColumns[row.original.id] && (
+                <span
+                  data-testid='unmapped-dot'
+                  title={t('dt.excel.unmapped')}
+                  className='size-1.5 shrink-0 rounded-full bg-amber-500'
+                />
+              )}
+              <Typography.Text
+                style={{ fontSize: 13, lineHeight: '18px', opacity: row.original.excelHeaderId ? 1 : 0.6 }}
+              >
+                {row.original.name}
+              </Typography.Text>
+            </div>
             {row.original.field && (
               <Typography.Text type='secondary' style={{ fontSize: 11, lineHeight: '14px' }}>
                 {row.original.field}
@@ -229,6 +243,7 @@ const MappingGrid: React.FC<{
       recordCount={rows.length}
       emptyMessage={emptyMessage}
       tableLayout={{ rowsDraggable: true, rowBorder: false }}
+      tableClassNames={{ header: 'bg-muted/50' }}
       getRowClassName={() => 'transition-colors hover:bg-muted/40'}
       i18n={dataGridI18n}
     >
