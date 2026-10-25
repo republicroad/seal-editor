@@ -4,6 +4,7 @@ import { DataGridTable } from '#reui/data-grid/data-grid-table';
 import InformationIcon from '#reui/icons/animated/outline/information';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useTable } from '@tanstack/react-table';
+import clsx from 'clsx';
 import { isEmpty } from 'lodash';
 import React, { Fragment, useEffect, useMemo, useState } from 'react';
 
@@ -14,7 +15,6 @@ import {
   Divider,
   Input,
   Modal,
-  Radio,
   Select,
   Steps,
   Tabs,
@@ -131,13 +131,15 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
       {
         id: 'excel',
         header: 'Excel columns',
+        // 只读信息去输入框化（A2 美化）：列名 medium 字重 + 等宽弱化样例值
         cell: ({ row }) => {
           const samples = row.original.id ? sampleValuesOf(row.original.id) : [];
           return (
-            // A2 样例值（Airtable 模式）：映射行内嵌该列真实采样——逐列验证无需切预览
-            <div className='rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-1.5'>
-              <Typography.Text>{row.original.name || row.original.value}</Typography.Text>
-              <div className='mt-0.5 truncate text-[10px] opacity-50'>{samples.join(' · ') || '—'}</div>
+            <div className='py-0.5'>
+              <Typography.Text className='text-[13px] font-medium'>
+                {row.original.name || row.original.value}
+              </Typography.Text>
+              <div className='mt-0.5 truncate font-mono text-[10px] opacity-50'>{samples.join(' · ') || '—'}</div>
             </div>
           );
         },
@@ -307,36 +309,46 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
           if (stepSelected?.[header.id as string]?.value === 'description') {
             return null;
           }
-          return (
-            <Radio.Group
-              disabled={!stepSelected?.[header.id as string]}
-              value={stepSelected?.[header.id as string]?.type ?? 'input'}
-              onChange={(e) => {
-                setSelectedItems((prev) => {
-                  const stepKey = stepKeyOf(currentStep);
-                  const currentStepData = (prev || {})[stepKey];
-                  return {
-                    ...(prev || {}),
-                    [stepKey]: {
-                      ...(currentStepData || {}),
-                      [header.id as string]: {
-                        ...((currentStepData || {})[header.id as string] || {}),
-                        type: e.target.value as ItemValue['type'],
+          // 紧凑分段器（A2 美化）：软选中替代实心 radio 块，视觉轻一档
+          const currentType = stepSelected?.[header.id as string]?.type ?? 'input';
+          const segment = (value: ItemValue['type'], label: string) => {
+            const active = currentType === value;
+            return (
+              <button
+                type='button'
+                disabled={!stepSelected?.[header.id as string]}
+                className={clsx(
+                  'flex-1 rounded-[4px] px-3 py-1 text-xs transition-colors disabled:opacity-40',
+                  active
+                    ? 'bg-primary/10 font-medium text-[var(--primary)]'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+                onClick={() => {
+                  setSelectedItems((prev) => {
+                    const stepKey = stepKeyOf(currentStep);
+                    const currentStepData = (prev || {})[stepKey];
+                    return {
+                      ...(prev || {}),
+                      [stepKey]: {
+                        ...(currentStepData || {}),
+                        [header.id as string]: {
+                          ...((currentStepData || {})[header.id as string] || {}),
+                          type: value,
+                        },
                       },
-                    },
-                  };
-                });
-              }}
-              buttonStyle='solid'
-              style={{ width: '100%', display: 'flex' }}
-            >
-              <Radio.Button value='input' style={{ flex: 1, textAlign: 'center' }}>
-                Input
-              </Radio.Button>
-              <Radio.Button value='output' style={{ flex: 1, textAlign: 'center' }}>
-                Output
-              </Radio.Button>
-            </Radio.Group>
+                    };
+                  });
+                }}
+              >
+                {label}
+              </button>
+            );
+          };
+          return (
+            <div className='inline-flex w-full items-center rounded-md border border-[var(--border)] p-0.5'>
+              {segment('input', 'Input')}
+              {segment('output', 'Output')}
+            </div>
           );
         },
         size: 180,
@@ -455,7 +467,13 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
         {bodyTab === 'mapping' ? (
           <div className='flex h-full min-h-0 flex-1 gap-3'>
             <div className='min-w-0 flex-1 overflow-y-auto rounded-lg border border-[var(--border)] p-1'>
-              <DataGrid table={mappingTable} recordCount={sheetHeaders.length} i18n={dataGridI18n}>
+              <DataGrid
+                table={mappingTable}
+                recordCount={sheetHeaders.length}
+                i18n={dataGridI18n}
+                tableLayout={{ rowBorder: false }}
+                getRowClassName={() => 'transition-colors hover:bg-muted/40'}
+              >
                 <DataGridContainer>
                   <DataGridTable />
                 </DataGridContainer>

@@ -228,7 +228,8 @@ const MappingGrid: React.FC<{
       table={table}
       recordCount={rows.length}
       emptyMessage={emptyMessage}
-      tableLayout={{ rowsDraggable: true }}
+      tableLayout={{ rowsDraggable: true, rowBorder: false }}
+      getRowClassName={() => 'transition-colors hover:bg-muted/40'}
       i18n={dataGridI18n}
     >
       <DataGridContainer className='rounded-lg border border-[var(--border)]'>

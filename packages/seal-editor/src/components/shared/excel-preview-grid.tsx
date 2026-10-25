@@ -49,7 +49,15 @@ export const ExcelPreviewGrid: React.FC<{ sheet: ParsedExcelData; height?: numbe
 
   return (
     <div style={{ height }}>
-      <DataGrid table={table} recordCount={rows.length} i18n={dataGridI18n}>
+      <DataGrid
+        table={table}
+        recordCount={rows.length}
+        i18n={dataGridI18n}
+        // A2 美化：去行边框 + 表头小号大写弱化 + 行 hover（Stripe 式预览表三件套）
+        tableLayout={{ rowBorder: false }}
+        tableClassNames={{ header: 'text-[10px] uppercase tracking-wide text-muted-foreground' }}
+        getRowClassName={() => 'transition-colors hover:bg-muted/40'}
+      >
         <DataGridScrollArea className='h-full rounded-lg border border-[var(--border)]'>
           <DataGridTableVirtual estimateSize={36} />
         </DataGridScrollArea>
