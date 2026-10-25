@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.39.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.38.0...@republicroad/seal-editor@1.39.0) (2026-10-25)
+
+### Features
+
+- **kernel:** dt 即时求值徽章（A3 一期）——simulator trace 全量命中投影（选中行强高亮不变，其余命中行淡染+行头点标）+ 状态面三态（结构变更挂起/大表降级/active）+ 参数变更防抖 400ms 复跑 simulator（执行权威单源）
+- **graph:** 画布锁 + 对齐网格 + 吸附开关（flow-1 形态参照）——画布锁切拖拽/连线/重连三闸；对齐动作全量节点取整 5px snapGrid；吸附常开缺省改 store 可切
+
 # [1.38.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.37.0...@republicroad/seal-editor@1.38.0) (2026-10-25)
 
 ### Bug Fixes
