@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
 import type { NodeSpecification } from '../nodes/specifications/specification-types';
-import { matchComponent } from './component-search';
+import { fuzzySubsequence, matchComponent } from './component-search';
 
 const spec = (overrides: Partial<NodeSpecification> = {}): NodeSpecification =>
   ({
@@ -44,5 +44,22 @@ describe('matchComponent (L6 面板搜索索引)', () => {
   test('own-field match takes precedence (returns [] even when keywords also hit)', () => {
     const el = spec({ displayName: 'crypto 函数集合', searchKeywords: ['crypto_hash'] });
     expect(matchComponent(el, 'crypto')).toEqual([]);
+  });
+});
+
+describe('fuzzySubsequence（A2 ⌘K 缩写检索）', () => {
+  test('子序列命中：cw 命中 Cart Weight', () => {
+    expect(fuzzySubsequence('Cart Weight', 'cw')).toBe(true);
+    expect(fuzzySubsequence('Decision table', 'dtab')).toBe(true);
+  });
+
+  test('乱序不命中；空 query 恒 false', () => {
+    expect(fuzzySubsequence('Cart Weight', 'wc')).toBe(false);
+    expect(fuzzySubsequence('Cart Weight', '')).toBe(false);
+    expect(fuzzySubsequence('Cart Weight', '   ')).toBe(false);
+  });
+
+  test('大小写不敏感', () => {
+    expect(fuzzySubsequence('Run simulation', 'RUNSIM')).toBe(true);
   });
 });

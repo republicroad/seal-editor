@@ -24,3 +24,24 @@ export const matchComponent = (el: NodeSpecification, rawQuery: string): string[
   const keywordHits = (el.searchKeywords ?? []).filter((keyword) => keyword.toLowerCase().includes(query));
   return keywordHits.length > 0 ? keywordHits : null;
 };
+
+/**
+ * A2 ⌘K 补完：子序列匹配——「cw」命中 Cart Weight（包含匹配放行直含，
+ * 子序列兜底缩写检索）。query 空串恒 false（调用方以空 query 直通全量）。
+ */
+export const fuzzySubsequence = (text: string, rawQuery: string): boolean => {
+  const q = rawQuery.toLowerCase().trim();
+  if (!q) {
+    return false;
+  }
+  let i = 0;
+  for (const ch of text.toLowerCase()) {
+    if (ch === q[i]) {
+      i += 1;
+      if (i === q.length) {
+        return true;
+      }
+    }
+  }
+  return false;
+};

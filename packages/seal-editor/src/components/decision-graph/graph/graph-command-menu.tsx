@@ -8,6 +8,7 @@ import { useSealPortalContainer } from '../../../theming/portal-context';
 import { useDecisionGraphActions, useDecisionGraphState } from '../context/dg-store.context';
 import type { CustomNodeSpecification } from '../nodes/custom-node';
 import type { NodeSpecification } from '../nodes/specifications/specification-types';
+import { fuzzySubsequence } from './component-search';
 
 type CommandItem = {
   id: string;
@@ -137,7 +138,10 @@ export const GraphCommandMenu: React.FC<{
     if (!q) {
       return source;
     }
-    return source.filter((item) => `${item.label} ${item.keywords}`.toLowerCase().includes(q));
+    // A2 补完：包含匹配放行直含，子序列兜底缩写检索（对 label 生效，keywords 保持包含语义）
+    return source.filter(
+      (item) => `${item.label} ${item.keywords}`.toLowerCase().includes(q) || fuzzySubsequence(item.label, q),
+    );
   }, [items, query, recentIds]);
 
   // ⌘K 二期：↑↓ 高亮导航——Base UI children 渲染模式无内建高亮/键盘序，
@@ -236,26 +240,51 @@ export const GraphCommandMenu: React.FC<{
               className='h-10 w-full border-b border-[var(--border)] bg-transparent px-3 text-sm outline-none'
             />
             <ComboboxPrimitive.List ref={listRef} className='max-h-[320px] overflow-y-auto p-1'>
-              {visible.map((item, index) => (
-                <ComboboxPrimitive.Item
-                  key={item.id}
-                  value={item}
-                  data-testid='graph-command-item'
-                  data-command-active={index === activeIndex || undefined}
-                  onMouseMove={() => setActiveIndex(index)}
-                  // 视觉统一走自管 activeIndex（Base UI children 渲染模式内部仍有
-                  // 一套 arrow 高亮——data-highlighted 钩子移除，避免双高亮叠加；
-                  // Enter/箭头已 preventDefault 让位，内部序不参与提交）
-                  className={clsx(
-                    'flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-xs outline-none',
-                    index === activeIndex && 'bg-accent text-accent-foreground',
-                  )}
-                >
-                  {item.icon}
-                  <span className='min-w-0 flex-1 truncate'>{item.label}</span>
-                  <span className='shrink-0 text-[10px] opacity-50'>{groupLabel[item.group]}</span>
-                </ComboboxPrimitive.Item>
-              ))}
+              {/* A2 补完：分组标题行——组切换处插标题（首现序；非条目不参与键盘序） */}
+              {(() => {
+                const rows: Array<
+                  | { kind: 'header'; key: string; label: string }
+                  | { kind: 'item'; key: string; item: CommandItem; index: number }
+                > = [];
+                let lastGroup: CommandItem['group'] | undefined;
+                visible.forEach((item, index) => {
+                  if (item.group !== lastGroup) {
+                    lastGroup = item.group;
+                    rows.push({ kind: 'header', key: `header:${item.group}`, label: groupLabel[item.group] });
+                  }
+                  rows.push({ kind: 'item', key: item.id, item, index });
+                });
+                return rows.map((row) =>
+                  row.kind === 'header' ? (
+                    <div
+                      key={row.key}
+                      data-testid='graph-command-group-header'
+                      className='px-2.5 pt-2 pb-1 text-[10px] font-medium tracking-wide uppercase opacity-40'
+                    >
+                      {row.label}
+                    </div>
+                  ) : (
+                    <ComboboxPrimitive.Item
+                      key={row.key}
+                      value={row.item}
+                      data-testid='graph-command-item'
+                      data-command-active={row.index === activeIndex || undefined}
+                      onMouseMove={() => setActiveIndex(row.index)}
+                      // 视觉统一走自管 activeIndex（Base UI children 渲染模式内部仍有
+                      // 一套 arrow 高亮——data-highlighted 钩子移除，避免双高亮叠加；
+                      // Enter/箭头已 preventDefault 让位，内部序不参与提交）
+                      className={clsx(
+                        'flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-xs outline-none',
+                        row.index === activeIndex && 'bg-accent text-accent-foreground',
+                      )}
+                    >
+                      {row.item.icon}
+                      <span className='min-w-0 flex-1 truncate'>{row.item.label}</span>
+                      <span className='shrink-0 text-[10px] opacity-50'>{groupLabel[row.item.group]}</span>
+                    </ComboboxPrimitive.Item>
+                  ),
+                );
+              })()}
               {visible.length === 0 && (
                 <div className='px-3 py-6 text-center text-xs opacity-50'>{t('dg.command.empty')}</div>
               )}
