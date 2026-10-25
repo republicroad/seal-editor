@@ -17,3 +17,22 @@ export const deriveHitRuleIds = (traceData: unknown): Set<string> => {
   }
   return ids;
 };
+
+/**
+ * A1 死行检测：Run all 报告的命中规则集合 → 从未被任何 fixture 命中的行 id
+ * （无 _id 的行跳过；报告是运行时点快照，运行后新增的行也计入死行——以
+ * 「上次 Run all」为语境，UI 层标注）。
+ */
+export const deriveDeadRowIds = (
+  rules: Array<{ _id?: unknown } | undefined> | undefined,
+  hitRuleIds: Set<string>,
+): string[] => {
+  const dead: string[] = [];
+  for (const rule of rules ?? []) {
+    const id = rule?._id;
+    if (typeof id === 'string' && id.length > 0 && !hitRuleIds.has(id)) {
+      dead.push(id);
+    }
+  }
+  return dead;
+};

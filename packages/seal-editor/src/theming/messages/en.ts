@@ -15,6 +15,8 @@ export const en = {
   'node.delete': 'Delete',
   'inspector.close': 'Close inspector',
   'dt.runHitStats': 'Run hits',
+  'dt.deadRows': 'Dead rows',
+  'dt.deadRow': 'Never hit by any fixture run',
   'dt.rowHit': 'Row matched by last simulation run',
   'dt.instantEval.suspended': 'Table structure changed — hit badges are paused. Run the simulation to refresh.',
   'dt.instantEval.degraded': 'Large table — instant hit badges are off. Run the simulation manually.',

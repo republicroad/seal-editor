@@ -40,6 +40,8 @@ export type TableProps = {
   maxHeight: string | number;
   scrollContainerRef?: React.MutableRefObject<HTMLDivElement | null>;
   scrollApiRef?: React.MutableRefObject<TableScrollApi | null>;
+  /** A1 死行检测：Run all 后从未被命中的行 id（上次 Run all 语境） */
+  deadRowIds?: string[] | undefined;
 };
 
 type ColumnSizing = Record<string, number>;
@@ -95,7 +97,9 @@ const IndexCell: React.FC<{
   row: { index: number; id: string };
   /** A3 行级命中点标：debugIndex 选中行走整行强高亮，其余命中行在行头点标 */
   hit?: boolean;
-}> = ({ row, hit }) => {
+  /** A1 死行点标：Run all 后从未被命中的行（琥珀色，与命中绿点区分） */
+  dead?: boolean;
+}> = ({ row, hit, dead }) => {
   const t = useT();
   const tableActions = useDecisionTableActions();
   const { disabled } = useDecisionTableState(({ disabled }) => ({ disabled }));
@@ -117,12 +121,19 @@ const IndexCell: React.FC<{
           className='mr-1 inline-block size-1.5 shrink-0 rounded-full bg-[var(--primary)]'
         />
       )}
+      {dead && (
+        <span
+          data-testid='row-dead-dot'
+          title={t('dt.deadRow')}
+          className='mr-1 inline-block size-1.5 shrink-0 rounded-full bg-amber-500'
+        />
+      )}
       <Typography>{row.index + 1}</Typography>
     </div>
   );
 };
 
-export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef, scrollApiRef }) => {
+export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef, scrollApiRef, deadRowIds }) => {
   const mode = useThemeMode();
   const tableActions = useDecisionTableActions();
   const t = useT();
@@ -182,7 +193,11 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         id: '__index',
         header: () => null,
         cell: ({ row }) => (
-          <IndexCell row={row} hit={!disabled && row.id !== activeRuleId && hitRuleIds.has(row.id as string)} />
+          <IndexCell
+            row={row}
+            hit={!disabled && row.id !== activeRuleId && hitRuleIds.has(row.id as string)}
+            dead={deadRowIds?.includes(row.id as string)}
+          />
         ),
         size: 44,
         enableResizing: false,
@@ -242,7 +257,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         meta: { cellEdit: { clearValue: '', editable: () => !disabled } },
       },
     ],
-    [permission, disabled, inputs, outputs, minColWidth, colWidth, activeRuleId, hitRuleIds],
+    [permission, disabled, inputs, outputs, minColWidth, colWidth, activeRuleId, hitRuleIds, deadRowIds],
   );
 
   // A' 单格聚焦（Phase 2 备选立项）：grid 焦点经受控 cellSelection 桥接回

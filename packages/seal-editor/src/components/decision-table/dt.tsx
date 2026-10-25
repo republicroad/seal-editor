@@ -27,6 +27,8 @@ export type DecisionTableProps = {
   scrollApiRef?: React.MutableRefObject<TableScrollApi | null>;
   /** D2：Run all 后的条件列命中统计（图级 Run all 注入；standalone 传入亦可） */
   runHitStats?: { entries: { name: string; count: number }[]; total: number } | undefined;
+  /** A1 死行检测：Run all 后从未被命中的行 id（图级 Run all 注入） */
+  deadRowIds?: string[] | undefined;
   /** A3 即时求值状态面（图级 dt 页签注入；suspended/degraded 时显示提示条） */
   instantEvalStatus?: InstantEvalStatus;
 } & DecisionTableContextProps &
@@ -39,6 +41,7 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
   scrollContainerRef,
   scrollApiRef,
   runHitStats,
+  deadRowIds,
   instantEvalStatus,
   ...props
 }) => {
@@ -62,7 +65,7 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
           <DecisionTableProvider>
             <DecisionTableDialogProvider getContainer={mountDialogsOnBody ? undefined : getContainer}>
               <DecisionTableCommandBar />
-              <RunHitStatsStrip runHitStats={runHitStats} />
+              <RunHitStatsStrip runHitStats={runHitStats} deadRowIds={deadRowIds} />
               <InstantEvalStrip status={instantEvalStatus} />
               <DollarNavNotice />
               <DictionaryBridge>
@@ -71,6 +74,7 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
                   maxHeight={tableHeight}
                   scrollContainerRef={scrollContainerRef}
                   scrollApiRef={scrollApiRef}
+                  deadRowIds={deadRowIds}
                 />
               </DictionaryBridge>
               <DecisionTableDialogs />
@@ -83,13 +87,18 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
   );
 };
 
-/** D2 统计条：Run all 后的条件列命中计数（entries 由 TabDecisionTable 从 fixturesRun 聚合）。 */
-const RunHitStatsStrip: React.FC<{ runHitStats?: DecisionTableProps['runHitStats'] }> = ({ runHitStats }) => {
+/** D2 统计条：Run all 后的条件列命中计数（entries 由 TabDecisionTable 从 fixturesRun 聚合）。
+ *  A1 死行计数随条显示（deadRowIds 非空时追加「死行」段）。 */
+const RunHitStatsStrip: React.FC<{
+  runHitStats?: DecisionTableProps['runHitStats'];
+  deadRowIds?: string[] | undefined;
+}> = ({ runHitStats, deadRowIds }) => {
   const t = useT();
   if (!runHitStats || runHitStats.entries.length === 0) {
     return null;
   }
   const entries = runHitStats.entries.map((entry) => `${entry.name}: ${entry.count}/${runHitStats.total}`);
+  const deadCount = deadRowIds?.length ?? 0;
   return (
     <div
       role='status'
@@ -98,6 +107,15 @@ const RunHitStatsStrip: React.FC<{ runHitStats?: DecisionTableProps['runHitStats
     >
       <span className='shrink-0 font-medium'>{t('dt.runHitStats')}</span>
       <span className='truncate'>{entries.join(' · ')}</span>
+      {deadCount > 0 && (
+        <span
+          data-testid='dead-row-count'
+          className='ml-auto shrink-0 font-medium text-[color:var(--seal-color-warning-text)]'
+          title={t('dt.deadRow')}
+        >
+          {t('dt.deadRows')}: {deadCount}
+        </span>
+      )}
     </div>
   );
 };

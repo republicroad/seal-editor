@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { P, match } from 'ts-pattern';
 
 import { computeColumnHitStats } from '../../../helpers/dt-column-hit-stats';
+import { deriveDeadRowIds } from '../../../helpers/dt-hit-projection';
 import {
   type InstantEvalStatus,
   instantEvalStructureSignature,
@@ -169,6 +170,18 @@ export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id }) => {
     };
   }, [fixturesRun, content, id]);
 
+  // A1 死行检测：Run all 报告 → 从未被任何 fixture 命中的行（上次 Run all 语境）
+  const deadRowIds = useMemo(() => {
+    if (fixturesRun?.status !== 'done' || !fixturesRun.report) {
+      return undefined;
+    }
+    const hit = new Set(
+      fixturesRun.report.results.flatMap((r) => (r.ruleHits ?? []).filter((h) => h.nodeId === id).map((h) => h.ruleId)),
+    );
+    const dead = deriveDeadRowIds(content?.rules as Array<{ _id?: string }> | undefined, hit);
+    return dead.length > 0 ? dead : undefined;
+  }, [fixturesRun, content, id]);
+
   return (
     <DecisionTable
       id={id}
@@ -183,6 +196,7 @@ export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id }) => {
       mode={mode}
       debug={debug}
       runHitStats={runHitStats}
+      deadRowIds={deadRowIds}
       instantEvalStatus={instantEvalStatus}
       onChange={(val) => {
         graphActions.updateNode(id, (draft) => {

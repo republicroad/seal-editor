@@ -10,6 +10,8 @@ export const zhCN: Record<string, string> = {
   'node.delete': '删除',
   'inspector.close': '关闭检查器',
   'dt.runHitStats': 'Run 命中',
+  'dt.deadRows': '死行',
+  'dt.deadRow': '从未被 Run all 命中的行',
   'dt.rowHit': '上次仿真运行命中的行',
   'dt.instantEval.suspended': '表结构已变更，命中徽章暂停——重新运行仿真以刷新',
   'dt.instantEval.degraded': '大表模式，即时命中已停用——请手动运行仿真',
