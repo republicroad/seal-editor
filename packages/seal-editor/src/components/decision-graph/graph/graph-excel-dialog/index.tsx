@@ -386,7 +386,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
       open={!!excelData}
       onCancel={handleCancel}
       destroyOnClose={true}
-      width={880}
+      width={1140}
       // 向导按钮组入 footer（A1 重合修复）：Done 此前在内容流里随滚动与
       // Preview 重合——footer 钉底后 Previous 左对齐，Next/Done/Cancel 右对齐
       footer={
@@ -425,22 +425,27 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
       }
     >
       <Steps current={currentStep} items={steps} />
-      <div className='py-2'>
-        <DataGrid table={mappingTable} recordCount={sheetHeaders.length} i18n={dataGridI18n}>
-          <DataGridContainer>
-            <DataGridTable />
-          </DataGridContainer>
-        </DataGrid>
-      </div>
-      {/* WS2-B3：当前 sheet 的实际数据行预览（行虚拟化）；height 180 同 dt 对话框矮视口处理 */}
-      {excelData?.[currentStep] && (
-        <div className='pt-2'>
-          <Typography.Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>
-            Preview
-          </Typography.Text>
-          <ExcelPreviewGrid sheet={excelData[currentStep]} height={180} />
+      {/* 左右分屏：映射左 / 预览右——上下堆叠时两者抢垂直空间（矮视口只见其一），
+          分屏后各自独立滚动共享全高，映射列与数据行同屏对照 */}
+      <div className='flex h-full min-h-0 flex-1 gap-3 pt-2'>
+        <div className='min-w-0 flex-1 overflow-y-auto rounded-lg border border-[var(--border)] p-1'>
+          <DataGrid table={mappingTable} recordCount={sheetHeaders.length} i18n={dataGridI18n}>
+            <DataGridContainer>
+              <DataGridTable />
+            </DataGridContainer>
+          </DataGrid>
         </div>
-      )}
+        {excelData?.[currentStep] && (
+          <div className='flex w-[420px] shrink-0 flex-col'>
+            <Typography.Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>
+              Preview
+            </Typography.Text>
+            <div className='min-h-0 flex-1'>
+              <ExcelPreviewGrid sheet={excelData[currentStep]} height='100%' />
+            </div>
+          </div>
+        )}
+      </div>
     </Modal>
   );
 };

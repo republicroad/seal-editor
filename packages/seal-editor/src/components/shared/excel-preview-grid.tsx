@@ -16,7 +16,10 @@ import { useDataGridI18n } from './use-data-grid-i18n';
  * 表头排序可用。行数据从 RuleData[]（headerId→value 对）预转对象数组，
  * 列即 sheet 表头。
  */
-export const ExcelPreviewGrid: React.FC<{ sheet: ParsedExcelData; height?: number }> = ({ sheet, height = 240 }) => {
+export const ExcelPreviewGrid: React.FC<{ sheet: ParsedExcelData; height?: number | string }> = ({
+  sheet,
+  height = 240,
+}) => {
   const dataGridI18n = useDataGridI18n();
   const [sorting, setSorting] = useState<SortingState>([]);
 

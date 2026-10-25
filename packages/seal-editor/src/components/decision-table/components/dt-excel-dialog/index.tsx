@@ -395,149 +395,150 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
       onOk={onOk}
       onCancel={handleCancel}
       destroyOnClose
-      width={900}
+      width={1140}
       getContainer={getContainer}
       /* 矮视口下（弹层被 100dvh-48 压缩）压缩固定开销，把空间让给滚动区 */
       className='gap-2 p-3'
     >
-      <div style={{ padding: '8px 0' }}>
-        {/* Inputs Section */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <Typography.Text strong style={{ fontSize: 13 }}>
-            Inputs
-          </Typography.Text>
-          <InputFieldEdit
-            mode='create'
-            variableType={inputVariableType}
-            onCreate={handleAddInput}
-            trigger={addInputTrigger}
-          />
-        </div>
-        <div style={{ marginBottom: 16 }}>
-          <MappingGrid
-            section='input'
-            rows={inputColumns}
-            excelHeaders={excelHeaders}
-            disabledColumns={disabledColumns}
-            wrapStates={wrapStates}
-            onReorder={(from, to) => reorderSection('input', from, to)}
-            onToggle={(colId, enabled) => {
-              setDisabledColumns((prev) => {
-                const updated = { ...prev };
-                if (enabled) {
-                  delete updated[colId];
-                } else {
-                  updated[colId] = true;
-                }
-                return updated;
-              });
-            }}
-            onExcelHeaderChange={(colId, excelHeaderId) => {
-              setColumns((prev) => prev.map((c) => (c.id === colId ? { ...c, excelHeaderId } : c)));
-            }}
-            onWrapChange={(colId, checked) => {
-              setWrapStates((prev) => ({ ...prev, [colId]: checked }));
-            }}
-            onFieldChange={handleFieldChange}
-            onRemove={handleRemoveColumn}
-            emptyMessage='No input columns'
-          />
-        </div>
+      {/* 左右分屏：映射左（Inputs/Outputs/Description）/ 预览右——上下堆叠时两者抢
+          垂直空间（矮视口只见其一），分屏后各自独立滚动共享全高 */}
+      <div className='flex h-full min-h-0 gap-4'>
+        <div className='min-w-0 flex-1 overflow-y-auto pr-1'>
+          {/* Inputs Section */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <Typography.Text strong style={{ fontSize: 13 }}>
+              Inputs
+            </Typography.Text>
+            <InputFieldEdit
+              mode='create'
+              variableType={inputVariableType}
+              onCreate={handleAddInput}
+              trigger={addInputTrigger}
+            />
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <MappingGrid
+              section='input'
+              rows={inputColumns}
+              excelHeaders={excelHeaders}
+              disabledColumns={disabledColumns}
+              wrapStates={wrapStates}
+              onReorder={(from, to) => reorderSection('input', from, to)}
+              onToggle={(colId, enabled) => {
+                setDisabledColumns((prev) => {
+                  const updated = { ...prev };
+                  if (enabled) {
+                    delete updated[colId];
+                  } else {
+                    updated[colId] = true;
+                  }
+                  return updated;
+                });
+              }}
+              onExcelHeaderChange={(colId, excelHeaderId) => {
+                setColumns((prev) => prev.map((c) => (c.id === colId ? { ...c, excelHeaderId } : c)));
+              }}
+              onWrapChange={(colId, checked) => {
+                setWrapStates((prev) => ({ ...prev, [colId]: checked }));
+              }}
+              onFieldChange={handleFieldChange}
+              onRemove={handleRemoveColumn}
+              emptyMessage='No input columns'
+            />
+          </div>
 
-        {/* Outputs Section */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <Typography.Text strong style={{ fontSize: 13 }}>
-            Outputs
-          </Typography.Text>
-          <OutputFieldEdit mode='create' onCreate={handleAddOutput} trigger={addOutputTrigger} />
-        </div>
-        <div style={{ marginBottom: 16 }}>
-          <MappingGrid
-            section='output'
-            rows={outputColumns}
-            excelHeaders={excelHeaders}
-            disabledColumns={disabledColumns}
-            wrapStates={wrapStates}
-            onReorder={(from, to) => reorderSection('output', from, to)}
-            onToggle={(colId, enabled) => {
-              setDisabledColumns((prev) => {
-                const updated = { ...prev };
-                if (enabled) {
-                  delete updated[colId];
-                } else {
-                  updated[colId] = true;
-                }
-                return updated;
-              });
-            }}
-            onExcelHeaderChange={(colId, excelHeaderId) => {
-              setColumns((prev) => prev.map((c) => (c.id === colId ? { ...c, excelHeaderId } : c)));
-            }}
-            onWrapChange={(colId, checked) => {
-              setWrapStates((prev) => ({ ...prev, [colId]: checked }));
-            }}
-            onFieldChange={handleFieldChange}
-            onRemove={handleRemoveColumn}
-            emptyMessage='No output columns'
-          />
-        </div>
+          {/* Outputs Section */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <Typography.Text strong style={{ fontSize: 13 }}>
+              Outputs
+            </Typography.Text>
+            <OutputFieldEdit mode='create' onCreate={handleAddOutput} trigger={addOutputTrigger} />
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <MappingGrid
+              section='output'
+              rows={outputColumns}
+              excelHeaders={excelHeaders}
+              disabledColumns={disabledColumns}
+              wrapStates={wrapStates}
+              onReorder={(from, to) => reorderSection('output', from, to)}
+              onToggle={(colId, enabled) => {
+                setDisabledColumns((prev) => {
+                  const updated = { ...prev };
+                  if (enabled) {
+                    delete updated[colId];
+                  } else {
+                    updated[colId] = true;
+                  }
+                  return updated;
+                });
+              }}
+              onExcelHeaderChange={(colId, excelHeaderId) => {
+                setColumns((prev) => prev.map((c) => (c.id === colId ? { ...c, excelHeaderId } : c)));
+              }}
+              onWrapChange={(colId, checked) => {
+                setWrapStates((prev) => ({ ...prev, [colId]: checked }));
+              }}
+              onFieldChange={handleFieldChange}
+              onRemove={handleRemoveColumn}
+              emptyMessage='No output columns'
+            />
+          </div>
 
-        {/* Description Section */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <Typography.Text strong style={{ fontSize: 13 }}>
-            Description
-          </Typography.Text>
-        </div>
-        <div
-          style={{
-            border: '1px solid var(--border)',
-            borderRadius: 8,
-            padding: '8px 12px',
-          }}
-        >
+          {/* Description Section */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <Typography.Text strong style={{ fontSize: 13 }}>
+              Description
+            </Typography.Text>
+          </div>
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: '36px 24px 1fr',
-              gap: '8px',
-              alignItems: 'center',
+              border: '1px solid var(--border)',
+              borderRadius: 8,
+              padding: '8px 12px',
             }}
           >
-            <Switch
-              size='small'
-              checked={descriptionEnabled}
-              onChange={setDescriptionEnabled}
-              style={{ minWidth: 28 }}
-            />
-            <LeftOutlined style={{ fontSize: 12, color: 'var(--primary)' }} />
-            <Select
-              allowClear
-              style={{ width: '100%' }}
-              placeholder={t('dt.table.selectDescription')}
-              value={descriptionExcelId}
-              disabled={!descriptionEnabled}
-              onChange={(val) => setDescriptionExcelId(val ?? undefined)}
-              options={excelHeaders.map((h) => ({
-                label: h.name || h.value || h.id,
-                value: h.id,
-              }))}
-            />
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '36px 24px 1fr',
+                gap: '8px',
+                alignItems: 'center',
+              }}
+            >
+              <Switch
+                size='small'
+                checked={descriptionEnabled}
+                onChange={setDescriptionEnabled}
+                style={{ minWidth: 28 }}
+              />
+              <LeftOutlined style={{ fontSize: 12, color: 'var(--primary)' }} />
+              <Select
+                allowClear
+                style={{ width: '100%' }}
+                placeholder={t('dt.table.selectDescription')}
+                value={descriptionExcelId}
+                disabled={!descriptionEnabled}
+                onChange={(val) => setDescriptionExcelId(val ?? undefined)}
+                options={excelHeaders.map((h) => ({
+                  label: h.name || h.value || h.id,
+                  value: h.id,
+                }))}
+              />
+            </div>
           </div>
         </div>
 
-        {/* Preview Section — WS2-B3：映射前先看到实际数据行。
-            height 240→180：预览内部自滚动，矮视口下少占滚动流 */}
+        {/* Preview 右栏：与映射分屏同高对照（WS2-B3），内部行虚拟化自滚动 */}
         {spreadSheetData && (
-          <>
-            <div
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '16px 0 8px' }}
-            >
-              <Typography.Text strong style={{ fontSize: 13 }}>
-                Preview
-              </Typography.Text>
+          <div className='flex w-[360px] shrink-0 flex-col'>
+            <Typography.Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>
+              Preview
+            </Typography.Text>
+            <div className='min-h-0 flex-1'>
+              <ExcelPreviewGrid sheet={spreadSheetData} height='100%' />
             </div>
-            <ExcelPreviewGrid sheet={spreadSheetData} height={180} />
-          </>
+          </div>
         )}
       </div>
     </Modal>
