@@ -99,13 +99,17 @@ export const GraphComponents: React.FC<GraphComponentsProps> = React.memo(({ inp
   return (
     <div>
       {totalCount > 5 && (
-        <Input
-          placeholder={'Search components...'}
-          value={search}
-          onChange={(e) => setSearch(e.target.value || '')}
-          allowClear
-          className={'sticky top-0 z-[1] h-auto rounded-none border-0 shadow-none text-[13px]'}
-        />
+        // sticky 必须落外层块级包装：Input 自身的 relative 包装器与输入框同尺寸，
+        // sticky 元素在其内没有移动空间（钉不住）——外层包装随内容全高才有行程
+        <div className='sticky top-0 z-[1] bg-[var(--seal-color-bg-container)] pb-1'>
+          <Input
+            placeholder={'Search components...'}
+            value={search}
+            onChange={(e) => setSearch(e.target.value || '')}
+            allowClear
+            className={'h-auto rounded-none border-0 shadow-none text-[13px]'}
+          />
+        </div>
       )}
       <div className={'flex grow flex-col'}>
         {Object.keys(groups).map((group) => {
