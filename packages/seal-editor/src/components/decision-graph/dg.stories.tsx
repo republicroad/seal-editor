@@ -466,8 +466,9 @@ export const Diff: Story = {
 const buildOfflineSimulation = (graph: DecisionGraphType, context: unknown): Simulation => {
   const trace: Record<string, any> = {};
   (graph?.nodes ?? []).forEach((node, index) => {
-    // dt 节点演示前两行命中（真实求值由宿主引擎负责；offline demo 演示行级命中
-    // UI 分层——debugIndex 选中行整行强高亮，其余命中行淡染 + 行头点标）
+    // 逐类型仿真形态（真实求值由宿主引擎负责；offline demo 演示执行回显 UI）：
+    // dt=前两行命中（行级徽章+高亮）；expression=逐行 result；switch=命中首条
+    // statement（匹配条件行高亮）
     const content: any = node.content;
     const traceData =
       node.type === 'decisionTableNode' && content?.rules?.length
@@ -476,7 +477,11 @@ const buildOfflineSimulation = (graph: DecisionGraphType, context: unknown): Sim
             reference_map: {},
             rule: { _id: rule._id },
           }))
-        : null;
+        : node.type === 'expressionNode'
+          ? { result: { value: 42 } }
+          : node.type === 'switchNode' && content?.statements?.length
+            ? { statements: content.statements.slice(0, 1).map((s: any) => ({ id: s.id })) }
+            : null;
     trace[node.id] = {
       id: node.id,
       name: node.name,

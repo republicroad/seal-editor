@@ -3,7 +3,7 @@ import type { EdgeProps } from '@xyflow/react';
 import { BaseEdge, EdgeLabelRenderer, getBezierPath } from '@xyflow/react';
 import clsx from 'clsx';
 import React from 'react';
-import { match } from 'ts-pattern';
+import { P, match } from 'ts-pattern';
 
 import { nodeSchema } from '../../helpers/schema';
 import { Button } from '../primitives';
@@ -61,12 +61,19 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
     markerEnd,
     label,
   } = props;
-  const { isHovered, disabled, decisionGraph, components } = useDecisionGraphState(
-    ({ hoveredEdgeId, disabled, decisionGraph, components }) => ({
+  const { isHovered, disabled, decisionGraph, components, simulated, executed } = useDecisionGraphState(
+    ({ hoveredEdgeId, disabled, decisionGraph, components, simulate }) => ({
       isHovered: hoveredEdgeId === id,
       disabled,
       decisionGraph,
       components,
+      // A3 执行链路着色：仿真已运行 → 两端节点都命中 trace 的边 = 执行路径（流动高亮），否则置灰
+      simulated: match(simulate)
+        .with({ result: P._ }, () => true)
+        .otherwise(() => false),
+      executed: match(simulate)
+        .with({ result: P._ }, ({ result }) => Boolean(result?.trace?.[source] && result?.trace?.[target]))
+        .otherwise(() => false),
     }),
   );
 
@@ -159,6 +166,17 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
             .with({ status: 'added' }, () => 'var(--seal-color-success)')
             .with({ status: 'removed' }, () => 'var(--destructive)')
             .otherwise(() => undefined),
+          // A3 执行链路着色：执行路径流动高亮（复用 RF 自带 dashdraw 关键帧），
+          // 仿真已运行但不在路径上的边置灰——语义：数据流向下游
+          ...(executed && diff == null
+            ? {
+                stroke: 'var(--primary)',
+                strokeWidth: 2,
+                strokeDasharray: 5,
+                animation: 'dashdraw 0.4s linear infinite',
+              }
+            : {}),
+          ...(simulated && !executed && diff == null ? { strokeOpacity: 0.25 } : {}),
         }}
       />
       <EdgeLabelRenderer>

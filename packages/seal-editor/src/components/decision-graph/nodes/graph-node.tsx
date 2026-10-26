@@ -52,14 +52,18 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
     const [detailsOpen, setDetailsOpen] = usePersistentState<boolean>(`node:detailsOpen:${id}`, false);
     const graphActions = useDecisionGraphActions();
     const { modal } = App.useApp();
-    const { nodeError, nodeTrace, disabled, compactMode } = useDecisionGraphState(
+    const { nodeError, nodeTrace, disabled, compactMode, dimmed } = useDecisionGraphState(
       ({ simulate, disabled, compactMode }) => ({
         disabled,
+        compactMode,
+        // A3 执行内联回显：dimmed = 仿真已运行但本节点不在执行链路
+        dimmed: match(simulate)
+          .with({ result: P._ }, ({ result }) => !result?.trace?.[id])
+          .otherwise(() => false),
         nodeTrace: match(simulate)
           .with({ result: P._ }, ({ result }) => result?.trace?.[id])
           .otherwise(() => null),
         nodeError: simulate?.error?.data?.nodeId === id ? simulate.error : null,
-        compactMode,
       }),
     );
 
@@ -209,6 +213,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
             .with([P._, P.not(P.nullish), P._], () => 'error' as const)
             .with([P.not(P.nullish), P._, P._], () => 'success' as const)
             .otherwise(() => undefined)}
+          dimmed={dimmed}
           trace={nodeTrace}
           traceError={
             nodeError

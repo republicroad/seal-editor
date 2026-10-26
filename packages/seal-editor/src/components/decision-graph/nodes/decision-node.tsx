@@ -22,7 +22,9 @@ export type DecisionNodeProps = {
   actions?: React.ReactNode[];
   status?: 'error' | 'success' | 'warning';
   /** WS1-R7：仿真单节点轨迹——渲染为节点底部 run strip（耗时等） */
-  trace?: { performance?: string | null; micros?: number; code?: string } | null;
+  trace?: { performance?: string | null; micros?: number; code?: string; output?: unknown } | null;
+  /** A3 执行内联回显：仿真已运行但本节点不在执行链路（trace 缺席）→ 整卡置灰 */
+  dimmed?: boolean;
   /** WS1-R7 增强：仿真失败节点的错误信息——code 优先，无 code 退化为紧凑 title，渲染为 strip 内错误码徽章 */
   traceError?: { code?: string | null; title?: string | null; message?: string | null } | null;
   diffStatus?: 'removed' | 'added' | 'modified' | 'moved';
@@ -38,6 +40,16 @@ export type DecisionNodeProps = {
   onDetailsClose?: () => void;
 };
 
+/** A3 执行内联回显：run strip 输出摘要（截断 JSON，title 全文） */
+const previewJson = (value: unknown, max = 48): string => {
+  try {
+    const text = typeof value === 'string' ? JSON.stringify(value) : (JSON.stringify(value) ?? 'null');
+    return text.length > max ? `${text.slice(0, max)}…` : text;
+  } catch {
+    return '…';
+  }
+};
+
 export const DecisionNode: React.FC<DecisionNodeProps> = ({
   icon,
   name,
@@ -47,6 +59,7 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
   disabled = false,
   isSelected = false,
   noBodyPadding = false,
+  dimmed = false,
   color = 'primary',
   onNameChange,
   menuItems = [],
@@ -107,7 +120,7 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
       data-diff={diffStatus}
       data-compact={compactMode || undefined}
     >
-      <GraphCard className={clsx(cardBorder, cardList)}>
+      <GraphCard className={clsx(cardBorder, cardList, dimmed && 'opacity-40 saturate-50')}>
         <div className='absolute -top-5 w-full h-4 text-[10px] font-bold flex justify-end items-center gap-1'>
           {Array.isArray(helper) &&
             helper
@@ -193,6 +206,15 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
                 </span>
               )}
               {trace?.performance != null && <span>{trace.performance}</span>}
+              {trace?.output != null && !traceError && (
+                <span
+                  data-slot='node-run-strip-output'
+                  className='min-w-0 flex-1 truncate text-right font-mono opacity-80'
+                  title={`output = ${JSON.stringify(trace.output) ?? 'null'}`}
+                >
+                  → {String(previewJson(trace.output))}
+                </span>
+              )}
             </span>
           </div>
         )}
