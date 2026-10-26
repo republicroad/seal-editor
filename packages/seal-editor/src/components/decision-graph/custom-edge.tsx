@@ -6,6 +6,7 @@ import React from 'react';
 import { P, match } from 'ts-pattern';
 
 import { nodeSchema } from '../../helpers/schema';
+import { useT } from '../../theming/i18n';
 import { Button } from '../primitives';
 import { useDecisionGraphActions, useDecisionGraphState, useEdgeDiff } from './context/dg-store.context';
 import { nodeSpecification } from './nodes/specifications/specifications';
@@ -44,6 +45,7 @@ const usePickerItems = (): PickerItem[] => {
 export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; targetHandle?: string | null }> = (
   props,
 ) => {
+  const t = useT();
   const graphActions = useDecisionGraphActions();
   const {
     id,
@@ -80,6 +82,20 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
   const { diff } = useEdgeDiff(id);
   const [picking, setPicking] = React.useState(false);
   const pickerItems = usePickerItems();
+  // ② 探针订阅：组件体独立取 simulate（选择器参数仅回调内可见）
+  const simulate = useDecisionGraphState(({ simulate }) => simulate);
+
+  // ② 数据探针：执行边 hover 显示源节点 output（流经数据，trace 现成）
+  const probeData = React.useMemo(() => {
+    if (!simulated) {
+      return undefined;
+    }
+    return (
+      match(simulate)
+        .with({ result: P._ }, ({ result }) => result?.trace?.[source])
+        .otherwise(() => null)?.output ?? null
+    );
+  }, [simulate, simulated, source]);
 
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
@@ -173,7 +189,9 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
                 stroke: 'var(--primary)',
                 strokeWidth: 2,
                 strokeDasharray: 5,
-                animation: 'dashdraw 0.4s linear infinite',
+                // ① 流动渐停（#6 时间语义诚实）：只播 4 拍 ≈1.6s 后静止为虚线主色
+                // （路径标记保留；持续流动会误暗示实时流转——决策流原子执行）
+                animation: 'dashdraw 0.4s linear 4',
               }
             : {}),
           ...(simulated && !executed && diff == null ? { strokeOpacity: 0.25 } : {}),
@@ -181,6 +199,19 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
       />
       <EdgeLabelRenderer>
         {labelChip}
+        {/* ② 数据探针：hover 执行边显示源节点 output（只读，不截交互） */}
+        {isHovered && executed && !picking && probeData != null && (
+          <div
+            data-testid='edge-data-probe'
+            className='nodrag nopan pointer-events-none absolute z-[1001] max-w-72 rounded-md border border-[var(--border)] bg-[var(--card)] p-2 shadow-md'
+            style={{ transform: `translate(-50%, -50%) translate(${labelX}px,${labelY - 28}px)` }}
+          >
+            <div className='mb-1 text-[9px] font-medium uppercase tracking-wide opacity-50'>{t('dg.edge.probe')}</div>
+            <pre className='max-h-40 overflow-hidden font-mono text-[10px] leading-relaxed whitespace-pre-wrap break-all'>
+              {JSON.stringify(probeData, null, 2)}
+            </pre>
+          </div>
+        )}
         <div
           data-visible={isHovered || picking}
           className={
