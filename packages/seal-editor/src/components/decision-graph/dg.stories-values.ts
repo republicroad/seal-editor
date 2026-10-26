@@ -8,6 +8,31 @@ export const defaultGraph = {
         y: 250,
       },
       name: 'Request',
+      // 入参规格 + 示例默认值：驱动 simulator 请求 schema/编辑器与执行回显演示
+      content: {
+        schema: JSON.stringify({
+          type: 'object',
+          properties: {
+            customer: {
+              type: 'object',
+              properties: { country: { type: 'string' } },
+              required: ['country'],
+            },
+            cart: {
+              type: 'object',
+              properties: { weight: { type: 'number' } },
+              required: ['weight'],
+            },
+          },
+          required: ['customer', 'cart'],
+        }),
+        expressions: [
+          { id: 'expr-key-country', key: 'customer.country', value: 'US', type: 'string' },
+          { id: 'expr-key-weight', key: 'cart.weight', value: 50, type: 'number' },
+        ],
+        inputField: null,
+        outputPath: null,
+      },
     },
     {
       id: 'c5e747fe-b74b-4b74-9fd0-bfd7d67007c3',
