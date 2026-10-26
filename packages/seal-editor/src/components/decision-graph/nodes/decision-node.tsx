@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import React, { useEffect, useState } from 'react';
 import { match } from 'ts-pattern';
 
+import { useT } from '../../../theming/i18n';
 import { DiffIcon } from '../../diff-icon';
 import { Button, Dropdown, type MenuProps, Typography } from '../../primitives';
 import { TextEdit } from '../../text-edit';
@@ -75,6 +76,9 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
   detailsTitle = 'Details',
   onDetailsClose,
 }) => {
+  const t = useT();
+  // ③ 输出摘要点击复制（行内 copied 反馈，同 C2 引用复制模式）
+  const [outputCopied, setOutputCopied] = useState(false);
   const nodeColor = match(color)
     .with('primary', () => NodeColor.Blue)
     .otherwise((c) => c);
@@ -209,10 +213,22 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
               {trace?.output != null && !traceError && (
                 <span
                   data-slot='node-run-strip-output'
-                  className='min-w-0 flex-1 truncate text-right font-mono opacity-80'
-                  title={`output = ${JSON.stringify(trace.output) ?? 'null'}`}
+                  data-copied={outputCopied || undefined}
+                  className={clsx(
+                    'min-w-0 flex-1 cursor-pointer truncate text-right font-mono opacity-80 hover:opacity-100',
+                    outputCopied && 'text-[var(--seal-color-success)]',
+                  )}
+                  title={`output = ${JSON.stringify(trace.output) ?? 'null'}（点击复制 / click to copy）`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void navigator.clipboard
+                      ?.writeText(JSON.stringify(trace.output))
+                      .then(() => setOutputCopied(true))
+                      .catch(() => {})
+                      .finally(() => window.setTimeout(() => setOutputCopied(false), 1200));
+                  }}
                 >
-                  → {String(previewJson(trace.output))}
+                  {outputCopied ? t('dg.node.outputCopied') : `→ ${String(previewJson(trace.output))}`}
                 </span>
               )}
             </span>

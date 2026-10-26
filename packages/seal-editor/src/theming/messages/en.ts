@@ -174,6 +174,8 @@ export const en = {
   'dg.annotation.placeholder': 'Write a note...',
   'dg.annotation.remove': 'Remove',
   'dg.connectMenu.search': 'Search nodes...',
+  'dg.edge.probe': 'Data flowing through',
+  'dg.node.outputCopied': 'Copied ✓',
   'dg.toolbar.downloadJson': 'Download JSON',
   'dg.toolbar.downloadExcel': 'Download Excel',
   'dg.toolbar.searchNodes': 'Search nodes',

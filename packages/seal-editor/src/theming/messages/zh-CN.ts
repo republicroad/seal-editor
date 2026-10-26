@@ -164,6 +164,8 @@ export const zhCN: Record<string, string> = {
   'dg.annotation.placeholder': '写点什么…',
   'dg.annotation.remove': '删除',
   'dg.connectMenu.search': '搜索节点…',
+  'dg.edge.probe': '流经数据',
+  'dg.node.outputCopied': '已复制 ✓',
   'dg.toolbar.downloadJson': '下载 JSON',
   'dg.toolbar.downloadExcel': '下载 Excel',
   'dg.toolbar.searchNodes': '搜索节点',
