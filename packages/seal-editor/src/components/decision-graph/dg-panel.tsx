@@ -80,7 +80,9 @@ export const GraphPanel: React.FC = () => {
       }
       style={{
         position: 'absolute',
-        left: 0,
+        // left 让开左栏工具条（w-12=48px）：抽屉 z-30 全宽会盖住工具栏底部的
+        // 面板开关钮（Simulator/Fixtures）——面板开着就找不到关它的按钮
+        left: 48,
         right: 0,
         bottom: 0,
         zIndex: 30,
