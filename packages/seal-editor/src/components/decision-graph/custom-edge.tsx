@@ -85,6 +85,18 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
   // ② 探针订阅：组件体独立取 simulate（选择器参数仅回调内可见）
   const simulate = useDecisionGraphState(({ simulate }) => simulate);
 
+  // ① 流动渐停的“恢复”机制：每次新仿真结果到达 → flowEpoch 递增 → 执行边
+  // Fragment key 变化强制 path 重挂载 → dashdraw 动画从头播放（否则 CSS 动画
+  // 在同元素上不会因相同 inline style 重渲染而重启，第二次 Run 起不再流动）
+  const [flowEpoch, setFlowEpoch] = React.useState(0);
+  const lastSimulateRef = React.useRef(simulate);
+  React.useEffect(() => {
+    if (simulate !== lastSimulateRef.current) {
+      lastSimulateRef.current = simulate;
+      setFlowEpoch((n) => n + 1);
+    }
+  }, [simulate]);
+
   // ② 数据探针：执行边 hover 显示源节点 output（流经数据，trace 现成）
   const probeData = React.useMemo(() => {
     if (!simulated) {
@@ -173,30 +185,33 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
 
   return (
     <>
-      <BaseEdge
-        path={edgePath}
-        markerEnd={markerEnd}
-        style={{
-          ...(style || {}),
-          stroke: match(diff)
-            .with({ status: 'added' }, () => 'var(--seal-color-success)')
-            .with({ status: 'removed' }, () => 'var(--destructive)')
-            .otherwise(() => undefined),
-          // A3 执行链路着色：执行路径流动高亮（复用 RF 自带 dashdraw 关键帧），
-          // 仿真已运行但不在路径上的边置灰——语义：数据流向下游
-          ...(executed && diff == null
-            ? {
-                stroke: 'var(--primary)',
-                strokeWidth: 2,
-                strokeDasharray: 5,
-                // ① 流动渐停（#6 时间语义诚实）：只播 4 拍 ≈1.6s 后静止为虚线主色
-                // （路径标记保留；持续流动会误暗示实时流转——决策流原子执行）
-                animation: 'dashdraw 0.4s linear 4',
-              }
-            : {}),
-          ...(simulated && !executed && diff == null ? { strokeOpacity: 0.25 } : {}),
-        }}
-      />
+      {/* flowEpoch：每次新仿真结果到达递增——key 变化强制 path 重挂载，动画从头播放 */}
+      <React.Fragment key={executed ? `flow-${flowEpoch}` : 'idle'}>
+        <BaseEdge
+          path={edgePath}
+          markerEnd={markerEnd}
+          style={{
+            ...(style || {}),
+            stroke: match(diff)
+              .with({ status: 'added' }, () => 'var(--seal-color-success)')
+              .with({ status: 'removed' }, () => 'var(--destructive)')
+              .otherwise(() => undefined),
+            // A3 执行链路着色：执行路径流动高亮（复用 RF 自带 dashdraw 关键帧），
+            // 仿真已运行但不在路径上的边置灰——语义：数据流向下游
+            ...(executed && diff == null
+              ? {
+                  stroke: 'var(--primary)',
+                  strokeWidth: 2,
+                  strokeDasharray: 5,
+                  // ① 流动渐停（#6 时间语义诚实）：只播 4 拍 ≈1.6s 后静止为虚线主色
+                  // （路径标记保留；持续流动会误暗示实时流转——决策流原子执行）
+                  animation: 'dashdraw 0.4s linear 4',
+                }
+              : {}),
+            ...(simulated && !executed && diff == null ? { strokeOpacity: 0.25 } : {}),
+          }}
+        />
+      </React.Fragment>
       <EdgeLabelRenderer>
         {labelChip}
         {/* ② 数据探针：hover 执行边显示源节点 output（只读，不截交互） */}
