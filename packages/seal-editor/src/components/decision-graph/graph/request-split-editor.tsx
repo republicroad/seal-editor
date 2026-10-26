@@ -10,6 +10,7 @@ import { AutosizeTextArea } from '../../autosize-text-area';
 import { Button, Popconfirm, Select, Tooltip, Typography } from '../../primitives';
 import { PanelEmpty } from '../../shared/panel-empty';
 import { BlurCommitInput } from './blur-commit-input';
+import { findJsonPathRange } from './json-path-line';
 import { RequestExampleSummary, type RequestExampleSummaryData } from './request-example-summary';
 import type { RequestExampleDriftState } from './use-request-examples-editing';
 
@@ -312,6 +313,8 @@ const ExamplePreviewStrip: React.FC<{
   activeSource: RequestExampleSource | null;
   activeExampleJsonDraft: string;
   activeDescriptionDraft: string;
+  /** 选中字段路径：Example 编辑器滚动定位 + 值区间高亮（Design 树联动） */
+  highlightPath: string | null;
   exampleFieldSummary: RequestExampleSummaryData | null;
   driftState?: RequestExampleDriftState;
   onRenameActive: (name: string) => void;
@@ -330,6 +333,7 @@ const ExamplePreviewStrip: React.FC<{
   activeSource,
   activeExampleJsonDraft,
   activeDescriptionDraft,
+  highlightPath,
   exampleFieldSummary,
   driftState,
   onRenameActive,
@@ -347,9 +351,45 @@ const ExamplePreviewStrip: React.FC<{
   const t = useT();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const blurDisposableRef = useRef<{ dispose: () => void } | null>(null);
+  const decorationsRef = useRef<editor.IEditorDecorationsCollection | null>(null);
   const drift = driftState?.drift;
   const driftCount = drift ? drift.missing.length + drift.extra.length + drift.conflicts.length : 0;
   const constraintCount = driftState?.constraintIssues.length ?? 0;
+
+  // 树字段联动：滚动定位 + 值区间高亮（在视口内不重滚——输入时避免滚动跳动）
+  const applyFieldHighlight = React.useCallback((path: string | null) => {
+    const instance = editorRef.current;
+    if (!instance) {
+      return;
+    }
+    const range = path ? findJsonPathRange(instance.getValue(), path) : null;
+    if (!range) {
+      decorationsRef.current?.clear();
+      return;
+    }
+    const inView = instance
+      .getVisibleRanges()
+      .some((visible) => range.line >= visible.startLineNumber && range.line <= visible.endLineNumber);
+    if (!inView) {
+      instance.revealLineInCenter(range.line);
+    }
+    decorationsRef.current?.clear();
+    decorationsRef.current = instance.createDecorationsCollection([
+      {
+        range: {
+          startLineNumber: range.line,
+          endLineNumber: range.line,
+          startColumn: range.startColumn,
+          endColumn: range.endColumn,
+        },
+        options: { className: 'seal-request__fieldHighlight', isWholeLine: range.wholeLine },
+      },
+    ]);
+  }, []);
+
+  useEffect(() => {
+    applyFieldHighlight(highlightPath);
+  }, [applyFieldHighlight, highlightPath, activeExampleJsonDraft]);
 
   useEffect(
     () => () => {
@@ -438,6 +478,8 @@ const ExamplePreviewStrip: React.FC<{
             blurDisposableRef.current?.dispose();
             blurDisposableRef.current = instance.onDidBlurEditorText(() => onJsonCommit());
             onJsonEditorMount(instance);
+            // monaco 异步挂载晚于 effect：首挂补跑一次选中字段定位
+            applyFieldHighlight(highlightPath);
           }}
           onChange={(value) => onJsonChange(value ?? '')}
           theme={(exampleEditorOptions as { theme?: string })?.theme ?? 'light'}
@@ -594,6 +636,7 @@ export const SplitEditor: React.FC<SplitEditorProps> = (props) => {
           activeSource={props.exampleSources[props.activeExampleIndex ?? 0] ?? null}
           activeExampleJsonDraft={props.activeExampleJsonDraft}
           activeDescriptionDraft={props.activeDescriptionDraft}
+          highlightPath={props.selectedPath}
           exampleFieldSummary={props.exampleFieldSummary}
           driftState={activeDriftState}
           onDescriptionChange={props.onDescriptionChange}

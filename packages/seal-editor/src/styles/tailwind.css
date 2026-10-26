@@ -161,6 +161,11 @@
     background: var(--error-line-bg);
   }
 
+  /* Monaco field-highlight decoration (request Design tree → Example editor linkage) */
+  .seal-request__fieldHighlight {
+    background: var(--field-highlight-bg);
+  }
+
   /* react-json-tree: styled inline via its theme prop (HK-01 resolved,
      Batch G) — no stylesheet counter-war needed anymore. */
 

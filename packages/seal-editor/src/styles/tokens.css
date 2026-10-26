@@ -43,6 +43,7 @@
   --tooltip-bg: #f5f5f5;
   --diagnostic-chip-bg: #eeeeee;
   --error-line-bg: #fff1f0;
+  --field-highlight-bg: #e6f4ff;
 }
 
 .seal-root[data-mode='dark'],
@@ -73,6 +74,7 @@
   --tooltip-bg: #1f1f1f;
   --diagnostic-chip-bg: #2b2d30;
   --error-line-bg: #4e3534;
+  --field-highlight-bg: #111a2c;
 }
 
 /* ── LEGACY fallback（⚠ ADR-023 D2：1.x 迁移窗口，2.0 退役——宿主请挂 .seal-root）
@@ -106,6 +108,7 @@
   --tooltip-bg: #f5f5f5;
   --diagnostic-chip-bg: #eeeeee;
   --error-line-bg: #fff1f0;
+  --field-highlight-bg: #e6f4ff;
 }
 
 [data-mode='dark']:not(:has(.seal-root)) {
@@ -135,4 +138,5 @@
   --tooltip-bg: #1f1f1f;
   --diagnostic-chip-bg: #2b2d30;
   --error-line-bg: #4e3534;
+  --field-highlight-bg: #111a2c;
 }
