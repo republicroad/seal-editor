@@ -576,3 +576,11 @@
   background: var(--primary);
   opacity: 0.5;
 }
+
+/* A3 执行回显可访问性：系统减弱动效时，执行边不播放流动动画（dashdraw 为
+   inline style，需 !important 覆写）——虚线主色路径标记保留，仅去流动 */
+@media (prefers-reduced-motion: reduce) {
+  .react-flow__edge path {
+    animation: none !important;
+  }
+}
