@@ -124,6 +124,19 @@ export const GraphPanel: React.FC = () => {
           </div>
         </div>
       )}
+      {/* hideHeader 形态：头部 × 不渲染时在面板右上角补悬浮收起钮——
+          面板自身必须始终有把可抓（Simulator 故事 hideHeader 即盲区） */}
+      {activePanel.hideHeader && (
+        <Button
+          size={'small'}
+          type={'text'}
+          aria-label={t('dg.toolbar.closeClose')}
+          data-testid='panel-floating-close'
+          className='absolute right-2 top-2 z-10 opacity-50 transition-opacity hover:opacity-100'
+          icon={<CloseOutlined style={{ fontSize: 12 }} />}
+          onClick={() => graphActions.setActivePanel(undefined)}
+        />
+      )}
       <div className={'min-h-0 flex-1 overflow-hidden'}>{activePanel?.renderPanel?.()}</div>
     </Resizable>
   );
