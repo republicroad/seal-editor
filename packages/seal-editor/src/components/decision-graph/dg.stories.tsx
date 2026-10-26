@@ -10,6 +10,7 @@ import type { JdmUiMode } from '../decision-table/context/dt-store.context';
 import { Button, Input, Select, Space, Typography } from '../primitives';
 import { useDecisionGraphActions } from './context/dg-store.context';
 import type { DecisionGraphSnapshot } from './context/serializer.context';
+import { createRemoteSimulate } from './create-remote-simulate';
 import type { DecisionGraphRef } from './dg';
 import { DecisionGraph } from './dg';
 import type { DecisionGraphType } from './dg-types';
@@ -28,6 +29,11 @@ import { definePack } from './nodes/resolve-custom-node';
 import type { NodeSpecification } from './nodes/specifications/specification-types';
 import { GraphSimulator } from './simulator/dg-simulator';
 import type { Simulation } from './simulator/simulation.types';
+
+// 服务端仿真为核心（裁定）：真引擎 = demo-server /v1/execute；端点环境变量可覆盖，
+// 缺省 demo-server 缺省端口（服务不可达时 onRun 内回落离线 demo）
+const demoServerUrl =
+  (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_DEMO_SERVER_URL ?? 'http://localhost:8787';
 
 const meta: Meta<typeof DecisionGraph> = {
   /* 👇 The title prop is optional.
@@ -502,6 +508,11 @@ const buildOfflineSimulation = (graph: DecisionGraphType, context: unknown): Sim
 const DecisionGraphWithSimulator: React.FC = () => {
   const [value, setValue] = useState<any>(defaultGraph);
   const [simulate, setSimulate] = useState<Simulation>();
+  // 服务端仿真为核心（裁定）：真引擎 = demo-server /v1/execute；不可达回落离线
+  const remoteSimulate = useMemo(
+    () => createRemoteSimulate({ baseUrl: demoServerUrl, fallback: buildOfflineSimulation }),
+    [],
+  );
 
   const panels = useMemo(
     () => [
@@ -520,56 +531,13 @@ const DecisionGraphWithSimulator: React.FC = () => {
               null,
               2,
             )}
-            // 真引擎执行：demo-server /v1/execute（rust zen-engine，trace=true 逐节点
-            // 真实回显——dt 命中行/表达式值/switch 分支都是引擎真判定）；服务不可达
-            // 时回落离线 demo（trace 形态演示）。这也是 standalone 编辑器「浏览器内
-            // 编写 + 服务端真执行」调试闭环的参考接线。
+            // 服务端仿真为核心（裁定）：demo-server /v1/execute（rust zen-engine，
+            // trace=true 逐节点真实回显——dt 命中行/表达式值/switch 分支都是引擎
+            // 真判定）。端点经 createRemoteSimulate 工厂注入（零硬编码，环境变量
+            // 可覆盖）；服务不可达回落离线 demo（trace 形态演示）。
             onRun={async ({ graph, context }) => {
-              try {
-                const res = await fetch('http://localhost:8787/v1/execute', {
-                  method: 'POST',
-                  headers: { 'content-type': 'application/json' },
-                  body: JSON.stringify({
-                    model: { nodes: graph.nodes, edges: graph.edges },
-                    input: context,
-                    trace: true,
-                  }),
-                });
-                const data = await res.json();
-                if (!res.ok || data.error) {
-                  throw new Error(data.error || res.statusText);
-                }
-                // 剥离执行上下文注入键（__zen_udf_exec_ctx__——服务端 UDF 租户
-                // 上下文，回显噪音）；trace 形状与引擎透传一致（id/name/type/
-                // order/performance/input/output/traceData——A3 徽章与 switch
-                // 高亮的消费形状）
-                const trace = Object.fromEntries(
-                  Object.entries(data.trace ?? {}).map(([nodeId, t]: [string, any]) => {
-                    if (!t || typeof t !== 'object') {
-                      return [nodeId, t];
-                    }
-                    const { input, output } = t as { input?: unknown; output?: unknown };
-                    const strip = (v: unknown): unknown => {
-                      if (v && typeof v === 'object' && !Array.isArray(v) && '__zen_udf_exec_ctx__' in v) {
-                        const { __zen_udf_exec_ctx__: _, ...rest } = v as Record<string, unknown>;
-                        return rest;
-                      }
-                      return v;
-                    };
-                    return [nodeId, { ...t, input: strip(input), output: strip(output) }];
-                  }),
-                );
-                setSimulate({
-                  result: {
-                    performance: data.performance ?? '',
-                    result: data.result ?? null,
-                    snapshot: graph,
-                    trace,
-                  },
-                });
-              } catch {
-                setSimulate(buildOfflineSimulation(graph, context));
-              }
+              const outcome = await remoteSimulate({ graph, context });
+              setSimulate(outcome.simulation);
             }}
             onClear={() => {}}
           />
