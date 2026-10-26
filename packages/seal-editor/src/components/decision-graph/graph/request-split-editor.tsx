@@ -1,5 +1,6 @@
 import { DeleteOutlined, DownOutlined, FormatPainterOutlined, PlusOutlined, RightOutlined } from '#icons';
 import { Editor } from '@monaco-editor/react';
+import clsx from 'clsx';
 import type { editor } from 'monaco-editor';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -87,7 +88,10 @@ const FieldTree: React.FC<{
             ) : (
               <span className='size-4 shrink-0' />
             )}
-            <span className='min-w-0 flex-1 truncate'>{definition.name}</span>
+            {/* 新增字段 name 为空：显示占位名（右栏 Key 输入聚焦命名后同步） */}
+            <span className={clsx('min-w-0 flex-1 truncate', !definition.name && 'italic opacity-40')}>
+              {definition.name || t('request.unnamedField')}
+            </span>
             <FieldTypeBadge type={definition.type} />
           </div>
           {hasChildren && !isCollapsed && renderNodes(children, depth + 1)}
@@ -133,6 +137,14 @@ const ContextEditor: React.FC<{
   getDefinitionIndex,
 }) => {
   const t = useT();
+  // 新增字段（name 为空）→ Key 输入框自动聚焦，命名后左栏树行同步显示
+  const keyInputRef = useRef<HTMLInputElement>(null);
+  const isNewUnnamed = Boolean(definition) && definition?.name === '';
+  React.useEffect(() => {
+    if (isNewUnnamed) {
+      keyInputRef.current?.focus();
+    }
+  }, [isNewUnnamed, definition?.id]);
 
   if (!definition) {
     return (
@@ -166,8 +178,10 @@ const ContextEditor: React.FC<{
         <div className='grid grid-cols-[88px_minmax(0,1fr)] items-center gap-2'>
           <Typography.Text className='text-xs opacity-70'>{t('request.key')}</Typography.Text>
           <BlurCommitInput
+            ref={keyInputRef}
             disabled={disabled}
             value={definition.name}
+            placeholder={t('request.keyPlaceholder')}
             onCommit={(nextValue) => onUpdateName(index, nextValue)}
           />
         </div>

@@ -15,17 +15,20 @@ export type BlurCommitInputProps = {
   showActions?: boolean;
 };
 
-export const BlurCommitInput: React.FC<BlurCommitInputProps> = ({
-  disabled,
-  placeholder,
-  value,
-  onCommit,
-  onExit,
-  blurBehavior = 'save',
-  saveLabel = 'Save',
-  cancelLabel = 'Cancel',
-  showActions = false,
-}) => {
+export const BlurCommitInput = React.forwardRef<HTMLInputElement, BlurCommitInputProps>(function BlurCommitInput(
+  {
+    disabled,
+    placeholder,
+    value,
+    onCommit,
+    onExit,
+    blurBehavior = 'save',
+    saveLabel = 'Save',
+    cancelLabel = 'Cancel',
+    showActions = false,
+  },
+  ref,
+) {
   const [draft, setDraft] = useState(value);
   const lastCommittedValueRef = useRef(value);
   const blurCommitTimerRef = useRef<number | null>(null);
@@ -86,6 +89,7 @@ export const BlurCommitInput: React.FC<BlurCommitInputProps> = ({
 
   return (
     <Input
+      ref={ref}
       disabled={disabled}
       placeholder={placeholder}
       value={draft}
@@ -130,4 +134,4 @@ export const BlurCommitInput: React.FC<BlurCommitInputProps> = ({
       }
     />
   );
-};
+});

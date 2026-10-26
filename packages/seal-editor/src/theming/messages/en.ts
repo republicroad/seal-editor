@@ -267,6 +267,8 @@ export const en = {
   'request.addChildField': 'Add child field',
   'request.addDataSource': 'Add data',
   'request.addField': 'Add field',
+  'request.unnamedField': '(unnamed field)',
+  'request.keyPlaceholder': 'Enter field name',
   'request.childFieldNamePlaceholder': 'Child field name',
   'request.createDataSource': 'Create data',
   'request.definitionsTab': 'Definitions',

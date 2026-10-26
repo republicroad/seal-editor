@@ -97,6 +97,8 @@ type UseRequestDefinitionsEditingParams = {
   t: (key: TranslationKey) => string;
   sourceSchemaValue: unknown;
   updateNodeSchema: (nextSchema: string) => void;
+  /** 字段新增后回调：调用方选中新字段（右栏即编辑态）并展开父级 */
+  onFieldAdded?: (definition: RequestDefinition) => void;
 };
 
 export const useRequestDefinitionsEditing = ({
@@ -105,6 +107,7 @@ export const useRequestDefinitionsEditing = ({
   t,
   sourceSchemaValue,
   updateNodeSchema,
+  onFieldAdded,
 }: UseRequestDefinitionsEditingParams) => {
   const persistedDefinitions = useMemo(
     () => getRequestDefinitions(content),
@@ -353,8 +356,16 @@ export const useRequestDefinitionsEditing = ({
     );
   };
 
+  // 字段新增后回调（调用方选中新字段）：新字段 name 为空，左栏树显示占位——
+  // 选中后右栏 Key 输入自动聚焦，命名即同步到树
+  const notifyFieldAdded = (definition: RequestDefinition) => {
+    onFieldAdded?.(definition);
+  };
+
   const addDefinition = () => {
-    persistDefinitions([...definitionDrafts, createDefinitionDraft(null, 0, '')]);
+    const added = createDefinitionDraft(null, 0, '');
+    persistDefinitions([...definitionDrafts, added]);
+    notifyFieldAdded(added);
   };
 
   const addChildDefinition = (index: number) => {
@@ -364,9 +375,20 @@ export const useRequestDefinitionsEditing = ({
     }
 
     const insertAt = getBranchEndIndex(definitionDrafts, parent.path);
+    const added = createDefinitionDraft(parent.path, parent.depth + 1, '');
     const nextDefinitions = [...definitionDrafts];
-    nextDefinitions.splice(insertAt, 0, createDefinitionDraft(parent.path, parent.depth + 1, ''));
+    nextDefinitions.splice(insertAt, 0, added);
     persistDefinitions(nextDefinitions);
+    // 新子字段：父级若被折叠则自动展开（否则新行在树里不可见）
+    setCollapsedDefinitionPaths((previousState) => {
+      if (!previousState[parent.path]) {
+        return previousState;
+      }
+      const nextState = { ...previousState };
+      delete nextState[parent.path];
+      return nextState;
+    });
+    notifyFieldAdded(added);
   };
 
   const toggleDefinitionCollapsed = (path: string) => {

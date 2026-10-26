@@ -253,6 +253,8 @@ export const zhCN: Record<string, string> = {
   'request.addChildField': '新增子字段',
   'request.addDataSource': '新增用例数据',
   'request.addField': '新增字段',
+  'request.unnamedField': '（未命名字段）',
+  'request.keyPlaceholder': '输入字段名',
   'request.childFieldNamePlaceholder': '子字段名',
   'request.createDataSource': '创建用例数据',
   'request.definitionsTab': '类型定义',
