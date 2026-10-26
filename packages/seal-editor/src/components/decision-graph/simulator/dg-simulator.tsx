@@ -1,4 +1,3 @@
-import CrossIcon from '#reui/icons/animated/outline/cross';
 import { Skeleton } from '#reui/skeleton';
 import json5 from 'json5';
 import React, { useEffect, useRef, useState } from 'react';
@@ -7,8 +6,7 @@ import { P, match } from 'ts-pattern';
 
 import '../../../helpers/monaco';
 import { usePersistentState } from '../../../helpers/use-persistent-state';
-import { useT } from '../../../theming/i18n';
-import { Button, Tabs, Tooltip } from '../../primitives';
+import { Tabs } from '../../primitives';
 import { useDecisionGraphRaw, useDecisionGraphState } from '../context/dg-store.context';
 import type { SimulateRunEntry } from '../context/dg-store.context';
 import { NodeKind } from '../nodes/specifications/specification-types';
@@ -50,7 +48,6 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
   runsPersistenceKey,
   leftPanel: LeftPanel = SimulatorRequestPanel,
 }) => {
-  const t = useT();
   const [search, setSearch] = usePersistentState<string>('simulation.search', '');
   const [segment, setSegment] = usePersistentState<SimulationSegment>('simulation.segment', SimulationSegment.Output);
 
@@ -168,15 +165,8 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
                 key: s,
                 label: s,
               }))}
-              tabBarExtraContent={
-                <Tooltip title={t('dg.toolbar.closeClose')} placement='bottomRight'>
-                  <Button
-                    type='text'
-                    icon={<CrossIcon className='size-3' />}
-                    onClick={() => actions.setActivePanel(undefined)}
-                  />
-                </Tooltip>
-              }
+              // 关闭钮由面板容器统一承载（dg-panel：非 hideHeader 头部 × / hideHeader
+              // 悬浮 ×）——此处内建 × 已冗余，避免与面板级关闭钮在右上角重合
             />
           </div>
           <div className={'min-h-0 flex-1 overflow-y-auto relative'}>
