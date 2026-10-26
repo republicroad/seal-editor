@@ -53,14 +53,18 @@ export const Popover: React.FC<PopoverProps> = ({
   arrow: _arrow,
   defaultOpen: _defaultOpen,
 }) => {
-  // trigger 语义面：Base UI Trigger 仅 click 开合；hover/contextMenu 传值属迁移噪声
-  if (process.env.NODE_ENV !== 'production' && !warnedTrigger) {
+  // trigger 语义面：Base UI Trigger 仅 click 开合；hover/contextMenu 传值属迁移噪声。
+  // 告警走 effect（副作用不出渲染——react-compiler 纯度铁律）
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === 'production' || warnedTrigger) {
+      return;
+    }
     const values = Array.isArray(trigger) ? trigger : trigger ? [trigger] : ['click'];
     if (values.some((v) => v !== 'click')) {
       warnedTrigger = true;
       console.warn('[seal] Popover: only trigger="click" is supported (hover/contextMenu ignored).');
     }
-  }
+  }, [trigger]);
 
   const placement_ = placement ? PLACEMENT_MAP[placement] : undefined;
   const handleOpenChange = (next: boolean) => {
