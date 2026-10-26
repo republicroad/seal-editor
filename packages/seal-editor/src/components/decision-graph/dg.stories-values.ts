@@ -22,6 +22,12 @@ export const inputNodeSpecContent = {
       },
     },
     required: ['customer', 'cart'],
+    // ③ 三组示例数据（各命中决策表不同规则行）：Examples 下拉切换 + 同步 simulator
+    examples: [
+      { customer: { country: 'US', tier: 'GOLD' }, cart: { weight: 50 } },
+      { customer: { country: 'CN', tier: 'SILVER' }, cart: { weight: 30 } },
+      { customer: { country: 'US', tier: 'GOLD' }, cart: { weight: 10 } },
+    ],
   }),
   expressions: [
     { id: 'demo-in-country', key: 'customer.country', value: 'US', type: 'string' },

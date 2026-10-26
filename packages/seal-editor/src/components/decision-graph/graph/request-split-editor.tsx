@@ -36,7 +36,12 @@ const FieldTree: React.FC<{
   childrenMap: Map<string, RequestDefinition[]>;
   selectedPath: string | null;
   onSelect: (path: string) => void;
-}> = ({ rootDefinitions, childrenMap, selectedPath, onSelect }) => {
+  /** ① 树行内联样例值：活动示例按 path 取值（叶子标量） */
+  sampleByPath?: Map<string, string>;
+  /** ② 行悬停操作：object 行加子字段 / 删除行（disabled 时由调用方不传） */
+  onAddChildPath?: (path: string) => void;
+  onRemovePath?: (path: string) => void;
+}> = ({ rootDefinitions, childrenMap, selectedPath, onSelect, sampleByPath, onAddChildPath, onRemovePath }) => {
   const [collapsed, setCollapsed] = useState<Record<string, true>>({});
   const t = useT();
 
@@ -45,6 +50,8 @@ const FieldTree: React.FC<{
       const children = childrenMap.get(definition.path) ?? [];
       const isCollapsed = Boolean(collapsed[definition.path]);
       const hasChildren = children.length > 0;
+      const isObject = definition.type === 'object';
+      const sample = sampleByPath?.get(definition.path);
 
       return (
         <React.Fragment key={definition.id}>
@@ -53,7 +60,7 @@ const FieldTree: React.FC<{
             tabIndex={0}
             data-testid='field-tree-node'
             data-path={definition.path}
-            className={`flex items-center gap-1 rounded px-1.5 py-1 text-xs transition-colors ${
+            className={`group flex items-center gap-1 rounded px-1.5 py-1 text-xs transition-colors ${
               selectedPath === definition.path ? 'bg-primary/10' : 'hover:bg-muted/60'
             }`}
             style={{ paddingLeft: 6 + depth * 12 }}
@@ -88,9 +95,55 @@ const FieldTree: React.FC<{
             ) : (
               <span className='size-4 shrink-0' />
             )}
-            {/* 新增字段 name 为空：显示占位名（右栏 Key 输入聚焦命名后同步） */}
-            <span className={clsx('min-w-0 flex-1 truncate', !definition.name && 'italic opacity-40')}>
+            {/* 新增字段 name 为空：显示占位名（右栏 Key 输入聚焦命名后同步）；无样例行时名字占满（徽标保持右对齐） */}
+            <span
+              className={clsx(
+                'min-w-0 truncate',
+                sample ? 'shrink-0' : 'flex-1',
+                !definition.name && 'italic opacity-40',
+              )}
+            >
               {definition.name || t('request.unnamedField')}
+            </span>
+            {/* ① 树行内联样例值：活动示例按 path 取值（叶子标量） */}
+            {sample && (
+              <span
+                className='min-w-0 flex-1 truncate font-mono text-[10px] opacity-50'
+                title={`${definition.path} = ${sample}`}
+              >
+                {sample}
+              </span>
+            )}
+            {/* ② 行悬停操作钮：object 加子字段 / 删除（hover 出现，type 徽标让位） */}
+            <span className='hidden shrink-0 items-center gap-0.5 group-hover:flex'>
+              {onAddChildPath && isObject && (
+                <button
+                  type='button'
+                  data-testid='field-tree-add-child'
+                  title={t('request.addChildField')}
+                  className='flex size-4 items-center justify-center rounded-sm opacity-60 hover:bg-muted hover:opacity-100'
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onAddChildPath(definition.path);
+                  }}
+                >
+                  <PlusOutlined style={{ fontSize: 10 }} />
+                </button>
+              )}
+              {onRemovePath && (
+                <button
+                  type='button'
+                  data-testid='field-tree-remove'
+                  title={t('request.removeFieldInline')}
+                  className='flex size-4 items-center justify-center rounded-sm text-[var(--destructive)] opacity-60 hover:bg-muted hover:opacity-100'
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onRemovePath(definition.path);
+                  }}
+                >
+                  <DeleteOutlined style={{ fontSize: 10 }} />
+                </button>
+              )}
             </span>
             <FieldTypeBadge type={definition.type} />
           </div>
@@ -454,6 +507,47 @@ export const SplitEditor: React.FC<SplitEditorProps> = (props) => {
   );
   const activeDriftState = props.driftStates?.[props.exampleSources[props.activeExampleIndex ?? 0]?.id ?? ''];
 
+  // ① 树行内联样例值：活动示例 data 按 path 展平（叶子标量 → 值字符串）
+  const sampleByPath = React.useMemo(() => {
+    const map = new Map<string, string>();
+    const data = props.exampleSources[props.activeExampleIndex ?? 0]?.data;
+    if (!data || typeof data !== 'object') {
+      return map;
+    }
+    const walk = (obj: Record<string, unknown>, prefix: string) => {
+      for (const [k, v] of Object.entries(obj)) {
+        const path = prefix ? `${prefix}.${k}` : k;
+        if (v !== null && typeof v === 'object') {
+          walk(v as Record<string, unknown>, path);
+        } else {
+          map.set(path, String(v));
+        }
+      }
+    };
+    walk(data as Record<string, unknown>, '');
+    return map;
+  }, [props.exampleSources, props.activeExampleIndex]);
+
+  // ② 行悬停操作路由（path → 定义索引，复用既有增删动作）
+  const handleAddChildAtPath = React.useCallback(
+    (path: string) => {
+      const index = allDefinitions.findIndex((definition) => definition.path === path);
+      if (index >= 0) {
+        props.onAddChild(index);
+      }
+    },
+    [allDefinitions, props.onAddChild],
+  );
+  const handleRemoveAtPath = React.useCallback(
+    (path: string) => {
+      const index = allDefinitions.findIndex((definition) => definition.path === path);
+      if (index >= 0) {
+        props.onRemoveField(index);
+      }
+    },
+    [allDefinitions, props.onRemoveField],
+  );
+
   return (
     <div className='flex min-h-0 flex-1 gap-3 overflow-hidden'>
       <div className='flex w-56 shrink-0 flex-col overflow-hidden rounded-lg border border-border'>
@@ -463,6 +557,9 @@ export const SplitEditor: React.FC<SplitEditorProps> = (props) => {
             childrenMap={props.childrenMap}
             selectedPath={props.selectedPath}
             onSelect={props.onSelectField}
+            sampleByPath={sampleByPath}
+            onAddChildPath={handleAddChildAtPath}
+            onRemovePath={handleRemoveAtPath}
           />
         </div>
         <div className='shrink-0 border-t border-border p-1.5'>

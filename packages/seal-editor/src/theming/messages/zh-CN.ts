@@ -251,6 +251,7 @@ export const zhCN: Record<string, string> = {
   'request.save': '保存',
   'request.schema': 'Schema',
   'request.addChildField': '新增子字段',
+  'request.removeFieldInline': '删除字段',
   'request.addDataSource': '新增用例数据',
   'request.addField': '新增字段',
   'request.unnamedField': '（未命名字段）',
