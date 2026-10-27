@@ -114,10 +114,11 @@ describe('SkinnedDecisionGraph simulator panel', () => {
     );
     await waitFor(
       () => {
-        // WS1-R6 起：内核侧栏新增 auto-layout 按钮（不受 simulateHandler 影响）；
-        // e00d8623 起：Controls 增注释框按钮（第 5 个）——与 simulateHandler 无关
-        if (container.querySelectorAll('[class*="grid-area:sidebar"] button').length !== 5) {
-          throw new Error('sidebar not settled');
+        // 侧栏组合（与 simulateHandler 无关）：auto-layout / 对齐网格 / 画布锁 /
+        // 吸附开关（A3，1.39.0）/ 上传 / 下载（WS1-R6）= 7
+        const count = container.querySelectorAll('[class*="grid-area:sidebar"] button').length;
+        if (count !== 7) {
+          throw new Error(`sidebar not settled (count=${count})`);
         }
       },
       { timeout: 15000, interval: 200 },
