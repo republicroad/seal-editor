@@ -1,11 +1,136 @@
-import React, { useMemo } from 'react';
+import json5 from 'json5';
+import React, { useMemo, useState } from 'react';
 
 import { readRequestInputContract, writeRequestInputContract } from '../../../helpers/request-schema';
 import { useT } from '../../../theming/i18n';
-import { Button, Tooltip, Typography } from '../../primitives';
+import { AutosizeTextArea } from '../../autosize-text-area';
+import { Button, Input, Popover, Select, Tooltip, Typography } from '../../primitives';
 import { useDecisionGraphActions, useDecisionGraphState } from '../context/dg-store.context';
 import { buildContractFixtures, listInputNodes } from './fixtures-run';
 import type { ContractFixture, ExampleRunReport } from './fixtures-runner';
+
+type ExpectationDraft = NonNullable<ContractFixture['expect']>;
+
+const expectationToText = (expect: ExpectationDraft): string => {
+  if (expect.mode === 'expression') {
+    return expect.source;
+  }
+  return JSON.stringify(expect.value ?? null, null, 2);
+};
+
+/** 期望编辑器（Popover 内容）：deep/path/expression 三模式；无效 JSON 不落笔 */
+const ExpectationEditor: React.FC<{
+  initial?: ExpectationDraft;
+  pinned: boolean;
+  onSave: (expect: ExpectationDraft) => void;
+  onClear: () => void;
+}> = ({ initial, pinned, onSave, onClear }) => {
+  const t = useT();
+  const [mode, setMode] = useState<'deep' | 'path' | 'expression'>(initial?.mode ?? 'deep');
+  const [valueText, setValueText] = useState(() =>
+    initial && initial.mode !== 'expression' ? expectationToText(initial) : 'null',
+  );
+  const [path, setPath] = useState(initial?.mode === 'path' ? initial.path : '');
+  const [source, setSource] = useState(initial?.mode === 'expression' ? initial.source : '');
+  const [error, setError] = useState<string | null>(null);
+
+  const apply = () => {
+    if (mode === 'expression') {
+      if (!source.trim()) {
+        setError(t('request.expectationInvalidSource'));
+        return;
+      }
+      onSave({ mode: 'expression', source });
+      return;
+    }
+
+    let value: unknown;
+    try {
+      value = json5.parse(valueText);
+    } catch {
+      setError(t('request.expectationInvalidJson'));
+      return;
+    }
+    onSave(mode === 'path' ? { mode: 'path', path: path.trim(), value } : { mode: 'deep', value });
+  };
+
+  return (
+    <div className='flex w-72 flex-col gap-2 p-1' data-testid='expectation-editor'>
+      <div className='flex flex-col gap-1'>
+        <Typography.Text className='text-[10px] opacity-70'>{t('request.expectationMode')}</Typography.Text>
+        <Select
+          size='small'
+          value={mode}
+          options={[
+            { value: 'deep', label: t('request.expectationModeDeep') },
+            { value: 'path', label: t('request.expectationModePath') },
+            { value: 'expression', label: t('request.expectationModeExpression') },
+          ]}
+          onChange={(next) => {
+            setMode(next as 'deep' | 'path' | 'expression');
+            setError(null);
+          }}
+        />
+      </div>
+      {mode === 'path' && (
+        <div className='flex flex-col gap-1'>
+          <Typography.Text className='text-[10px] opacity-70'>{t('request.expectationPath')}</Typography.Text>
+          <Input
+            size='small'
+            value={path}
+            onChange={(event) => setPath(event.target.value)}
+            placeholder='shippingFee'
+          />
+        </div>
+      )}
+      {mode !== 'expression' && (
+        <div className='flex flex-col gap-1'>
+          <Typography.Text className='text-[10px] opacity-70'>{t('request.expectationValue')}</Typography.Text>
+          <AutosizeTextArea
+            className='rounded-md border border-border px-2 py-1 font-mono text-xs'
+            value={valueText}
+            onChange={(event) => {
+              setValueText(event.target.value);
+              setError(null);
+            }}
+            maxRows={8}
+            spellCheck={false}
+          />
+        </div>
+      )}
+      {mode === 'expression' && (
+        <div className='flex flex-col gap-1'>
+          <Typography.Text className='text-[10px] opacity-70'>{t('request.expectationSource')}</Typography.Text>
+          <AutosizeTextArea
+            className='rounded-md border border-border px-2 py-1 font-mono text-xs'
+            value={source}
+            onChange={(event) => {
+              setSource(event.target.value);
+              setError(null);
+            }}
+            placeholder='shippingFee >= 20 && shippingFee <= 60'
+            maxRows={6}
+            spellCheck={false}
+          />
+          <span className='text-[10px] opacity-60'>{t('request.expectationSourceHint')}</span>
+        </div>
+      )}
+      {error && <span className='text-[10px] text-destructive'>{error}</span>}
+      <div className='flex items-center justify-between'>
+        {pinned ? (
+          <Button type='link' size='small' className='!px-1 text-destructive!' onClick={onClear}>
+            {t('request.expectationClear')}
+          </Button>
+        ) : (
+          <span />
+        )}
+        <Button type='primary' size='small' onClick={apply}>
+          {t('request.expectationApply')}
+        </Button>
+      </div>
+    </div>
+  );
+};
 
 /** Run all 结果矩阵（ADR-013 §3）：行序 = 用例序，「调试」= 选中 + 打开 simulator 抽屉 */
 const RunMatrix: React.FC<{
@@ -13,70 +138,127 @@ const RunMatrix: React.FC<{
   fixtures: ContractFixture[];
   onDebug: (index: number) => void;
   onPinExpectation: (index: number) => void;
-  onClearExpectation: (index: number) => void;
-}> = ({ report, fixtures, onDebug, onPinExpectation, onClearExpectation }) => {
+  onSetExpectation: (index: number, expect: ExpectationDraft | undefined) => void;
+}> = ({ report, fixtures, onDebug, onPinExpectation, onSetExpectation }) => {
   const t = useT();
+  const [diffIndex, setDiffIndex] = useState<number | null>(null);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const totalMs = useMemo(() => report.results.reduce((sum, r) => sum + (r.durationMs ?? 0), 0), [report]);
 
   return (
     <div className='min-h-0 flex-1 overflow-y-auto'>
       {report.results.map((result, index) => {
-        const expectPinned = Boolean(fixtures[index]?.expect);
+        const expect = fixtures[index]?.expect;
+        const expectPinned = Boolean(expect);
         const smokePassed = result.outcome === 'passed' && !expectPinned;
+        const assertionFailed = result.outcome === 'assertion-failed';
+        const diffOpen = diffIndex === index;
 
         return (
-          <div
-            key={`${result.name}-${index}`}
-            className='flex items-center gap-2 border-b border-border/60 px-3 py-1.5 text-xs last:border-b-0'
-            data-outcome={result.outcome}
-          >
-            <span
-              className={`w-16 shrink-0 font-medium ${
-                result.outcome === 'passed'
-                  ? expectPinned
-                    ? 'text-emerald-600 dark:text-emerald-400'
-                    : 'text-[var(--muted-foreground)]'
-                  : result.outcome === 'assertion-failed'
-                    ? 'text-amber-600 dark:text-amber-400'
-                    : 'text-destructive'
-              }`}
+          <React.Fragment key={`${result.name}-${index}`}>
+            <div
+              className='flex items-center gap-2 border-b border-border/60 px-3 py-1.5 text-xs last:border-b-0'
+              data-outcome={result.outcome}
             >
-              {result.outcome === 'passed'
-                ? expectPinned
-                  ? t('request.outcomePassed')
-                  : t('request.outcomeSmokePassed')
-                : result.outcome === 'assertion-failed'
-                  ? t('request.outcomeAssertionFailed')
-                  : t('request.outcomeExecutionError')}
-            </span>
-            <Typography.Text className='min-w-0 flex-1 truncate'>{result.name}</Typography.Text>
-            {expectPinned && (
-              <span className='shrink-0 rounded-sm bg-primary/10 px-1 text-[10px] text-primary'>
-                {t('request.expectationPinned')}
+              <span
+                className={`w-20 shrink-0 font-medium ${
+                  result.outcome === 'passed'
+                    ? expectPinned
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-[var(--muted-foreground)]'
+                    : result.outcome === 'assertion-failed'
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-destructive'
+                }`}
+              >
+                {result.outcome === 'passed'
+                  ? expectPinned
+                    ? t('request.outcomePassed')
+                    : t('request.outcomeSmokePassed')
+                  : result.outcome === 'assertion-failed'
+                    ? t('request.outcomeAssertionFailed')
+                    : t('request.outcomeExecutionError')}
               </span>
-            )}
-            {result.durationMs !== undefined && <span className='shrink-0 opacity-60'>{result.durationMs}ms</span>}
-            {result.error && (
-              <Tooltip title={result.error}>
-                <span className='max-w-[240px] shrink-0 truncate text-destructive'>{result.error}</span>
-              </Tooltip>
-            )}
-            {smokePassed && result.actual !== undefined && (
-              <Tooltip title={t('request.pinAsExpectationHint')}>
-                <Button type='link' size='small' className='!px-1' onClick={() => onPinExpectation(index)}>
-                  {t('request.pinAsExpectation')}
+              <Typography.Text className='min-w-0 flex-1 truncate'>{result.name}</Typography.Text>
+              {expectPinned && (
+                <span className='shrink-0 rounded-sm bg-primary/10 px-1 text-[10px] text-primary'>
+                  {t('request.expectationPinned')}
+                </span>
+              )}
+              {result.durationMs !== undefined && <span className='shrink-0 opacity-60'>{result.durationMs}ms</span>}
+              {result.error && (
+                <Tooltip title={result.error}>
+                  <span className='max-w-[240px] shrink-0 truncate text-destructive'>{result.error}</span>
+                </Tooltip>
+              )}
+              {assertionFailed && expect && (
+                <Button
+                  type='link'
+                  size='small'
+                  className='!px-1'
+                  onClick={() => setDiffIndex(diffOpen ? null : index)}
+                >
+                  {diffOpen ? t('request.hideDiff') : t('request.showDiff')}
                 </Button>
-              </Tooltip>
-            )}
-            {expectPinned && (
-              <Button type='link' size='small' className='!px-1' onClick={() => onClearExpectation(index)}>
-                {t('request.clearExpectation')}
+              )}
+              <Popover
+                open={editingIndex === index}
+                onOpenChange={(open) => setEditingIndex(open ? index : null)}
+                content={
+                  <ExpectationEditor
+                    initial={expect}
+                    pinned={expectPinned}
+                    onSave={(next) => {
+                      onSetExpectation(index, next);
+                      setEditingIndex(null);
+                    }}
+                    onClear={() => {
+                      onSetExpectation(index, undefined);
+                      setEditingIndex(null);
+                    }}
+                  />
+                }
+              >
+                <Button type='link' size='small' className='!px-1'>
+                  {t('request.editExpectation')}
+                </Button>
+              </Popover>
+              {smokePassed && result.actual !== undefined && (
+                <Tooltip title={t('request.pinAsExpectationHint')}>
+                  <Button type='link' size='small' className='!px-1' onClick={() => onPinExpectation(index)}>
+                    {t('request.pinAsExpectation')}
+                  </Button>
+                </Tooltip>
+              )}
+              <Button type='link' size='small' className='!px-1' onClick={() => onDebug(index)}>
+                {t('request.debugInSimulator')}
               </Button>
+            </div>
+            {/* B1 差异展开：期望（契约锚）vs 实际（本次运行）——外部状态 UDF 的值漂移在此显形 */}
+            {diffOpen && assertionFailed && expect && expect.mode !== 'expression' && (
+              <div
+                className='flex flex-col gap-1 border-b border-border/60 bg-muted/40 px-3 py-2'
+                data-testid='expectation-diff'
+              >
+                <pre className='max-h-40 overflow-auto rounded-md bg-destructive/10 p-2 font-mono text-[10px] leading-relaxed'>
+                  {`− ${t('request.diffExpected')}${expect.mode === 'path' ? ` @${expect.path}` : ''}\n${expectationToText(expect)}`}
+                </pre>
+                <pre className='max-h-40 overflow-auto rounded-md bg-success/10 p-2 font-mono text-[10px] leading-relaxed'>
+                  {`+ ${t('request.diffActual')}\n${JSON.stringify(result.actual ?? null, null, 2)}`}
+                </pre>
+              </div>
             )}
-            <Button type='link' size='small' className='!px-1' onClick={() => onDebug(index)}>
-              {t('request.debugInSimulator')}
-            </Button>
-          </div>
+            {diffOpen && assertionFailed && expect?.mode === 'expression' && (
+              <div
+                className='border-b border-border/60 bg-muted/40 px-3 py-2 text-[10px]'
+                data-testid='expectation-diff'
+              >
+                <span className='opacity-70'>{t('request.expectationSource')}: </span>
+                <code className='font-mono'>{expect.source}</code>
+                <span className='ml-2 opacity-70'>→ {t('request.expectationExpressionFalse')}</span>
+              </div>
+            )}
+          </React.Fragment>
         );
       })}
       <div
@@ -122,31 +304,8 @@ export const FixturesPanel: React.FC = () => {
   );
   const expectationCount = fixtures.filter((fixture) => fixture.expect).length;
 
-  // 捕获范式设期望：以当前 Run 的 actual 输出为 deep 期望写入契约（名字不齐=结果过期，拒绝落笔）
-  const pinExpectation = (index: number) => {
-    const result = fixturesRun?.status === 'done' ? fixturesRun.report?.results[index] : undefined;
-    const fixture = fixtures[index];
-    if (!inputNode || !result || !fixture || fixture.name !== result.name) {
-      return;
-    }
-
-    graphActions.updateNode(inputNode.id, (draft) => {
-      draft.content ??= {};
-      const contentRecord = draft.content as Record<string, any>;
-      const { contract: freshContract } = readRequestInputContract(contentRecord);
-      writeRequestInputContract(contentRecord, {
-        ...freshContract,
-        examples: freshContract.examples.map((example, exampleIndex) =>
-          exampleIndex === index
-            ? { ...example, expectation: { mode: 'deep' as const, value: result.actual ?? null } }
-            : example,
-        ),
-      });
-      return draft;
-    });
-  };
-
-  const clearExpectation = (index: number) => {
+  // 期望写路径（单漏斗）：pin（deep=本次 actual 快捷）与编辑器三模式共用
+  const setExpectationAt = (index: number, expect: ExpectationDraft | undefined) => {
     if (!inputNode) {
       return;
     }
@@ -161,12 +320,25 @@ export const FixturesPanel: React.FC = () => {
           if (exampleIndex !== index) {
             return example;
           }
-          const { expectation: _expectation, ...rest } = example;
-          return rest;
+          if (!expect) {
+            const { expectation: _expectation, ...rest } = example;
+            return rest;
+          }
+          return { ...example, expectation: expect };
         }),
       });
       return draft;
     });
+  };
+
+  const pinExpectation = (index: number) => {
+    const result = fixturesRun?.status === 'done' ? fixturesRun.report?.results[index] : undefined;
+    const fixture = fixtures[index];
+    if (!result || !fixture || fixture.name !== result.name) {
+      return;
+    }
+
+    setExpectationAt(index, { mode: 'deep', value: result.actual ?? null });
   };
 
   const debugFixture = (index: number) => {
@@ -175,8 +347,8 @@ export const FixturesPanel: React.FC = () => {
     }
 
     // 传选择不传状态：装载该示例到 simulator + 打开抽屉（完整 trace 在模拟器再跑获得）
-    const fixtures = buildContractFixtures(decisionGraph, inputNode.id);
-    const fixture = fixtures?.[index];
+    const fixtureList = buildContractFixtures(decisionGraph, inputNode.id);
+    const fixture = fixtureList?.[index];
     if (!fixture) {
       return;
     }
@@ -248,7 +420,7 @@ export const FixturesPanel: React.FC = () => {
           fixtures={fixtures}
           onDebug={debugFixture}
           onPinExpectation={pinExpectation}
-          onClearExpectation={clearExpectation}
+          onSetExpectation={setExpectationAt}
         />
       )}
     </div>

@@ -16,7 +16,9 @@ export default meta;
 
 type Story = StoryObj<typeof FixturesPanel>;
 
-const buildGraph = (examples: Array<{ name: string; data: Record<string, unknown> }>): DecisionGraphType => {
+const buildGraph = (
+  examples: Array<{ name: string; data: Record<string, unknown>; expectation?: unknown }>,
+): DecisionGraphType => {
   const content: Record<string, any> = {};
   writeRequestInputContract(content, {
     contractVersion: 1,
@@ -25,6 +27,7 @@ const buildGraph = (examples: Array<{ name: string; data: Record<string, unknown
       id: `ex-${index + 1}`,
       name: example.name,
       data: example.data,
+      ...(example.expectation ? { expectation: example.expectation as { mode: 'deep'; value: unknown } } : {}),
     })),
   });
 
@@ -67,42 +70,77 @@ const renderPanel = (graph: DecisionGraphType, runner: FixturesRunner) => (
   </DecisionGraphProvider>
 );
 
+/**
+ * 分层断言演示 runner（非透传 mock）：actual = 用例输入本身；deep 期望与
+ * actual 深比对 → 通过 / 断言失败（actual 随结果回填供差异展开）。无期望 = 冒烟。
+ */
+const layeredDemoRunner: FixturesRunner = async (_graph, fixtures) => {
+  const results = fixtures.map((fixture) => {
+    const actual = fixture.input;
+    if (fixture.expect?.mode === 'deep') {
+      const ok = JSON.stringify(fixture.expect.value) === JSON.stringify(actual);
+      return {
+        name: fixture.name,
+        passed: ok,
+        outcome: (ok ? 'passed' : 'assertion-failed') as 'passed' | 'assertion-failed',
+        actual,
+        durationMs: 10,
+      };
+    }
+    return { name: fixture.name, passed: true, outcome: 'passed' as const, actual, durationMs: 6 };
+  });
+
+  return {
+    passed: results.filter((r) => r.passed).length,
+    failed: results.filter((r) => !r.passed).length,
+    results,
+  };
+};
+
 export const ReadyAndRun: Story = {
   render: () =>
     renderPanel(
       buildGraph([
-        { name: '正常GOLD用户', data: { customer: 'GOLD' } },
-        { name: '边界:零金额', data: { customer: 'SILVER' } },
+        {
+          name: '期望命中',
+          data: { customer: 'GOLD' },
+          expectation: { mode: 'deep', value: { customer: 'GOLD' } },
+        },
+        {
+          name: '期望落空',
+          data: { customer: 'SILVER' },
+          expectation: { mode: 'deep', value: { customer: 'PLATINUM' } },
+        },
+        { name: '未设期望', data: { customer: 'GOLD' } },
       ]),
-      async () => ({
-        passed: 1,
-        failed: 1,
-        results: [
-          { name: '正常GOLD用户', passed: true, outcome: 'passed' as const, durationMs: 12 },
-          {
-            name: '边界:零金额',
-            passed: false,
-            outcome: 'execution-error' as const,
-            error: 'boom',
-            durationMs: 8,
-          },
-        ],
-      }),
+      layeredDemoRunner,
     ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
 
-    // 头部：唯一 inputNode 名称 + 可用的 Run 按钮（域约束：无选择器）
     await waitFor(() => expect(canvas.getByText('Request')).not.toBeNull());
     const runButton = canvas.getByRole('button', { name: 'Run all' });
     expect(runButton).not.toBeNull();
 
-    // 注意力跟随动作：点击 → running → 报告矩阵（2 行，通过/执行错误分家）；
-    // 首行无期望 → 冒烟语义（标签 'smoke'，87840aa1 分层断言）
+    // 注意力跟随动作：点击 → running → 报告矩阵（三态分家：断言通过/断言失败/冒烟）
     await fireEvent.click(runButton);
-    await waitFor(() => expect(canvas.getAllByText('正常GOLD用户').length).toBeGreaterThan(0));
-    expect(canvas.getAllByText('boom').length).toBeGreaterThan(0);
-    await waitFor(() => expect(canvas.getAllByText('smoke').length).toBeGreaterThan(0));
+    await waitFor(() => expect(canvas.getAllByText('期望命中').length).toBeGreaterThan(0));
+    await waitFor(() => expect(canvas.getAllByText('passed').length).toBeGreaterThan(0));
+    expect(canvas.getAllByText('assertion failed').length).toBeGreaterThan(0);
+    expect(canvas.getAllByText('smoke').length).toBeGreaterThan(0);
+    // 期望计数徽章：2/3
+    expect(canvas.getByTestId('fixtures-expectation-count').textContent).toContain('2/3');
+
+    // B1 差异展开：断言失败行 → 期望（PLATINUM）vs 实际（SILVER）对照
+    const diffButton = canvas.getAllByText('Diff')[0]!;
+    await fireEvent.click(diffButton);
+    await waitFor(() => expect(canvas.getByTestId('expectation-diff')).not.toBeNull());
+    expect(canvas.getByTestId('expectation-diff').textContent).toContain('PLATINUM');
+    expect(canvas.getByTestId('expectation-diff').textContent).toContain('SILVER');
+
+    // B2 期望编辑器：三模式弹层挂载
+    await fireEvent.click(canvas.getAllByText('Expected')[0]!);
+    await waitFor(() => expect(canvas.getByTestId('expectation-editor')).not.toBeNull());
 
     // 调试下钻：装载该示例到 simulator（传选择不传状态）
     const debugButtons = canvas.getAllByText('Debug');
