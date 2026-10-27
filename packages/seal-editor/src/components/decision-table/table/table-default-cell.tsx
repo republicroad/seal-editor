@@ -281,14 +281,14 @@ const TableInputCellStatus: React.FC<{ columnId: string; index: number }> = Reac
 
     const expression = snapshot.rules[index]?.[columnId]?.trim();
     if (!columnDef.field) {
-      return { type: 'standard' as const, expression };
+      return { type: 'standard' as const, expression, field: columnId };
     }
 
     if (!(columnDef.field in referenceMap)) {
       return { type: 'skip' as const };
     }
 
-    return { type: 'unary' as const, expression, $: referenceMap[columnDef.field] };
+    return { type: 'unary' as const, expression, $: referenceMap[columnDef.field], field: columnDef.field };
   });
 
   const status = useMemo<'hit' | 'no-hit' | 'skip' | null>(() => {
@@ -320,6 +320,17 @@ const TableInputCellStatus: React.FC<{ columnId: string; index: number }> = Reac
     }
   }, [inputData, expressionContext]);
 
+  // 条件级解释（decision trace 惯例）：字段值 · 格内表达式 ⇒ 求值布尔（语言中立）
+  const explain = useMemo(() => {
+    if (!expressionContext || expressionContext.type === 'skip') {
+      return null;
+    }
+
+    const { field, expression, $ } = expressionContext;
+    const value = $ === undefined ? '' : JSON.stringify($);
+    return `${field}: ${value} · ${expression || '—'} ⇒ ${status === 'hit' ? 'true' : 'false'}`;
+  }, [expressionContext, status]);
+
   if (!status) {
     return null;
   }
@@ -328,14 +339,16 @@ const TableInputCellStatus: React.FC<{ columnId: string; index: number }> = Reac
     case 'hit':
       return (
         <div
-          className='absolute top-0.5 left-0.5 z-[5] opacity-80 rounded-full h-[5px] w-[5px] border border-[var(--seal-color-success)] bg-[var(--seal-color-success)]'
+          title={explain ?? undefined}
+          className='absolute top-0.5 left-0.5 z-[5] opacity-80 rounded-full h-1.5 w-1.5 border border-[var(--seal-color-success)] bg-[var(--seal-color-success)]'
           data-status={status}
         />
       );
     case 'no-hit':
       return (
         <div
-          className='absolute top-0.5 left-0.5 z-[5] opacity-80 rounded-full h-[5px] w-[5px] border border-[var(--seal-color-border-hover)]'
+          title={explain ?? undefined}
+          className='absolute top-0.5 left-0.5 z-[5] opacity-80 rounded-full h-1.5 w-1.5 border border-[var(--seal-color-error)] bg-[var(--seal-color-error)]'
           data-status={status}
         />
       );
