@@ -317,8 +317,9 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
             </Button>
             {examplesOpen && (
               <>
-                <div className='fixed inset-0 z-20' onClick={() => setExamplesOpen(false)} />
-                <div className='absolute left-0 top-full z-30 mt-1 w-64 rounded-lg border border-border bg-[var(--card)] shadow-md'>
+                {/* z 阶梯：浮层统一 z-50（背板 z-40）——z-30 会被 simulator 抽屉（DOM 靠后同层）盖住 */}
+                <div className='fixed inset-0 z-40' onClick={() => setExamplesOpen(false)} />
+                <div className='absolute left-0 top-full z-50 mt-1 w-64 rounded-lg border border-border bg-[var(--card)] shadow-md'>
                   <div className='max-h-56 overflow-y-auto py-1'>
                     {exampleSources.map((source, index) => {
                       const driftState = exampleDriftStates[source.id];
