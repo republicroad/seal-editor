@@ -316,6 +316,7 @@ export const useRequestExamplePersistence = ({
             },
           ],
         });
+        return draft;
       });
 
       onRequestValueChange(formatted);

@@ -13,6 +13,7 @@ import { parseRequestSchemaValue, resolveRequestSchemaValue, setRequestSchemaVal
 import type {
   InputContract,
   InputContractExample,
+  InputContractExampleExpectation,
   RequestContentLike,
   RequestDefinition,
   RequestDefinitionSyncConflict,
@@ -183,7 +184,7 @@ export const writeRequestInputContract = (
       data: cloneRequestExampleValue(example.data) as Record<string, unknown>,
       ...(example.schemaFingerprint ? { schemaFingerprint: example.schemaFingerprint } : {}),
       ...(example.expectation
-        ? { expectation: cloneRequestExampleValue(example.expectation) as Record<string, unknown> }
+        ? { expectation: cloneRequestExampleValue(example.expectation) as InputContractExampleExpectation }
         : {}),
     })),
   };
@@ -344,7 +345,7 @@ export const exportInputContractEnvelope = (contract: InputContract): InputContr
     ...(example.description ? { description: example.description } : {}),
     data: cloneRequestExampleValue(example.data) as Record<string, unknown>,
     ...(example.expectation
-      ? { expectation: cloneRequestExampleValue(example.expectation) as Record<string, unknown> }
+      ? { expectation: cloneRequestExampleValue(example.expectation) as InputContractExampleExpectation }
       : {}),
   })),
 });

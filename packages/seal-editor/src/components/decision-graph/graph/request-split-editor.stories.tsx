@@ -157,6 +157,7 @@ const SplitEditorHarness: React.FC<{
         onConfirmActive={() => undefined}
         getDefinitionTypeLabel={(type) => type}
         exampleEditorOptions={{} as never}
+        onGenerateSkeleton={() => {}}
         onRenameActive={(nextName) => {
           setDefinitions((previous) =>
             previous.map((item, index) => (index === 0 ? { ...item, name: nextName, path: nextName } : item)),
@@ -239,6 +240,7 @@ export const NoFields: Story = {
           onConfirmActive={() => undefined}
           getDefinitionTypeLabel={(type) => type}
           exampleEditorOptions={{} as never}
+          onGenerateSkeleton={() => {}}
           onRenameActive={() => undefined}
         />
       </div>

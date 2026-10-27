@@ -26,8 +26,8 @@ describe('createSimulateFixturesRunner (ADR-013 batch-3 / ADR-014 literal reuse)
     const runner = createSimulateFixturesRunner(handler);
 
     const report = await runner(graph, [
-      { name: 'A', input: { a: 1 } },
-      { name: 'B', input: { b: 2 } },
+      { id: 'fx-a', name: 'A', input: { a: 1 } },
+      { id: 'fx-b', name: 'B', input: { b: 2 } },
     ]);
 
     expect(report.passed).toBe(2);
@@ -50,7 +50,7 @@ describe('createSimulateFixturesRunner (ADR-013 batch-3 / ADR-014 literal reuse)
     }));
     const runner = createSimulateFixturesRunner(handler);
 
-    const report = await runner(graph, [{ name: 'X', input: {} }]);
+    const report = await runner(graph, [{ id: 'fx-x', name: 'X', input: {} }]);
 
     expect(report.failed).toBe(1);
     expect(report.results[0]).toMatchObject({
@@ -64,7 +64,7 @@ describe('createSimulateFixturesRunner (ADR-013 batch-3 / ADR-014 literal reuse)
   it('is a literal zen-udf runDecisionTests report (structural compat with kernel ExampleRunReport)', async () => {
     const handler: SimulateHandler = vi.fn(async () => ({ simulation: okSimulation(null) }));
     const runner = createSimulateFixturesRunner(handler);
-    const report = await runner(graph, [{ name: 'only', input: 1 }]);
+    const report = await runner(graph, [{ id: 'fx-only', name: 'only', input: 1 }]);
 
     // kernel 槽位契约字段逐一存在（CONTRACT §10 双侧同步演进的编译期锚）
     expect(Object.keys(report).sort()).toEqual(['failed', 'passed', 'results']);

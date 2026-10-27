@@ -17,7 +17,7 @@ import {
 import { getRequestDefinitions } from '../definitions';
 import { getRequestExampleSources } from '../example-sources';
 import { parseRequestSchemaValue } from '../schema-value';
-import type { InputContract, RequestDefinition } from '../types';
+import type { InputContract, InputContractExample, RequestDefinition } from '../types';
 
 const definition = (overrides: Partial<RequestDefinition> = {}): RequestDefinition => ({
   id: '1',
@@ -339,7 +339,7 @@ describe('share envelope (ADR-013 清单 #7)', () => {
 });
 
 describe('example expectation 保真（Run all 分层断言）', () => {
-  const expectation = { mode: 'deep', value: { fee: 40 } };
+  const expectation = { mode: 'deep' as const, value: { fee: 40 } };
 
   it('读契约保留 expectation（形状守卫：非法形状静默丢弃）', () => {
     const { contract } = readRequestInputContract({
@@ -348,8 +348,13 @@ describe('example expectation 保真（Run all 分层断言）', () => {
         schema: {},
         examples: [
           { id: 'e1', name: 'a', data: {}, expectation },
-          { id: 'e2', name: 'b', data: {}, expectation: { mode: 'nope' } },
-          { id: 'e3', name: 'c', data: {}, expectation: { mode: 'path', path: 'fee', value: 1 } },
+          {
+            id: 'e2',
+            name: 'b',
+            data: {},
+            expectation: { mode: 'nope' } as unknown as InputContractExample['expectation'],
+          },
+          { id: 'e3', name: 'c', data: {}, expectation: { mode: 'path' as const, path: 'fee', value: 1 } },
         ],
       },
     });
