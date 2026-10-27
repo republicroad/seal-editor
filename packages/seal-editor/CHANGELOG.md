@@ -3,6 +3,29 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.42.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.41.0...@republicroad/seal-editor@1.42.0) (2026-10-27)
+
+### Features
+
+- **graph:** 执行内联回显全链——节点 run strip 输出摘要（截断 JSON+点击复制）、执行链路着色（dashdraw 四拍渐停+非路径边淡化+未经过节点置灰）、边数据探针（hover 执行边显示源节点输出）、流动每次 Run 重启（flowEpoch）、prefers-reduced-motion 全局尊重
+- **graph:** 图可读性工程——图级注释框（annotations 随图持久化+便签节点+拖拽缩放+工具栏按钮）+ 拖线悬空释放原地节点搜索菜单（选中建节点并连线回源）
+- **graph:** simulator 存为新用例（Postman "Save as example" 捕获范式）——当前输入一键追加为新示例并绑定切换，戳当前 schema 指纹
+- **graph:** simulator 运行对比视图——Runs 时间线 A/B 标记，命中路径 diff（节点集差+规则行差）+ 输出对照
+- **graph:** Run all 分层断言——用例期望（deep/path/expression，CONTRACT §10 serializable 子集）入契约全链保真，Run 报告 pin/清除期望，冒烟/断言通过分家（外部状态 UDF 幂等边界显式可见）
+- **graph:** input 节点示例体系——Design 字段树行悬停操作（加子字段/删除）+ 树行内联样例值 + 示例逐项改名 + Schema 一键生成骨架（补缺不覆写）+ 示例列表单一派生入口（example-sources.ts）+ 树选中字段→Example 编辑器滚动定位与值高亮
+- **graph:** input 入参规格统一——全部故事图 input 节点共享 inputNodeSpecContent（schema 类型契约+3 组示例数据）
+- **graph:** simulator 条件级解释点标可读性——no-hit 红点+悬停 tooltip（字段值·表达式⇒布尔，reference_map+wasm 逐格求值）
+- **kernel:** 服务端仿真核心——createRemoteSimulate 传输工厂（baseUrl 注入零硬编码，服务不可达回落离线 demo）
+- **kernel:** simulatorExampleBinding 绑定身份 sourceIndex→exampleId（契约稳定 id，删除/重排示例不再错位，失配自愈重绑）
+- **kernel:** input 节点新增字段 UX——树行占位名+自动选中+Key 自动聚焦+折叠父级自动展开
+
+### Bug Fixes
+
+- **graph:** simulator 示例绑定双写乒乓死循环根治（Maximum update depth exceeded）——两侧守卫收窄为 nodeId+exampleId，sourceName 展示缓存不参战
+- **graph:** Examples 下拉被 simulator 抽屉盖住——手写下拉升 z-40/z-50（z 阶梯裁定）
+- **primitives:** popover dev 告警移出渲染体（react-compiler 纯度）
+- **kernel:** input 节点新增字段左栏树不可见（占位名+自动选中修复）
+
 # [1.41.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.40.0...@republicroad/seal-editor@1.41.0) (2026-10-25)
 
 ### Bug Fixes
