@@ -99,22 +99,41 @@ const contextMenuPrimitives: MenuPrimitiveSet = {
 const usesContextMenuTrigger = (trigger: Array<'click' | 'hover' | 'contextMenu'> | undefined) =>
   Array.isArray(trigger) && trigger.includes('contextMenu');
 
+/** antd placement 语义 → Base UI side/align（A1 漏网补档：此前声明未接线被静默丢弃——
+ * graph-side-toolbar 的 bottomRight 菜单实际恒左对齐弹出） */
+const PLACEMENT_MAP: Record<string, { side: 'top' | 'bottom' | 'left' | 'right'; align: 'start' | 'center' | 'end' }> =
+  {
+    top: { side: 'top', align: 'center' },
+    topLeft: { side: 'top', align: 'start' },
+    topRight: { side: 'top', align: 'end' },
+    bottom: { side: 'bottom', align: 'center' },
+    bottomLeft: { side: 'bottom', align: 'start' },
+    bottomRight: { side: 'bottom', align: 'end' },
+  };
+
 export const Dropdown: React.FC<{
   menu?: MenuProps;
   trigger?: Array<'click' | 'hover' | 'contextMenu'>;
   placement?: string;
+  /**
+   * A1 漏网补档（antd-parity 归档，挂 2.0）：
+   * - arrow：Base UI DropdownMenu 无箭头插槽
+   * - destroyPopupOnHide / transitionName：Base UI 关闭即卸载、无过渡名语义
+   * - overlayStyle 经 style 落 Popup（ minWidth 等布局类由此生效）
+   */
   arrow?: boolean;
   overlayStyle?: React.CSSProperties;
   destroyPopupOnHide?: boolean;
   transitionName?: string;
   disabled?: boolean;
   children?: React.ReactNode;
-}> = ({ menu, trigger, children }) => {
+}> = ({ menu, trigger, placement = 'bottomLeft', overlayStyle, children }) => {
   const wrappedChildren = React.isValidElement(children) ? (
     children
   ) : (
     <span className='inline-flex cursor-pointer items-center'>{children}</span>
   );
+  const placementMapped = PLACEMENT_MAP[placement] ?? PLACEMENT_MAP.bottomLeft;
 
   if (usesContextMenuTrigger(trigger)) {
     return (
@@ -128,7 +147,7 @@ export const Dropdown: React.FC<{
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger render={wrappedChildren} />
-      <DropdownMenuContent align='start'>
+      <DropdownMenuContent side={placementMapped.side} align={placementMapped.align} style={overlayStyle}>
         {renderMenuItems(menu?.items, menu?.onClick, dropdownPrimitives)}
       </DropdownMenuContent>
     </DropdownMenu>

@@ -12,11 +12,18 @@ export const Modal: React.FC<{
   onOk?: () => void;
   onCancel?: () => void;
   footer?: React.ReactNode | null;
+  /** antd 语义：true/对象（含 aria-label）渲染关闭钮；undefined/false 不渲染（kernel 历史缺省无钮） */
+  closable?: boolean | Record<string, unknown>;
+  /**
+   * A1 漏网补档（antd-parity 归档，挂 2.0）：
+   * - maskClosable：Base UI 遮罩点击与 Esc 同通道，分离需 onOpenChange reason 过滤
+   * - getContainer：ISLAND portal 纪律由 body.seal-root 兜底（ADR-023）
+   */
   destroyOnClose?: boolean;
   maskClosable?: boolean;
   centered?: boolean;
-  closable?: boolean | Record<string, unknown>;
   okButtonProps?: { danger?: boolean; htmlType?: string; onClick?: () => void; form?: string; disabled?: boolean };
+  /** antd 语义：内容区样式（如 fields-reorder-dialog 的顶部留白） */
   bodyStyle?: React.CSSProperties;
   getContainer?: () => HTMLElement | false;
   children?: React.ReactNode;
@@ -30,8 +37,11 @@ export const Modal: React.FC<{
   onOk,
   onCancel,
   footer,
+  closable,
   destroyOnClose = false,
   centered,
+  okButtonProps,
+  bodyStyle,
   children,
   className,
 }) => {
@@ -44,7 +54,7 @@ export const Modal: React.FC<{
       }}
     >
       <DialogContent
-        showCloseButton={false}
+        showCloseButton={closable !== undefined && closable !== false}
         className={cn(
           /*
            * Height contract: cap the dialog to the viewport and let ONLY the
@@ -67,7 +77,11 @@ export const Modal: React.FC<{
             <DialogTitle>{title}</DialogTitle>
           </DialogHeader>
         ) : null}
-        {body ? <div className='min-h-0 overflow-y-auto'>{body}</div> : null}
+        {body ? (
+          <div className='min-h-0 overflow-y-auto' style={bodyStyle}>
+            {body}
+          </div>
+        ) : null}
         {footer !== null ? (
           // 分隔线：矮视口下（弹层被 100dvh-48 压缩时）footer 与滚动内容的
           // 界线必须明确，否则按钮视觉上与表格/表单内容"重合"
@@ -77,7 +91,15 @@ export const Modal: React.FC<{
                 <UiButton variant='outline' onClick={() => onCancel?.()}>
                   {cancelText}
                 </UiButton>
-                <UiButton onClick={() => onOk?.()}>{okText}</UiButton>
+                <UiButton
+                  variant={okButtonProps?.danger ? 'destructive' : 'default'}
+                  disabled={okButtonProps?.disabled}
+                  type={okButtonProps?.htmlType as 'button' | 'submit' | 'reset' | undefined}
+                  form={okButtonProps?.form}
+                  onClick={okButtonProps?.onClick ?? (() => onOk?.())}
+                >
+                  {okText}
+                </UiButton>
               </>
             )}
           </DialogFooter>
