@@ -1,4 +1,4 @@
-import InformationIcon from '#reui/icons/animated/outline/information';
+import { InformationIcon } from '#icons';
 import { DiffEditor, Editor } from '@monaco-editor/react';
 import { type editor } from 'monaco-editor';
 import React, { useEffect, useMemo, useRef, useState } from 'react';

@@ -1,6 +1,5 @@
 import { ClearOutlined } from '#icons';
-import CheckCircleIcon from '#reui/icons/animated/outline/check-circle';
-import CrossCircleIcon from '#reui/icons/animated/outline/cross-circle';
+import { CheckCircleTwoTone as CheckCircleIcon, CloseCircleTwoTone as CrossCircleIcon } from '#icons';
 import clsx from 'clsx';
 import React, { useMemo } from 'react';
 import { P, match } from 'ts-pattern';

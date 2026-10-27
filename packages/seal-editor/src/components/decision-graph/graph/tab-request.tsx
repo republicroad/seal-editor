@@ -1,5 +1,5 @@
 import { DeleteOutlined, DownOutlined, EditOutlined } from '#icons';
-import InformationIcon from '#reui/icons/animated/outline/information';
+import { InformationIcon } from '#icons';
 import type { DragDropManager } from 'dnd-core';
 import type { editor } from 'monaco-editor';
 import React, { useRef, useState } from 'react';

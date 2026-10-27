@@ -1,7 +1,7 @@
 import { PlusOutlined, SwapOutlined } from '#icons';
+import { InformationIcon } from '#icons';
 import { DataGrid, DataGridContainer, type DataGridFeatures, dataGridFeatures } from '#reui/data-grid/data-grid';
 import { DataGridTable } from '#reui/data-grid/data-grid-table';
-import InformationIcon from '#reui/icons/animated/outline/information';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useTable } from '@tanstack/react-table';
 import clsx from 'clsx';

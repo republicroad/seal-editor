@@ -1,7 +1,5 @@
-// 试点（reui icon 替换 lucide 扩面）：auto-layout/吸附/上传/下载/⌘K 换 ReUI 面性形态；
-// 磁吸(align)+锁组保留 lucide——ReUI 无 magnet 形态（仅品牌误配）、开锁缺位（成对性优先）
-import { AutoLayoutPilotReui, CommandPilotReui, DownloadPilotReui, SnapPilotReui, UploadPilotReui } from '#icons';
-import { LockIcon, LockOpenIcon, MagnetIcon } from 'lucide-react';
+import { AutoLayoutOutlined, CloudDownloadOutlined, CloudUploadOutlined } from '#icons';
+import { Command as CommandIcon, Grid2x2Icon, LockIcon, LockOpenIcon, MagnetIcon } from 'lucide-react';
 import React, { Fragment, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -334,7 +332,7 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
                     type={'text'}
                     aria-label={t('dg.toolbar.autoLayout')}
                     disabled={disabled}
-                    icon={<AutoLayoutPilotReui className='size-4' />}
+                    icon={<AutoLayoutOutlined />}
                     onClick={() => {
                       autoLayout().catch((e: unknown) => toast.error(e instanceof Error ? e.message : String(e)));
                     }}
@@ -374,7 +372,7 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
                     aria-label={t('dg.toolbar.snapToGrid')}
                     aria-pressed={snapToGrid}
                     data-testid='snap-to-grid-toggle'
-                    icon={<SnapPilotReui className='size-4' />}
+                    icon={<Grid2x2Icon className='size-4' />}
                     className={snapToGrid ? 'bg-primary/10 text-primary' : undefined}
                     onClick={() => setSnapToGrid(!snapToGrid)}
                   />
@@ -383,18 +381,18 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
             )}
             {!disabled && (
               <Dropdown menu={{ items: uploadItems }} placement='bottomRight' trigger={['click']} arrow>
-                <Button type={'text'} disabled={disabled} icon={<UploadPilotReui className='size-4' />} />
+                <Button type={'text'} disabled={disabled} icon={<CloudUploadOutlined />} />
               </Dropdown>
             )}
             <Dropdown menu={{ items: downloadItems }} placement='bottomRight' trigger={['click']} arrow>
-              <Button type={'text'} icon={<DownloadPilotReui className='size-4' />} />
+              <Button type={'text'} icon={<CloudDownloadOutlined />} />
             </Dropdown>
           </div>
           <div className={'flex flex-col items-center gap-2'}>
             <Tooltip title={t('dg.command.open')} placement='right'>
               <Button
                 type='text'
-                icon={<CommandPilotReui className='size-4' />}
+                icon={<CommandIcon className='size-4' />}
                 aria-pressed={commandMenuOpen}
                 aria-label={t('dg.command.open')}
                 data-testid='graph-command-trigger'

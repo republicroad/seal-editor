@@ -1,39 +1,12 @@
 /**
  * Internal icon layer.
  *
- * Most icons are re-exported from lucide-react under their historical
- * names used by the editor surface; a few frequent actions use ReUI Motion Icons
- * (`src/reui/icons/*`) for hover animations. Components migrate by
- * swapping the import path only.
+ * 全量 lucide（2026-10-27 裁定，reui icon 试点否决收尾）：所有图标自 lucide-react
+ * 以编辑器面的历史名重导出——别名层隔离形状源，消费面只认名字。
+ * 规则：新增图标先进 lucide 找形状；缺口形状从 Tabler（MIT 同语系）借骨架经
+ * custom 组件补，禁止再 vendor 第三方图标组件（ReUI icon 试水记录见
+ * 22ecdc36/4c27dd10，已否决：fill 面性 1.7× 墨量、授权触点、覆盖缺口）。
  */
-import SuccessCircleIcon from './reui/icons/animated/outline/check-circle';
-import CrossIcon from './reui/icons/animated/outline/cross';
-import PencilIcon from './reui/icons/animated/outline/pencil';
-import PlayCircleIcon from './reui/icons/animated/outline/play-circle';
-import RefreshArrowClockwiseIcon from './reui/icons/animated/outline/refresh-arrow-clockwise';
-import TrashSquareIcon from './reui/icons/animated/outline/trash-square';
-/** 试点（reui icon 替换 lucide 试水，视觉裁定后定去留）：simulator 工具条四动作的 ReUI 面性形态 */
-import BrushReuiIcon from './reui/icons/default/outline/brush';
-import CirclePlayReuiIcon from './reui/icons/default/outline/circle-play';
-import CommandReuiIcon from './reui/icons/default/outline/command';
-import CopyReuiIcon from './reui/icons/default/outline/copy';
-import EntranceUpReuiIcon from './reui/icons/default/outline/entrance-up';
-import ExitUpReuiIcon from './reui/icons/default/outline/exit-up';
-import LayoutEqualReuiIcon from './reui/icons/default/outline/layout-equal';
-import LayoutHeaderColumnsReuiIcon from './reui/icons/default/outline/layout-header-columns';
-import PlusCircleReuiIcon from './reui/icons/default/outline/plus-circle';
-
-export {
-  BrushReuiIcon as FormatPilotReui,
-  CirclePlayReuiIcon as RunPilotReui,
-  CommandReuiIcon as CommandPilotReui,
-  CopyReuiIcon as CopyPilotReui,
-  EntranceUpReuiIcon as DownloadPilotReui,
-  ExitUpReuiIcon as UploadPilotReui,
-  LayoutEqualReuiIcon as AutoLayoutPilotReui,
-  LayoutHeaderColumnsReuiIcon as SnapPilotReui,
-  PlusCircleReuiIcon as PlusCirclePilotReui,
-};
 
 export {
   AlignHorizontalDistributeCenter as AutoLayoutOutlined,
@@ -49,18 +22,22 @@ export {
   MessageSquareText as CommentOutlined,
   Eraser as ClearOutlined,
   CircleX as CloseCircleTwoTone,
+  X as CloseOutlined,
   CloudDownload as CloudDownloadOutlined,
   CloudUpload as CloudUploadOutlined,
   Minimize2 as CompressOutlined,
   GitFork as DeploymentUnitOutlined,
   ChevronDown as DownOutlined,
   Move as DragOutlined,
+  Trash2 as DeleteOutlined,
   Upload as ExportOutlined,
   Paintbrush as FormatPainterOutlined,
   GripVertical as HolderOutlined,
   Download as ImportOutlined,
   WandSparkles as WandOutlined,
   Info as InfoCircleOutlined,
+  Info as InformationIcon,
+  Link2 as LinkIcon,
   ChevronLeft as LeftOutlined,
   SquareMinus as MinusSquareOutlined,
   EllipsisVertical as MoreOutlined,
@@ -70,19 +47,14 @@ export {
   SquarePlus as PlusSquareOutlined,
   ChevronRight as RightOutlined,
   Search as SearchOutlined,
+  RotateCw as SyncOutlined,
   ArrowLeftRight as SwapOutlined,
   List as UnorderedListOutlined,
   TriangleAlert as WarningFilled,
   TriangleAlert as WarningOutlined,
   Undo2 as UndoOutlined,
   Redo2 as RedoOutlined,
+  Pencil as EditOutlined,
+  CirclePlay as PlayCircleOutlined,
+  CircleCheckBig as SuccessOutlined,
 } from 'lucide-react';
-
-export {
-  CrossIcon as CloseOutlined,
-  TrashSquareIcon as DeleteOutlined,
-  PencilIcon as EditOutlined,
-  PlayCircleIcon as PlayCircleOutlined,
-  RefreshArrowClockwiseIcon as SyncOutlined,
-  SuccessCircleIcon as SuccessOutlined,
-};
