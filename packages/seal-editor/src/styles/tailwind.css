@@ -586,6 +586,8 @@
    inline style，需 !important 覆写）——虚线主色路径标记保留，仅去流动 */
 @media (prefers-reduced-motion: reduce) {
   .react-flow__edge path {
+    /* ⚠️ SEAL-STYLE-HACK[HK-15](reduced-motion): 覆写 JS 注入的 inline dashdraw
+       动画——内联 style 只能由 !important 击穿，无替代形态（预算已入账）。 */
     animation: none !important;
   }
 }

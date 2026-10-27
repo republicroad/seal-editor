@@ -20,7 +20,9 @@ const SRC = new URL('../packages/seal-editor/src', import.meta.url).pathname.rep
  * (CM skin migrated to EditorView.theme; !important count nearly halved).
  * Hex budget zero: new palette literals must enter theme.tsx/tokens.css. */
 const BUDGET = {
-  important: 8,
+  // HK-15: prefers-reduced-motion 覆写内联 dashdraw 动画（animation: none !important
+  // 是该场景唯一胜利形态——内联 style 只能由 !important 击穿）。有意识入账。
+  important: 9,
   hex: 0,
 };
 
