@@ -16,7 +16,7 @@
 | WS1 · 规则图 | R1–R7 全切片（节点卡/悬浮工具栏/边"+"插入/分支标签/停靠检查器/dagre 自动布局/run strip） | [development-roadmap.md](./development-roadmap.md) WS1 |
 | Excel 对话框 | 三批：data-grid 地基（含 TanStack v8→9 统一）→ 双对话框改造 → 导入数据预览 | 已移植（dt 核心换装同行） |
 | B 线 | expression 小件去重；stepper vendored；B2b/B3 适应性否决 | 提交 e09d0fed/87c89536 |
-| dt 核心编辑器 | data-grid 换装四阶段（spike/换装/裁决/清债），index.js 累计 **-7.5kB** | [dt-datagrid-retrofit-plan.md](./dt-datagrid-retrofit-plan.md) |
+| dt 核心编辑器 | data-grid 换装四阶段（spike/换装/裁决/清债），index.js 累计 **-7.5kB** | [dt-datagrid-retrofit-plan.md](./archive/plans/dt-datagrid-retrofit-plan.md) |
 | 三区参考 | dt-command-bar / switch 面板 / function 调试器 | 已移植（reui-retrofit-reference-for-seal-editor.md，jdm 仓） |
 
 
@@ -111,4 +111,4 @@
 - 另有 premium blocks（整页区块）与 Motion Icons 产品线，本仓未涉及
 
 相关：[reui-flow-integration-plan.md](../archive/plans/reui-flow-integration-plan.md) · [reui-flow-pilot.md](../archive/plans/reui-flow-pilot.md) ·
-[dt-datagrid-retrofit-plan.md](./dt-datagrid-retrofit-plan.md)
+[dt-datagrid-retrofit-plan.md](./archive/plans/dt-datagrid-retrofit-plan.md)

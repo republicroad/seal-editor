@@ -105,11 +105,11 @@ English files are canonical; `.zh-CN.md` files are translations kept in sync.
 | [`design/zen-udf-sync-counting.md`](./design/zen-udf-sync-counting.md) | ✅ | 同步硬实时计数调研:一致性三档、HAProxy stick table、存储选型 |
 | [`design/p2-durable-act-queue.md`](./design/p2-durable-act-queue.md) | 🧜 冻结 | P2 durable 愿景记录:引擎无暂停/恢复约束下 durable=自定义节点全局状态;决策流+工作流双模式北极星;候选队列方案 §2–§7 冻结待工作流时代重估 |
 
-| [`design/appshell-auto-persist.md`](./design/appshell-auto-persist.md) | 🔵 设计中 | appshell 自动持久化与冲突版本化通用接口:AutoPersistController(防抖/单 inflight/CONFLICT 三选/状态面)+UX 契约(模式 D 编辑面);内核零改动 || [`design/dt-datagrid-retrofit-plan.md`](./design/dt-datagrid-retrofit-plan.md) | ✅ | dt 核心编辑器 data-grid 换装决策记录:同实例喂 vendored grid、全量特征集、diff tint/精确滚动/吸顶、Phase 2 编辑契约裁决、Phase 3 清债 |
+| [`design/appshell-auto-persist.md`](./design/archive/plans/appshell-auto-persist.md) | ✅ | appshell 自动持久化与冲突版本化通用接口:AutoPersistController(防抖/单 inflight/CONFLICT 三选/状态面)+UX 契约(模式 D 编辑面);内核零改动 || [`design/dt-datagrid-retrofit-plan.md`](./design/archive/plans/dt-datagrid-retrofit-plan.md) | ✅ | dt 核心编辑器 data-grid 换装决策记录:同实例喂 vendored grid、全量特征集、diff tint/精确滚动/吸顶、Phase 2 编辑契约裁决、Phase 3 清债 |
 
 | [`design/save-persistence-contract.md`](./design/save-persistence-contract.md) | ✅ | 保存与持久化契约(宿主对接 v1):dirty=宿主对比 onChange 快照、adapter 两模式(S/D)、模式 D 并发三选、weaveseal 落地清单 || [`design/code-block.md`](./design/code-block.md) | ✅ 待消费 | reui code-block(Shiki)设计:已安装未消费,首次集成留给 verdict dashboard |
 | [`design/dedicated-node-registry-design.md`](./design/dedicated-node-registry-design.md) | 🔵 设计定稿待实施 | 专属节点 UI 注册表(去硬编码):tester 带 rank 校验/三级降级/部分接管/版本迁移器——存在性归载荷,UI 只做增强;随轨道 B Phase 2,zen-udf 核心零改动 |
-| [`design/repl-panel-plan.md`](./design/repl-panel-plan.md) | ✅ 已实施(appshell 1.16.0) | A3 REPL 面板 + demo-server 单函数执行端点:参数校验/绑定分离、冷启动标注、catalog 试运行衔接;~1.25 天 |
+| [`design/repl-panel-plan.md`](./design/archive/plans/repl-panel-plan.md) | ✅ 已实施(appshell 1.16.0) | A3 REPL 面板 + demo-server 单函数执行端点:参数校验/绑定分离、冷启动标注、catalog 试运行衔接;~1.25 天 |
 | [`design/graph-panel-recon.md`](./design/graph-panel-recon.md) | 🔵 侦察完成待裁定 | graph 面板区形态统一侦察:精确重复点(monaco options/工具栏组/添加钮三形态)+ ListPanel 提取两步走提案 |
 | [`design/custom-node-editor-spec.md`](./design/custom-node-editor-spec.md) | 🟢 规格立法 + UI 评估 | 自定义节点编辑面:config 键主权表/z.any() 模型意图/expr_asts 权威性澄清项(zen-udf)/reui 适配评估(核心交互无对口,外围已填)+ Windmill 双模式等业界参照 |
 | [`design/ubuntu-26-migration.md`](./design/ubuntu-26-migration.md) | ⏸ 待开启(暂不开启) | Ubuntu 26 CI 迁移计划:runner 解钉/全量观察/预算重测/回退路径——开启条件三选一,宿主 2026-10-02 指示暂缓 |

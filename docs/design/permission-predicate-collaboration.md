@@ -404,7 +404,7 @@ const allowedNamespaces = new Set(
 
 - `function-ecosystem-authoring-governance.md`——治理窗设计源（Phase 2 ADR-010）
 - `typed-input-spec.md` §7——`$` 作用域边界（与权限无关但同为「standalone 求值域」裁定）
-- `appshell-auto-persist.md`——保存线二阶段候选（IndexedDB 草稿/Web Locks）
+- `archive/plans/appshell-auto-persist.md`——保存线二阶段候选（IndexedDB 草稿/Web Locks）
 - [Backstage Permission Framework](https://backstage.io/docs/permissions/overview/)
 - [AWS Verified Permissions / Cedar](https://docs.aws.amazon.com/verifiedpermissions/)
 - [Oso — Authorization as a Library](https://www.osohq.com/)

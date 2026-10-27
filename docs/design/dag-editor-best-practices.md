@@ -5,7 +5,7 @@
 - 适用面：`packages/seal-editor` 决策图（React Flow + dagre + CM6/monaco）与决策表协同面
 - 关联：[reui-optimization-backlog.md](./reui-optimization-backlog.md)（触发制清单）、
   [two-point-oh-inventory.md](./two-point-oh-inventory.md)（2.0 破坏性面）、
-  [dt-instant-eval-badge.md](./dt-instant-eval-badge.md)（A3 即时求值）
+  [dt-instant-eval-badge.md](./archive/plans/dt-instant-eval-badge.md)（A3 即时求值）
 
 ## 1 · 产品谱系（按域，各取所长的对象）
 

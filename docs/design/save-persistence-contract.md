@@ -3,7 +3,7 @@
 - 日期：2026-09-28
 - 状态：**v1 契约文档**——ADR-008 L2 的落地交付（评审确认：dirty=宿主自管是设计而非缺陷；`onDirtyChange` 明确不做）
 - 读者：宿主应用（weaveseal/verdict 及其他 GraphPersistenceAdapter 消费方）
-- 关联：[ADR-008](../adr/008-host-experience-proposals.md) L2 · [appshell 自动持久化设计](./appshell-auto-persist.md)（模式 D 的机制设计）
+- 关联：[ADR-008](../adr/008-host-experience-proposals.md) L2 · [appshell 自动持久化设计](./archive/plans/appshell-auto-persist.md)（模式 D 的机制设计）
 
 ## 0. 契约核心（三句话）
 

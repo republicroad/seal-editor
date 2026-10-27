@@ -70,7 +70,7 @@ const rosterTool = defineTool({
 ## 影响与受益
 
 - **本仓（seal-editor）**：A3 端点的 view-driven 校验/绑定特例可回退为 registry
-  直调（repl-panel-plan.md §3.5 注记升级为回退条件）；贡献域作者获得 MCP SDK
+  直调（../design/archive/plans/repl-panel-plan.md §3.5 注记升级为回退条件）；贡献域作者获得 MCP SDK
   同款声明体验；定义漂移从运行期静默错配变为编译期报错；
 - **jdm 侧工作量估计**：归一化 ~0.5 天（注册路径与 0.9.0 撞名检测同点）+
   defineTool/builder ~1 天 + 废弃标记随 minor；回归语料 861 例补"双形态注册
