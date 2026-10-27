@@ -1,13 +1,10 @@
-import { legacyInputsToExampleObject } from './legacy';
 import { normalizeRequestDateTimeValue, requestDateTimePattern } from './normalize';
-import { getRequestSchemaSourceValue, parseRequestSchemaValue, stringifyRequestSchemaValue } from './schema-value';
+import { parseRequestSchemaValue, stringifyRequestSchemaValue } from './schema-value';
 import type {
-  RequestContentLike,
   RequestDefinition,
   RequestDefinitionSyncConflict,
   RequestDefinitionType,
   RequestExampleMeta,
-  RequestExampleSource,
   RequestJsonSchema,
 } from './types';
 import {
@@ -404,43 +401,8 @@ export const syncRequestExampleDataWithDefinitionChanges = (
   return syncedData;
 };
 
-export const getRequestExampleSources = (
-  content?: RequestContentLike | null,
-  options?: {
-    dataLabel?: string;
-  },
-): RequestExampleSource[] => {
-  const schema = parseRequestSchemaValue(getRequestSchemaSourceValue(content));
-  const dataLabel = options?.dataLabel ?? 'Data';
-  const schemaExamples = Array.isArray(schema?.examples) ? schema.examples : [];
-  const schemaExamplesMeta = Array.isArray(schema?.['x-examples-meta']) ? schema['x-examples-meta'] : [];
-
-  if (schemaExamples.length > 0) {
-    return schemaExamples.map((example, index) => {
-      const meta = schemaExamplesMeta[index];
-      return {
-        id: `schema-example-${index}`,
-        name: meta?.name?.trim() || formatRequestExampleSourceName(index, dataLabel),
-        description: meta?.description?.trim(),
-        data: isRecord(example) ? { ...example } : { value: example },
-        source: 'schema.examples',
-      };
-    });
-  }
-
-  if ((content?.inputs ?? []).length > 0) {
-    return [
-      {
-        id: 'schema-example-0',
-        name: formatRequestExampleSourceName(0, dataLabel),
-        data: legacyInputsToExampleObject(content?.inputs),
-        source: 'schema.examples',
-      },
-    ];
-  }
-
-  return [];
-};
+// getRequestExampleSources 已收敛至 example-sources.ts（单一派生入口：契约优先，
+// legacy 回退，inputs 兜底）——本模块不再从 schema 直接派生示例列表。
 
 export const updateRequestSchemaExamples = (
   schemaValue: unknown,

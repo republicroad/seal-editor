@@ -14,7 +14,6 @@ export type UseSimulatorRequestBindingParams = {
   inputNodeContent?: unknown;
   inputNodeId?: string;
   simulatorExampleBinding?: SimulatorExampleBinding | null;
-  dataLabel?: string;
 };
 
 export type SimulatorRequestBinding = {
@@ -34,13 +33,10 @@ export const useSimulatorRequestBinding = ({
   inputNodeContent,
   inputNodeId,
   simulatorExampleBinding,
-  dataLabel = 'Data',
 }: UseSimulatorRequestBindingParams): SimulatorRequestBinding => {
   const requestContent = inputNodeContent as RequestContentLike | null | undefined;
-  const requestSources = useMemo(
-    () => getRequestExampleSources(requestContent, { dataLabel }),
-    [requestContent, dataLabel],
-  );
+  // 单一派生入口（example-sources.ts）：与 Design 编辑器同内核同名——回退名分歧曾是乒乓死循环根因
+  const requestSources = useMemo(() => getRequestExampleSources(requestContent), [requestContent]);
   const boundRequestSourceIndex = useMemo(() => {
     if (!simulatorExampleBinding || simulatorExampleBinding.nodeId !== inputNodeId) {
       return -1;

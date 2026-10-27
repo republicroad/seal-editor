@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
+import { getRequestExampleSources } from '../example-sources';
 import {
   buildRequestExampleTemplateFromDefinitions,
   collectExampleDataPaths,
   formatJsonDraft,
   getRequestExampleDataDefinitionConflicts,
-  getRequestExampleSources,
+  mergeRequestExampleDataWithTemplate,
   mergeRequestExampleDefaultsByDefinitions,
   normalizeRequestExampleDataByDefinitions,
   updateRequestSchemaExamples,
@@ -267,6 +268,34 @@ describe('getRequestExampleSources', () => {
     expect(getRequestExampleSources({})).toEqual([]);
     expect(getRequestExampleSources(undefined)).toEqual([]);
   });
+
+  it('prefers contract examples over the legacy schema mirror (single derivation authority)', () => {
+    // 用户在 Design 侧重命名后，契约是权威；legacy 镜像（schema.examples +
+    // x-examples-meta）哪怕滞后也不得反超——两条读路径曾各自派生（回退名
+    // 'Data N' vs dataLabel 'Example data N'），致 simulatorExampleBinding
+    // 双写乒乓死循环（55a9385f）
+    const content = {
+      inputContract: {
+        contractVersion: 1,
+        schema: { type: 'object', properties: { name: { type: 'string' } } },
+        examples: [
+          { id: 'ex-1', name: 'US 50kg', data: { name: 'alice' } },
+          { id: 'ex-2', name: '', data: { name: 'bob' } },
+        ],
+      },
+      schema: JSON.stringify({
+        type: 'object',
+        properties: { name: { type: 'string' } },
+        examples: [{ name: 'stale' }],
+      }),
+    };
+
+    expect(getRequestExampleSources(content)).toEqual([
+      { id: 'ex-1', name: 'US 50kg', description: undefined, data: { name: 'alice' }, source: 'schema.examples' },
+      // 空名回退统一走 'Data N'（契约派生缺省），与 Design 侧同名
+      { id: 'ex-2', name: 'Data 2', description: undefined, data: { name: 'bob' }, source: 'schema.examples' },
+    ]);
+  });
 });
 
 describe('formatJsonDraft and collectExampleDataPaths', () => {
@@ -280,5 +309,33 @@ describe('formatJsonDraft and collectExampleDataPaths', () => {
       'user.tags',
       'count',
     ]);
+  });
+});
+
+describe('generateSkeleton composition (Design 一键生成骨架 = 迁移内核 template+merge)', () => {
+  it('补齐缺失定义字段（默认值优先/类型零值兜底），已有值一律不覆写', () => {
+    const definitions = [
+      { name: 'country', path: 'customer.country', type: 'string', defaultValue: undefined },
+      { name: 'tier', path: 'customer.tier', type: 'string', defaultValue: 'SILVER' },
+      { name: 'weight', path: 'cart.weight', type: 'number', defaultValue: undefined },
+      { name: 'gift', path: 'cart.gift', type: 'boolean', defaultValue: undefined },
+    ] as Array<RequestDefinition & { defaultValue?: string }>;
+    const data = { customer: { country: 'US', tier: 'GOLD' }, cart: {} };
+
+    const template = buildRequestExampleTemplateFromDefinitions(definitions);
+    const merged = mergeRequestExampleDataWithTemplate(template, data);
+
+    expect(merged).toEqual({
+      customer: { country: 'US', tier: 'GOLD' },
+      cart: { weight: 0, gift: false },
+    });
+  });
+
+  it('空数据时给出完整骨架', () => {
+    const definitions = [{ name: 'name', path: 'name', type: 'string', defaultValue: undefined }] as Array<
+      RequestDefinition & { defaultValue?: string }
+    >;
+    const merged = mergeRequestExampleDataWithTemplate(buildRequestExampleTemplateFromDefinitions(definitions), {});
+    expect(merged).toEqual({ name: '' });
   });
 });

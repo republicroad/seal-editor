@@ -15,7 +15,7 @@ import {
   writeRequestInputContract,
 } from '../contract';
 import { getRequestDefinitions } from '../definitions';
-import { getRequestExampleSources } from '../examples';
+import { getRequestExampleSources } from '../example-sources';
 import { parseRequestSchemaValue } from '../schema-value';
 import type { InputContract, RequestDefinition } from '../types';
 

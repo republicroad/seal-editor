@@ -65,7 +65,7 @@ export const useRequestExamplePersistence = ({
     }
 
     const { contract: targetContract } = readRequestInputContract(targetNode.content);
-    const currentSources = contractExamplesToSources(targetContract, { dataLabel: t('request.dataLabel') });
+    const currentSources = contractExamplesToSources(targetContract);
     const currentBoundSource = currentSources[activeExampleBinding.sourceIndex];
     const formatted = JSON.stringify(preparedParsed, null, 2);
 
@@ -92,7 +92,7 @@ export const useRequestExamplePersistence = ({
     while (nextSources.length <= activeExampleBinding.sourceIndex) {
       nextSources.push({
         id: crypto.randomUUID(),
-        name: formatRequestExampleSourceName(nextSources.length, t('request.dataLabel')),
+        name: formatRequestExampleSourceName(nextSources.length),
         data: {},
         source: 'schema.examples',
       });
@@ -104,7 +104,7 @@ export const useRequestExamplePersistence = ({
       name:
         activeExampleBinding.sourceName ??
         nextSources[activeExampleBinding.sourceIndex]?.name ??
-        formatRequestExampleSourceName(activeExampleBinding.sourceIndex, t('request.dataLabel')),
+        formatRequestExampleSourceName(activeExampleBinding.sourceIndex),
       data: preparedParsed,
       source: 'schema.examples',
     };
@@ -121,7 +121,7 @@ export const useRequestExamplePersistence = ({
         while (nextExamples.length <= activeExampleBinding.sourceIndex) {
           nextExamples.push({
             id: crypto.randomUUID(),
-            name: formatRequestExampleSourceName(nextExamples.length, t('request.dataLabel')),
+            name: formatRequestExampleSourceName(nextExamples.length),
             data: {},
           });
         }
@@ -131,7 +131,7 @@ export const useRequestExamplePersistence = ({
           name:
             activeExampleBinding.sourceName ??
             nextExamples[activeExampleBinding.sourceIndex]?.name ??
-            formatRequestExampleSourceName(activeExampleBinding.sourceIndex, t('request.dataLabel')),
+            formatRequestExampleSourceName(activeExampleBinding.sourceIndex),
           data: preparedParsed,
           schemaFingerprint: undefined,
         };

@@ -67,7 +67,6 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
     inputNodeContent,
     inputNodeId,
     simulatorExampleBinding,
-    dataLabel: t('request.dataLabel'),
   });
   const { requestValue, setRequestValue, userHasEdited, setUserHasEdited, isApplyingExternalRequest } =
     useSimulatorRequestEditor({

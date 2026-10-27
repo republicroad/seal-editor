@@ -14,6 +14,7 @@ export {
 } from './contract';
 export type { InputContractEnvelope, ParseInputContractEnvelopeResult, RequestExampleDrift } from './contract';
 export { validateExampleDataBySchema, validateExampleDatasBySchema } from './ajv-validator';
+export { getRequestExampleSources } from './example-sources';
 export {
   buildRequestSchemaFromDefinitions,
   getRequestDefinitions,
@@ -25,7 +26,6 @@ export {
   formatJsonDraft,
   formatRequestExampleSourceName,
   getRequestExampleDataDefinitionConflicts,
-  getRequestExampleSources,
   mergeRequestExampleDataWithTemplate,
   mergeRequestExampleDefaultsByDefinitions,
   normalizeRequestExampleDataByDefinitions,
