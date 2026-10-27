@@ -12,6 +12,28 @@ import PencilIcon from './reui/icons/animated/outline/pencil';
 import PlayCircleIcon from './reui/icons/animated/outline/play-circle';
 import RefreshArrowClockwiseIcon from './reui/icons/animated/outline/refresh-arrow-clockwise';
 import TrashSquareIcon from './reui/icons/animated/outline/trash-square';
+/** 试点（reui icon 替换 lucide 试水，视觉裁定后定去留）：simulator 工具条四动作的 ReUI 面性形态 */
+import BrushReuiIcon from './reui/icons/default/outline/brush';
+import CirclePlayReuiIcon from './reui/icons/default/outline/circle-play';
+import CommandReuiIcon from './reui/icons/default/outline/command';
+import CopyReuiIcon from './reui/icons/default/outline/copy';
+import EntranceUpReuiIcon from './reui/icons/default/outline/entrance-up';
+import ExitUpReuiIcon from './reui/icons/default/outline/exit-up';
+import LayoutEqualReuiIcon from './reui/icons/default/outline/layout-equal';
+import LayoutHeaderColumnsReuiIcon from './reui/icons/default/outline/layout-header-columns';
+import PlusCircleReuiIcon from './reui/icons/default/outline/plus-circle';
+
+export {
+  BrushReuiIcon as FormatPilotReui,
+  CirclePlayReuiIcon as RunPilotReui,
+  CommandReuiIcon as CommandPilotReui,
+  CopyReuiIcon as CopyPilotReui,
+  EntranceUpReuiIcon as DownloadPilotReui,
+  ExitUpReuiIcon as UploadPilotReui,
+  LayoutEqualReuiIcon as AutoLayoutPilotReui,
+  LayoutHeaderColumnsReuiIcon as SnapPilotReui,
+  PlusCircleReuiIcon as PlusCirclePilotReui,
+};
 
 export {
   AlignHorizontalDistributeCenter as AutoLayoutOutlined,
