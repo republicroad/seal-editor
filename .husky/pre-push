@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+# 1.42.0 四连红流程性根治：推前双包 typecheck（lint:compiler 是 eslint 非 tsc，
+# 真 typecheck 此前只在 CI Validate 跑）。全门一键版见 scripts/release-preflight.mjs。
+pnpm --filter @republicroad/seal-editor run typecheck && \
+pnpm --filter @republicroad/seal-appshell run typecheck
