@@ -2,8 +2,8 @@
 
 - 日期：2026-09-29
 - 状态：**已实施（2026-09-29，seal-appshell 1.16.0 + demo-server）**——实施注记见 §5（原型 = jdm-editor 批 2 `3c7938d0`，live 验证过）
-- 关联：[function-ecosystem-authoring-governance.md](./function-ecosystem-authoring-governance.md) §1-A3 ·
-  [function-catalog](../../packages/appshell/src/components/function-catalog/function-catalog.tsx)（试运行入口已预留 `onTry`）
+- 关联：[function-ecosystem-authoring-governance.md](../../function-ecosystem-authoring-governance.md) §1-A3 ·
+  [function-catalog](../../../../packages/appshell/src/components/function-catalog/function-catalog.tsx)（试运行入口已预留 `onTry`）
 
 ## 0. 定位
 

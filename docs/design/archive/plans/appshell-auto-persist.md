@@ -1,8 +1,8 @@
 # appshell 自动持久化与冲突版本化 · 通用接口机制设计
 
 - 日期：2026-09-27
-- 状态：**已实施（2026-09-29，seal-appshell 1.9.0）**——宿主裁决：weaveseal 目标态为模式 D（连续持久化，无 dirty，见 [ADR-008](../adr/008-host-experience-proposals.md) L2 方向裁决节）；实施记录见文末 §6
-- 前置：[GraphPersistenceAdapter](../../packages/appshell/src/shell/persistence.ts) 契约（baseRevision 乐观锁 → CONFLICT；listVersions；auto 保留策略）
+- 状态：**已实施（2026-09-29，seal-appshell 1.9.0）**——宿主裁决：weaveseal 目标态为模式 D（连续持久化，无 dirty，见 [ADR-008](../../../adr/008-host-experience-proposals.md) L2 方向裁决节）；实施记录见文末 §6
+- 前置：[GraphPersistenceAdapter](../../../../packages/appshell/src/shell/persistence.ts) 契约（baseRevision 乐观锁 → CONFLICT；listVersions；auto 保留策略）
 
 ## 0. 定位
 
