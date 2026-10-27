@@ -1,4 +1,4 @@
-import { CopyOutlined, FormatPainterOutlined, PlayCircleOutlined } from '#icons';
+import { CopyOutlined, FormatPainterOutlined, PlayCircleOutlined, PlusCircleOutlined } from '#icons';
 import InformationIcon from '#reui/icons/animated/outline/information';
 import LinkIcon from '#reui/icons/animated/outline/link';
 import React from 'react';
@@ -17,6 +17,8 @@ export type SimulatorRequestToolbarProps = {
   onSourceChange: (sourceIndex: number) => void;
   onFormat: () => void;
   onCopy: () => void;
+  /** 存为新用例（Postman "Save as example" 捕获范式：当前输入追加进示例库并绑定） */
+  onSaveAsNew: () => void;
   onRun?: () => void;
 };
 
@@ -31,6 +33,7 @@ export const SimulatorRequestToolbar: React.FC<SimulatorRequestToolbarProps> = (
   onSourceChange,
   onFormat,
   onCopy,
+  onSaveAsNew,
   onRun,
 }) => {
   return (
@@ -78,6 +81,17 @@ export const SimulatorRequestToolbar: React.FC<SimulatorRequestToolbarProps> = (
             </Tooltip>
             <Tooltip title={t('dg.jsonSchema.copyJson')}>
               <Button size='small' type='text' shape='circle' icon={<CopyOutlined />} onClick={onCopy} />
+            </Tooltip>
+            <Tooltip title={t('simulator.saveAsNewExample')}>
+              <Button
+                size='small'
+                type='text'
+                shape='circle'
+                data-testid='simulator-save-as-new'
+                icon={<PlusCircleOutlined />}
+                disabled={!hasInputNode}
+                onClick={onSaveAsNew}
+              />
             </Tooltip>
             <Tooltip title={t('simulator.run')}>
               <Button

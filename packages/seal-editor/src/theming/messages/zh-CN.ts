@@ -392,6 +392,8 @@ export const zhCN: Record<string, string> = {
   'simulator.description': '通过请求节点进入的业务上下文,启动决策流程。支持 JSON 或 JSON5 格式。',
   'simulator.currentBinding': '当前绑定',
   'simulator.nodeRequired': '需要请求节点才能运行图表。从组件面板拖放一个请求节点。',
+  'simulator.saveAsNewExample': '存为新用例',
+  'simulator.savedAsNewExample': '已存为新用例',
   'simulator.run': '运行',
   'simulator.formatSuccess': '格式化成功!',
   'simulator.formatFailed': '格式化失败。无效的 JSON 格式。',

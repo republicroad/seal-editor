@@ -411,6 +411,8 @@ export const en = {
     'Your business context that enters through the Request node, starting the decision process. Supply JSON or JSON5 format.',
   'simulator.currentBinding': 'Current binding',
   'simulator.nodeRequired': 'Request node is required to run the graph. Drag-and-drop it from the Components panel.',
+  'simulator.saveAsNewExample': 'Save as new example',
+  'simulator.savedAsNewExample': 'Saved as new example',
   'simulator.run': 'Run',
   'simulator.formatSuccess': 'Formatted successfully!',
   'simulator.formatFailed': 'Failed to format. Invalid JSON format.',

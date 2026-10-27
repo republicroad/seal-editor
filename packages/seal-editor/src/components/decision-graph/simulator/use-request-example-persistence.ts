@@ -9,6 +9,7 @@ import {
   getRequestExampleDataDefinitionConflicts,
   normalizeRequestExampleDataByDefinitions,
   readRequestInputContract,
+  requestSchemaFingerprint,
   updateRequestSchemaExamples,
   writeRequestInputContract,
 } from '../../../helpers/request-schema';
@@ -21,6 +22,8 @@ export type UseRequestExamplePersistenceParams = {
   t: (key: TranslationKey) => string;
   requestValue: string | undefined;
   resolvedSimulatorExampleBinding: RequestExampleBinding | null;
+  /** input 节点 id（未绑定但节点存在时，「存为新用例」仍可用——首份用例的捕获） */
+  inputNodeId?: string;
   onRequestValueChange: (nextValue: string) => void;
   onMarkEdited: () => void;
   onExternalChange?: (nextValue: string) => void;
@@ -39,6 +42,7 @@ export const useRequestExamplePersistence = ({
   t,
   requestValue,
   resolvedSimulatorExampleBinding,
+  inputNodeId,
   onRequestValueChange,
   onMarkEdited,
   onExternalChange,
@@ -253,7 +257,81 @@ export const useRequestExamplePersistence = ({
     }
   };
 
+  /**
+   * 存为新用例（Postman "Save as example" 捕获范式）：当前编辑器内容追加为
+   * 新示例（自动命名 'Data N'，名字回 Design 改）并绑定到它。新鲜捕获与当前
+   * schema 相容 → 戳当前 schema 指纹（不亮漂移徽标）。写路径=契约单漏斗
+   * （writeRequestInputContract 双写镜像）；未绑定时只要 input 节点存在即可
+   * 捕获首份用例。
+   */
+  const saveAsNewExampleSource = () => {
+    const nodeId = resolvedSimulatorExampleBinding?.nodeId ?? inputNodeId;
+    if (!nodeId) {
+      toast.warning(t('simulator.nodeRequired'));
+      return;
+    }
+
+    try {
+      const parsed = (requestValue || '').trim().length === 0 ? {} : json5.parse(requestValue || '{}');
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        toast.error(t('simulator.requestMustBeObjectToSave'));
+        return;
+      }
+
+      const { decisionGraph } = stateStore.getState();
+      const targetNode = decisionGraph.nodes.find((node) => node.id === nodeId);
+      if (!targetNode) {
+        toast.error(t('simulator.boundRequestNodeNotFound'));
+        return;
+      }
+
+      const requestDefinitions = getRequestDefinitions(targetNode.content);
+      const preparedParsed = normalizeRequestExampleDataByDefinitions(
+        parsed as Record<string, unknown>,
+        requestDefinitions,
+      );
+      const formatted = JSON.stringify(preparedParsed, null, 2);
+
+      const { contract: targetContract } = readRequestInputContract(targetNode.content);
+      const appendedIndex = targetContract.examples.length;
+      const appendedName = formatRequestExampleSourceName(appendedIndex);
+
+      actions.updateNode(nodeId, (draft) => {
+        draft.content ??= {};
+        const contentRecord = draft.content as RequestContentLike & Record<string, any>;
+        const { contract: freshContract } = readRequestInputContract(contentRecord);
+        writeRequestInputContract(contentRecord, {
+          ...freshContract,
+          examples: [
+            ...freshContract.examples,
+            {
+              id: crypto.randomUUID(),
+              name: appendedName,
+              data: preparedParsed,
+              schemaFingerprint: requestSchemaFingerprint(freshContract.schema),
+            },
+          ],
+        });
+      });
+
+      onRequestValueChange(formatted);
+      onMarkEdited();
+      onExternalChange?.(formatted);
+      actions.setSimulatorRequest(formatted);
+      actions.setSimulatorExampleBinding({
+        nodeId,
+        sourceIndex: appendedIndex,
+        sourceName: appendedName,
+      });
+
+      toast.success(`${t('simulator.savedAsNewExample')} · ${appendedName}`);
+    } catch {
+      toast.error(t('request.jsonInvalidError'));
+    }
+  };
+
   return {
     persistRequestToExampleSource,
+    saveAsNewExampleSource,
   };
 };

@@ -161,10 +161,11 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
     }
   }, [requestValue]);
 
-  const { persistRequestToExampleSource } = useRequestExamplePersistence({
+  const { persistRequestToExampleSource, saveAsNewExampleSource } = useRequestExamplePersistence({
     t,
     requestValue,
     resolvedSimulatorExampleBinding,
+    inputNodeId,
     onRequestValueChange: setRequestValue,
     onMarkEdited: () => setUserHasEdited(true),
     onExternalChange: onChange,
@@ -284,6 +285,7 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
         onSourceChange={handleSourceChange}
         onFormat={handleFormat}
         onCopy={handleCopy}
+        onSaveAsNew={saveAsNewExampleSource}
         onRun={onRun ? handleRun : undefined}
       />
       <div className='relative min-h-0 flex-1 overflow-hidden'>
