@@ -1,4 +1,4 @@
-import { DeleteOutlined, DownOutlined } from '#icons';
+import { DeleteOutlined, DownOutlined, EditOutlined } from '#icons';
 import InformationIcon from '#reui/icons/animated/outline/information';
 import type { DragDropManager } from 'dnd-core';
 import type { editor } from 'monaco-editor';
@@ -16,6 +16,7 @@ import {
 import { useT } from '../../../theming/i18n';
 import { Button, Popconfirm, Tooltip } from '../../primitives';
 import { useDecisionGraphActions, useDecisionGraphState } from '../context/dg-store.context';
+import { BlurCommitInput } from './blur-commit-input';
 import { RequestSchemaEditor } from './request-schema-editor';
 import { useRequestSessionDraftSerializer } from './request-session-draft';
 import { SplitEditor } from './request-split-editor';
@@ -42,6 +43,8 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   const [mode, setMode] = useState<RequestEditorMode>('design');
   const [selectedFieldPath, setSelectedFieldPath] = useState<string | null>(null);
   const [examplesOpen, setExamplesOpen] = useState(false);
+  /** Examples 下拉内联改名中的项下标（null = 无） */
+  const [renamingExampleIndex, setRenamingExampleIndex] = useState<number | null>(null);
   const schemaEditorRef = useRef<editor.IStandaloneCodeEditor | undefined>(undefined);
   const exampleJsonEditorRef = useRef<editor.IStandaloneCodeEditor | undefined>(undefined);
   const contractFileInputRef = useRef<HTMLInputElement>(null);
@@ -124,8 +127,8 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     fileInputRef,
     addExampleSource,
     removeExampleSource,
-    persistExamples,
     generateSkeletonForActive,
+    renameExample,
     migrateExample,
     migrateAllExamples,
     confirmExampleValid,
@@ -335,6 +338,9 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
                             index === activeSourceIndex ? 'bg-primary/10' : 'hover:bg-muted/60'
                           }`}
                           onClick={() => {
+                            if (renamingExampleIndex === index) {
+                              return;
+                            }
                             setActiveSourceIndex(index);
                             syncExampleToSimulator(source, index);
                             setExamplesOpen(false);
@@ -347,10 +353,35 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
                             }
                           }}
                         >
-                          <span className='min-w-0 flex-1 truncate'>{source.name}</span>
+                          {renamingExampleIndex === index ? (
+                            <BlurCommitInput
+                              autoFocus
+                              value={source.name}
+                              onCommit={(nextName) => {
+                                // 关闭动作放进 onCommit：blur 时 onExit 立即卸载会清掉待提交定时器（改名丢失）
+                                renameExample(index, nextName);
+                                setRenamingExampleIndex(null);
+                              }}
+                            />
+                          ) : (
+                            <span className='min-w-0 flex-1 truncate'>{source.name}</span>
+                          )}
                           {driftCount > 0 && (
                             <span className='inline-block size-1.5 shrink-0 rounded-full bg-amber-500' />
                           )}
+                          <Tooltip title={t('request.renameDataSource')}>
+                            <Button
+                              type='text'
+                              size='small'
+                              className='!h-5 !w-5 !p-0'
+                              disabled={disabled}
+                              icon={<EditOutlined style={{ fontSize: 12 }} />}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setRenamingExampleIndex(index);
+                              }}
+                            />
+                          </Tooltip>
                           <Popconfirm
                             title={t('request.deleteDataSourceConfirm')}
                             okText={t('common.delete')}
@@ -481,19 +512,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
               }}
               onMigrateActive={() => migrateExample(activeSourceIndex)}
               onConfirmActive={() => confirmExampleValid(activeSourceIndex)}
-              onRenameActive={(nextName) => {
-                const trimmed = nextName.trim();
-                if (!trimmed) {
-                  return;
-                }
-                persistExamples(
-                  exampleSources.map((source, index) =>
-                    index === activeSourceIndex ? { ...source, name: trimmed } : source,
-                  ),
-                  activeSourceIndex,
-                  { syncToSimulator: false },
-                );
-              }}
+              onRenameActive={(nextName) => renameExample(activeSourceIndex, nextName)}
               getDefinitionTypeLabel={getDefinitionTypeLabel}
               exampleEditorOptions={themedEditorOptions}
             />

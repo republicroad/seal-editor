@@ -13,6 +13,7 @@ export type BlurCommitInputProps = {
   saveLabel?: string;
   cancelLabel?: string;
   showActions?: boolean;
+  autoFocus?: boolean;
 };
 
 export const BlurCommitInput = React.forwardRef<HTMLInputElement, BlurCommitInputProps>(function BlurCommitInput(
@@ -26,6 +27,7 @@ export const BlurCommitInput = React.forwardRef<HTMLInputElement, BlurCommitInpu
     saveLabel = 'Save',
     cancelLabel = 'Cancel',
     showActions = false,
+    autoFocus,
   },
   ref,
 ) {
@@ -92,6 +94,7 @@ export const BlurCommitInput = React.forwardRef<HTMLInputElement, BlurCommitInpu
       ref={ref}
       disabled={disabled}
       placeholder={placeholder}
+      autoFocus={autoFocus}
       value={draft}
       onChange={(event) => setDraft(event.target.value)}
       onBlur={() => {

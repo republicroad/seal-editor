@@ -579,6 +579,20 @@ export const useRequestExamplesEditing = ({
     );
   };
 
+  /** 逐项改名（Examples 下拉铅笔入口 / Example 条名字输入共用单漏斗）：空名忽略，选中项保持不动 */
+  const renameExample = (index: number, nextName: string) => {
+    const trimmed = nextName.trim();
+    if (!trimmed || !exampleSources[index]) {
+      return;
+    }
+
+    persistExamples(
+      exampleSources.map((source, sourceIndex) => (sourceIndex === index ? { ...source, name: trimmed } : source)),
+      activeSourceIndex,
+      { syncToSimulator: false },
+    );
+  };
+
   /** 确认有效：数据与当前 schema 相容，重新持久化以补戳指纹锚（干净示例全部熄灭徽标） */
   const confirmExampleValid = (index: number) => {
     const source = exampleSources[index];
@@ -815,6 +829,7 @@ export const useRequestExamplesEditing = ({
     removeExampleSource,
     persistExamples,
     generateSkeletonForActive,
+    renameExample,
     migrateExample,
     migrateAllExamples,
     confirmExampleValid,
