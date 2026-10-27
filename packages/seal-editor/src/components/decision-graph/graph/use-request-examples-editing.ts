@@ -19,6 +19,7 @@ import {
   getRequestExampleDataDefinitionConflicts,
   hasExampleDrift,
   isRecord,
+  mergeRequestExampleDataWithTemplate,
   mergeRequestExampleDefaultsByDefinitions,
   migrateRequestExampleDataByDefinitions,
   normalizeRequestExampleDataByDefinitions,
@@ -79,11 +80,9 @@ export const useRequestExamplesEditing = ({
     () => requestSchemaFingerprint(inputContract.schema),
     [inputContract.schema],
   );
-  const exampleSources = useMemo(
-    () => contractExamplesToSources(inputContract, { dataLabel: t('request.dataLabel') }),
-    [inputContract, t],
-  );
-  const getExampleSourceName = (index: number) => formatRequestExampleSourceName(index, t('request.dataLabel'));
+  // 单一派生内核（example-sources.ts 同源）：命名权威=契约名 > x-examples-meta > 'Data N'
+  const exampleSources = useMemo(() => contractExamplesToSources(inputContract), [inputContract]);
+  const getExampleSourceName = (index: number) => formatRequestExampleSourceName(index);
   const activeSource = exampleSources[activeSourceIndex] ?? null;
   const normalizeExampleData = useCallback(
     (data?: Record<string, unknown>, definitions = definitionDrafts) =>
@@ -503,6 +502,30 @@ export const useRequestExamplesEditing = ({
     }
   };
 
+  /**
+   * Schema 一键生成骨架（GraphQL playground 范式）：按定义模板给活动示例补齐
+   * 缺项（显式默认值 > 类型零值），已有值一律不覆写；走 persistExamples 单漏斗
+   * （契约双写 + simulator 同步）。模板/合并均复用迁移（ADR-013 §2）同款内核，
+   * 不新造派生路径。返回 changed/unchanged 供调用方提示。
+   */
+  const generateSkeletonForActive = (): 'changed' | 'unchanged' => {
+    if (!activeSource) {
+      return 'unchanged';
+    }
+
+    const template = buildRequestExampleTemplateFromDefinitions(definitionDrafts);
+    const merged = mergeRequestExampleDataWithTemplate(template, activeSource.data);
+    if (JSON.stringify(merged) === JSON.stringify(activeSource.data)) {
+      return 'unchanged';
+    }
+
+    persistExamples(
+      exampleSources.map((source, index) => (index === activeSourceIndex ? { ...source, data: merged } : source)),
+      activeSourceIndex,
+    );
+    return 'changed';
+  };
+
   /** 安全迁移（ADR-013 §2）：缺值补默认、多余移除、datetime 归一；类型冲突保留待用户决策 */
   const migrateExample = (index: number) => {
     const source = exampleSources[index];
@@ -791,6 +814,7 @@ export const useRequestExamplesEditing = ({
     addExampleSource,
     removeExampleSource,
     persistExamples,
+    generateSkeletonForActive,
     migrateExample,
     migrateAllExamples,
     confirmExampleValid,

@@ -37,6 +37,7 @@ export {
   Paintbrush as FormatPainterOutlined,
   GripVertical as HolderOutlined,
   Download as ImportOutlined,
+  WandSparkles as WandOutlined,
   Info as InfoCircleOutlined,
   ChevronLeft as LeftOutlined,
   SquareMinus as MinusSquareOutlined,

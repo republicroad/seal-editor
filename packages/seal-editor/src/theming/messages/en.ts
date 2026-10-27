@@ -265,6 +265,8 @@ export const en = {
   'request.save': 'Save',
   'request.schema': 'Schema',
   'request.addChildField': 'Add child field',
+  'request.generateSkeleton': 'Generate skeleton from schema',
+  'request.generateSkeletonUnchanged': 'Example already matches the schema',
   'request.removeFieldInline': 'Remove field',
   'request.addDataSource': 'Add data',
   'request.addField': 'Add field',

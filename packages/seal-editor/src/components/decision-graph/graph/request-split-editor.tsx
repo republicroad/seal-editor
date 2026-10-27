@@ -1,4 +1,4 @@
-import { DeleteOutlined, DownOutlined, FormatPainterOutlined, PlusOutlined, RightOutlined } from '#icons';
+import { DeleteOutlined, DownOutlined, FormatPainterOutlined, PlusOutlined, RightOutlined, WandOutlined } from '#icons';
 import { Editor } from '@monaco-editor/react';
 import clsx from 'clsx';
 import type { editor } from 'monaco-editor';
@@ -315,6 +315,8 @@ const ExamplePreviewStrip: React.FC<{
   activeDescriptionDraft: string;
   /** 选中字段路径：Example 编辑器滚动定位 + 值区间高亮（Design 树联动） */
   highlightPath: string | null;
+  /** Schema 一键生成骨架（GraphQL playground 范式） */
+  onGenerateSkeleton: () => void;
   exampleFieldSummary: RequestExampleSummaryData | null;
   driftState?: RequestExampleDriftState;
   onRenameActive: (name: string) => void;
@@ -334,6 +336,7 @@ const ExamplePreviewStrip: React.FC<{
   activeExampleJsonDraft,
   activeDescriptionDraft,
   highlightPath,
+  onGenerateSkeleton,
   exampleFieldSummary,
   driftState,
   onRenameActive,
@@ -420,6 +423,18 @@ const ExamplePreviewStrip: React.FC<{
           )}
         </div>
         <div className='flex items-center gap-1'>
+          <Tooltip title={t('request.generateSkeleton')}>
+            <Button
+              type='text'
+              size='small'
+              shape='circle'
+              data-testid='example-generate-skeleton'
+              disabled={disabled || !activeSource}
+              onClick={onGenerateSkeleton}
+            >
+              <WandOutlined />
+            </Button>
+          </Tooltip>
           <Tooltip title={t('common.format')}>
             <Button
               type='text'
@@ -512,6 +527,8 @@ export type SplitEditorProps = {
   exampleSources: RequestExampleSource[];
   activeExampleJsonDraft: string;
   activeDescriptionDraft: string;
+  /** Schema 一键生成骨架（补齐活动示例缺项，不覆写已有值）；unchanged 由调用方提示 */
+  onGenerateSkeleton: () => void;
   exampleFieldSummary: RequestExampleSummaryData | null;
   driftStates?: Record<string, RequestExampleDriftState>;
   onDescriptionChange: (value: string) => void;
@@ -637,6 +654,7 @@ export const SplitEditor: React.FC<SplitEditorProps> = (props) => {
           activeExampleJsonDraft={props.activeExampleJsonDraft}
           activeDescriptionDraft={props.activeDescriptionDraft}
           highlightPath={props.selectedPath}
+          onGenerateSkeleton={props.onGenerateSkeleton}
           exampleFieldSummary={props.exampleFieldSummary}
           driftState={activeDriftState}
           onDescriptionChange={props.onDescriptionChange}

@@ -125,6 +125,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     addExampleSource,
     removeExampleSource,
     persistExamples,
+    generateSkeletonForActive,
     migrateExample,
     migrateAllExamples,
     confirmExampleValid,
@@ -458,6 +459,11 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
               getDefinitionIndex={getDefinitionIndex}
               exampleSources={exampleSources}
               activeExampleIndex={activeSourceIndex}
+              onGenerateSkeleton={() => {
+                if (generateSkeletonForActive() === 'unchanged') {
+                  toast.info(t('request.generateSkeletonUnchanged'));
+                }
+              }}
               activeExampleJsonDraft={activeExampleJsonDraft}
               activeDescriptionDraft={activeDescriptionDraft}
               exampleFieldSummary={exampleFieldSummary}
