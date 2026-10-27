@@ -103,13 +103,14 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
       return;
     }
 
+    // 绑定身份 = nodeId + sourceIndex；sourceName 是展示缓存（两侧派生回退名不同：
+    // 契约侧 'Data N' vs 面板侧 dataLabel 'Example data N'——比较名字会引发双写乒乓死循环）
     if (
       inputNodeId &&
       defaultRequestSourceIndex >= 0 &&
       resolvedSimulatorExampleBinding &&
       (simulatorExampleBinding?.nodeId !== inputNodeId ||
-        simulatorExampleBinding.sourceIndex !== defaultRequestSourceIndex ||
-        simulatorExampleBinding.sourceName !== defaultRequestSource.name)
+        simulatorExampleBinding.sourceIndex !== defaultRequestSourceIndex)
     ) {
       actions.setSimulatorExampleBinding(resolvedSimulatorExampleBinding);
     }
@@ -269,7 +270,6 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
     lastSeenTick.current = simulateRequestTick;
     handleRun();
     // 仅计数器变化触发；handleRun 闭包取当次渲染的请求值
-     
   }, [simulateRequestTick]);
 
   return (

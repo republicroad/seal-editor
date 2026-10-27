@@ -5,8 +5,8 @@
  */
 export const inputNodeSpecContent = {
   schema: JSON.stringify({
-    type: 'object',
-    properties: {
+    'type': 'object',
+    'properties': {
       customer: {
         type: 'object',
         properties: {
@@ -21,13 +21,16 @@ export const inputNodeSpecContent = {
         required: ['weight'],
       },
     },
-    required: ['customer', 'cart'],
-    // ③ 三组示例数据（各命中决策表不同规则行）：Examples 下拉切换 + 同步 simulator
-    examples: [
+    'required': ['customer', 'cart'],
+    // ③ 三组示例数据（各命中决策表不同规则行）：Examples 下拉切换 + 同步 simulator；
+    // x-examples-meta 命名——契约侧与 simulator 侧共同的取名权威（缺省回退名两侧不同：
+    // 契约 'Data N' vs 面板 dataLabel 'Example data N'，曾致绑定双写乒乓死循环）
+    'examples': [
       { customer: { country: 'US', tier: 'GOLD' }, cart: { weight: 50 } },
       { customer: { country: 'CN', tier: 'SILVER' }, cart: { weight: 30 } },
       { customer: { country: 'US', tier: 'GOLD' }, cart: { weight: 10 } },
     ],
+    'x-examples-meta': [{ name: 'US GOLD 50kg' }, { name: 'CN SILVER 30kg' }, { name: 'US GOLD 10kg' }],
   }),
   expressions: [
     { id: 'demo-in-country', key: 'customer.country', value: 'US', type: 'string' },

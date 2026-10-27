@@ -407,10 +407,9 @@ export const useRequestExamplesEditing = ({
       return;
     }
 
+    // 绑定身份 = nodeId + sourceIndex（sourceName 两侧派生回退名不同，比较会引发双写乒乓死循环）
     const hasMatchedBinding =
-      simulatorExampleBinding?.nodeId === id &&
-      simulatorExampleBinding.sourceIndex === activeSourceIndex &&
-      simulatorExampleBinding.sourceName === activeSource.name;
+      simulatorExampleBinding?.nodeId === id && simulatorExampleBinding.sourceIndex === activeSourceIndex;
 
     if (hasMatchedBinding) {
       return;

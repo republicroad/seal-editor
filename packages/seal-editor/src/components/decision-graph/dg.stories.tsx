@@ -423,6 +423,28 @@ export const PackAuthoring: Story = {
 
 export const Simulator: Story = {
   render: () => <DecisionGraphWithSimulator />,
+  play: async ({ canvasElement }) => {
+    // 回归：simulator 面板常驻（defaultActivePanel）+ 打开 input 编辑器 = 绑定双写入者
+    // 同挂（面板 effect ↔ 编辑器契约 effect）——两侧 sourceName 回退名不同
+    // （'Example data N' vs 契约 'Data N'）曾致 setSimulatorExampleBinding 乒乓
+    // 死循环（Maximum update depth exceeded）。守卫已收窄为 nodeId+sourceIndex。
+    const requestNode = [...canvasElement.querySelectorAll('.react-flow__node')].find((node) =>
+      node.textContent?.includes('Request'),
+    );
+    const configureButton = [...(requestNode?.querySelectorAll('button') ?? [])].find((button) =>
+      button.textContent?.includes('Configure'),
+    );
+    expect(configureButton).toBeTruthy();
+    await fireEvent.click(configureButton!);
+    // 编辑器挂载且双 effect 各跑数轮——此前此窗口内即崩
+    await waitFor(
+      () => {
+        expect(canvasElement.querySelector("[data-testid='field-tree-node']")).not.toBeNull();
+      },
+      { timeout: 5000 },
+    );
+    expect(canvasElement.textContent).not.toContain('Maximum update depth');
+  },
 };
 
 export const Diff: Story = {
