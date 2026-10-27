@@ -75,9 +75,14 @@ export type SetDecisionGraphOptions = {
   skipOnChangeEvent?: boolean;
 };
 
+/**
+ * simulator ↔ 示例绑定（运行态，不入图）：身份 = nodeId + exampleId（契约稳定 id）。
+ * 业界铁律：绑定不用下标——删除/重排示例后下标全体漂移，id 恒定；消费方按
+ * 当前示例集解析下标，id 失配自愈为未绑定（面板 effect 会重绑缺省项）。
+ */
 export type SimulatorExampleBinding = {
   nodeId: string;
-  sourceIndex: number;
+  exampleId: string;
   sourceName?: string;
 } | null;
 

@@ -42,6 +42,8 @@ export const buildContractFixtures = (graph: DecisionGraphType, nodeId: string):
     );
 
     return {
+      /** 契约稳定 id（exampleId 绑定消费方：Run 报告「调试」装载 simulator 绑定） */
+      id: example.id,
       name: example.name.trim() || `#${index + 1}`,
       input,
       ...(example.expectation ? { expect: example.expectation } : {}),

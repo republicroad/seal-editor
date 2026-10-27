@@ -92,7 +92,7 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
     actions.setSimulatorRequest(formattedRequest);
     actions.setSimulatorExampleBinding({
       nodeId: inputNodeId,
-      sourceIndex,
+      exampleId: source.id,
       sourceName: source.name,
     });
   };
@@ -102,14 +102,14 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
       return;
     }
 
-    // 绑定身份 = nodeId + sourceIndex；sourceName 是展示缓存（两侧派生回退名不同：
+    // 绑定身份 = nodeId + exampleId；sourceName 是展示缓存（两侧派生回退名不同：
     // 契约侧 'Data N' vs 面板侧 dataLabel 'Example data N'——比较名字会引发双写乒乓死循环）
     if (
       inputNodeId &&
       defaultRequestSourceIndex >= 0 &&
       resolvedSimulatorExampleBinding &&
       (simulatorExampleBinding?.nodeId !== inputNodeId ||
-        simulatorExampleBinding.sourceIndex !== defaultRequestSourceIndex)
+        simulatorExampleBinding.exampleId !== resolvedSimulatorExampleBinding.exampleId)
     ) {
       actions.setSimulatorExampleBinding(resolvedSimulatorExampleBinding);
     }

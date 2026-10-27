@@ -9,6 +9,8 @@ import type { DecisionGraphType } from '../dg-types';
  */
 
 export type ContractFixture = {
+  /** 契约稳定 id（exampleId 绑定消费方：Run 报告「调试」装载 simulator 绑定） */
+  id: string;
   name: string;
   input: unknown;
   /**

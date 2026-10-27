@@ -70,7 +70,13 @@ export const useRequestExamplePersistence = ({
 
     const { contract: targetContract } = readRequestInputContract(targetNode.content);
     const currentSources = contractExamplesToSources(targetContract);
-    const currentBoundSource = currentSources[activeExampleBinding.sourceIndex];
+    // 绑定身份 = exampleId → 按当前示例集解析下标（示例已删 = 未绑定，拒绝落笔）
+    const boundIndex = currentSources.findIndex((source) => source.id === activeExampleBinding.exampleId);
+    if (boundIndex < 0) {
+      toast.warning(t('request.selectDataSourceFirst'));
+      return null;
+    }
+    const currentBoundSource = currentSources[boundIndex];
     const formatted = JSON.stringify(preparedParsed, null, 2);
 
     if (currentBoundSource && JSON.stringify(currentBoundSource.data) === JSON.stringify(preparedParsed)) {
@@ -93,7 +99,7 @@ export const useRequestExamplePersistence = ({
 
     const nextSources = [...currentSources];
 
-    while (nextSources.length <= activeExampleBinding.sourceIndex) {
+    while (nextSources.length <= boundIndex) {
       nextSources.push({
         id: crypto.randomUUID(),
         name: formatRequestExampleSourceName(nextSources.length),
@@ -102,13 +108,11 @@ export const useRequestExamplePersistence = ({
       });
     }
 
-    nextSources[activeExampleBinding.sourceIndex] = {
-      ...nextSources[activeExampleBinding.sourceIndex],
-      id: nextSources[activeExampleBinding.sourceIndex]?.id ?? crypto.randomUUID(),
+    nextSources[boundIndex] = {
+      ...nextSources[boundIndex],
+      id: nextSources[boundIndex]?.id ?? crypto.randomUUID(),
       name:
-        activeExampleBinding.sourceName ??
-        nextSources[activeExampleBinding.sourceIndex]?.name ??
-        formatRequestExampleSourceName(activeExampleBinding.sourceIndex),
+        activeExampleBinding.sourceName ?? nextSources[boundIndex]?.name ?? formatRequestExampleSourceName(boundIndex),
       data: preparedParsed,
       source: 'schema.examples',
     };
@@ -122,7 +126,7 @@ export const useRequestExamplePersistence = ({
         const { contract: freshContract } = readRequestInputContract(contentRecord);
         const nextExamples = [...freshContract.examples];
 
-        while (nextExamples.length <= activeExampleBinding.sourceIndex) {
+        while (nextExamples.length <= boundIndex) {
           nextExamples.push({
             id: crypto.randomUUID(),
             name: formatRequestExampleSourceName(nextExamples.length),
@@ -130,12 +134,12 @@ export const useRequestExamplePersistence = ({
           });
         }
 
-        nextExamples[activeExampleBinding.sourceIndex] = {
-          ...nextExamples[activeExampleBinding.sourceIndex],
+        nextExamples[boundIndex] = {
+          ...nextExamples[boundIndex],
           name:
             activeExampleBinding.sourceName ??
-            nextExamples[activeExampleBinding.sourceIndex]?.name ??
-            formatRequestExampleSourceName(activeExampleBinding.sourceIndex),
+            nextExamples[boundIndex]?.name ??
+            formatRequestExampleSourceName(boundIndex),
           data: preparedParsed,
           schemaFingerprint: undefined,
         };
@@ -156,7 +160,7 @@ export const useRequestExamplePersistence = ({
     actions.setSimulatorRequest(formatted);
     actions.setSimulatorExampleBinding({
       ...activeExampleBinding,
-      sourceName: nextSources[activeExampleBinding.sourceIndex]?.name,
+      sourceName: nextSources[boundIndex]?.name,
     });
 
     if (import.meta.env.DEV) {
@@ -293,8 +297,8 @@ export const useRequestExamplePersistence = ({
       const formatted = JSON.stringify(preparedParsed, null, 2);
 
       const { contract: targetContract } = readRequestInputContract(targetNode.content);
-      const appendedIndex = targetContract.examples.length;
-      const appendedName = formatRequestExampleSourceName(appendedIndex);
+      const appendedName = formatRequestExampleSourceName(targetContract.examples.length);
+      const appendedId = crypto.randomUUID();
 
       actions.updateNode(nodeId, (draft) => {
         draft.content ??= {};
@@ -305,7 +309,7 @@ export const useRequestExamplePersistence = ({
           examples: [
             ...freshContract.examples,
             {
-              id: crypto.randomUUID(),
+              id: appendedId,
               name: appendedName,
               data: preparedParsed,
               schemaFingerprint: requestSchemaFingerprint(freshContract.schema),
@@ -320,7 +324,7 @@ export const useRequestExamplePersistence = ({
       actions.setSimulatorRequest(formatted);
       actions.setSimulatorExampleBinding({
         nodeId,
-        sourceIndex: appendedIndex,
+        exampleId: appendedId,
         sourceName: appendedName,
       });
 

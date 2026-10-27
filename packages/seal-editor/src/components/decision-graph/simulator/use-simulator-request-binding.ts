@@ -6,7 +6,7 @@ import type { SimulatorExampleBinding } from '../context/dg-store.context';
 
 export type ResolvedSimulatorExampleBinding = {
   nodeId: string;
-  sourceIndex: number;
+  exampleId: string;
   sourceName?: string;
 };
 
@@ -37,12 +37,13 @@ export const useSimulatorRequestBinding = ({
   const requestContent = inputNodeContent as RequestContentLike | null | undefined;
   // 单一派生入口（example-sources.ts）：与 Design 编辑器同内核同名——回退名分歧曾是乒乓死循环根因
   const requestSources = useMemo(() => getRequestExampleSources(requestContent), [requestContent]);
+  // 绑定身份 = exampleId：按当前示例集解析下标（id 失配 = -1 = 未绑定，面板 effect 自愈重绑）
   const boundRequestSourceIndex = useMemo(() => {
     if (!simulatorExampleBinding || simulatorExampleBinding.nodeId !== inputNodeId) {
       return -1;
     }
 
-    return requestSources[simulatorExampleBinding.sourceIndex] ? simulatorExampleBinding.sourceIndex : -1;
+    return requestSources.findIndex((source) => source.id === simulatorExampleBinding.exampleId);
   }, [inputNodeId, requestSources, simulatorExampleBinding]);
   const defaultRequestSourceIndex =
     boundRequestSourceIndex >= 0 ? boundRequestSourceIndex : requestSources.length > 0 ? 0 : -1;
@@ -54,12 +55,12 @@ export const useSimulatorRequestBinding = ({
 
     return {
       nodeId: inputNodeId,
-      sourceIndex: defaultRequestSourceIndex,
+      exampleId: defaultRequestSource.id,
       sourceName: defaultRequestSource.name,
     };
   }, [defaultRequestSource, defaultRequestSourceIndex, inputNodeId]);
   const currentBindingIdentity = useMemo(
-    () => (simulatorExampleBinding ? `${simulatorExampleBinding.nodeId}:${simulatorExampleBinding.sourceIndex}` : null),
+    () => (simulatorExampleBinding ? `${simulatorExampleBinding.nodeId}:${simulatorExampleBinding.exampleId}` : null),
     [simulatorExampleBinding],
   );
   const requestDefinitions = useMemo(() => getRequestDefinitions(requestContent), [requestContent]);

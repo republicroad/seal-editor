@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => {
     nodes: [] as Array<{ id: string; type: string; content?: Record<string, unknown> }>,
     updateCount: 0,
     simulatorRequests: [] as string[],
-    bindings: [] as Array<{ nodeId: string; sourceIndex?: number; sourceName?: string }>,
+    bindings: [] as Array<{ nodeId: string; exampleId?: string; sourceName?: string }>,
   };
 });
 
@@ -31,7 +31,7 @@ vi.mock('../../context/dg-store.context', () => ({
       setSimulatorRequest: (value: string) => {
         mocks.simulatorRequests.push(value);
       },
-      setSimulatorExampleBinding: (binding: { nodeId: string; sourceIndex?: number; sourceName?: string }) => {
+      setSimulatorExampleBinding: (binding: { nodeId: string; exampleId?: string; sourceName?: string }) => {
         mocks.bindings.push(binding);
       },
     },
@@ -85,7 +85,7 @@ describe('useRequestExamplePersistence', () => {
       useRequestExamplePersistence({
         t,
         requestValue: '[1,2]',
-        resolvedSimulatorExampleBinding: { nodeId: 'n1', sourceIndex: 0 },
+        resolvedSimulatorExampleBinding: { nodeId: 'n1', exampleId: 'schema-example-0' },
         onRequestValueChange: () => {},
         onMarkEdited: () => {},
       }),
@@ -102,7 +102,7 @@ describe('useRequestExamplePersistence', () => {
       useRequestExamplePersistence({
         t,
         requestValue: '{"a":"9"}',
-        resolvedSimulatorExampleBinding: { nodeId: 'ghost', sourceIndex: 0 },
+        resolvedSimulatorExampleBinding: { nodeId: 'ghost', exampleId: 'schema-example-0' },
         onRequestValueChange: () => {},
         onMarkEdited: () => {},
       }),
@@ -119,7 +119,7 @@ describe('useRequestExamplePersistence', () => {
       useRequestExamplePersistence({
         t,
         requestValue: '{broken',
-        resolvedSimulatorExampleBinding: { nodeId: 'n1', sourceIndex: 0 },
+        resolvedSimulatorExampleBinding: { nodeId: 'n1', exampleId: 'schema-example-0' },
         onRequestValueChange: () => {},
         onMarkEdited: () => {},
       }),
@@ -138,7 +138,7 @@ describe('useRequestExamplePersistence', () => {
       useRequestExamplePersistence({
         t,
         requestValue: '{"a":"2"}',
-        resolvedSimulatorExampleBinding: { nodeId: 'n1', sourceIndex: 0, sourceName: 'Alpha' },
+        resolvedSimulatorExampleBinding: { nodeId: 'n1', exampleId: 'schema-example-0', sourceName: 'Alpha' },
         onRequestValueChange: (value: string) => {
           externalValue = value;
         },
@@ -166,7 +166,7 @@ describe('useRequestExamplePersistence', () => {
       useRequestExamplePersistence({
         t,
         requestValue: '{\n  "a": "1"\n}',
-        resolvedSimulatorExampleBinding: { nodeId: 'n1', sourceIndex: 0, sourceName: 'Alpha' },
+        resolvedSimulatorExampleBinding: { nodeId: 'n1', exampleId: 'schema-example-0', sourceName: 'Alpha' },
         onRequestValueChange: () => {},
         onMarkEdited: () => {},
       }),
@@ -185,7 +185,7 @@ describe('useRequestExamplePersistence', () => {
       useRequestExamplePersistence({
         t,
         requestValue: '{"a":"7"}',
-        resolvedSimulatorExampleBinding: { nodeId: 'n1', sourceIndex: 0, sourceName: 'Alpha' },
+        resolvedSimulatorExampleBinding: { nodeId: 'n1', exampleId: 'schema-example-0', sourceName: 'Alpha' },
         onRequestValueChange: () => {},
         onMarkEdited: () => {},
       }),

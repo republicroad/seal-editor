@@ -44,12 +44,13 @@ describe('buildContractFixtures 期望透传（CONTRACT §10 serializable 子集
     const fixtures = buildContractFixtures(graph(content), 'in-1');
     expect(fixtures).toHaveLength(3);
     expect(fixtures?.[0]).toEqual({
+      id: 'e1',
       name: 'heavy',
       input: { weight: 50 },
       expect: { mode: 'deep', value: { fee: 40 } },
     });
     expect(fixtures?.[1]?.expect).toEqual({ mode: 'expression', source: 'result.fee < 40' });
-    expect(fixtures?.[2]).toEqual({ name: 'none', input: { weight: 20 } });
+    expect(fixtures?.[2]).toEqual({ id: 'e3', name: 'none', input: { weight: 20 } });
   });
 
   it('无示例集返回 null（不产生空跑）', () => {

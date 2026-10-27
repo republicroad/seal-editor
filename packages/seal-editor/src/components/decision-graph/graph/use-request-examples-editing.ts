@@ -304,7 +304,10 @@ export const useRequestExamplesEditing = ({
     }
 
     const isCurrentRequestActive = activeGraphTabId === id;
-    const isSimulatorBoundToCurrentRequest = simulatorExampleBinding?.nodeId === id;
+    const boundIndex = simulatorExampleBinding
+      ? exampleSources.findIndex((source) => source.id === simulatorExampleBinding.exampleId)
+      : -1;
+    const isSimulatorBoundToCurrentRequest = simulatorExampleBinding?.nodeId === id && boundIndex >= 0;
 
     if (!isCurrentRequestActive && !isSimulatorBoundToCurrentRequest) {
       return;
@@ -320,9 +323,8 @@ export const useRequestExamplesEditing = ({
       return;
     }
 
-    const preferredSourceIndex = isSimulatorBoundToCurrentRequest
-      ? simulatorExampleBinding.sourceIndex
-      : activeSourceIndex;
+    // 绑定身份 = exampleId：解析当前下标（示例已删 → 回落活动项并重绑）
+    const preferredSourceIndex = isSimulatorBoundToCurrentRequest ? boundIndex : activeSourceIndex;
     const safeSourceIndex = Math.max(0, Math.min(preferredSourceIndex, exampleSources.length - 1));
     const nextSource = exampleSources[safeSourceIndex];
 
@@ -340,7 +342,7 @@ export const useRequestExamplesEditing = ({
     graphActions.setSimulatorRequest(nextRequest);
     graphActions.setSimulatorExampleBinding({
       nodeId: id,
-      sourceIndex: safeSourceIndex,
+      exampleId: nextSource.id,
       sourceName: nextSource.name,
     });
   }, [
@@ -381,16 +383,14 @@ export const useRequestExamplesEditing = ({
       return;
     }
 
-    if (simulatorExampleBinding.sourceIndex < 0 || simulatorExampleBinding.sourceIndex >= exampleSources.length) {
+    // 跟随绑定：exampleId 解析当前下标（id 已删 = -1，不动）
+    const boundIndex = exampleSources.findIndex((source) => source.id === simulatorExampleBinding.exampleId);
+    if (boundIndex < 0 || boundIndex === activeSourceIndex) {
       return;
     }
 
-    if (simulatorExampleBinding.sourceIndex === activeSourceIndex) {
-      return;
-    }
-
-    setActiveSourceIndex(simulatorExampleBinding.sourceIndex);
-  }, [activeSourceIndex, exampleSources.length, id, simulatorExampleBinding]);
+    setActiveSourceIndex(boundIndex);
+  }, [activeSourceIndex, exampleSources, id, simulatorExampleBinding]);
 
   useEffect(() => {
     if (activeGraphTabId !== id || !activeSource) {
@@ -399,16 +399,15 @@ export const useRequestExamplesEditing = ({
 
     if (
       simulatorExampleBinding?.nodeId === id &&
-      simulatorExampleBinding.sourceIndex !== activeSourceIndex &&
-      simulatorExampleBinding.sourceIndex >= 0 &&
-      simulatorExampleBinding.sourceIndex < exampleSources.length
+      simulatorExampleBinding.exampleId !== activeSource.id &&
+      exampleSources.some((source) => source.id === simulatorExampleBinding.exampleId)
     ) {
       return;
     }
 
-    // 绑定身份 = nodeId + sourceIndex（sourceName 两侧派生回退名不同，比较会引发双写乒乓死循环）
+    // 绑定身份 = nodeId + exampleId（sourceName 两侧派生回退名不同，比较会引发双写乒乓死循环）
     const hasMatchedBinding =
-      simulatorExampleBinding?.nodeId === id && simulatorExampleBinding.sourceIndex === activeSourceIndex;
+      simulatorExampleBinding?.nodeId === id && simulatorExampleBinding.exampleId === activeSource.id;
 
     if (hasMatchedBinding) {
       return;
@@ -416,18 +415,10 @@ export const useRequestExamplesEditing = ({
 
     graphActions.setSimulatorExampleBinding({
       nodeId: id,
-      sourceIndex: activeSourceIndex,
+      exampleId: activeSource.id,
       sourceName: activeSource.name,
     });
-  }, [
-    activeGraphTabId,
-    activeSource,
-    activeSourceIndex,
-    exampleSources.length,
-    graphActions,
-    id,
-    simulatorExampleBinding,
-  ]);
+  }, [activeGraphTabId, activeSource, activeSourceIndex, exampleSources, graphActions, id, simulatorExampleBinding]);
 
   useEffect(() => {
     activeExampleSourceIdRef.current = activeSource?.id ?? null;
@@ -440,7 +431,7 @@ export const useRequestExamplesEditing = ({
     }
   }, [panels, graphActions]);
 
-  const syncExampleToSimulator = (source?: RequestExampleSource | null, sourceIndex = activeSourceIndex) => {
+  const syncExampleToSimulator = (source?: RequestExampleSource | null, _sourceIndex = activeSourceIndex) => {
     if (!source) {
       graphActions.setSimulatorRequest('');
       graphActions.setSimulatorExampleBinding(null);
@@ -452,7 +443,7 @@ export const useRequestExamplesEditing = ({
     graphActions.setSimulatorRequest(nextRequest);
     graphActions.setSimulatorExampleBinding({
       nodeId: id,
-      sourceIndex,
+      exampleId: source.id,
       sourceName: source.name,
     });
   };

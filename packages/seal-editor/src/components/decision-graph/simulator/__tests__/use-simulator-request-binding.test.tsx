@@ -39,7 +39,7 @@ describe('useSimulatorRequestBinding', () => {
     expect(result.current.defaultRequestSourceIndex).toBe(0);
     expect(result.current.resolvedSimulatorExampleBinding).toEqual({
       nodeId: 'n1',
-      sourceIndex: 0,
+      exampleId: 'schema-example-0',
       sourceName: 'Alpha',
     });
   });
@@ -49,14 +49,14 @@ describe('useSimulatorRequestBinding', () => {
       useSimulatorRequestBinding({
         inputNodeContent: contentWithTwoExamples,
         inputNodeId: 'n1',
-        simulatorExampleBinding: { nodeId: 'n1', sourceIndex: 1 },
+        simulatorExampleBinding: { nodeId: 'n1', exampleId: 'schema-example-1' },
       }),
     );
 
     expect(result.current.boundRequestSourceIndex).toBe(1);
     expect(result.current.defaultRequestSourceIndex).toBe(1);
     expect(result.current.bindingName).toBe('Beta');
-    expect(result.current.currentBindingIdentity).toBe('n1:1');
+    expect(result.current.currentBindingIdentity).toBe('n1:schema-example-1');
     expect(result.current.shouldShowSimulatorSourceSelect).toBe(true);
   });
 
@@ -65,7 +65,7 @@ describe('useSimulatorRequestBinding', () => {
       useSimulatorRequestBinding({
         inputNodeContent: contentWithTwoExamples,
         inputNodeId: 'n1',
-        simulatorExampleBinding: { nodeId: 'other', sourceIndex: 1 },
+        simulatorExampleBinding: { nodeId: 'other', exampleId: 'schema-example-1' },
       }),
     );
     expect(otherNode.result.current.boundRequestSourceIndex).toBe(-1);
@@ -74,7 +74,7 @@ describe('useSimulatorRequestBinding', () => {
       useSimulatorRequestBinding({
         inputNodeContent: contentWithTwoExamples,
         inputNodeId: 'n1',
-        simulatorExampleBinding: { nodeId: 'n1', sourceIndex: 7 },
+        simulatorExampleBinding: { nodeId: 'n1', exampleId: 'schema-example-7' },
       }),
     );
     expect(outOfRange.result.current.boundRequestSourceIndex).toBe(-1);

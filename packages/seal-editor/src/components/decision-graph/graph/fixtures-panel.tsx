@@ -182,7 +182,7 @@ export const FixturesPanel: React.FC = () => {
     }
 
     graphActions.setSimulatorRequest(JSON.stringify(fixture.input, null, 2));
-    graphActions.setSimulatorExampleBinding({ nodeId: inputNode.id, sourceIndex: index, sourceName: fixture.name });
+    graphActions.setSimulatorExampleBinding({ nodeId: inputNode.id, exampleId: fixture.id, sourceName: fixture.name });
     const simulatorPanel = panels?.find((panel) => panel.id === 'simulator');
     if (simulatorPanel) {
       graphActions.setActivePanel(simulatorPanel.id);
