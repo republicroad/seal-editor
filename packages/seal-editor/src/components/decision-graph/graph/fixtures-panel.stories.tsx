@@ -97,11 +97,12 @@ export const ReadyAndRun: Story = {
     const runButton = canvas.getByRole('button', { name: 'Run all' });
     expect(runButton).not.toBeNull();
 
-    // 注意力跟随动作：点击 → running → 报告矩阵（2 行，通过/执行错误分家）
+    // 注意力跟随动作：点击 → running → 报告矩阵（2 行，通过/执行错误分家）；
+    // 首行无期望 → 冒烟语义（标签 'smoke'，87840aa1 分层断言）
     await fireEvent.click(runButton);
     await waitFor(() => expect(canvas.getAllByText('正常GOLD用户').length).toBeGreaterThan(0));
     expect(canvas.getAllByText('boom').length).toBeGreaterThan(0);
-    await waitFor(() => expect(canvas.getAllByText('passed').length).toBeGreaterThan(0));
+    await waitFor(() => expect(canvas.getAllByText('smoke').length).toBeGreaterThan(0));
 
     // 调试下钻：装载该示例到 simulator（传选择不传状态）
     const debugButtons = canvas.getAllByText('Debug');
