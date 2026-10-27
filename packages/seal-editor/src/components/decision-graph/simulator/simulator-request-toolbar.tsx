@@ -1,4 +1,5 @@
-import { CopyOutlined, FormatPainterOutlined, PlayCircleOutlined, PlusCircleOutlined } from '#icons';
+// 试点（reui icon 替换 lucide 试水）：四动作换 ReUI 面性形态对照——视觉裁定后定全局去留
+import { CopyPilotReui, FormatPilotReui, PlusCirclePilotReui, RunPilotReui } from '#icons';
 import InformationIcon from '#reui/icons/animated/outline/information';
 import LinkIcon from '#reui/icons/animated/outline/link';
 import React from 'react';
@@ -76,11 +77,23 @@ export const SimulatorRequestToolbar: React.FC<SimulatorRequestToolbarProps> = (
           <React.Fragment>
             <Tooltip title={!hasInputNode ? t('simulator.nodeRequired') : undefined}>
               <Tooltip title={t('common.format')}>
-                <Button size='small' type='text' shape='circle' icon={<FormatPainterOutlined />} onClick={onFormat} />
+                <Button
+                  size='small'
+                  type='text'
+                  shape='circle'
+                  icon={<FormatPilotReui className='size-3.5' />}
+                  onClick={onFormat}
+                />
               </Tooltip>
             </Tooltip>
             <Tooltip title={t('dg.jsonSchema.copyJson')}>
-              <Button size='small' type='text' shape='circle' icon={<CopyOutlined />} onClick={onCopy} />
+              <Button
+                size='small'
+                type='text'
+                shape='circle'
+                icon={<CopyPilotReui className='size-3.5' />}
+                onClick={onCopy}
+              />
             </Tooltip>
             <Tooltip title={t('simulator.saveAsNewExample')}>
               <Button
@@ -88,7 +101,7 @@ export const SimulatorRequestToolbar: React.FC<SimulatorRequestToolbarProps> = (
                 type='text'
                 shape='circle'
                 data-testid='simulator-save-as-new'
-                icon={<PlusCircleOutlined />}
+                icon={<PlusCirclePilotReui className='size-3.5' />}
                 disabled={!hasInputNode}
                 onClick={onSaveAsNew}
               />
@@ -100,7 +113,7 @@ export const SimulatorRequestToolbar: React.FC<SimulatorRequestToolbarProps> = (
                 shape='circle'
                 data-testid='simulator-run'
                 loading={loading}
-                icon={<PlayCircleOutlined />}
+                icon={<RunPilotReui className='size-3.5' />}
                 disabled={!hasInputNode}
                 onClick={onRun}
               />
