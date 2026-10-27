@@ -43,7 +43,16 @@
 | excel 对话框 Steps 图级向导 | WS2-B3 | 非破坏性，1.x 演进 |
 | ~~`DecisionGraphProps` 死 prop 清点~~ | 本会话 ⌘K/浮层排查 | ✅ **primitives 层 sweep 已完成（1.40.0 后批）**：popover placement 接线修复（bottomLeft 等此前被静默丢弃）+ disabled 守卫 + 非 click trigger 开发告警 + 6 文件 antd-ism 归档（title/arrow/destroyTooltipOnHide/defaultOpen/needConfirm 删除/checkedChildren 族/variant/format/tabs type）——ui 层直传组件无此面；`DecisionGraphProps` 本体 sweep 并入 2.0 窗口 |
 
+## 6 · 新增挂账（2026-10-27 增补）
+
+| 项 | 来源 | 处置 |
+| --- | --- | --- |
+| primitives 归档 prop 桶终清 | b2ebb87f（antd 语义接线批）：popover title/arrow/destroyTooltipOnHide/defaultOpen、date-picker variant/format、switch checkedChildren 族、tabs type、dropdown arrow/destroyPopupOnHide/transitionName、modal maskClosable/getContainer | 2.0 从类型签名删除（调用面=零，已核） |
+| bundle 预算回血 | 图标全量 lucide（7d078c71）后实际 ~850kB / 预算 900kB | 2.0 收紧至 870kB 恢复紧约束 |
+| style-debt HK 债缩减 | LEGACY 段删除后 HK-03/08（cascade-layer）范围缩小 | 随 §1 一并清 |
+
 ## 触发与协调
 
-- 窗口开启前置：verdict 侧确认 ≥1.38.0 消费（层化 + positionerClassName 语义）；
+- ~~窗口开启前置：verdict 侧确认 ≥1.38.0 消费~~ **✅ 已达成（2026-10-27：verdict 升级消费 1.42.0）——窗口开启**；
+- 新增前置核查：①verdict 宿主挂载形态（.seal-root 位置）一句话确认（§1 前提）②空注入 vs D6 表态（§2/§3 裁断）；
 - 每项独立分支独立裁断，禁止捆绑；本档随裁断逐项更新状态。
