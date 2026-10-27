@@ -44,6 +44,7 @@ export const buildContractFixtures = (graph: DecisionGraphType, nodeId: string):
     return {
       name: example.name.trim() || `#${index + 1}`,
       input,
+      ...(example.expectation ? { expect: example.expectation } : {}),
     };
   });
 };

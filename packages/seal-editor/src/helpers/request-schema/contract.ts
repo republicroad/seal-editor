@@ -75,13 +75,29 @@ const toRecordData = (data: unknown): Record<string, unknown> => (isRecord(data)
 
 const normalizeStoredExample = (example: unknown, index: number): InputContractExample => {
   const record = isRecord(example) ? example : {};
+  const expectation = isRecord(record.expectation) ? normalizeExpectation(record.expectation) : undefined;
   return {
     id: typeof record.id === 'string' && record.id ? record.id : `contract-example-${index}`,
     name: typeof record.name === 'string' && record.name.trim() ? record.name : formatRequestExampleSourceName(index),
     description: typeof record.description === 'string' && record.description.trim() ? record.description : undefined,
     data: toRecordData(record.data),
     schemaFingerprint: typeof record.schemaFingerprint === 'string' ? record.schemaFingerprint : undefined,
+    ...(expectation ? { expectation } : {}),
   };
+};
+
+/** 期望形状守卫（可序列化三模式；形状不合法的静默丢弃——契约不存垃圾） */
+const normalizeExpectation = (record: Record<string, unknown>): InputContractExample['expectation'] => {
+  if (record.mode === 'deep') {
+    return { mode: 'deep', value: record.value ?? null };
+  }
+  if (record.mode === 'path' && typeof record.path === 'string' && record.path.trim()) {
+    return { mode: 'path', path: record.path, value: record.value ?? null };
+  }
+  if (record.mode === 'expression' && typeof record.source === 'string' && record.source.trim()) {
+    return { mode: 'expression', source: record.source };
+  }
+  return undefined;
 };
 
 const normalizeStoredContract = (stored: Record<string, any>): InputContract => {
@@ -166,6 +182,9 @@ export const writeRequestInputContract = (
       ...(example.description ? { description: example.description } : {}),
       data: cloneRequestExampleValue(example.data) as Record<string, unknown>,
       ...(example.schemaFingerprint ? { schemaFingerprint: example.schemaFingerprint } : {}),
+      ...(example.expectation
+        ? { expectation: cloneRequestExampleValue(example.expectation) as Record<string, unknown> }
+        : {}),
     })),
   };
 
@@ -213,6 +232,8 @@ export const applySchemaTextToInputContract = (contract: InputContract, schemaTe
       description: meta?.description?.trim() || existing?.description,
       data: toRecordData(example),
       schemaFingerprint: undefined,
+      // 同位替换保留既有期望（期望锚定用例身份而非数据形状）
+      ...(existing?.expectation ? { expectation: existing.expectation } : {}),
     };
   });
 
@@ -311,7 +332,7 @@ export const migrateRequestExampleDataByDefinitions = (
 export type InputContractEnvelope = {
   contractVersion: number;
   schema: RequestJsonSchema;
-  examples: Array<Pick<InputContractExample, 'id' | 'name' | 'description' | 'data'>>;
+  examples: Array<Pick<InputContractExample, 'id' | 'name' | 'description' | 'data' | 'expectation'>>;
 };
 
 export const exportInputContractEnvelope = (contract: InputContract): InputContractEnvelope => ({
@@ -322,6 +343,9 @@ export const exportInputContractEnvelope = (contract: InputContract): InputContr
     name: example.name,
     ...(example.description ? { description: example.description } : {}),
     data: cloneRequestExampleValue(example.data) as Record<string, unknown>,
+    ...(example.expectation
+      ? { expectation: cloneRequestExampleValue(example.expectation) as Record<string, unknown> }
+      : {}),
   })),
 });
 
@@ -366,6 +390,7 @@ export const parseInputContractEnvelope = (text: string): ParseInputContractEnve
       name: typeof record.name === 'string' && record.name.trim() ? record.name : formatRequestExampleSourceName(index),
       description: typeof record.description === 'string' && record.description.trim() ? record.description : undefined,
       data: toRecordData(record.data),
+      ...(isRecord(record.expectation) ? { expectation: normalizeExpectation(record.expectation) } : {}),
     };
   });
 

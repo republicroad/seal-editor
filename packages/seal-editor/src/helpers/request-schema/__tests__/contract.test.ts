@@ -337,3 +337,60 @@ describe('share envelope (ADR-013 清单 #7)', () => {
     expect(parsed.contract.examples.map((example) => example.id)).toEqual(['', 'dup', '']);
   });
 });
+
+describe('example expectation 保真（Run all 分层断言）', () => {
+  const expectation = { mode: 'deep', value: { fee: 40 } };
+
+  it('读契约保留 expectation（形状守卫：非法形状静默丢弃）', () => {
+    const { contract } = readRequestInputContract({
+      inputContract: {
+        contractVersion: 1,
+        schema: {},
+        examples: [
+          { id: 'e1', name: 'a', data: {}, expectation },
+          { id: 'e2', name: 'b', data: {}, expectation: { mode: 'nope' } },
+          { id: 'e3', name: 'c', data: {}, expectation: { mode: 'path', path: 'fee', value: 1 } },
+        ],
+      },
+    });
+    expect(contract.examples[0].expectation).toEqual(expectation);
+    expect(contract.examples[1].expectation).toBeUndefined();
+    expect(contract.examples[2].expectation).toEqual({ mode: 'path', path: 'fee', value: 1 });
+  });
+
+  it('写契约往返不丢 expectation', () => {
+    const content: Record<string, any> = {};
+    writeRequestInputContract(content, {
+      contractVersion: 1,
+      schema: {},
+      examples: [{ id: 'e1', name: 'a', data: {}, expectation }],
+    });
+    const { contract } = readRequestInputContract(content);
+    expect(contract.examples[0].expectation).toEqual(expectation);
+  });
+
+  it('信封导出/解析往返保真 expectation', () => {
+    const envelope = exportInputContractEnvelope({
+      contractVersion: 1,
+      schema: {},
+      examples: [{ id: 'e1', name: 'a', data: {}, expectation }],
+    });
+    expect(envelope.examples[0].expectation).toEqual(expectation);
+
+    const parsed = parseInputContractEnvelope(JSON.stringify(envelope));
+    expect(parsed.ok && parsed.contract.examples[0].expectation).toEqual(expectation);
+  });
+
+  it('applySchemaTextToInputContract 同位替换保留既有期望', () => {
+    const next = applySchemaTextToInputContract(
+      {
+        contractVersion: 1,
+        schema: { type: 'object' },
+        examples: [{ id: 'e1', name: 'a', data: { weight: 1 }, expectation }],
+      },
+      JSON.stringify({ type: 'object', properties: { weight: { type: 'number' } }, examples: [{ weight: 2 }] }),
+    );
+    expect(next.examples[0].expectation).toEqual(expectation);
+    expect(next.examples[0].data).toEqual({ weight: 2 });
+  });
+});

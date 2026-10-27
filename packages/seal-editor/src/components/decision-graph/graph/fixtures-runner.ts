@@ -11,6 +11,25 @@ import type { DecisionGraphType } from '../dg-types';
 export type ContractFixture = {
   name: string;
   input: unknown;
+  /**
+   * 可序列化期望（CONTRACT §10 子集：deep/path/expression）——缺省 = 冒烟语义
+   * （执行无异常即通过，ADR-014 §2）。形状与 zen-udf DecisionFixture.expect
+   * 的可序列化三模式一致；predicate 进程糖不入契约。
+   */
+  expect?:
+    | {
+        mode: 'deep';
+        value: unknown;
+      }
+    | {
+        mode: 'path';
+        path: string;
+        value: unknown;
+      }
+    | {
+        mode: 'expression';
+        source: string;
+      };
 };
 
 export type ExampleRunOutcome = 'passed' | 'assertion-failed' | 'execution-error';

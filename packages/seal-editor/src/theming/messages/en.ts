@@ -320,6 +320,15 @@ export const en = {
   'request.runAllPassed': 'passed',
   'request.runAllFailedCount': 'failed',
   'request.outcomePassed': 'passed',
+  'request.outcomeSmokePassed': 'smoke',
+  'request.expectationPinned': 'expected',
+  'request.pinAsExpectation': 'Pin expected',
+  'request.pinAsExpectationHint':
+    'Pin the output of this run as the expected baseline (deep assertion). External-state functions make value assertions non-idempotent - pin deliberately.',
+  'request.clearExpectation': 'Clear',
+  'request.expectationProgress': '{{pinned}}/{{total}} expected',
+  'request.expectationProgressHint':
+    'Examples with a pinned expectation assert the graph output on Run all; the rest run smoke (execution without error only).',
   'request.outcomeAssertionFailed': 'assertion failed',
   'request.outcomeExecutionError': 'error',
   'request.modeDesign': 'Design',
