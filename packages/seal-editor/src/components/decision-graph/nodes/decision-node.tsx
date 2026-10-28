@@ -163,7 +163,11 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
             )}
           </div>
           {menuItems.length > 0 && (
-            <div className={clsx('nodrag')}>
+            <div
+              className={clsx('nodrag nopan')}
+              onClick={(event) => event.stopPropagation()}
+              onMouseDown={(event) => event.stopPropagation()}
+            >
               <Dropdown trigger={['click']} overlayStyle={{ minWidth: 250 }} menu={{ items: menuItems }}>
                 <Button type='text' size={'small'} icon={<MoreOutlined />} />
               </Dropdown>
