@@ -78,7 +78,7 @@ const FormItem: React.FC<{
 
   return (
     <div className={cn('flex flex-col gap-1.5', className)} style={style}>
-      {label}
+      {label != null && <div className='text-xs text-muted-foreground'>{label}</div>}
       {content}
     </div>
   );

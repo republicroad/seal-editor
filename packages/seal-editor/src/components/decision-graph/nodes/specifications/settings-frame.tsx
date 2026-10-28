@@ -1,4 +1,3 @@
-import { Frame, FrameHeader, FramePanel, FrameTitle } from '#reui/frame';
 import React from 'react';
 
 /**
@@ -15,13 +14,15 @@ export const SettingsFrame: React.FC<{
   description?: string;
   children: React.ReactNode;
 }> = ({ title, description, children }) => (
-  <Frame className='settings-form w-full' spacing='xs'>
-    <FrameHeader>
-      <FrameTitle>{title}</FrameTitle>
+  // 扁平分区（业界检查器惯例：Figma/Unreal details panel）——分区标题=弱化小字，
+  // 字段行直排；不再套 bordered Frame（面板边框内再套框 = 三层嵌套盒，用户报告逼仄）
+  <div className='settings-form flex w-full flex-col gap-3' data-testid='settings-frame'>
+    <div className='flex flex-col gap-0.5'>
+      <span className='text-xs font-medium text-[var(--foreground)]'>{title}</span>
       {description ? <p className='text-muted-foreground text-xs'>{description}</p> : null}
-    </FrameHeader>
-    <FramePanel className='flex flex-col gap-2'>{children}</FramePanel>
-  </Frame>
+    </div>
+    <div className='flex flex-col gap-3'>{children}</div>
+  </div>
 );
 
 /**
