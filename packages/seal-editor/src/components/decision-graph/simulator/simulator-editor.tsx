@@ -1,8 +1,8 @@
-import { Editor } from '@monaco-editor/react';
 import json5 from 'json5';
 import React from 'react';
 import { toast } from 'sonner';
 
+import { Editor } from '../../../helpers/monaco-editor';
 import { copyToClipboard } from '../../../helpers/utility';
 import { useThemeMode } from '../../../theme';
 import { useT } from '../../../theming/i18n';

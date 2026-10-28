@@ -1,11 +1,11 @@
 import { InformationIcon } from '#icons';
-import { DiffEditor, Editor } from '@monaco-editor/react';
 import { type editor } from 'monaco-editor';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { PanelGroup } from 'react-resizable-panels';
 import { match } from 'ts-pattern';
 import { useThrottledCallback } from 'use-debounce';
 
+import { DiffEditor, Editor } from '../../../helpers/monaco-editor';
 import { useThemeMode } from '../../../theme';
 import { Spin, Tabs, Tooltip } from '../../primitives';
 import { useDecisionGraphActions, useDecisionGraphState, useNodeDiff } from '../context/dg-store.context';

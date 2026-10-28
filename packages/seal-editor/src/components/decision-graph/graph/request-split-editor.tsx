@@ -1,9 +1,9 @@
 import { DeleteOutlined, DownOutlined, FormatPainterOutlined, PlusOutlined, RightOutlined, WandOutlined } from '#icons';
-import { Editor } from '@monaco-editor/react';
 import clsx from 'clsx';
 import type { editor } from 'monaco-editor';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
+import { Editor } from '../../../helpers/monaco-editor';
 import type { RequestDefinition, RequestDefinitionType, RequestExampleSource } from '../../../helpers/request-schema';
 import { type TranslationKey, useT } from '../../../theming/i18n';
 import { AutosizeTextArea } from '../../autosize-text-area';

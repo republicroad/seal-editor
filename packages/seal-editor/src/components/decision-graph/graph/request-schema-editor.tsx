@@ -1,7 +1,7 @@
-import { Editor } from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
 import React, { useEffect, useRef } from 'react';
 
+import { Editor } from '../../../helpers/monaco-editor';
 import { useT } from '../../../theming/i18n';
 import { JsonToJsonSchemaDialog } from './json-to-json-schema-dialog';
 

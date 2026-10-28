@@ -5,6 +5,7 @@ import * as React from 'react';
 import { useDarkMode } from 'storybook-dark-mode';
 
 import { JdmConfigProvider } from '../src';
+import { markMonacoConfigured } from '../src/helpers/monaco';
 
 // The wasm binary is served from a static dir registered in main.ts; an explicit
 // module_or_path keeps loading deterministic across dev server and static builds.
@@ -18,6 +19,7 @@ await ZenEngineWasm.default({
 // monaco 同源加载（staticDirs 镜像 min/vs，baseURI 解析兼容 Pages 子路径）——
 // 默认 CDN 加载器在离线/内网走查环境会永久挂 Loading
 loader.config({ paths: { vs: new URL('monaco/vs', document.baseURI).href } });
+markMonacoConfigured();
 
 (window as any).VariableType = ZenEngineWasm.VariableType;
 (window as any).Variable = ZenEngineWasm.Variable;

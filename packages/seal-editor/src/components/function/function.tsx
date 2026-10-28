@@ -1,11 +1,11 @@
 import { createVariableType } from '@gorules/zen-engine-wasm';
-import { DiffEditor, Editor, type Monaco, useMonaco } from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
 import React, { useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useDebouncedCallback, useThrottledCallback } from 'use-debounce';
 
 import '../../helpers/monaco';
+import { DiffEditor, Editor, type Monaco, useMonaco } from '../../helpers/monaco-editor';
 import { isWasmAvailable } from '../../helpers/wasm';
 import { useThemeMode } from '../../theme';
 import type { SimulationTrace, SimulationTraceDataFunction } from '../decision-graph/simulator/simulation.types';
