@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.44.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.43.0...@republicroad/seal-editor@1.44.0) (2026-10-28)
+
+### Features
+
+- **simulator:** asOf 时钟注入（单跑通道）——工具条时钟选择器（清空=实时），CONTRACT onRun 载荷加可选 asOf；时序算子（trailing/velocity）调试解锁任意历史时点（verdict 侧 simulateHandler 适配 ExecContext.eventTime）
+- **fixtures:** 深链/调试装载状态过期检查器——Run all 报告落库带图指纹，图在运行后已编辑时显示琥珀横幅（报告可能过期建议重跑）；调试深链复现运行时点状态显式可见
+- **primitives:** DatePicker 增 showTime（datetime-local）
+
 # [1.43.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.42.0...@republicroad/seal-editor@1.43.0) (2026-10-28)
 
 ### Features
