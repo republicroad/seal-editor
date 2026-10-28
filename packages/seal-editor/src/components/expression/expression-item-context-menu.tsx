@@ -53,7 +53,9 @@ export const ExpressionItemContextMenu: React.FC<ExpressionItemContextMenuProps>
         ],
       }}
     >
-      {children}
+      {/* 全尺寸容器：children 是数组时 Dropdown 会包 inline-flex span 收缩到内容宽，
+          选中框因此占不满单元格——单元素 children 走原样分支 + h/w-full 撑满格子 */}
+      <div className='h-full w-full'>{children}</div>
     </Dropdown>
   );
 };
