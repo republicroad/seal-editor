@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.43.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.42.0...@republicroad/seal-editor@1.43.0) (2026-10-28)
+
+### Features
+
+- **monaco:** kernel monaco 本地加载（CDN 废黜）——configureMonaco 三级装配序列（宿主全局注入 > 宿主自配声明 > 动态 peer 导入零 dist 增量）+ helpers/monaco-editor.tsx 门控包装（七挂载文件导入改道）；worker 归宿主装配（Self-hosting 既有路径）
+- **graph:** 表达式行选中框占满单元格（Key/Expression 格满格）
+- **icons:** 图标终态=全量 lucide（reui icon 试点收尾，fill/stroke 混搭清零；新增图标先进 lucide/缺口 Tabler 借骨架规则入档）
+
+### Bug Fixes
+
+- **primitives:** antd 语义接线清欠——Dropdown placement/overlayStyle 接线（节点菜单 minWidth 恢复）+ Modal okButtonProps（danger 删除确认红色语义）/closable（Excel 弹窗关闭钮）/bodyStyle 接线
+- **code-block:** shiki 语言白名单裁剪 29→4（tarball -2.7MB 死重；未知语言优雅降级纯文本）
+- **expression:** 行选中框右侧空白修复（Dropdown 数组 children 收缩包装，满格 239/240px）
+- **types:** 1.42.0 Validate 三红清欠（契约 expectation 判别联合 cast/stories 缺 prop/updateNode return draft）
+
 # [1.42.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.41.0...@republicroad/seal-editor@1.42.0) (2026-10-27)
 
 ### Features
