@@ -2,7 +2,7 @@ import { CloseOutlined, MoreOutlined, SuccessOutlined } from '#icons';
 import { Badge } from '#reui/badge';
 import { IconTile } from '#reui/icon-tile';
 import clsx from 'clsx';
-import React from 'react';
+import React, { useState } from 'react';
 import { match } from 'ts-pattern';
 
 import { useT } from '../../../theming/i18n';
