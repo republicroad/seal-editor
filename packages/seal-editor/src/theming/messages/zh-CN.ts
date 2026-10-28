@@ -427,6 +427,8 @@ export const zhCN: Record<string, string> = {
   'simulator.currentBinding': '当前绑定',
   'simulator.nodeRequired': '需要请求节点才能运行图表。从组件面板拖放一个请求节点。',
   'simulator.saveAsNewExample': '存为新用例',
+  'simulator.asOfPlaceholder': '实时',
+  'simulator.asOfHint': 'asOf 时钟：时序算子（trailing/velocity）以该时刻计算窗口。清空 = 实时。',
   'simulator.savedAsNewExample': '已存为新用例',
   'simulator.run': '运行',
   'simulator.formatSuccess': '格式化成功!',

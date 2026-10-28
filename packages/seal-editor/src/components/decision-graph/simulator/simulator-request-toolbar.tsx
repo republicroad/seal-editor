@@ -6,10 +6,11 @@ import {
   PlayCircleOutlined,
   PlusCircleOutlined,
 } from '#icons';
+import dayjs, { type Dayjs } from 'dayjs';
 import React from 'react';
 
 import type { TranslationKey } from '../../../theming/i18n';
-import { Button, Select, Tooltip, Typography } from '../../primitives';
+import { Button, DatePicker, Select, Tooltip, Typography } from '../../primitives';
 
 export type SimulatorRequestToolbarProps = {
   t: (key: TranslationKey) => string;
@@ -22,6 +23,9 @@ export type SimulatorRequestToolbarProps = {
   onSourceChange: (sourceIndex: number) => void;
   onFormat: () => void;
   onCopy: () => void;
+  /** asOf 时钟（ISO，可空=实时）：时序算子窗口右边界钉扎 */
+  asOf?: string;
+  onAsOfChange: (asOf?: string) => void;
   /** 存为新用例（Postman "Save as example" 捕获范式：当前输入追加进示例库并绑定） */
   onSaveAsNew: () => void;
   onRun?: () => void;
@@ -38,6 +42,8 @@ export const SimulatorRequestToolbar: React.FC<SimulatorRequestToolbarProps> = (
   onSourceChange,
   onFormat,
   onCopy,
+  asOf,
+  onAsOfChange,
   onSaveAsNew,
   onRun,
 }) => {
@@ -68,6 +74,18 @@ export const SimulatorRequestToolbar: React.FC<SimulatorRequestToolbarProps> = (
           </div>
         </Tooltip>
       )}
+      <Tooltip title={t('simulator.asOfHint')}>
+        <div className='flex min-w-0 items-center gap-1'>
+          <DatePicker
+            size='small'
+            showTime
+            allowClear
+            value={asOf ? dayjs(asOf) : null}
+            onChange={(date: Dayjs | null) => onAsOfChange(date ? date.toISOString() : undefined)}
+            placeholder={t('simulator.asOfPlaceholder')}
+          />
+        </div>
+      </Tooltip>
       {bindingName && !shouldShowSimulatorSourceSelect && (
         <Typography.Text type='secondary' className='flex min-w-0 items-center gap-1 text-xs'>
           <Tooltip title={t('simulator.currentBinding')}>

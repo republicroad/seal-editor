@@ -12,6 +12,8 @@ export interface DatePickerProps {
   size?: 'large' | 'middle' | 'small';
   variant?: string;
   format?: string;
+  /** 含时间选择（input type 切 datetime-local，值格式 YYYY-MM-DDTHH:mm） */
+  showTime?: boolean;
   placeholder?: string;
   className?: string;
   style?: React.CSSProperties;
@@ -27,13 +29,14 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   className,
   style,
   placeholder,
+  showTime = false,
   // A1 sweep 归档：variant 线体未实现；format 硬编码 YYYY-MM-DD（挂 2.0 值格式语义）
   variant: _variant,
   format: _format,
 }) => (
   <input
-    type='date'
-    value={value?.format ? value.format('YYYY-MM-DD') : ''}
+    type={showTime ? 'datetime-local' : 'date'}
+    value={value?.format ? value.format(showTime ? 'YYYY-MM-DDTHH:mm' : 'YYYY-MM-DD') : ''}
     placeholder={placeholder}
     disabled={disabled}
     onChange={(event) => {

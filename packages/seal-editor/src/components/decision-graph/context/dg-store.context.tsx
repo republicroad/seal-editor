@@ -144,6 +144,8 @@ export type DecisionGraphStoreType = {
     user: string;
 
     simulatorRequest?: string;
+    /** asOf 时钟（ISO 字符串，可空=实时）：时序算子窗口右边界钉扎（模拟器单跑通道） */
+    simulatorAsOf?: string;
     simulatorExampleBinding?: SimulatorExampleBinding;
 
     /** ADR-013 批次三：Run all 执行槽位——宿主注入（appshell = simulateHandler 适配），未注入时 Run all 不渲染 */
@@ -253,6 +255,7 @@ export type DecisionGraphStoreType = {
     removeNodeType: (id: string, kind?: NodeTypeKind) => void;
 
     setSimulatorRequest: (req: string) => void;
+    setSimulatorAsOf: (asOf?: string) => void;
     setSimulatorExampleBinding: (binding?: SimulatorExampleBinding) => void;
     setFixturesRunner: (runner: FixturesRunner | null) => void;
     /** Fixtures 面板/节点页签共用运行入口：作用于图内唯一 inputNode；打开面板 + 图级状态机驱动 */
@@ -989,6 +992,9 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       },
       setSimulatorRequest: (req) => {
         stateStore.setState({ simulatorRequest: req });
+      },
+      setSimulatorAsOf: (asOf) => {
+        stateStore.setState({ simulatorAsOf: asOf });
       },
       setSimulatorExampleBinding: (binding) => {
         stateStore.setState({ simulatorExampleBinding: binding });

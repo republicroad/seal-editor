@@ -28,7 +28,7 @@ export type SimulatorRequestPanelProps = {
   onChange?: (contextJson: string) => void;
   hasInputNode?: boolean;
   loading?: boolean;
-  onRun?: (payload: { graph: DecisionGraphType; context: unknown }) => void;
+  onRun?: (payload: { graph: DecisionGraphType; context: unknown; asOf?: string }) => void;
 };
 
 export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
@@ -41,17 +41,17 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
   const t = useT();
   const { stateStore, actions } = useDecisionGraphRaw();
 
-  const { simulatorRequest, simulatorExampleBinding, inputNodeContent, inputNodeId } = useDecisionGraphState(
-    ({ simulatorRequest, simulatorExampleBinding, decisionGraph }) => {
+  const { simulatorRequest, simulatorAsOf, simulatorExampleBinding, inputNodeContent, inputNodeId } =
+    useDecisionGraphState(({ simulatorRequest, simulatorAsOf, simulatorExampleBinding, decisionGraph }) => {
       const inputNode = decisionGraph?.nodes?.find((node) => node.type === 'inputNode');
       return {
         simulatorRequest,
+        simulatorAsOf,
         simulatorExampleBinding,
         inputNodeContent: inputNode?.content,
         inputNodeId: inputNode?.id,
       };
-    },
-  );
+    });
   const {
     requestSources,
     boundRequestSourceIndex,
@@ -251,6 +251,7 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
       onRun({
         graph: stateStore.getState().decisionGraph,
         context: parsed,
+        ...(simulatorAsOf ? { asOf: simulatorAsOf } : {}),
       });
     } catch {
       toast.error(t('simulator.invalidFormatTitle'), {
@@ -282,6 +283,8 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
         bindingName={bindingName}
         hasInputNode={hasInputNode}
         loading={loading}
+        asOf={simulatorAsOf}
+        onAsOfChange={actions.setSimulatorAsOf}
         onSourceChange={handleSourceChange}
         onFormat={handleFormat}
         onCopy={handleCopy}

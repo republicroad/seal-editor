@@ -448,6 +448,9 @@ export const en = {
   'simulator.currentBinding': 'Current binding',
   'simulator.nodeRequired': 'Request node is required to run the graph. Drag-and-drop it from the Components panel.',
   'simulator.saveAsNewExample': 'Save as new example',
+  'simulator.asOfPlaceholder': 'Realtime',
+  'simulator.asOfHint':
+    'as-of clock: time-window operators (trailing/velocity) evaluate at this instant. Clear = realtime.',
   'simulator.savedAsNewExample': 'Saved as new example',
   'simulator.run': 'Run',
   'simulator.formatSuccess': 'Formatted successfully!',
