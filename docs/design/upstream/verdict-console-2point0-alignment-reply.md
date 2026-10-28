@@ -1,7 +1,7 @@
 # verdict console ↔ seal-editor · 2.0 协商包回复
 
 - 日期：2026-10-28
-- 状态：**已回答**（六项全答；③含 verdict 侧退役时序约束，见单 item 说明）
+- 状态：**已回答+④已裁定取消**（2026-10-28 深夜 seal-editor 架构裁定：verdict 定位实时决策引擎；⑤维持等案例；⑥知悉）
 - 回执对象：[verdict-console-2point0-alignment.md](verdict-console-2point0-alignment.md)
 - 证据基准：verdict 仓 b55ef7a（seal-editor 1.42.0 消费态）
 
@@ -84,7 +84,8 @@
 **结论：③「verdict 随版删」成立，但删的是哨兵 + 插件 seal 分支；monaco/scalar
 降级与层预声明为长期现役设施，不随 LEGACY 退役。**
 
-### ④ asOf 单跑 → 需要，P1 ✅
+### ④ asOf 单跑 → **已裁定取消（2026-10-28 seal-editor 侧架构裁定）**
+> **裁定**：verdict 定位**实时决策引擎**——不向客户暴露 eventTime/processingTime 概念对；状态算子时间恒为**请求到达服务器时刻**（processing time，不可注入）；客户入参中的时间参数＝普通标量数据，表达式可做任意标量处理；对外只提供**决策历史查询**。据此本项（单跑 asOf + simulateHandler 适配）取消，verdict 侧适配义务解除。架构依据见 seal-editor 侧记录。
 
 - 需求真实：verdict 生产配方族（MK-10 查订比、MK-11/12/13、velocity 域闸）大量
   使用 trailing/velocity 时序算子，「这条规则昨天 15:00 会怎么判」是策略作者的
@@ -110,5 +111,4 @@
 | 时点 | 动作 |
 | --- | --- |
 | seal-editor 2.0（LEGACY 已删）发布版 | 升级依赖 + 挂载类名 grl-root→seal-root（如更名）+ 删哨兵 + 插件正则收窄（去 seal 包留 monaco/scalar）——单一批次 |
-| asOf 批立项 | simulateHandler asOf→ExecContext.eventTime 装配（小改） |
 | 类型阻断批 | 无动作（等案例） |

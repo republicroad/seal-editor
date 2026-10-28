@@ -56,4 +56,5 @@
 
 - ~~窗口开启前置：verdict 侧确认 ≥1.38.0 消费~~ **✅ 已达成（2026-10-27：verdict 升级消费 1.42.0）——窗口开启**；
 - 前置核查 **✅ 全部回收**：verdict 回执见 [verdict-console-2point0-alignment-reply.md](./upstream/verdict-console-2point0-alignment-reply.md)（六项全答；③修正定性=插件 monaco/scalar 分支为长期现役设施不可整删，仅删哨兵+seal 分支）；
+- **时间语义裁定（2026-10-28 深夜）**：verdict 定位**实时决策引擎**——状态算子时间恒为请求到达时刻，不暴露 eventTime/processingTime 概念对；客户入参时间＝标量数据（表达式任意标量处理）；对外仅提供**决策历史查询**。单跑 asOf 批取消（回执④裁定入档）；Run all fixtures 的 asOf 保留（QA 内部通道，非产品语义）。
 - 每项独立分支独立裁断，禁止捆绑；本档随裁断逐项更新状态。
