@@ -2,12 +2,12 @@ import { CloseOutlined, MoreOutlined, SuccessOutlined } from '#icons';
 import { Badge } from '#reui/badge';
 import { IconTile } from '#reui/icon-tile';
 import clsx from 'clsx';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { match } from 'ts-pattern';
 
 import { useT } from '../../../theming/i18n';
 import { DiffIcon } from '../../diff-icon';
-import { Button, Dropdown, type MenuProps, Typography } from '../../primitives';
+import { Button, Dropdown, type MenuProps } from '../../primitives';
 import { TextEdit } from '../../text-edit';
 import { GraphCard } from './graph-card';
 import { NodeColor } from './specifications/colors';
@@ -35,10 +35,6 @@ export type DecisionNodeProps = {
   onNameChange?: (name: string) => void;
   compactMode?: boolean;
   listMode?: boolean;
-  details?: React.ReactNode;
-  detailsOpen?: boolean;
-  detailsTitle?: string;
-  onDetailsClose?: () => void;
 };
 
 /** A3 执行内联回显：run strip 输出摘要（截断 JSON，title 全文） */
@@ -71,10 +67,6 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
   compactMode,
   listMode,
   helper,
-  details,
-  detailsOpen = false,
-  detailsTitle = 'Details',
-  onDetailsClose,
 }) => {
   const t = useT();
   // ③ 输出摘要点击复制（行内 copied 反馈，同 C2 引用复制模式）
@@ -239,59 +231,6 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
           </div>
         )}
       </GraphCard>
-      <TransitionMount state={detailsOpen} timeout={100}>
-        {(stage, shouldMount) =>
-          shouldMount && (
-            <GraphCard
-              className='nodrag'
-              style={{
-                transition: '0.1s ease-in-out',
-                transform: stage === 'enter' ? 'translateY(0)' : 'translateY(-10px)',
-                opacity: stage === 'enter' ? 1 : 0,
-              }}
-            >
-              <div className='flex flex-col'>
-                <div className='flex items-center justify-between gap-1 p-2 bg-[var(--seal-color-primary-bg-fade)] rounded-t-[var(--node-border-radius)] border-b border-b-[var(--border)]'>
-                  <Typography.Text className='text-xs! text-[var(--muted-foreground)]'>{detailsTitle}</Typography.Text>
-                  <Button
-                    type={'text'}
-                    size={'small'}
-                    className='text-[var(--muted-foreground)] [font-size:0]!'
-                    icon={<CloseOutlined style={{ fontSize: 8 }} />}
-                    onClick={onDetailsClose}
-                  />
-                </div>
-                <div className='flex flex-col p-2.5 gap-1 [&_.settings-form_.seal-ce]:text-xs'>{details}</div>
-              </div>
-            </GraphCard>
-          )
-        }
-      </TransitionMount>
     </div>
   );
-};
-
-const TRANSITION_TIMEOUT = 100;
-
-const TransitionMount: React.FC<{
-  state: boolean;
-  timeout?: number;
-  children: (stage: 'enter' | 'leave', shouldMount: boolean) => React.ReactNode;
-}> = ({ state, timeout = TRANSITION_TIMEOUT, children }) => {
-  const [shouldMount, setShouldMount] = useState(state);
-  const [stage, setStage] = useState<'enter' | 'leave'>(state ? 'enter' : 'leave');
-
-  useEffect(() => {
-    if (state) {
-      setShouldMount(true);
-      const frame = requestAnimationFrame(() => setStage('enter'));
-      return () => cancelAnimationFrame(frame);
-    }
-
-    setStage('leave');
-    const timer = setTimeout(() => setShouldMount(false), timeout);
-    return () => clearTimeout(timer);
-  }, [state, timeout]);
-
-  return <>{children(stage, shouldMount)}</>;
 };

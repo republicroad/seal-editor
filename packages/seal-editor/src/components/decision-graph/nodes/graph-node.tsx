@@ -1,4 +1,4 @@
-import { BookOutlined, CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from '#icons';
+import { BookOutlined, CopyOutlined, DeleteOutlined, PlusOutlined } from '#icons';
 import type { HandleProps } from '@xyflow/react';
 import { Handle, NodeToolbar, Position } from '@xyflow/react';
 import clsx from 'clsx';
@@ -6,7 +6,6 @@ import React from 'react';
 import { P, match } from 'ts-pattern';
 
 import { platform } from '../../../helpers/platform';
-import { usePersistentState } from '../../../helpers/use-persistent-state';
 import { useT } from '../../../theming/i18n';
 import type { MenuProps } from '../../primitives';
 import { App, Button, Typography } from '../../primitives';
@@ -15,10 +14,6 @@ import { useDecisionGraphActions, useDecisionGraphState, useNodeDiff } from '../
 import type { DecisionNodeProps } from './decision-node';
 import { DecisionNode } from './decision-node';
 import type { MinimalNodeSpecification } from './specifications/specification-types';
-
-enum Details {
-  Settings,
-}
 
 export type GraphNodeProps = {
   id: string;
@@ -48,8 +43,6 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
   ) => {
     const t = useT();
     const [hovered, setHovered] = React.useState(false);
-    const [currentDetails, setCurrentDetails] = usePersistentState<Details>(`node:details:${id}`, Details.Settings);
-    const [detailsOpen, setDetailsOpen] = usePersistentState<boolean>(`node:detailsOpen:${id}`, false);
     const graphActions = useDecisionGraphActions();
     const { modal } = App.useApp();
     const { nodeError, nodeTrace, disabled, compactMode, dimmed } = useDecisionGraphState(
@@ -68,13 +61,6 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
     );
 
     const { diff } = useNodeDiff(id);
-
-    const Settings = specification.renderSettings;
-
-    const openSettings = () => {
-      setDetailsOpen(currentDetails === Details.Settings ? !detailsOpen : true);
-      setCurrentDetails(Details.Settings);
-    };
 
     const confirmDelete = () =>
       modal.confirm({
@@ -137,16 +123,6 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
         {/* WS1-R2：悬停/选中显现的快捷工具栏（flow-1 node toolbar 模式） */}
         <NodeToolbar isVisible={isSelected || hovered} position={Position.Top} offset={10}>
           <div className='nodrag nopan flex items-center gap-0.5 rounded-md border border-[var(--border)] bg-[var(--seal-color-bg-container)] p-0.5 shadow-md'>
-            {Settings && (
-              <Button
-                type='text'
-                size='small'
-                className='h-6 w-6 p-0'
-                aria-label={t('spec.common.settings')}
-                icon={<EditOutlined />}
-                onClick={openSettings}
-              />
-            )}
             <Button
               type='text'
               size='small'
@@ -192,22 +168,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
           type={specification.displayName}
           helper={helper}
           name={name}
-          details={Settings ? <Settings id={id} /> : undefined}
-          detailsOpen={detailsOpen}
-          detailsTitle={match(currentDetails)
-            .with(Details.Settings, () => t('spec.common.settings'))
-            .otherwise(() => undefined)}
-          onDetailsClose={() => setDetailsOpen(false)}
-          actions={
-            !Settings
-              ? actions
-              : [
-                  ...(actions ?? []),
-                  <Button key='settings' type='text' style={{ marginLeft: 'auto' }} onClick={openSettings}>
-                    Settings
-                  </Button>,
-                ]
-          }
+          actions={actions}
           status={match([nodeTrace, nodeError, displayError])
             .with([P._, P._, true], () => 'error' as const)
             .with([P._, P.not(P.nullish), P._], () => 'error' as const)
