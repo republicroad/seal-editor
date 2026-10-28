@@ -54,5 +54,5 @@
 ## 触发与协调
 
 - ~~窗口开启前置：verdict 侧确认 ≥1.38.0 消费~~ **✅ 已达成（2026-10-27：verdict 升级消费 1.42.0）——窗口开启**；
-- 新增前置核查：①verdict 宿主挂载形态（.seal-root 位置）一句话确认（§1 前提）②空注入 vs D6 表态（§2/§3 裁断）；
+- 新增前置核查：①宿主挂载形态 ②空注入 vs D6 表态——已整理为跨仓协商包 [verdict-console-2point0-alignment.md](./upstream/verdict-console-2point0-alignment.md)（速答版可直接转发，六项含回收动作映射）；
 - 每项独立分支独立裁断，禁止捆绑；本档随裁断逐项更新状态。
