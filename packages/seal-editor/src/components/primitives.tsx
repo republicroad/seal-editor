@@ -8,7 +8,7 @@
  * This file is a barrel: each component lives in its own module under
  * `./primitives/` and is re-exported here unchanged.
  */
-export { App } from './primitives/app';
+export { App, ConfirmHost } from './primitives/app';
 export type { ConfirmOptions } from './primitives/app';
 
 export { Avatar } from './primitives/avatar';

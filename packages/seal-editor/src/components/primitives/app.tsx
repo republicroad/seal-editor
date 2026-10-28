@@ -62,7 +62,7 @@ const AppContext = React.createContext<AppContextValue>({
   modal: { confirm: openConfirm },
 });
 
-const ConfirmHost: React.FC = () => {
+export const ConfirmHost: React.FC = () => {
   const [items, setItems] = React.useState<ConfirmItem[]>(confirmState.items);
   React.useEffect(() => {
     confirmState.listeners.add(setItems);

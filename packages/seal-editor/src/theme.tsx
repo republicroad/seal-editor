@@ -1,7 +1,7 @@
 import React, { useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Toaster } from 'sonner';
 
-import { App } from './components/primitives';
+import { App, ConfirmHost } from './components/primitives';
 import { useWasmReady } from './helpers/wasm';
 import { computeTheme } from './theming/compute';
 import type { ThemeSeeds } from './theming/derive';
@@ -137,6 +137,7 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
           <SealContainerProvider container={container}>
             <I18nProvider locale={locale} overrides={messages}>
               <Toaster theme={mode} position='bottom-right' richColors />
+              <ConfirmHost />
               {children}
             </I18nProvider>
           </SealContainerProvider>

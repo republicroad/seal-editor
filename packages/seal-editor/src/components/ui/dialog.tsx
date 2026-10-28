@@ -42,12 +42,15 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  container,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Popup> & {
   showCloseButton?: boolean;
+  /** portal 容器（token 岛根）：缺省 body——岛部署（.seal-root 根 div）下 body 无 token 会透明 */
+  container?: HTMLElement;
 }) {
   return (
-    <DialogPortal data-slot='dialog-portal'>
+    <DialogPortal data-slot='dialog-portal' container={container}>
       <DialogOverlay />
       <DialogPrimitive.Popup
         data-slot='dialog-content'
