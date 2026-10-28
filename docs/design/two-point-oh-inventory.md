@@ -9,7 +9,7 @@
 
 | 项 | 现状 | 2.0 动作 | 依赖 |
 | --- | --- | --- | --- |
-| tokens `:root` 接管规则 | ISLAND/LEGACY 双轨并存（LEGACY = `:root:not(:has(.seal-root))` 全局注入兜底） | 两段删除，token 只剩 `.seal-root` 作用域 | **verdict 确认消费 ≥1.38.0**（层化版；层插件/哨兵同步退役） |
+| tokens `:root` 接管规则 | ISLAND/LEGACY 双轨并存（LEGACY = `:root:not(:has(.seal-root))` 全局注入兜底） | 两段删除，token 只剩 `.seal-root` 作用域 | **✅ 前置达成**：verdict 回执（[alignment-reply](./upstream/verdict-console-2point0-alignment-reply.md)）确认无岛外 token 消费、挂载=根 div（类名 grl-root，2.0 随版更名 seal-root 由 verdict 同步）；哨兵随 LEGACY 已删版同发 |
 | guard-dist-css `:root` 禁令 | 禁令注释挂起（--check 只断言层化） | `--strict` 启用：断言无 `:root` 接管 | 上行完成后 |
 | verdict 兜底层插件/哨兵 | 值守中（补位未层化 dist 时代产物） | 随 LEGACY 删除退役（verdict 仓动作） | 跨仓协调 |
 
@@ -17,16 +17,17 @@
 
 - 现状：`dg-empty` 把空数组注入也回落内置表——宿主无法表达「空参考面」；
   `TabFunction` 的 `?.length ? : undefined` 实为防御性死代码。
-- 2.0 动作：改「**无注入 = 不显示参考面**」——`dg-empty` 不回落 + `TabFunction`
-  直传 + `Function` 组件缺省值去除。**两处一起动**（ADR-024 实施回执注记在案）。
-- 风险：standalone 应用不传 prop 时 Libraries 页签从有到无——D6 一并裁断。
+- 状态：**✅ 已裁断（2026-10-28 verdict 回执）＝方案 A**（无注入=不显示）：verdict
+  唯一挂载点恒注入宿主目录（prop=undefined 非 []，空数组路径不存在），A 的独立
+  模式代价 verdict 零承担。
+- 2.0 动作（**四处一起动**）：`dg-empty` 不回落 + `TabFunction` 直传 +
+  `Function` 组件缺省值去除 + **§3 Dg 内置缺省目录随之撤销**（prop absent=不显示）。
 
 ## 3 · D6 · `Dg` 缺省目录去留
 
 - 现状：缺省保留（1.x 兼容；独立应用开箱体验）。
-- 2.0 裁断建议：**保留**（§2 改为「无注入=不显示」后，Dg 缺省与空语义互斥——
-  若保留 Dg 缺省则空注入语义不成立；二选一。倾向：保留 Dg，§2 撤销）。
-  ⚠️ §2 与本条互斥，2.0 窗口开启时显式裁断一次。
+- 状态：**✅ 已裁定（2026-10-28，随 §2 方案 A）＝缺省目录撤销**（互斥条款兑现：
+  A 语义下 prop absent=不显示；§2 实施时四处一起动）。
 
 ## 4 · rename 收尾清点
 
@@ -54,5 +55,5 @@
 ## 触发与协调
 
 - ~~窗口开启前置：verdict 侧确认 ≥1.38.0 消费~~ **✅ 已达成（2026-10-27：verdict 升级消费 1.42.0）——窗口开启**；
-- 新增前置核查：①宿主挂载形态 ②空注入 vs D6 表态——已整理为跨仓协商包 [verdict-console-2point0-alignment.md](./upstream/verdict-console-2point0-alignment.md)（速答版可直接转发，六项含回收动作映射）；
+- 前置核查 **✅ 全部回收**：verdict 回执见 [verdict-console-2point0-alignment-reply.md](./upstream/verdict-console-2point0-alignment-reply.md)（六项全答；③修正定性=插件 monaco/scalar 分支为长期现役设施不可整删，仅删哨兵+seal 分支）；
 - 每项独立分支独立裁断，禁止捆绑；本档随裁断逐项更新状态。
