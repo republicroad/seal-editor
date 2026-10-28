@@ -4,6 +4,7 @@ import {
   mergeRequestExampleDefaultsByDefinitions,
   normalizeRequestExampleDataByDefinitions,
   readRequestInputContract,
+  requestSchemaFingerprint,
 } from '../../../helpers/request-schema';
 import type { DecisionGraphType } from '../dg-types';
 import type { ContractFixture, FixturesRunner } from './fixtures-runner';
@@ -50,6 +51,9 @@ export const buildContractFixtures = (graph: DecisionGraphType, nodeId: string):
     };
   });
 };
+
+/** 图指纹（FNV-1a canonical）：Run all 报告过期检查锚（图编辑后报告/调试装载复现的是运行时点状态） */
+export const graphFingerprint = (graph: DecisionGraphType): string => requestSchemaFingerprint(graph);
 
 /** 面板/节点按钮共用的运行入口；无示例集返回 null（不产生空跑） */
 export const runFixturesForNode = async (

@@ -6,7 +6,7 @@ import { useT } from '../../../theming/i18n';
 import { AutosizeTextArea } from '../../autosize-text-area';
 import { Button, Input, Popover, Select, Tooltip, Typography } from '../../primitives';
 import { useDecisionGraphActions, useDecisionGraphState } from '../context/dg-store.context';
-import { buildContractFixtures, listInputNodes } from './fixtures-run';
+import { buildContractFixtures, graphFingerprint, listInputNodes } from './fixtures-run';
 import type { ContractFixture, ExampleRunReport } from './fixtures-runner';
 
 type ExpectationDraft = NonNullable<ContractFixture['expect']>;
@@ -303,6 +303,13 @@ export const FixturesPanel: React.FC = () => {
     [decisionGraph, inputNode],
   );
   const expectationCount = fixtures.filter((fixture) => fixture.expect).length;
+  // 深链/调试装载状态过期检查器：图在本次运行后已编辑 → 报告复现的是运行时点状态
+  const staleRun = useMemo(() => {
+    if (fixturesRun?.status !== 'done' || !fixturesRun.graphFingerprint) {
+      return false;
+    }
+    return graphFingerprint(decisionGraph) !== fixturesRun.graphFingerprint;
+  }, [fixturesRun, decisionGraph]);
 
   // 期望写路径（单漏斗）：pin（deep=本次 actual 快捷）与编辑器三模式共用
   const setExpectationAt = (index: number, expect: ExpectationDraft | undefined) => {
@@ -402,6 +409,15 @@ export const FixturesPanel: React.FC = () => {
 
       {inputNode && !hasExamples && (
         <div className='p-3 text-xs text-[var(--muted-foreground)]'>{t('request.fixturesNoExamples')}</div>
+      )}
+
+      {staleRun && fixturesRun?.status === 'done' && (
+        <div
+          className='mx-3 mt-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-600 dark:text-amber-400'
+          data-testid='fixtures-stale-run'
+        >
+          {t('request.fixturesStaleRun')}
+        </div>
       )}
 
       {fixturesRun?.status === 'error' && (

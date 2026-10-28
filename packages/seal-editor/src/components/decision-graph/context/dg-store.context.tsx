@@ -20,7 +20,7 @@ import type { FunctionLibrary } from '../../function/helpers/libs';
 import type { DecisionEdge, DecisionGraphAnnotation, DecisionGraphType, DecisionNode } from '../dg-types';
 import { privateSymbol } from '../dg-types';
 import { mapToGraphEdge, mapToGraphEdges, mapToGraphNode, mapToGraphNodes } from '../dg-util';
-import { buildContractFixtures, listInputNodes, runFixturesForNode } from '../graph/fixtures-run';
+import { buildContractFixtures, graphFingerprint, listInputNodes, runFixturesForNode } from '../graph/fixtures-run';
 import type { ContractDriftEvent, ExampleRunReport, FixturesRunner } from '../graph/fixtures-runner';
 import type { useGraphClipboard } from '../hooks/use-graph-clipboard';
 import type { CustomNodeSpecification } from '../nodes/custom-node';
@@ -157,6 +157,8 @@ export type DecisionGraphStoreType = {
       status: 'running' | 'done' | 'error';
       report?: ExampleRunReport;
       error?: string;
+      /** 运行时点的图指纹：与当前图比对 → 报告过期检查（深链/调试装载防旧错困惑） */
+      graphFingerprint?: string;
     } | null;
     /** 域约束：规则图至多一个 inputNode——面板直接作用于它，无绑定概念 */
 
@@ -1033,7 +1035,12 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
           const report = await runFixturesForNode(decisionGraph, nodeId, fixturesRunner);
           stateStore.setState({
             fixturesRun: report
-              ? { nodeId, status: 'done', report }
+              ? {
+                  nodeId,
+                  status: 'done',
+                  report,
+                  graphFingerprint: graphFingerprint(decisionGraph),
+                }
               : { nodeId, status: 'error', error: 'no-examples' },
           });
         } catch (error: any) {
