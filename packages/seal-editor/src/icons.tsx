@@ -27,6 +27,7 @@ export {
   CloudUpload as CloudUploadOutlined,
   Minimize2 as CompressOutlined,
   GitFork as DeploymentUnitOutlined,
+  Clock as ClockOutlined,
   ChevronDown as DownOutlined,
   Move as DragOutlined,
   Trash2 as DeleteOutlined,

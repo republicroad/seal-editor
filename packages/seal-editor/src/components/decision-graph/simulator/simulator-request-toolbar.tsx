@@ -1,4 +1,5 @@
 import {
+  ClockOutlined,
   CopyOutlined,
   FormatPainterOutlined,
   InformationIcon,
@@ -10,7 +11,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import React from 'react';
 
 import type { TranslationKey } from '../../../theming/i18n';
-import { Button, DatePicker, Select, Tooltip, Typography } from '../../primitives';
+import { Button, DatePicker, Popover, Select, Tooltip, Typography } from '../../primitives';
 
 export type SimulatorRequestToolbarProps = {
   t: (key: TranslationKey) => string;
@@ -74,18 +75,35 @@ export const SimulatorRequestToolbar: React.FC<SimulatorRequestToolbarProps> = (
           </div>
         </Tooltip>
       )}
-      <Tooltip title={t('simulator.asOfHint')}>
-        <div className='flex min-w-0 items-center gap-1'>
-          <DatePicker
-            size='small'
-            showTime
-            allowClear
-            value={asOf ? dayjs(asOf) : null}
-            onChange={(date: Dayjs | null) => onAsOfChange(date ? date.toISOString() : undefined)}
-            placeholder={t('simulator.asOfPlaceholder')}
-          />
-        </div>
-      </Tooltip>
+      {/* asOf 时钟：紧凑图标钮 + Popover 弹出选择器（一行内联会挤压工具条——用户反馈逼仄） */}
+      <Popover
+        trigger='click'
+        placement='bottomRight'
+        content={
+          <div className='flex w-64 flex-col gap-2 p-1' data-testid='asof-editor'>
+            <span className='text-[10px] leading-snug opacity-70'>{t('simulator.asOfHint')}</span>
+            <DatePicker
+              size='small'
+              showTime
+              allowClear
+              value={asOf ? dayjs(asOf) : null}
+              onChange={(date: Dayjs | null) => onAsOfChange(date ? date.toISOString() : undefined)}
+              placeholder={t('simulator.asOfPlaceholder')}
+            />
+          </div>
+        }
+      >
+        <Button
+          size='small'
+          type='text'
+          shape='circle'
+          data-testid='simulator-asof-toggle'
+          aria-label={t('simulator.asOfHint')}
+          aria-pressed={Boolean(asOf)}
+          className={asOf ? 'bg-primary/10 text-primary' : undefined}
+          icon={<ClockOutlined />}
+        />
+      </Popover>
       {bindingName && !shouldShowSimulatorSourceSelect && (
         <Typography.Text type='secondary' className='flex min-w-0 items-center gap-1 text-xs'>
           <Tooltip title={t('simulator.currentBinding')}>
