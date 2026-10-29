@@ -5,12 +5,12 @@
 - 判据：2.0 = 唯一的破坏性版本窗口——1.x 期间挂账的所有「留到 2.0」在此清点，
   逐项给出现状/动作/依赖，避免窗口开启时靠记忆拼图
 
-## 1 · LEGACY 退役（ADR-023 D2 后半）
+## 1 · LEGACY 退役（ADR-023 D2 后半）——✅ **seal-editor 侧已落地（2026-10-29 批① 4dd4bd7e）**
 
 | 项 | 现状 | 2.0 动作 | 依赖 |
 | --- | --- | --- | --- |
-| tokens `:root` 接管规则 | ISLAND/LEGACY 双轨并存（LEGACY = `:root:not(:has(.seal-root))` 全局注入兜底） | 两段删除，token 只剩 `.seal-root` 作用域 | **✅ 前置达成**：verdict 回执（[alignment-reply](./upstream/verdict-console-2point0-alignment-reply.md)）确认无岛外 token 消费、挂载=根 div（类名 grl-root，2.0 随版更名 seal-root 由 verdict 同步）；哨兵随 LEGACY 已删版同发 |
-| guard-dist-css `:root` 禁令 | 禁令注释挂起（--check 只断言层化） | `--strict` 启用：断言无 `:root` 接管 | 上行完成后 |
+| tokens `:root` 接管规则 | ✅ 两段已删（provider 无岛分支同步退役改开发告警+入口告警移除），token 仅存 `.seal-root` 作用域 | 已实施 | **✅ 前置达成**：verdict 回执（[alignment-reply](./upstream/verdict-console-2point0-alignment-reply.md)）确认无岛外 token 消费、挂载=根 div（类名 grl-root，2.0 随版更名 seal-root 由 verdict 同步）；哨兵随 LEGACY 已删版同发 |
+| guard-dist-css `:root` 禁令 | ✅ strict 已启用（`:root:not(:has(` 与 `:not(:has(.seal-root))` 精确禁令，tailwind 暗色宽容形态豁免） | 已实施 | 上行完成后 |
 | verdict 兜底层插件/哨兵 | 值守中（补位未层化 dist 时代产物） | 随 LEGACY 删除退役（verdict 仓动作） | 跨仓协调 |
 
 ## 2 · functionLibraries 空注入语义（ADR-024 注记挂账）
@@ -22,12 +22,15 @@
   模式代价 verdict 零承担。
 - 2.0 动作（**四处一起动**）：`dg-empty` 不回落 + `TabFunction` 直传 +
   `Function` 组件缺省值去除 + **§3 Dg 内置缺省目录随之撤销**（prop absent=不显示）。
+- **✅ 已实施（2026-10-29 批② 85c6f574）**：四处全落地 + FunctionDebugger libraries
+  改可选 + 顺带真修复 monaco `setExtraLibs` 双轨残留（此前仍吃内置表）。
 
 ## 3 · D6 · `Dg` 缺省目录去留
 
 - 现状：缺省保留（1.x 兼容；独立应用开箱体验）。
 - 状态：**✅ 已裁定（2026-10-28，随 §2 方案 A）＝缺省目录撤销**（互斥条款兑现：
   A 语义下 prop absent=不显示；§2 实施时四处一起动）。
+- **✅ 已实施（随批② 85c6f574）。**
 
 ## 4 · rename 收尾清点
 
@@ -49,7 +52,7 @@
 | 项 | 来源 | 处置 |
 | --- | --- | --- |
 | primitives 归档 prop 桶终清 | b2ebb87f（antd 语义接线批）：popover title/arrow/destroyTooltipOnHide/defaultOpen、date-picker variant/format、switch checkedChildren 族、tabs type、dropdown arrow/destroyPopupOnHide/transitionName、modal maskClosable/getContainer | 2.0 从类型签名删除（调用面=零，已核） |
-| bundle 预算回血 | 图标全量 lucide（7d078c71）后实际 ~850kB / 预算 900kB | 2.0 收紧至 870kB 恢复紧约束 |
+| bundle 预算回血 | ✅ **已落地（2026-10-29 批④ 0796f66f）**：900→870kB（实测 raw 726.1kB/gzip 182.2kB，余量 ~144kB） | 已恢复紧约束 |
 | style-debt HK 债缩减 | LEGACY 段删除后 HK-03/08（cascade-layer）范围缩小 | 随 §1 一并清 |
 
 ## 7 · UI 前沿对齐批（2026-10-29 增补，verdict 宿主提案）
@@ -65,6 +68,17 @@ verdict 宿主 2.0 提案的 UI/UX 批次（与 LEGACY 退役批/语义裁断批
 | P1-5 聚焦模式（chrome collapse） | 待排（~0.5 天） | 建议：扩展 hideLeftToolbar state 为 hideChrome（左栏+面板收起，Esc 退出）；与浏览器全屏互补 |
 | P1-6 presence 展示位 | 裁定：**2.0 不立项原生位，宿主 overlay** | presence 是多用户语义，内核=单用户组件（ADR-008 host-owned 同一哲学）；verdict 自建 heartbeat + overlay 零内核 API 面；真实时协作属 3.0 级立项。宿主 overlay 注意 z 阶梯（<50 浮层位）+ nodrag 容器 |
 | base-ui 迁移残留自查 | ✅ **已落地**（4441b098） | 五类扫描：asChild/textValue（词边界）/forceMount/GroupLabel 全净；onSelect 真残留=数据网格列显隐菜单 2 处（Radix 防关闭惯用法→closeOnClick={false}） |
+
+## 8 · 2.0 破坏性批次执行回执（2026-10-29 深夜）
+
+| 批 | 状态 | 提交 |
+| --- | --- | --- |
+| ① LEGACY 退役（§1） | ✅ 落地：tokens 两段删+provider :root 兜底退役（开发告警）+入口告警移除+guard strict | 4dd4bd7e |
+| ② 语义裁断 A（§2+§3） | ✅ 落地：四处一起动+FunctionDebugger 可选+monaco setExtraLibs 双轨真修复 | 85c6f574 |
+| ③ props 终清（§6 桶） | ✅ 落地：六 primitives 桶删+**11 处漏网调用面**随类型门现形清退（b2ebb87f「调用面=零」审计勘误过期）；遗留=dt-dialog getContainer 链终端消费清零但牵连 mountDialogsOnBody 公共 prop，归 DecisionTableProps/DecisionGraphProps 本体 sweep（**仍挂账**） | ccb98eaf |
+| ④ bundle 预算收紧（§6） | ✅ 落地：900→870kB | 0796f66f |
+
+**待口令**：推送 + 2.0.0 发版（verdict 随版单一批次在其后：升依赖+更名+删哨兵+插件正则收窄）。
 
 ## 触发与协调
 

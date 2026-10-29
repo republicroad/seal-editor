@@ -60,7 +60,10 @@ verdict 已落地三件兜底：①隐藏 `.seal-root` 哨兵（杀 P1 接管选
   成为嵌套子层，内部次序保留）。层顺序语义：宿主可 `@layer seal-editor;` **预声明**
   钉最低优先级（layer 顺序 = 首次声明顺序）；未预声明 = 文档序 = 与现状等价 →
   独立应用零影响。
-- **D2 · LEGACY 接管退役**：删除 tokens.css 的 `:root:not(:has(.seal-root))` /
+- **D2 · LEGACY 接管退役**（✅ **已实施，2026-10-29 批① 4dd4bd7e**：两段删除 +
+  provider :root 兜底退役改开发告警 + 入口告警移除 + guard strict 禁令启用；
+  `data-seal-standalone` 显式形态按 2026-10-25 实证裁定**不立项**——`.seal-root` 通吃）：
+  删除 tokens.css 的 `:root:not(:has(.seal-root))` /
   `[data-mode=X]:not(:has(.seal-root))` 两段（ISLAND 作用域 `.seal-root` /
   `.seal-root[data-mode]` 不变）。若存在依赖"无壳全局注入"的独立应用，提供显式
   opt-in：根元素挂 `data-seal-standalone`，接管规则改写为显式形式（如
