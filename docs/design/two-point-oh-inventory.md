@@ -52,6 +52,20 @@
 | bundle 预算回血 | 图标全量 lucide（7d078c71）后实际 ~850kB / 预算 900kB | 2.0 收紧至 870kB 恢复紧约束 |
 | style-debt HK 债缩减 | LEGACY 段删除后 HK-03/08（cascade-layer）范围缩小 | 随 §1 一并清 |
 
+## 7 · UI 前沿对齐批（2026-10-29 增补，verdict 宿主提案）
+
+verdict 宿主 2.0 提案的 UI/UX 批次（与 LEGACY 退役批/语义裁断批同窗——动内核的改动在破坏性窗口内做省一次大版本）：
+
+| 批 | 状态 | 落点 |
+| --- | --- | --- |
+| P0-1 undo/redo 全操作栈 | ✅ **已落地**（0d90f6fe） | S009-A 快照栈补齐全操作面：undo/redo 三写通道（RF 视图+模型态+onChange）+ 选区保持 + addEdges/removeEdges 进栈补口 + resetHistory 边界动作（宿主在切模型/恢复版本时调用）+ ⌘Z/⌘⇧Z（Win Ctrl+Z/Ctrl+Y）window 键位（文本焦点让路）+ 工具条按钮。`BREAKING`: actions 新增 resetHistory 必选成员 |
+| P0-2 校验面板产品化 | ✅ **已落地**（656d801d） | 内置校验器（MISSING_INPUT/EMPTY_EXPRESSION error + EMPTY_RULES warning；表达式语法错归宿主通道——内核无 zen 解析器）+ DiagnosticsController 250ms 防抖 + 画布停靠面板（行点击选中+定位）+ `diagnostics` prop 宿主通道 + 工具条错误计数徽标 |
+| P1-3 快捷键帮助面板 | ✅ **已落地**（b76c31fc） | 非输入焦点 `?` 弹清单（平台感知 ⌘/Ctrl）+ 随批补 ⌘C/⌘D/⌘V 的 Ctrl 等价 |
+| P1-4 diff 独立入口 | 待排（~0.5 天） | 建议：侧工具条开关切 diff 基线视图（复用 diffBaseline/calculateDiffGraph 既有面），与版本历史恢复流解耦 |
+| P1-5 聚焦模式（chrome collapse） | 待排（~0.5 天） | 建议：扩展 hideLeftToolbar state 为 hideChrome（左栏+面板收起，Esc 退出）；与浏览器全屏互补 |
+| P1-6 presence 展示位 | 裁定：**2.0 不立项原生位，宿主 overlay** | presence 是多用户语义，内核=单用户组件（ADR-008 host-owned 同一哲学）；verdict 自建 heartbeat + overlay 零内核 API 面；真实时协作属 3.0 级立项。宿主 overlay 注意 z 阶梯（<50 浮层位）+ nodrag 容器 |
+| base-ui 迁移残留自查 | ✅ **已落地**（4441b098） | 五类扫描：asChild/textValue（词边界）/forceMount/GroupLabel 全净；onSelect 真残留=数据网格列显隐菜单 2 处（Radix 防关闭惯用法→closeOnClick={false}） |
+
 ## 触发与协调
 
 - ~~窗口开启前置：verdict 侧确认 ≥1.38.0 消费~~ **✅ 已达成（2026-10-27：verdict 升级消费 1.42.0）——窗口开启**；
