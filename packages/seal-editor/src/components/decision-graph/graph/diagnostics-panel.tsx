@@ -1,5 +1,4 @@
 import { CloseOutlined } from '#icons';
-import { Panel } from '@xyflow/react';
 import React from 'react';
 
 import { useT } from '../../../theming/i18n';
@@ -71,10 +70,12 @@ export const DiagnosticsPanel: React.FC = () => {
     goToNode(nodeId);
   };
 
+  // 右缘全高抽屉（绝对定位于 .react-flow 相对容器）——比浮动小窗不遮节点、
+  // 容量大；z-30=pinned 层（z 阶梯：低于浮层 50，高于选区 35 以下）
   return (
-    <Panel position='bottom-right' style={{ margin: 10, maxWidth: 380, width: 'max-content' }}>
+    <>
       <div
-        className='nodrag nopan flex max-h-[45vh] w-80 flex-col overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--seal-color-bg-container)] shadow-md'
+        className='nodrag nopan absolute inset-y-3 right-3 z-30 flex w-[340px] flex-col overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--seal-color-bg-container)] shadow-md'
         data-slot='diagnostics-panel'
         data-testid='diagnostics-panel'
       >
@@ -96,7 +97,7 @@ export const DiagnosticsPanel: React.FC = () => {
             onClick={() => setDiagnosticsOpen(false)}
           />
         </div>
-        <div className='flex flex-col gap-1 overflow-y-auto p-2'>
+        <div className='flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-2'>
           {entries.length === 0 ? (
             <span className='p-1 text-[11px] text-[var(--muted-foreground)]' data-testid='diagnostics-pass'>
               {t('dg.diagnostics.pass')}
@@ -127,6 +128,6 @@ export const DiagnosticsPanel: React.FC = () => {
           )}
         </div>
       </div>
-    </Panel>
+    </>
   );
 };
