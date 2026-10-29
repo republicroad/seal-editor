@@ -50,7 +50,7 @@ jobs:
       - name: Build
         run: pnpm build
 
-      # ADR-023 #5：dist 层化守卫（canary——LEGACY 禁令随 2.0 启用）
+      # ADR-023 #5：dist 层化守卫（2.0 strict——LEGACY :root 接管禁令已启用）
       - name: Guard — dist CSS layered (ADR-023)
         run: node scripts/guard-dist-css.mjs
 

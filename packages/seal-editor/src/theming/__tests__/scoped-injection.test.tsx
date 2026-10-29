@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import React from 'react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { JdmConfigProvider } from '../../theme';
 
@@ -12,18 +12,25 @@ afterEach(() => {
 });
 
 describe('JdmConfigProvider scoped injection (P3)', () => {
-  it('LEGACY: no .seal-root ancestor → :root style tag + documentElement data-mode', () => {
-    render(
-      <JdmConfigProvider>
-        <Probe />
-      </JdmConfigProvider>,
-    );
-    expect(document.documentElement.dataset.mode).toBe('light');
-    const styles = [...document.querySelectorAll('style')].filter((s) =>
-      (s.textContent || '').includes('--seal-color-primary'),
-    );
-    expect(styles.length).toBeGreaterThan(0);
-    expect(styles[0].textContent).toContain('#1677ff');
+  it('2.0 LEGACY 退役：no .seal-root ancestor → 不注入、不写 document、开发告警指向挂岛', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      render(
+        <JdmConfigProvider>
+          <Probe />
+        </JdmConfigProvider>,
+      );
+      // document 不被写（LEGACY :root style tag 与 documentElement data-mode 均随 2.0 退役）
+      expect(document.documentElement.dataset.mode).toBeUndefined();
+      const styles = [...document.querySelectorAll('style')].filter((s) =>
+        (s.textContent || '').includes('--seal-color-primary'),
+      );
+      expect(styles).toHaveLength(0);
+      // 迁移告警：宿主必须挂 .seal-root 岛
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('[seal-editor] No .seal-root wrapper found'));
+    } finally {
+      warn.mockRestore();
+    }
   });
 
   it('SCOPED: .seal-root ancestor → inline vars + data-mode on the island', () => {

@@ -66,10 +66,11 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
    * independently-themed islands can coexist, and Radix portals (via
    * SealContainerProvider) stay inside the island's variable scope, which also
    * brings the scoped preflight over portaled nodes (HK-14).
-   * Legacy fallback: no `.seal-root` ancestor → global `:root` style tag +
-   * documentElement dataset, exactly as before P3. */
+   * 2.0 (ADR-023 D2 step 2): the `:root` fallback is retired. No `.seal-root`
+   * ancestor → nothing is injected and document is untouched; a dev warning
+   * points the host at the wrapper requirement (tokens cannot resolve
+   * outside the island by construction). */
   const anchorRef = useRef<HTMLSpanElement>(null);
-  const styleRef = useRef<HTMLStyleElement>(null);
   const [container, setContainer] = useState<HTMLElement | undefined>(undefined);
 
   const exposedTokens = useMemo(() => computeTheme(mode, seeds, token), [mode, seeds, token]);
@@ -80,14 +81,26 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
   }, []);
 
   useLayoutEffect(() => {
-    const target = (container ?? document.documentElement) as HTMLElement & {
-      dataset: Record<string, string>;
-    };
-    target.dataset.mode = mode;
+    if (!container) {
+      return;
+    }
+    container.dataset.mode = mode;
     return () => {
-      delete target.dataset.mode;
+      delete container.dataset.mode;
     };
   }, [container, mode]);
+
+  // 2.0 LEGACY 退役（ADR-023 D2 step 2）：无岛 = token 注入跳过 + 开发告警
+  // （token 只在 .seal-root 作用域解析，岛外注入无消费点）。effect 内告警——
+  // 渲染体告警违 react-compiler 纯度（popover 前科）。
+  useLayoutEffect(() => {
+    if (!container) {
+      console.warn(
+        '[seal-editor] No .seal-root wrapper found — token injection skipped since v2.0. ' +
+          'Wrap your app in .seal-root (island scope). See ADR-023.',
+      );
+    }
+  }, [container]);
 
   useLayoutEffect(() => {
     if (container) {
@@ -106,14 +119,6 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
         container.style.removeProperty('color');
       };
     }
-
-    const el = styleRef.current;
-    if (el) {
-      const cssBlock = Object.entries(exposedTokens)
-        .map(([key, value]) => `  ${key}: ${value};`)
-        .join('\n');
-      el.textContent = `:root {\n${cssBlock}\n  color: var(--foreground);\n}`;
-    }
   }, [container, exposedTokens]);
 
   return (
@@ -121,19 +126,7 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
       <DictionaryContext.Provider value={dicts}>
         <App>
           <span ref={anchorRef} style={{ display: 'none' }} data-seal-anchor='' />
-          {!container && (
-            <style
-              ref={styleRef}
-              dangerouslySetInnerHTML={{
-                __html: (() => {
-                  const cssBlock = Object.entries(exposedTokens)
-                    .map(([key, value]) => `  ${key}: ${value};`)
-                    .join('\n');
-                  return `:root {\n${cssBlock}\n  color: var(--foreground);\n}`;
-                })(),
-              }}
-            />
-          )}
+
           <SealContainerProvider container={container}>
             <I18nProvider locale={locale} overrides={messages}>
               <Toaster theme={mode} position='bottom-right' richColors />
