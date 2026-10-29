@@ -16,9 +16,11 @@ function DialogTrigger({ ...props }: React.ComponentProps<typeof DialogPrimitive
   return <DialogPrimitive.Trigger data-slot='dialog-trigger' {...props} />;
 }
 
-function DialogPortal({ ...props }: React.ComponentProps<typeof DialogPrimitive.Portal>) {
+function DialogPortal({ container, ...props }: React.ComponentProps<typeof DialogPrimitive.Portal>) {
   const sealContainer = useSealPortalContainer();
-  return <DialogPrimitive.Portal data-slot='dialog-portal' container={sealContainer} {...props} />;
+  // 显式 container 优先，否则落岛上下文——props 展开在 container 之后会把
+  // 调用方未传的 container:undefined 覆盖回 body（岛部署下透明，2b643d33 同族）
+  return <DialogPrimitive.Portal data-slot='dialog-portal' container={container ?? sealContainer} {...props} />;
 }
 
 function DialogClose({ ...props }: React.ComponentProps<typeof DialogPrimitive.Close>) {
