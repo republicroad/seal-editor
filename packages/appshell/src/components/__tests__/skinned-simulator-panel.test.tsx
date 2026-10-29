@@ -106,7 +106,7 @@ describe('SkinnedDecisionGraph simulator panel', () => {
     );
   }, 30000);
 
-  it('未传 simulateHandler：侧栏为 undo/redo/auto-layout/对齐网格/画布锁/吸附/上传/下载/诊断/⌘K = 10', async () => {
+  it('未传 simulateHandler：侧栏为 undo/redo/auto-layout/对齐网格/画布锁/吸附/上传/下载/诊断/聚焦/⌘K = 11', async () => {
     const { container } = render(
       <ThemeContextProvider>
         <SkinnedDecisionGraph value={graph as never} onChange={vi.fn()} />
@@ -116,9 +116,10 @@ describe('SkinnedDecisionGraph simulator panel', () => {
       () => {
         // 侧栏组合（与 simulateHandler 无关）：undo/redo（P0-1，2026-10-29）/
         // auto-layout / 对齐网格 / 画布锁 / 吸附开关（A3，1.39.0）/ 上传 /
-        // 下载（WS1-R6）/ 诊断面板开关（P0-2，2026-10-29）/ ⌘K（第二列）= 10
+        // 下载（WS1-R6）/ 诊断面板开关（P0-2，2026-10-29）/ 聚焦模式（P1-5）/
+        // ⌘K（第二列）= 11（对比开关仅 diffBaseline 在场渲染，本测无）
         const count = container.querySelectorAll('[class*="grid-area:sidebar"] button').length;
-        if (count !== 10) {
+        if (count !== 11) {
           throw new Error(`sidebar not settled (count=${count})`);
         }
       },

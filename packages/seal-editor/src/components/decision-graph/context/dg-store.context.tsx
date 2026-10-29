@@ -113,6 +113,15 @@ export type DecisionGraphStoreType = {
     /** 诊断面板开合 */
     diagnosticsOpen: boolean;
 
+    /** P1-5 聚焦模式（chrome collapse）：侧栏/页签条/面板卸载，画布独占；⌘\ 切换、Esc 退出 */
+    focusMode: boolean;
+
+    /** P1-4 diff 投影门：diffBaseline 在场时是否渲染对比投影（缺省 true=传基线即对比，1.x 兼容） */
+    diffMode: boolean;
+
+    /** P1-4：宿主经 prop 供给 diff 基线的在场信号（工具条对比开关渲染条件） */
+    hasDiffBaseline: boolean;
+
     customNodes: CustomNodeSpecification<object, any>[];
 
     /** ADR-024 D2：函数参考面板目录（Libraries 页签；缺省内置表，宿主可注入） */
@@ -197,6 +206,10 @@ export type DecisionGraphStoreType = {
     setHostDiagnostics: (entries: ValidationEntry[]) => void;
     /** P0-2：诊断面板开合 */
     setDiagnosticsOpen: (open: boolean) => void;
+    /** P1-5：聚焦模式开合 */
+    setFocusMode: (open: boolean) => void;
+    /** P1-4：diff 投影门控 */
+    setDiffMode: (open: boolean) => void;
 
     handleNodesChange: (nodesChange: NodeChange[]) => void;
     handleEdgesChange: (edgesChange: EdgeChange[]) => void;
@@ -353,6 +366,9 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         hostDiagnostics: [],
         builtinDiagnostics: [],
         diagnosticsOpen: false,
+        focusMode: false,
+        diffMode: true,
+        hasDiffBaseline: false,
       })),
     [],
   );
@@ -454,6 +470,12 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       },
       setDiagnosticsOpen: (open) => {
         stateStore.setState({ diagnosticsOpen: open });
+      },
+      setFocusMode: (open) => {
+        stateStore.setState({ focusMode: open });
+      },
+      setDiffMode: (open) => {
+        stateStore.setState({ diffMode: open });
       },
       handleNodesChange: (changes = []) => {
         const { nodesState } = referenceStore.getState();

@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { match } from 'ts-pattern';
 
-import { useDecisionGraphRaw, useDecisionGraphState } from './context/dg-store.context';
+import { useDecisionGraphActions, useDecisionGraphRaw, useDecisionGraphState } from './context/dg-store.context';
 import { GraphPanel } from './dg-panel';
 import type { UserResolver } from './dg-types';
 import type { GraphRef } from './graph/graph';
@@ -73,15 +73,37 @@ export const DecisionGraphWrapper = React.memo(
     ref,
   ) {
     const [disableTabs, setDisableTabs] = useState(false);
-    const { hasActiveNode, viewConfig, hideLeftToolbar } = useDecisionGraphState(
-      ({ decisionGraph, activeTab, viewConfig, hideLeftToolbar }) => {
+    const { stateStore } = useDecisionGraphRaw();
+    const { setFocusMode } = useDecisionGraphActions();
+    const { hasActiveNode, viewConfig, hideLeftToolbar, focusMode } = useDecisionGraphState(
+      ({ decisionGraph, activeTab, viewConfig, hideLeftToolbar, focusMode }) => {
         return {
           hasActiveNode: (decisionGraph?.nodes ?? []).some((node) => node.id === activeTab),
           viewConfig,
           hideLeftToolbar,
+          focusMode,
         };
       },
     );
+
+    // P1-5 聚焦模式键位：⌘\ 切换 / Esc 退出（window 级——chrome 已卸载时无处挂
+    // div 监听；文本焦点让路同 undo 键位纪律）
+    useEffect(() => {
+      const onKeyDown = (event: KeyboardEvent) => {
+        const target = event.target as HTMLElement | null;
+        if (target?.closest?.('input, textarea, select, [contenteditable], .monaco-editor, .cm-editor')) {
+          return;
+        }
+        if (event.key === '\\' && (event.metaKey || event.ctrlKey)) {
+          event.preventDefault();
+          setFocusMode(!stateStore.getState().focusMode);
+        } else if (event.key === 'Escape' && stateStore.getState().focusMode) {
+          setFocusMode(false);
+        }
+      };
+      window.addEventListener('keydown', onKeyDown);
+      return () => window.removeEventListener('keydown', onKeyDown);
+    }, [setFocusMode, stateStore]);
 
     // 无注入项时保持原 tabBarExtraContent 引用不变——零注入零 DOM 差异
     const tabsExtra =
@@ -97,9 +119,9 @@ export const DecisionGraphWrapper = React.memo(
     return (
       <>
         <ResolveUserEffect userResolver={userResolver} />
-        {!hideLeftToolbar && <GraphSideToolbar />}
+        {!hideLeftToolbar && !focusMode && <GraphSideToolbar />}
         <div className={'[grid-area:graph] flex flex-1 flex-col gap-1 overflow-hidden bg-white'}>
-          <GraphTabs disabled={disableTabs} tabBarExtraContent={tabsExtra} />
+          {!focusMode && <GraphTabs disabled={disableTabs} tabBarExtraContent={tabsExtra} />}
 
           <Graph
             ref={ref}
@@ -110,7 +132,7 @@ export const DecisionGraphWrapper = React.memo(
           <GraphNodes className={clsx([!hasActiveNode && viewConfig?.enabled && 'flex flex-col'])} />
           <TabContents customFunctions={customFunctions} />
         </div>
-        <GraphPanel />
+        {!focusMode && <GraphPanel />}
       </>
     );
   }),

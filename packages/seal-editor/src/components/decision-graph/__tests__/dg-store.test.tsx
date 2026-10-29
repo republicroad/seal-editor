@@ -456,6 +456,23 @@ describe('undo/redo（P0-1 快照栈接线）', () => {
     act(() => context.actions.setDiagnosticsOpen(true));
     expect(context.stateStore.getState().diagnosticsOpen).toBe(true);
   });
+
+  it('P1-5/P1-4 槽位：聚焦开合与 diff 投影门', () => {
+    expect(context.stateStore.getState().focusMode).toBe(false);
+    act(() => context.actions.setFocusMode(true));
+    expect(context.stateStore.getState().focusMode).toBe(true);
+
+    // diffMode 缺省 true=宿主传基线即对比（1.x 兼容）；hasDiffBaseline 由 dg-empty 依 prop 写入
+    expect(context.stateStore.getState().diffMode).toBe(true);
+    expect(context.stateStore.getState().hasDiffBaseline).toBe(false);
+    act(() => {
+      context.actions.setDiffMode(false);
+      context.stateStore.setState({ hasDiffBaseline: true });
+    });
+    const state = context.stateStore.getState();
+    expect(state.diffMode).toBe(false);
+    expect(state.hasDiffBaseline).toBe(true);
+  });
 });
 
 describe('allowedNamespaces 治理谓词（批 23）', () => {

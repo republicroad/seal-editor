@@ -113,11 +113,14 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
   const mountedRef = useRef(false);
   const graphActions = useDecisionGraphActions();
   const { stateStore, listenerStore } = useDecisionGraphRaw();
-  const { decisionGraph, openTabs, activeTab } = useDecisionGraphState(({ decisionGraph, openTabs, activeTab }) => ({
-    decisionGraph,
-    openTabs,
-    activeTab,
-  }));
+  const { decisionGraph, openTabs, activeTab, diffMode } = useDecisionGraphState(
+    ({ decisionGraph, openTabs, activeTab, diffMode }) => ({
+      decisionGraph,
+      openTabs,
+      activeTab,
+      diffMode,
+    }),
+  );
 
   const innerChange = useDebouncedCallback((graph: DecisionGraphType) => {
     onChange?.(graph);
@@ -207,14 +210,14 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
   }, [innerChange]);
 
   useEffect(() => {
-    // diff 对比模式下由下方「diffBaseline 重算」effect 接管渲染投影，此处跳过
-    if (value === undefined || diffBaseline) {
+    // diff 对比投影在场时由下方「diffBaseline 重算」effect 接管渲染投影，此处跳过
+    if (value === undefined || (diffBaseline && diffMode)) {
       return;
     }
     if (mountedRef.current && !equal(value, decisionGraph)) {
       graphActions.setDecisionGraph(value);
     }
-  }, [value, diffBaseline]);
+  }, [value, diffBaseline, diffMode]);
 
   useEffect(() => {
     if (value !== undefined) {
@@ -234,19 +237,21 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
     mountedRef.current = true;
   }, []);
 
-  // diffBaseline 变化（切换对比版本 / 移除对比）→ 重算渲染投影或恢复裸图
+  // diffBaseline 变化（切换对比版本 / 移除对比）→ 重算渲染投影或恢复裸图；
+  // diffMode=false 时基线在场也不投影（P1-4 工具条对比开关门控）
   useEffect(() => {
+    stateStore.setState({ hasDiffBaseline: !!diffBaseline });
     if (value === undefined) {
       return;
     }
-    if (diffBaseline) {
+    if (diffBaseline && diffMode) {
       graphActions.setDecisionGraph(
         calculateDiffGraph(value, diffBaseline, { customNodes: customNodes ?? [], components: components ?? [] }),
       );
     } else if (mountedRef.current) {
       graphActions.setDecisionGraph(value);
     }
-  }, [diffBaseline]);
+  }, [diffBaseline, diffMode]);
 
   return null;
 };

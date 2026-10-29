@@ -6,6 +6,7 @@ import {
   Controls,
   MiniMap,
   type NodeChange,
+  Panel,
   ReactFlow,
   SelectionMode,
   getOutgoers,
@@ -15,7 +16,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal';
-import { StickyNoteIcon } from 'lucide-react';
+import { Minimize2Icon, StickyNoteIcon } from 'lucide-react';
 import React, { type MutableRefObject, forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
 
 import { useT } from '../../../theming/i18n';
@@ -113,17 +114,20 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
   const graphReferences = useDecisionGraphReferences((s) => s);
   const { onReactFlowInit } = useDecisionGraphListeners(({ onReactFlowInit }) => ({ onReactFlowInit }));
   const { modal } = App.useApp();
-  const { disabled, hasInputNode, components, customNodes, id, canvasLocked, snapToGrid, annotations } =
-    useDecisionGraphState(({ id, disabled, components, customNodes, decisionGraph, canvasLocked, snapToGrid }) => ({
-      id,
-      disabled,
-      components,
-      customNodes,
-      canvasLocked,
-      snapToGrid,
-      annotations: decisionGraph?.annotations,
-      hasInputNode: (decisionGraph?.nodes || []).some((n) => n.type === NodeKind.Input),
-    }));
+  const { disabled, hasInputNode, components, customNodes, id, canvasLocked, snapToGrid, annotations, focusMode } =
+    useDecisionGraphState(
+      ({ id, disabled, components, customNodes, decisionGraph, canvasLocked, snapToGrid, focusMode }) => ({
+        id,
+        disabled,
+        components,
+        customNodes,
+        canvasLocked,
+        snapToGrid,
+        annotations: decisionGraph?.annotations,
+        hasInputNode: (decisionGraph?.nodes || []).some((n) => n.type === NodeKind.Input),
+        focusMode,
+      }),
+    );
 
   graphReferences.nodesState.current = nodesState;
   graphReferences.edgesState.current = edgesState;
@@ -564,9 +568,22 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               </Controls>
               <MiniMap pannable zoomable position='bottom-left' />
               <Background id={id} color='var(--border)' gap={20} />
-              <NodeInspector />
+              {!focusMode && <NodeInspector />}
               <DiagnosticsController />
-              <DiagnosticsPanel />
+              {!focusMode && <DiagnosticsPanel />}
+              {focusMode && (
+                <Panel position='top-right' style={{ margin: 10 }}>
+                  <Button
+                    size='small'
+                    aria-label={t('dg.focus.exit')}
+                    data-testid='focus-exit'
+                    icon={<Minimize2Icon className='size-4' />}
+                    onClick={() => graphActions.setFocusMode(false)}
+                  >
+                    {t('dg.focus.exit')}
+                  </Button>
+                </Panel>
+              )}
               <ShortcutsHelp />
             </ReactFlow>
             {/* B2 拖线悬空释放 → 节点搜索菜单（fixed 定位在释放点；backdrop 点击/Esc 关闭） */}

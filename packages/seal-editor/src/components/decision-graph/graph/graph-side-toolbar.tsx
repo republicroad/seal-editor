@@ -1,6 +1,8 @@
 import { AutoLayoutOutlined, CloudDownloadOutlined, CloudUploadOutlined } from '#icons';
 import {
   Command as CommandIcon,
+  FocusIcon,
+  GitCompareIcon,
   Grid2x2Icon,
   ListChecksIcon,
   LockIcon,
@@ -54,6 +56,8 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
     undo,
     redo,
     setDiagnosticsOpen,
+    setFocusMode,
+    setDiffMode,
   } = useDecisionGraphActions();
   const { disabled, panels, activePanel, viewConfig, commandMenuOpen, canvasLocked, snapToGrid, canUndo, canRedo } =
     useDecisionGraphState(
@@ -72,6 +76,9 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
   const diagnosticsOpen = useDecisionGraphState(({ diagnosticsOpen: open }) => open);
   const diagnosticErrorCount = useDecisionGraphState((state) =>
     selectDiagnostics(state).reduce((n, entry) => (entry.severity === 'error' ? n + 1 : n), 0),
+  );
+  const { focusMode, diffMode, hasDiffBaseline } = useDecisionGraphState(
+    ({ focusMode, diffMode, hasDiffBaseline }) => ({ focusMode, diffMode, hasDiffBaseline }),
   );
 
   const handleUploadInput = async (event: any) => {
@@ -454,6 +461,33 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
                   </span>
                 )}
               </div>
+            </Tooltip>
+            {/* P1-4 diff 独立入口：基线在场（宿主供给）时画布内直接切换对比投影，
+                与版本历史恢复流解耦 */}
+            {hasDiffBaseline && (
+              <Tooltip title={t('dg.toolbar.diffMode')} placement={'right'}>
+                <Button
+                  type={'text'}
+                  aria-label={t('dg.toolbar.diffMode')}
+                  aria-pressed={diffMode}
+                  data-testid='diff-mode-toggle'
+                  icon={<GitCompareIcon className='size-4' />}
+                  className={diffMode ? 'bg-primary/10 text-primary' : undefined}
+                  onClick={() => setDiffMode(!diffMode)}
+                />
+              </Tooltip>
+            )}
+            {/* P1-5 聚焦模式入口：画布独占（快捷键同通道） */}
+            <Tooltip title={t('dg.focus.enter')} placement={'right'}>
+              <Button
+                type={'text'}
+                aria-label={t('dg.focus.enter')}
+                aria-pressed={focusMode}
+                data-testid='focus-mode-toggle'
+                icon={<FocusIcon className='size-4' />}
+                className={focusMode ? 'bg-primary/10 text-primary' : undefined}
+                onClick={() => setFocusMode(!focusMode)}
+              />
             </Tooltip>
             <Tooltip title={t('dg.command.open')} placement='right'>
               <Button

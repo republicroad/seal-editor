@@ -51,6 +51,7 @@ export const ShortcutsHelp: React.FC = () => {
     {
       title: t('dg.shortcuts.group.navigate'),
       rows: [
+        { keys: [`${mod}+\\`], label: t('dg.focus.enter') },
         { keys: [`${mod}+K`], label: t('dg.shortcuts.command') },
         { keys: ['?'], label: t('dg.shortcuts.help') },
       ],
