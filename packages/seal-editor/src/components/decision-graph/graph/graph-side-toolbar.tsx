@@ -348,6 +348,7 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
       label: (snapToGrid ? '✓ ' : '') + t('dg.toolbar.snapToGrid'),
       onClick: () => setSnapToGrid(!snapToGrid),
     },
+    { key: 'divider-view', type: 'divider' },
     ...(hasDiffBaseline
       ? [
           {
