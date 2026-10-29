@@ -424,11 +424,11 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
               </>
             )}
             {!disabled && (
-              <Dropdown menu={{ items: uploadItems }} placement='bottomRight' trigger={['click']} arrow>
+              <Dropdown menu={{ items: uploadItems }} placement='bottomRight' trigger={['click']}>
                 <Button type={'text'} disabled={disabled} icon={<CloudUploadOutlined />} />
               </Dropdown>
             )}
-            <Dropdown menu={{ items: downloadItems }} placement='bottomRight' trigger={['click']} arrow>
+            <Dropdown menu={{ items: downloadItems }} placement='bottomRight' trigger={['click']}>
               <Button type={'text'} icon={<CloudDownloadOutlined />} />
             </Dropdown>
           </div>

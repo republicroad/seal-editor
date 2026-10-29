@@ -264,7 +264,6 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
             })()}
             onChange={(d) => d && onChange(formatDateValue(d.format('YYYY-MM-DD')))}
             disabled={disabled}
-            variant='borderless'
             size='small'
             allowClear={false}
           />

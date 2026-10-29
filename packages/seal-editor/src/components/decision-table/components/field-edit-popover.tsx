@@ -33,8 +33,6 @@ export const FieldEditPopover: React.FC<FieldEditPopoverProps> = ({
   <Popover
     placement='bottomLeft'
     trigger={['click']}
-    destroyTooltipOnHide
-    arrow={false}
     open={open}
     onOpenChange={onOpenChange}
     content={

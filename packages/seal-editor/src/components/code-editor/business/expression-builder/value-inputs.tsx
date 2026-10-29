@@ -110,7 +110,6 @@ const DateInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) =>
         value={dayjs(dateVal)}
         onChange={(d) => d && onChange({ type: 'date', value: d.format('YYYY-MM-DD'), granularity })}
         disabled={disabled}
-        variant='borderless'
         size='small'
         allowClear={false}
       />
@@ -135,9 +134,7 @@ const TimeInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) =>
     value={value?.type === 'time' ? dayjs().hour(value.hour).minute(value.minute) : dayjs().hour(9).minute(0)}
     onChange={(t) => t && onChange({ type: 'time', hour: t.hour(), minute: t.minute() })}
     disabled={disabled}
-    variant='borderless'
     size='small'
-    format='HH:mm'
     allowClear={false}
   />
 );

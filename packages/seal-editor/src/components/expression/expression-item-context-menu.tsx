@@ -29,8 +29,6 @@ export const ExpressionItemContextMenu: React.FC<ExpressionItemContextMenuProps>
 
   return (
     <Dropdown
-      destroyPopupOnHide
-      transitionName=''
       disabled={disabled}
       overlayStyle={{ minWidth: 200 }}
       trigger={['contextMenu']}

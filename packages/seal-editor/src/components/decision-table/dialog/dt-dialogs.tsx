@@ -5,7 +5,7 @@ import { useDecisionTableActions, useDecisionTableState } from '../context/dt-st
 import { FieldsReorder } from './fields-reorder-dialog';
 
 export const DecisionTableDialogs: React.FC = () => {
-  const { dialog, setDialog, isDialogActive, getContainer } = useDecisionTableDialog();
+  const { dialog, setDialog, isDialogActive } = useDecisionTableDialog();
 
   const tableActions = useDecisionTableActions();
   const { decisionTableFields } = useDecisionTableState(({ decisionTable }) => ({
@@ -22,7 +22,6 @@ export const DecisionTableDialogs: React.FC = () => {
         tableActions.reorderColumns(dialog.columnType, data);
         setDialog(undefined);
       }}
-      getContainer={getContainer}
     />
   );
 };

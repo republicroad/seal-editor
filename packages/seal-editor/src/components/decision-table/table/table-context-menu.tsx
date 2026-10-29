@@ -17,8 +17,6 @@ const ContextMenu: React.FC<React.PropsWithChildren> = (props) => {
 
   return (
     <Dropdown
-      destroyPopupOnHide
-      transitionName=''
       disabled={disabled}
       overlayStyle={{
         minWidth: 270,

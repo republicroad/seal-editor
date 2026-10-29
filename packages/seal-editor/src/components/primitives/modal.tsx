@@ -14,18 +14,13 @@ export const Modal: React.FC<{
   footer?: React.ReactNode | null;
   /** antd 语义：true/对象（含 aria-label）渲染关闭钮；undefined/false 不渲染（kernel 历史缺省无钮） */
   closable?: boolean | Record<string, unknown>;
-  /**
-   * A1 漏网补档（antd-parity 归档，挂 2.0）：
-   * - maskClosable：Base UI 遮罩点击与 Esc 同通道，分离需 onOpenChange reason 过滤
-   * - getContainer：ISLAND portal 纪律由 body.seal-root 兜底（ADR-023）
-   */
+  /** maskClosable/getContainer 两员已随 2.0 终清（Base UI 遮罩与 Esc 同通道；
+   * ISLAND portal 纪律由 body.seal-root 兜底，ADR-023） */
   destroyOnClose?: boolean;
-  maskClosable?: boolean;
   centered?: boolean;
   okButtonProps?: { danger?: boolean; htmlType?: string; onClick?: () => void; form?: string; disabled?: boolean };
   /** antd 语义：内容区样式（如 fields-reorder-dialog 的顶部留白） */
   bodyStyle?: React.CSSProperties;
-  getContainer?: () => HTMLElement | false;
   children?: React.ReactNode;
   className?: string;
 }> = ({

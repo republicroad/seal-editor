@@ -7,14 +7,10 @@ import * as React from 'react';
 
 export interface PopoverProps {
   open?: boolean;
-  defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   content?: React.ReactNode;
-  title?: React.ReactNode;
   trigger?: Array<'click' | 'hover' | 'contextMenu'> | 'click' | 'hover' | 'contextMenu';
   placement?: string;
-  destroyTooltipOnHide?: boolean;
-  arrow?: boolean;
   overlayClassName?: string;
   disabled?: boolean;
   children?: React.ReactNode;
@@ -46,12 +42,6 @@ export const Popover: React.FC<PopoverProps> = ({
   overlayClassName,
   disabled,
   children,
-  // antd-parity no-op（A1 sweep 归档）：Base UI 无箭头、关闭即卸载、title 由调用方
-  // 自渲染；defaultOpen 零调用面（归档随 2.0 清点）
-  title: _title,
-  destroyTooltipOnHide: _destroyTooltipOnHide,
-  arrow: _arrow,
-  defaultOpen: _defaultOpen,
 }) => {
   // trigger 语义面：Base UI Trigger 仅 click 开合；hover/contextMenu 传值属迁移噪声。
   // 告警走 effect（副作用不出渲染——react-compiler 纯度铁律）

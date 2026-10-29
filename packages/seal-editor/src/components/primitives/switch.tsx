@@ -10,8 +10,6 @@ export interface SwitchProps {
   className?: string;
   style?: React.CSSProperties;
   onChange?: (checked: boolean) => void;
-  checkedChildren?: React.ReactNode;
-  unCheckedChildren?: React.ReactNode;
 }
 
 export const Switch: React.FC<SwitchProps> = ({
@@ -22,9 +20,6 @@ export const Switch: React.FC<SwitchProps> = ({
   className,
   style,
   onChange,
-  // A1 sweep 归档：antd-parity 装饰子（开关内双态文案），Base UI Switch 无此插槽
-  checkedChildren: _checkedChildren,
-  unCheckedChildren: _unCheckedChildren,
 }) => (
   <UiSwitch
     checked={checked === undefined ? undefined : !!checked}

@@ -167,7 +167,6 @@ export const OpDropdown: React.FC<OpDropdownProps> = ({
         if (!v) setSearch('');
       }}
       placement='bottomLeft'
-      arrow={false}
     >
       <button
         className='inline-flex cursor-pointer items-center justify-center rounded-md border-0 bg-muted px-2 text-[13px] text-muted-foreground transition-colors min-h-[var(--b-height)] min-w-[26px] enabled:hover:bg-accent enabled:hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50'

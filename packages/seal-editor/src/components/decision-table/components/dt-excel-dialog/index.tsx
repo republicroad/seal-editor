@@ -12,7 +12,6 @@ import { useT } from '../../../../theming/i18n';
 import { Button, Checkbox, Modal, Popconfirm, Select, Switch, Tabs, Tooltip, Typography } from '../../../primitives';
 import { ExcelPreviewGrid } from '../../../shared/excel-preview-grid';
 import { useDataGridI18n } from '../../../shared/use-data-grid-i18n';
-import { useDecisionTableDialog } from '../../context/dt-dialog.context';
 import { useDecisionTableState } from '../../context/dt-store.context';
 import { InputFieldEdit } from '../input-field-edit';
 import { OutputFieldEdit } from '../output-field-edit';
@@ -257,7 +256,6 @@ const MappingGrid: React.FC<{
 export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleSuccess, handleCancel }) => {
   const t = useT();
   const spreadSheetData = useMemo(() => excelData?.[0], [excelData]);
-  const { getContainer } = useDecisionTableDialog();
   const { inputVariableType } = useDecisionTableState(({ inputVariableType }) => ({ inputVariableType }));
 
   const [columns, setColumns] = useState<ImportColumn[]>([]);
@@ -439,7 +437,6 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
       onCancel={handleCancel}
       destroyOnClose
       width={1140}
-      getContainer={getContainer}
       /* 矮视口下（弹层被 100dvh-48 压缩）压缩固定开销，把空间让给滚动区 */
       className='gap-2 p-3'
     >

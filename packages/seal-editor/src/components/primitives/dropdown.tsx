@@ -115,16 +115,9 @@ export const Dropdown: React.FC<{
   menu?: MenuProps;
   trigger?: Array<'click' | 'hover' | 'contextMenu'>;
   placement?: string;
-  /**
-   * A1 漏网补档（antd-parity 归档，挂 2.0）：
-   * - arrow：Base UI DropdownMenu 无箭头插槽
-   * - destroyPopupOnHide / transitionName：Base UI 关闭即卸载、无过渡名语义
-   * - overlayStyle 经 style 落 Popup（ minWidth 等布局类由此生效）
-   */
-  arrow?: boolean;
+  /** overlayStyle 经 style 落 Popup（minWidth 等布局类由此生效）；arrow/destroyPopupOnHide/
+   * transitionName 三员已随 2.0 终清（Base UI 无对应语义，no-op 时代结束） */
   overlayStyle?: React.CSSProperties;
-  destroyPopupOnHide?: boolean;
-  transitionName?: string;
   disabled?: boolean;
   children?: React.ReactNode;
 }> = ({ menu, trigger, placement = 'bottomLeft', overlayStyle, children }) => {

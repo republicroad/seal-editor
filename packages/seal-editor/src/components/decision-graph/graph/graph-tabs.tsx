@@ -60,7 +60,6 @@ export const GraphTabs: React.FC<GraphTabsProps> = ({ disabled, tabBarExtraConte
   return (
     <div>
       <Tabs
-        type='line'
         size='small'
         className={clsx(
           'max-w-full [box-sizing:content-box] border-b border-b-[var(--border)] bg-[var(--seal-color-bg-container)]',

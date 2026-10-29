@@ -10,8 +10,6 @@ export interface DatePickerProps {
   disabled?: boolean;
   allowClear?: boolean;
   size?: 'large' | 'middle' | 'small';
-  variant?: string;
-  format?: string;
   /** 含时间选择（input type 切 datetime-local，值格式 YYYY-MM-DDTHH:mm） */
   showTime?: boolean;
   placeholder?: string;
@@ -30,9 +28,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   style,
   placeholder,
   showTime = false,
-  // A1 sweep 归档：variant 线体未实现；format 硬编码 YYYY-MM-DD（挂 2.0 值格式语义）
-  variant: _variant,
-  format: _format,
 }) => (
   <input
     type={showTime ? 'datetime-local' : 'date'}

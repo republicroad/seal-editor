@@ -10,7 +10,6 @@ export type FieldsReorderProps = {
   onSuccess?: (columns: TableSchemaItem[]) => void;
   onDismiss?: () => void;
   isOpen?: boolean;
-  getContainer?: () => HTMLElement;
 };
 
 /**
@@ -19,7 +18,7 @@ export type FieldsReorderProps = {
  */
 export const FieldsReorder: React.FC<FieldsReorderProps> = (props) => {
   const t = useT();
-  const { isOpen, onDismiss, onSuccess, fields, getContainer } = props;
+  const { isOpen, onDismiss, onSuccess, fields } = props;
 
   const [columns, setColumns] = useState<TableSchemaItem[]>([]);
 
@@ -42,7 +41,6 @@ export const FieldsReorder: React.FC<FieldsReorderProps> = (props) => {
         htmlType: 'submit',
         form: 'fields-reorder-dialog',
       }}
-      getContainer={getContainer}
     >
       <Form id='fields-reorder-dialog' onFinish={() => onSuccess?.(columns)}>
         <Sortable
