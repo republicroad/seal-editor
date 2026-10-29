@@ -447,6 +447,27 @@ export const Simulator: Story = {
   },
 };
 
+/**
+ * P1-4 diff 独立入口验收：宿主经 diffBaseline prop 供给基线（此处=diffGraph）
+ * → 侧栏出现 GitCompare 对比开关；开=对比投影（相对基线的增删改标记），
+ * 关=裸图且 value 回声通道恢复。与版本历史恢复流解耦的画布内入口。
+ */
+export const DiffToggle: Story = {
+  render: () => {
+    const [value, setValue] = useState<any>(defaultGraph);
+
+    return (
+      <div
+        style={{
+          height: '100%',
+        }}
+      >
+        <DecisionGraph value={value} onChange={setValue} diffBaseline={diffGraph} />
+      </div>
+    );
+  },
+};
+
 export const Diff: Story = {
   render: (args) => {
     const [value, setValue] = useState<any>(diffGraph);
