@@ -12,7 +12,7 @@ const isMacPlatform = () => /Mac|iPhone|iPad/.test(navigator.platform);
 export const ShortcutsHelp: React.FC = () => {
   const t = useT();
   const [open, setOpen] = React.useState(false);
-  const isMac = React.useMemo(isMacPlatform, []);
+  const isMac = React.useMemo(() => isMacPlatform(), []);
   const mod = isMac ? '⌘' : 'Ctrl';
 
   React.useEffect(() => {
