@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.45.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.44.0...@republicroad/seal-editor@1.45.0) (2026-10-29)
+
+### Features
+
+- **graph:** undo/redo 全操作栈（P0-1）——⌘Z/⌘⇧Z（Win Ctrl+Z/Ctrl+Shift+Z/Ctrl+Y）+ 工具条按钮；覆盖节点增删移/连线增删/参数与表达式提交/重命名/注释框；拖拽全程合并一步、undo 保持选中且视口不跳、undo 产生状态即 dirty（宿主 autosave 联动）；新增 resetHistory 历史边界动作（宿主切换模型/恢复历史版本时调用，受控回声不清栈）。BREAKING：DecisionGraphStoreType actions 新增 resetHistory 必选成员
+- **graph:** 校验面板产品化（P0-2）——内置校验器（悬空输入连线/空表达式 error + 决策表零规则 warning）+ 图变更 250ms 防抖 + 画布停靠诊断面板（行点击选中+定位高亮）+ `diagnostics` prop 宿主通道（appshell 透传，宿主喂配方域校验）+ 侧工具条错误计数徽标；表达式语法错归宿主校验通道（内核无 zen 解析器）
+- **graph:** 快捷键帮助面板（P1-3）——非输入焦点 `?` 弹全量清单（平台感知 ⌘/Ctrl）；⌘C/⌘D/⌘V 补 Ctrl 等价（Windows 可用）
+- **inspector:** 节点设置面板扁平化——SettingsFrame 平面分区 + Form.Item 标签弱化（业界检查器惯例：Figma/Unreal details panel）
+
+### Bug Fixes
+
+- **primitives:** 删除确认弹窗透明修复——ConfirmHost 移入 token 岛（SealContainerProvider 子树）；ui/dialog、ui/alert-dialog 增 container 透传
+- **graph:** 节点「…」菜单不再连带打开设置面板（点击冒泡断链）
+- **graph:** 设置面三合一——内联 Settings 面板退役，停靠 NodeInspector（flow-2 docked inspector）成为唯一设置面。BREAKING：DecisionNodeProps 移除 details/detailsOpen/detailsTitle/onDetailsClose（仅内部消费）
+- **reui:** data-grid 列显隐菜单 onSelect 死代码清退（Radix 惯用法在 base-ui 静默失效 → 显式 closeOnClick={false}）
+- **simulator:** 移除单跑 asOf 时钟注入。BREAKING：SimulatorRequestPanelProps onRun 载荷不再含 asOf（1.44.0 引入当版移除，无消费方）——架构裁定 verdict 定位实时决策引擎：状态算子时间恒为请求到达时刻、不暴露 eventTime/processingTime 概念对、对外仅决策历史查询；Run all fixtures asOf 保留（QA 内部通道）
+
 # [1.44.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.43.0...@republicroad/seal-editor@1.44.0) (2026-10-28)
 
 ### Features
