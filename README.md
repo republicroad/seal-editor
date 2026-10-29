@@ -1,149 +1,66 @@
-## JDM Editor
+# seal-editor
 
-JDM Editor is an open-source React component for crafting and designing JDM (JSON Decision model) files.
-Whether you’re a developer, data analyst, or decision model expert, JDM Editor can help you harness the full potential of decision modeling, making it more accessible and manageable than ever before
+**seal-editor** 是 [jdm-editor](https://github.com/GoRules/jdm-editor)（GoRules JDM，JSON Decision Model）的内部维护分支，以 **React + shadcn/ui + Tailwind + ReUI** 独立重写并深度演进的**规则决策编辑器组件库**。服务于 [verdict](https://github.com/republicroad/verdict) 实时决策引擎控制台，同时保持独立组件形态可被任意宿主消费。
 
-[<img width="945" alt="Rules Engine Editor" src="https://gorules.io/images/jdm-editor.gif">](https://republicroad.github.io/seal-editor/)
+> 在线示例与文档：https://republicroad.github.io/seal-editor/
+> （Storybook + 文档站随 main 持续部署）
 
-> A JDM Editor
-> Live demo and usage at https://republicroad.github.io/seal-editor/
-> Documentation site at https://republicroad.github.io/seal-editor/docs/
+## 包结构
 
-## Installation
+| 包                            | 说明                                                                                        |
+| ----------------------------- | ------------------------------------------------------------------------------------------- |
+| `@republicroad/seal-editor`   | 内核：决策图编辑器（DecisionGraph）、决策表、仿真器、治理面板等                             |
+| `@republicroad/seal-appshell` | 宿主壳层：SkinnedDecisionGraph 皮肤、版本历史/持久化（含自动保存）、simulate 适配、皮肤面板 |
+
+## 安装
 
 ```bash
 npm i @republicroad/seal-editor
 ```
 
-## Usage
+## 快速上手
 
-```typescript
-...
-import '@republicroad/seal-editor/dist/style.css';
+```tsx
 import { DecisionGraph, JdmConfigProvider } from '@republicroad/seal-editor';
-...
+import '@republicroad/seal-editor/dist/style.css';
 
 <JdmConfigProvider>
-  <DecisionGraph
-    value={graph}
-    onChange={(val) => setGraph(val as any)}
-  />
-</JdmConfigProvider>
+  <DecisionGraph value={graph} onChange={setGraph} />
+</JdmConfigProvider>;
 ```
 
-## Decision Graph
+**部署形态（ADR-023）**：token 作用域在 `.seal-root` 岛内。宿主将应用（或编辑器根容器）包在 `.seal-root` 元素内即可；未挂岛的页面自 2.0 起不再获得样式（深浅主题随 provider 注入岛内）。
 
-<img width="945" alt="Decision Graph" src="https://gorules.io/images/decision-graph.png">
+## 核心能力
 
-```typescript
-export type DecisionGraphProps = {
-  id?: string;
-  forwardedRef?: (instance: DecisionGraphRef) => void;
-  defaultValue?: DecisionGraphType;
-  value?: DecisionGraphType;
-  disabled?: boolean;
-  viewConfig?: ViewConfig;
-  components?: CustomNodeType[];
-  onChange?: (val: DecisionGraphType) => void;
-  manager?: DragDropManager;
-  reactFlowProOptions?: ProOptions;
-  onReactFlowInit?: () => void;
-};
-```
+- **决策图编辑器**：六类内建节点（input/decision table/expression/function/switch/output）+ 自定义节点注册（kind 推断、schema 驱动表单）；xyflow 画布、auto-layout（dagre）、网格吸附、画布锁、注释框
+- **undo/redo 全操作栈**：节点/连线/参数/注释全操作可撤销（拖拽与会话合并、重点保持选中、⌘Z/⌘⇧Z）
+- **诊断面板**：内置校验器（悬空连线/空表达式/零规则）+ 宿主 `diagnostics` 通道，250ms 防抖，错误行点击画布定位
+- **仿真与调试**：simulator 单跑（服务端 handler 注入）、Run all 分层断言、运行对比（A/B + 双 diff）、执行内联回显（路径着色/数据探针/流动渐停）
+- **示例体系**：单源 example-sources、schema 骨架生成、逐项改名、存为新用例、exampleId 稳定绑定
+- **diff 视图**：`diffBaseline` prop 投影 + 画布内对比开关
+- **快捷键体系**：⌘K 命令菜单、`?` 快捷键帮助、⌘\ 聚焦模式（画布独占）
+- **函数参考面**：`functionLibraries` 注入宿主目录（monaco 补全/调试器联动）；`parameterOptions` 动态参数选项（工具参数渲染可搜索下拉，如 value_list 名单）
+- **治理**：`allowedNamespaces` 谓词过滤、契约 fixtures（zen-udf conformance）、报告过期检查
+- **宿主壳层（appshell）**：版本历史、`restoreVersion`、pattern-D 自动保存（防抖+CONFLICT 三选）、simulate handler 适配
 
-## Decision Table
-
-<img width="945" alt="Decision Table" src="https://gorules.io/images/decision-table.png">
-
-### API
-
-```typescript
-export type DecisionTableProps = {
-  id?: string;
-  defaultValue?: DecisionTableType;
-  value?: DecisionTableType;
-  onChange?: (decisionTable: DecisionTableType) => void;
-  activeRules?: string[];
-  permission?: DecisionTablePermission;
-  disabled?: boolean;
-  disableHitPolicy?: boolean;
-  minColWidth?: number;
-  colWidth?: number;
-  inputsSchema?: SchemaSelectProps[];
-  outputsSchema?: SchemaSelectProps[];
-  cellRenderer?: (props: CellProps) => JSX.Element | null | undefined;
-};
-```
-
-## Self-hosting Monaco Editor
-
-To self-host monaco editor in Vite.
-
-```ts
-import type { Monaco } from '@monaco-editor/react';
-import { loader } from '@monaco-editor/react';
-import * as monaco from 'monaco-editor';
-import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
-import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
-import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
-import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
-import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
-
-declare global {
-  interface Window {
-    monaco?: Monaco;
-  }
-}
-
-self.monaco = monaco;
-
-self.MonacoEnvironment = {
-  getWorker(workerId: string, label: string): Promise<Worker> | Worker {
-    if (label === 'json') {
-      return new jsonWorker();
-    }
-    if (label === 'css' || label === 'scss' || label === 'less') {
-      return new cssWorker();
-    }
-    if (label === 'html' || label === 'handlebars' || label === 'razor') {
-      return new htmlWorker();
-    }
-    if (label === 'typescript' || label === 'javascript') {
-      return new tsWorker();
-    }
-
-    return new editorWorker();
-  },
-};
-
-loader.config({ monaco });
-```
-
-For webpack and other configurations, you may require some additional loaders, such as https://www.npmjs.com/package/monaco-editor-webpack-plugin.
-
-## Self-host demo server (experimental)
-
-This repository ships a stateless demo server (`apps/demo-server`, Bun + [Hono](https://hono.dev)) that validates and executes decision models with `@gorules/zen-engine`. It is a **self-hosting demo only** — no auth, no storage, no business logic.
-
-One command starts the playground frontend and the demo server together:
+## 本地开发
 
 ```bash
-pnpm dev        # playground :517x + demo-server :8787 (run-p)
+pnpm install
+pnpm storybook          # http://localhost:9009
+pnpm verify             # lint + typecheck（双包）+ tests
+pnpm size               # bundle 预算门（raw ≤ 870kB）
+node scripts/release-preflight.mjs   # 发版前全门
 ```
 
-The playground header gains a **Server run** button (graph page) that POSTs the current graph to `:8787/v1/execute` and shows the result, and the graph sidebar gains a **simulator panel** (flask icon): enter request JSON, hit Run, and the canvas highlights per-node hits with Output/Trace editors — the editor UI and the execution backend, end to end. Override the target with `VITE_DEMO_SERVER_URL`.
+## 发版
 
-Docker (server only):
+独立版本（lerna packages/*）：手动 bump `packages/seal-editor/package.json` + 手写 CHANGELOG + `chore(release):` 触发头提交推送 → CI Publish（pnpm publish，catalog: 重写 + 已发版本守卫）→ Validate 三流。详见 `docs/design/release-verification.md`。
 
-```bash
-docker compose up demo-server   # :8787
+## 文档
 
-curl -s localhost:8787/v1/execute -H "content-type: application/json" \
-  -d "{"model": $(cat model.json), "input": {"customer": {"tier": "GOLD"}}}"
-```
-
-See [apps/demo-server/README.md](apps/demo-server/README.md) for the API surface. A production-grade rule platform (auth, multi-tenant workspaces, audit) lives in the private `verdict` repo and is out of scope here.
-
-## License
-
-MIT © [GoRules](https://github.com/gorules/jdm-editor/LICENSE)
+- `docs/zen-reference.md` — zen 表达式语言参考（双语，探针守护）
+- `docs/design/` — 活跃设计档（ADR 索引、2.0 盘点、最佳实践、上游协作）
+- `docs/design/upstream/` — verdict 宿主协商档
+- 破坏性变更集中在 2.0 窗口处理，见 `docs/design/two-point-oh-inventory.md`
