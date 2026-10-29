@@ -47,6 +47,7 @@ import { DiagnosticsController, DiagnosticsPanel } from './diagnostics-panel';
 import { GraphCommandMenu } from './graph-command-menu';
 import { GraphComponents } from './graph-components';
 import { NodeInspector } from './node-inspector';
+import { ShortcutsHelp } from './shortcuts-help';
 import { XYFLOW_THEME } from './xyflow-theme';
 
 export type GraphProps = {
@@ -417,7 +418,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
       ])}
       tabIndex={0}
       onKeyDown={(e) => {
-        if (e.key === 'v' && e.metaKey && !disabled) {
+        if (e.key === 'v' && (e.metaKey || e.ctrlKey) && !disabled) {
           graphActions.pasteNodes();
         }
       }}
@@ -437,7 +438,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
             const [nodes] = nodesState;
             const [edges] = edgesState;
 
-            if (e.key === 'c' && e.metaKey) {
+            if (e.key === 'c' && (e.metaKey || e.ctrlKey)) {
               const selectedNodeIds = nodesState[0].filter((n) => n.selected).map(({ id }) => id);
               if (selectedNodeIds.length === 0) {
                 return;
@@ -445,7 +446,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
 
               graphActions.copyNodes(selectedNodeIds);
               e.preventDefault();
-            } else if (e.key === 'd' && e.metaKey) {
+            } else if (e.key === 'd' && (e.metaKey || e.ctrlKey)) {
               if (!disabled) {
                 const selectedNodeIds = nodes.filter((n) => n.selected).map(({ id }) => id);
                 if (selectedNodeIds.length === 0) {
@@ -566,6 +567,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               <NodeInspector />
               <DiagnosticsController />
               <DiagnosticsPanel />
+              <ShortcutsHelp />
             </ReactFlow>
             {/* B2 拖线悬空释放 → 节点搜索菜单（fixed 定位在释放点；backdrop 点击/Esc 关闭） */}
             {connectMenu && (
