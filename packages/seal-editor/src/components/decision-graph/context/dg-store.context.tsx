@@ -182,6 +182,8 @@ export type DecisionGraphStoreType = {
     undo: () => void;
     redo: () => void;
     commitUndo: () => void;
+    /** 历史边界重置（切换模型/恢复历史版本后由宿主调用——快照栈跨文档无意义） */
+    resetHistory: () => void;
 
     handleNodesChange: (nodesChange: NodeChange[]) => void;
     handleEdgesChange: (edgesChange: EdgeChange[]) => void;
@@ -377,23 +379,59 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       stateStore.setState({ canUndo: undoRedoStack.canUndo, canRedo: undoRedoStack.canRedo });
     };
 
+    // undo/redo 落地通道：与 setDecisionGraph 同款三写（RF 视图 + 模型态 + 宿主通知）——
+    // 只写 decisionGraph 时画布视图不跟随（快照栈时代遗留缺口）
+    const applyGraphReplacement = (graph: DecisionGraphType) => {
+      const { edgesState, nodesState } = referenceStore.getState();
+      edgesState?.current?.[1](mapToGraphEdges(graph?.edges ?? []));
+      nodesState?.current?.[1](mapToGraphNodes(graph?.nodes ?? []));
+      stateStore.setState({ decisionGraph: graph });
+      listenerStore.getState().onChange?.(graph);
+    };
+
+    // undo 后保持选中：快照经 JSON 序列化不含 privateSymbol 选中态，恢复前取当前选中集
+    // （annotation- 前缀视图节点除外），恢复后按 id 回写
+    const preserveSelection = (graph: DecisionGraphType): DecisionGraphType => {
+      const { nodesState } = referenceStore.getState();
+      const selectedIds = new Set(
+        (nodesState.current?.[0] ?? [])
+          .filter((n) => n.selected && !String(n.id).startsWith('annotation-'))
+          .map((n) => n.id),
+      );
+      if (selectedIds.size === 0) {
+        return graph;
+      }
+      return produce(graph, (draft) => {
+        (draft.nodes ?? []).forEach((node) => {
+          if (selectedIds.has(node.id)) {
+            node[privateSymbol] ??= {};
+            node[privateSymbol].selected = true;
+          }
+        });
+      });
+    };
+
     return {
       undo: () => {
         const current = stateStore.getState().decisionGraph;
         const prev = undoRedoStack.undo(current);
         if (prev === null) return;
-        stateStore.setState({ decisionGraph: prev, canUndo: undoRedoStack.canUndo, canRedo: undoRedoStack.canRedo });
-        listenerStore.getState().onChange?.(prev);
+        applyGraphReplacement(preserveSelection(prev));
+        stateStore.setState({ canUndo: undoRedoStack.canUndo, canRedo: undoRedoStack.canRedo });
       },
       redo: () => {
         const current = stateStore.getState().decisionGraph;
         const next = undoRedoStack.redo(current);
         if (next === null) return;
-        stateStore.setState({ decisionGraph: next, canUndo: undoRedoStack.canUndo, canRedo: undoRedoStack.canRedo });
-        listenerStore.getState().onChange?.(next);
+        applyGraphReplacement(preserveSelection(next));
+        stateStore.setState({ canUndo: undoRedoStack.canUndo, canRedo: undoRedoStack.canRedo });
       },
       commitUndo: () => {
         pushUndo();
+      },
+      resetHistory: () => {
+        undoRedoStack.clear();
+        stateStore.setState({ canUndo: false, canRedo: false });
       },
       handleNodesChange: (changes = []) => {
         const { nodesState } = referenceStore.getState();
@@ -660,6 +698,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       addEdges: (edges: DecisionEdge[]) => {
         const { edgesState } = referenceStore.getState();
         const { decisionGraph } = stateStore.getState();
+        // 画布连线（onConnect 主通道）可撤销
+        pushUndo();
 
         edgesState.current?.[1]?.((els) => els.concat(edges.map(mapToGraphEdge)));
         const newDecisionGraph = produce(decisionGraph, (draft) => {
@@ -684,6 +724,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       removeEdges: (ids) => {
         const { edgesState } = referenceStore.getState();
         const { decisionGraph } = stateStore.getState();
+        // 画布删边（Backspace/右键）可撤销
+        pushUndo();
 
         edgesState?.current?.[1]?.((edges) => edges.filter((e) => !ids.find((id) => e.id === id)));
         const newDecisionGraph = produce(decisionGraph, (draft) => {
@@ -697,6 +739,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         if (!handleId) return;
         const { edgesState } = referenceStore.getState();
         const { decisionGraph } = stateStore.getState();
+        pushUndo();
         edgesState?.current?.[1]?.((edges) => edges.filter((e) => e.sourceHandle !== handleId));
         const newDecisionGraph = produce(decisionGraph, (draft) => {
           draft.edges = draft.edges.filter((e) => e.sourceHandle !== handleId);

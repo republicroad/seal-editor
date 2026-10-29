@@ -163,6 +163,8 @@ export const en = {
   'vh.compare.entry': 'comparing',
   'dg.toolbar.uploadJson': 'Upload JSON',
   'dg.toolbar.uploadExcel': 'Upload Excel',
+  'dg.toolbar.undo': 'Undo',
+  'dg.toolbar.redo': 'Redo',
   'dg.toolbar.autoLayout': 'Auto layout',
   'dg.toolbar.alignToGrid': 'Align nodes to grid',
   'dg.toolbar.alignedToGrid': 'Nodes aligned to grid',

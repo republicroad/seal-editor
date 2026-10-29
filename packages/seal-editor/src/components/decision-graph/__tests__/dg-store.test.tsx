@@ -305,6 +305,146 @@ describe('simulateRuns（批 3 Run 历史）', () => {
   });
 });
 
+describe('undo/redo（P0-1 快照栈接线）', () => {
+  let context: ContextValue;
+
+  beforeEach(() => {
+    context = renderProvider();
+    context.referenceStore.setState({
+      nodesState: { current: [[], vi.fn(), vi.fn()] } as never,
+      edgesState: { current: [[], vi.fn(), vi.fn()] } as never,
+    });
+  });
+
+  it('addEdges/removeEdges 进栈——undo 恢复删边、redo 复原，undo 通知宿主', () => {
+    act(() => {
+      context.actions.setDecisionGraph({ nodes: [inputNode(), tableNode()], edges: [] }, { skipOnChangeEvent: true });
+    });
+
+    act(() => context.actions.addEdges([edge('e1', 'in', 'dt')]));
+    expect(context.stateStore.getState().decisionGraph.edges).toHaveLength(1);
+    expect(context.stateStore.getState().canUndo).toBe(true);
+
+    act(() => context.actions.removeEdges(['e1']));
+    expect(context.stateStore.getState().decisionGraph.edges).toHaveLength(0);
+
+    const onChange = vi.fn();
+    act(() => context.listenerStore.setState({ onChange }));
+    act(() => context.actions.undo());
+    expect(context.stateStore.getState().decisionGraph.edges).toHaveLength(1);
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(context.stateStore.getState().canRedo).toBe(true);
+
+    act(() => context.actions.redo());
+    expect(context.stateStore.getState().decisionGraph.edges).toHaveLength(0);
+  });
+
+  it('undo 同步 RF 视图（nodesState 回写，画布跟随）', () => {
+    const setNodes = vi.fn();
+    context.referenceStore.setState({
+      nodesState: { current: [[], setNodes, vi.fn()] } as never,
+    });
+
+    act(() => {
+      context.actions.setDecisionGraph({ nodes: [inputNode()], edges: [] }, { skipOnChangeEvent: true });
+    });
+    act(() => context.actions.addNodes([tableNode()]));
+    setNodes.mockClear();
+
+    act(() => context.actions.undo());
+    expect(setNodes).toHaveBeenCalledTimes(1);
+    expect(context.stateStore.getState().decisionGraph.nodes.map((n) => n.id)).toEqual(['in']);
+  });
+
+  it('undo 保持选中：恢复快照后按 id 回写选中态', () => {
+    act(() => {
+      context.actions.setDecisionGraph({ nodes: [inputNode(), tableNode()], edges: [] }, { skipOnChangeEvent: true });
+    });
+    context.referenceStore.setState({
+      nodesState: {
+        current: [
+          [
+            { id: 'in', selected: false },
+            { id: 'dt', selected: true },
+          ] as never,
+          vi.fn(),
+          vi.fn(),
+        ],
+      } as never,
+    });
+
+    const fnNode: DecisionNode = { id: 'fn', name: 'Fn', type: 'functionNode', position: { x: 1, y: 1 } };
+    act(() => context.actions.addNodes([fnNode]));
+    expect(context.stateStore.getState().decisionGraph.nodes).toHaveLength(3);
+
+    act(() => context.actions.undo());
+    const restored = context.stateStore.getState().decisionGraph.nodes;
+    expect(restored.map((n) => n.id)).toEqual(['in', 'dt']);
+    expect(restored.find((n) => n.id === 'dt')?.[privateSymbol]?.selected).toBe(true);
+    expect(restored.find((n) => n.id === 'in')?.[privateSymbol]?.selected).toBeUndefined();
+  });
+
+  it('拖拽会话合并：整段拖拽只产生一步 undo', () => {
+    act(() => {
+      context.actions.setDecisionGraph({ nodes: [inputNode()], edges: [] }, { skipOnChangeEvent: true });
+    });
+
+    act(() => {
+      context.actions.handleNodesChange([
+        { id: 'in', type: 'position', position: { x: 5, y: 5 }, dragging: true } as never,
+      ]);
+      context.actions.handleNodesChange([
+        { id: 'in', type: 'position', position: { x: 50, y: 50 }, dragging: true } as never,
+      ]);
+      context.actions.handleNodesChange([
+        { id: 'in', type: 'position', position: { x: 99, y: 99 }, dragging: false } as never,
+      ]);
+    });
+
+    act(() => context.actions.undo());
+    expect(context.stateStore.getState().decisionGraph.nodes[0].position).toEqual({ x: 0, y: 0 });
+  });
+
+  it('updateNode 连续编辑合并为一步（会话窗内不打断）', () => {
+    act(() => {
+      context.actions.setDecisionGraph({ nodes: [tableNode()], edges: [] }, { skipOnChangeEvent: true });
+    });
+
+    act(() => {
+      context.actions.updateNode('dt', (node) => {
+        node.name = 'A';
+        return node;
+      });
+      context.actions.updateNode('dt', (node) => {
+        node.name = 'B';
+        return node;
+      });
+    });
+    expect(context.stateStore.getState().decisionGraph.nodes[0].name).toBe('B');
+
+    act(() => context.actions.undo());
+    expect(context.stateStore.getState().decisionGraph.nodes[0].name).toBe('Table');
+
+    act(() => context.actions.redo());
+    expect(context.stateStore.getState().decisionGraph.nodes[0].name).toBe('B');
+  });
+
+  it('resetHistory 清栈（宿主在切换模型/恢复历史版本后调用）', () => {
+    act(() => {
+      context.actions.setDecisionGraph({ nodes: [inputNode()], edges: [] }, { skipOnChangeEvent: true });
+    });
+    act(() => context.actions.addNodes([tableNode()]));
+    expect(context.stateStore.getState().canUndo).toBe(true);
+
+    act(() => context.actions.resetHistory());
+    expect(context.stateStore.getState().canUndo).toBe(false);
+    expect(context.stateStore.getState().canRedo).toBe(false);
+
+    act(() => context.actions.undo());
+    expect(context.stateStore.getState().decisionGraph.nodes).toHaveLength(2);
+  });
+});
+
 describe('allowedNamespaces 治理谓词（批 23）', () => {
   let context: ContextValue;
 

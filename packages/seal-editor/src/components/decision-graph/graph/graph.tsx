@@ -243,6 +243,37 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
     [graphActions],
   );
 
+  // P0-1 undo/redo 键位（⌘Z/⌘⇧Z；Win Ctrl+Z/Ctrl+Y）——window 级监听：
+  // 工具条按钮点击后焦点停在按钮上，div 级监听收不到；文本编辑焦点让路
+  // （monaco/输入框的内部撤销不受打断，closest 守卫 + monaco 自身 stopPropagation 双保险）
+  React.useEffect(() => {
+    if (disabled) {
+      return;
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase();
+      const mod = event.metaKey || event.ctrlKey;
+      const isUndo = key === 'z' && mod && !event.shiftKey;
+      const isRedo = (key === 'z' && mod && event.shiftKey) || (key === 'y' && mod);
+      if (!isUndo && !isRedo) {
+        return;
+      }
+      const target = event.target as HTMLElement | null;
+      if (target?.closest?.('input, textarea, select, [contenteditable], .monaco-editor, .cm-editor')) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      if (isRedo) {
+        graphActions.redo();
+      } else {
+        graphActions.undo();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [disabled, graphActions]);
+
   // B2 拖线悬空释放：从端口拉线落空白处 → 原地弹节点搜索（n8n/ComfyUI 模式）
   const [connectMenu, setConnectMenu] = useState<{
     screenX: number;

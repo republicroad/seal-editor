@@ -1,5 +1,13 @@
 import { AutoLayoutOutlined, CloudDownloadOutlined, CloudUploadOutlined } from '#icons';
-import { Command as CommandIcon, Grid2x2Icon, LockIcon, LockOpenIcon, MagnetIcon } from 'lucide-react';
+import {
+  Command as CommandIcon,
+  Grid2x2Icon,
+  LockIcon,
+  LockOpenIcon,
+  MagnetIcon,
+  Redo2Icon,
+  Undo2Icon,
+} from 'lucide-react';
 import React, { Fragment, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -37,10 +45,12 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
     alignNodesToGrid,
     setCanvasLocked,
     setSnapToGrid,
+    undo,
+    redo,
   } = useDecisionGraphActions();
-  const { disabled, panels, activePanel, viewConfig, commandMenuOpen, canvasLocked, snapToGrid } =
+  const { disabled, panels, activePanel, viewConfig, commandMenuOpen, canvasLocked, snapToGrid, canUndo, canRedo } =
     useDecisionGraphState(
-      ({ disabled, panels, activePanel, viewConfig, commandMenuOpen, canvasLocked, snapToGrid }) => ({
+      ({ disabled, panels, activePanel, viewConfig, commandMenuOpen, canvasLocked, snapToGrid, canUndo, canRedo }) => ({
         disabled,
         panels,
         activePanel,
@@ -48,6 +58,8 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
         commandMenuOpen,
         canvasLocked,
         snapToGrid,
+        canUndo,
+        canRedo,
       }),
     );
 
@@ -327,6 +339,27 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
           <div className={'flex flex-col items-center gap-2'}>
             {!disabled && (
               <>
+                {/* P0-1 撤销/重做：与 ⌘Z/⌘⇧Z 同通道（store undo/redo） */}
+                <Tooltip title={t('dg.toolbar.undo')} placement={'right'}>
+                  <Button
+                    type={'text'}
+                    aria-label={t('dg.toolbar.undo')}
+                    disabled={!canUndo}
+                    data-testid='undo-button'
+                    icon={<Undo2Icon className='size-4' />}
+                    onClick={undo}
+                  />
+                </Tooltip>
+                <Tooltip title={t('dg.toolbar.redo')} placement={'right'}>
+                  <Button
+                    type={'text'}
+                    aria-label={t('dg.toolbar.redo')}
+                    disabled={!canRedo}
+                    data-testid='redo-button'
+                    icon={<Redo2Icon className='size-4' />}
+                    onClick={redo}
+                  />
+                </Tooltip>
                 <Tooltip title={t('dg.toolbar.autoLayout')} placement={'right'}>
                   <Button
                     type={'text'}
