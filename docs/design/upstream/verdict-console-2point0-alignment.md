@@ -1,7 +1,11 @@
 # verdict console ↔ seal-editor · 2.0 升级核查协商包
 
-- 日期：2026-10-27
-- 状态：**协商中**（等待 verdict 侧回答；回收后各批次解锁）
+- 日期：2026-10-27 起草 · 2026-10-29 更新（④ 随架构裁定取消）
+- 状态：**已回收**（verdict 六项全答，见
+  [alignment-reply.md](verdict-console-2point0-alignment-reply.md)；其中
+  **④ 单跑 asOf 随 2026-10-28 架构裁定取消**——verdict 定位实时决策引擎，
+  verdict 侧 simulateHandler 适配义务解除，双侧零动作；裁定全文见
+  [two-point-oh-inventory.md](../two-point-oh-inventory.md) §5）
 - 背景：seal-editor 2.0 破坏性窗口已开启（verdict 已升级消费 1.42.0，满足窗口前置）。
   本档列出需要 verdict 侧核查/表态的六项——前两项一句话级回答即可解锁两大破坏性批次。
 - 关联：[two-point-oh-inventory.md](../two-point-oh-inventory.md)（2.0 盘点活档）·
@@ -63,14 +67,23 @@ seal token，删除即掉样式。
 
 **解锁**：「LEGACY 退役完成」的最终判定（不阻塞 seal-editor 侧代码）。
 
-## ④ asOf 时钟注入需求确认 🟢（P1 批立项信号）
+## ④ asOf 时钟注入需求确认 → **已裁定取消（2026-10-28）**
 
-**问**：trailing 类时序规则在**编辑器单次仿真**场景需要指定事件时间（asOf）调试
+> **裁定（晚于 verdict 回答「需要」）**：seal-editor 侧 2026-10-28 深夜架构裁定——
+> verdict 定位**实时决策引擎**：不向客户暴露 eventTime/processingTime 概念对；
+> 状态算子时间恒为**请求到达服务器时刻**（processing time，不可注入）；客户入参中的
+> 时间参数＝普通标量数据，表达式可做任意标量处理；对外仅提供**决策历史查询**。
+> 据此**单跑 asOf 批整体取消**：seal-editor 不再出 CONTRACT `onRun` 载荷扩展与
+> 时钟选择器 UI；**verdict 侧 simulateHandler→ExecContext.eventTime 适配义务解除，
+> 无需任何动作**。Run all fixtures 的 asOf 为 QA 内部通道（非产品语义），保留不变。
+> 裁定全文见 [two-point-oh-inventory.md](../two-point-oh-inventory.md) §5 与回执档 ④。
+
+**问**（历史存档，已被裁定覆盖）：trailing 类时序规则在**编辑器单次仿真**场景需要指定事件时间（asOf）调试
 历史时点行为吗？Run all 批量通道已支持 asOf；单跑通道若要支持，verdict 侧
 simulateHandler 需把 asOf 装进 ExecContext.eventTime（此前勘定通道可行）——
 是否愿意做这个适配？
 
-**为什么**：单跑 asOf 批此前勘定「等 verdict 升级后立项」——升级已完成，本项是
+**为什么**（历史存档）：单跑 asOf 批此前勘定「等 verdict 升级后立项」——升级已完成，本项是
 立项信号。verdict 答「需要」则 seal-editor 出 CONTRACT 载荷扩展 + 时钟选择器 UI。
 
 ## ⑤ 类型冲突连线的真实反馈 🟢（连线类型阻断批优先级信号）
@@ -98,5 +111,5 @@ simulateHandler 需把 asOf 装进 ExecContext.eventTime（此前勘定通道可
 | ② A 无注入=不显示 | dg-empty 不回落 + TabFunction 直传 + Function 缺省去除（三处一起动） | 语义裁断批 |
 | ② B 保留缺省 | 现状维持，§2 撤销并注记 | 同上（零代码） |
 | ③ 可删除 | seal-editor 侧无动作；verdict 随版删 | — |
-| ④ 需要 | CONTRACT onRun 载荷加可选 asOf + 时钟选择器 UI（seal-editor）；ExecContext 装配（verdict） | asOf 批 |
+| ④ 需要 | ~~CONTRACT onRun 载荷加可选 asOf + 时钟选择器 UI（seal-editor）；ExecContext 装配（verdict）~~ → **裁定取消**（2026-10-28 实时决策引擎定位，双侧零动作） | 已取消 |
 | ⑤ 有案例 | 连线类型阻断批立项（形态按频率定） | 类型阻断批 |
