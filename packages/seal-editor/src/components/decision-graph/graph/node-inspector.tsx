@@ -22,6 +22,17 @@ export const NodeInspector: React.FC = () => {
   );
   const [closed, setClosed] = React.useState(false);
   const customNodes = useDecisionGraphState(({ customNodes }) => customNodes);
+  const inspectorTick = useDecisionGraphState(({ inspectorTick }) => inspectorTick);
+  const lastSelectedRef = React.useRef(selected);
+  lastSelectedRef.current = selected;
+
+  // 重点已选节点（含检查器被 X 关闭后）不产生 xyflow selection change——
+  // 凭 triggerNodeSelect 递增的 tick 重开（否则用户须点空白清选再点节点）
+  React.useEffect(() => {
+    if (inspectorTick > 0 && lastSelectedRef.current) {
+      setClosed(false);
+    }
+  }, [inspectorTick]);
 
   useOnSelectionChange({
     onChange: ({ nodes }) => {

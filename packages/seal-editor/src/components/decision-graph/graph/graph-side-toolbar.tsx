@@ -1,4 +1,13 @@
-import { Command as CommandIcon, EllipsisIcon, FocusIcon, ListChecksIcon, Redo2Icon, Undo2Icon } from 'lucide-react';
+import { AutoLayoutOutlined } from '#icons';
+import {
+  ArrowDownUpIcon,
+  Command as CommandIcon,
+  EllipsisIcon,
+  FocusIcon,
+  ListChecksIcon,
+  Redo2Icon,
+  Undo2Icon,
+} from 'lucide-react';
 import React, { Fragment, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -321,14 +330,6 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
   // ⋯ 溢出菜单（P1-4 diff 开关入列——基线在场才出现；布局/锁/吸附带 ✓ 态）
   const moreToolItems: MenuProps['items'] = [
     {
-      key: 'auto-layout',
-      label: t('dg.toolbar.autoLayout'),
-      disabled,
-      onClick: () => {
-        autoLayout().catch((e: unknown) => toast.error(e instanceof Error ? e.message : String(e)));
-      },
-    },
-    {
       key: 'align-grid',
       label: t('dg.toolbar.alignToGrid'),
       disabled,
@@ -356,6 +357,10 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
           },
         ]
       : []),
+  ];
+
+  // 导入/导出合并菜单（json/excel 双向；上传随只读灰置，下载常可用）
+  const importExportItems: MenuProps['items'] = [
     ...uploadItems.map((item) => ({ ...item, disabled })),
     ...downloadItems,
   ];
@@ -410,8 +415,30 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
                 </Tooltip>
               </>
             )}
-            {/* 低频画布工具收纳 ⋯ 溢出菜单——侧栏常驻只留高频（undo/redo/面板/诊断/
-                聚焦/⌘K），面板不再被挤出一屏（Linear/Slack 侧栏溢出惯例） */}
+            {/* auto-layout 高频（用户裁定）：常驻第一列 */}
+            <Tooltip title={t('dg.toolbar.autoLayout')} placement={'right'}>
+              <Button
+                type={'text'}
+                aria-label={t('dg.toolbar.autoLayout')}
+                disabled={disabled}
+                data-testid='auto-layout'
+                icon={<AutoLayoutOutlined />}
+                onClick={() => {
+                  autoLayout().catch((e: unknown) => toast.error(e instanceof Error ? e.message : String(e)));
+                }}
+              />
+            </Tooltip>
+            {/* 导入/导出四动作合并单钮（用户裁定）——json/excel 双向一菜单 */}
+            <Dropdown menu={{ items: importExportItems }} placement='bottomRight' trigger={['click']}>
+              <Button
+                type={'text'}
+                aria-label={t('dg.toolbar.importExport')}
+                data-testid='import-export'
+                icon={<ArrowDownUpIcon className='size-4' />}
+              />
+            </Dropdown>
+            {/* 低频画布工具收纳 ⋯ 溢出菜单——侧栏常驻只留高频（undo/redo/auto-layout/
+                导入导出/诊断/聚焦/⌘K+面板），面板不再被挤出一屏 */}
             <Dropdown menu={{ items: moreToolItems }} placement='bottomRight' trigger={['click']}>
               <Button
                 type={'text'}

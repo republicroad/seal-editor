@@ -122,6 +122,10 @@ export type DecisionGraphStoreType = {
     /** P1-4：宿主经 prop 供给 diff 基线的在场信号（工具条对比开关渲染条件） */
     hasDiffBaseline: boolean;
 
+    /** 检查器重开信号：每次 triggerNodeSelect 递增——已选节点重点不产生 xyflow
+     * selection change，检查器需凭此 tick 重开（Figma/Unreal 重点即重开惯例） */
+    inspectorTick: number;
+
     customNodes: CustomNodeSpecification<object, any>[];
 
     /** ADR-024 D2：函数参考面板目录（Libraries 页签；缺省内置表，宿主可注入） */
@@ -369,6 +373,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         focusMode: false,
         diffMode: true,
         hasDiffBaseline: false,
+        inspectorTick: 0,
       })),
     [],
   );
@@ -1187,7 +1192,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
             })),
           );
         }
-        stateStore.setState({ decisionGraph: newDecisionGraph });
+        const { inspectorTick } = stateStore.getState();
+        stateStore.setState({ decisionGraph: newDecisionGraph, inspectorTick: inspectorTick + 1 });
         listenerStore.getState().onChange?.(newDecisionGraph);
       },
     };

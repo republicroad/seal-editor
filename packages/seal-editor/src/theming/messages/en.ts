@@ -163,6 +163,7 @@ export const en = {
   'vh.compare.entry': 'comparing',
   'dg.toolbar.uploadJson': 'Upload JSON',
   'dg.toolbar.uploadExcel': 'Upload Excel',
+  'dg.toolbar.importExport': 'Import / export',
   'dg.toolbar.moreTools': 'More tools',
   'dg.toolbar.undo': 'Undo',
   'dg.toolbar.redo': 'Redo',
