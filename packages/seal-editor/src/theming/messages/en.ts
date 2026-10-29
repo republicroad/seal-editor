@@ -421,6 +421,8 @@ export const en = {
   'cf.modeTable': 'Table',
   'cf.modeCode': 'Code',
   'cf.codeInvalidJson': 'Invalid JSON',
+  'cf.paramOptionsSearch': 'Search…',
+  'cf.paramOptionsEmpty': 'No matching options',
   'cf.modeLiteral': 'Value',
   'cf.modeExpression': 'Expression',
   'cf.modeReference': 'Reference',

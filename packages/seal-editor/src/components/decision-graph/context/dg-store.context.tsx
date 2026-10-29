@@ -126,6 +126,10 @@ export type DecisionGraphStoreType = {
      * selection change，检查器需凭此 tick 重开（Figma/Unreal 重点即重开惯例） */
     inspectorTick: number;
 
+    /** verdict 提案方案 A：动态参数选项（键=定位，解析序 `${nodeId}/${param}` →
+     * `${tool}/${param}`）——非空时 TypedInput 字面量模式渲染可搜索下拉 */
+    parameterOptions: Record<string, string[]>;
+
     customNodes: CustomNodeSpecification<object, any>[];
 
     /** ADR-024 D2：函数参考面板目录（Libraries 页签；缺省内置表，宿主可注入） */
@@ -374,6 +378,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         diffMode: true,
         hasDiffBaseline: false,
         inspectorTick: 0,
+        parameterOptions: {},
       })),
     [],
   );

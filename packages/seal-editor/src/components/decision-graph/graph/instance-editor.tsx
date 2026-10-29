@@ -52,6 +52,10 @@ type InstanceEditorProps = {
   outputsByKey?: Record<string, unknown>;
   /** 实例依赖调度结果（Kahn 分层；tab 由 computeInstanceSchedule 计算） */
   schedule?: InstanceSchedule;
+  /** 所属节点 id（parameterOptions 节点级键 `${nodeId}/${param}` 解析用） */
+  nodeId?: string;
+  /** 动态参数选项（tab 层从编辑器 store 读取下传——本组件保持 store-free 可裸渲染） */
+  parameterOptions?: Record<string, string[]>;
   onChange: (instances: FunctionInstance[]) => void;
 };
 
@@ -66,9 +70,12 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
   duplicateKeys,
   outputsByKey,
   schedule,
+  nodeId,
+  parameterOptions: parameterOptionsProp,
   onChange,
 }) => {
   const t = useT();
+  const parameterOptions = parameterOptionsProp ?? {};
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const functions = functionScope.functions;
@@ -557,6 +564,10 @@ export const InstanceEditor: React.FC<InstanceEditorProps> = ({
                         </div>
                         <TypedInput
                           parameterType={paramType}
+                          options={
+                            parameterOptions?.[`${nodeId}/${name}`] ??
+                            parameterOptions?.[`${selected.call.$call}/${name}`]
+                          }
                           value={typed}
                           disabled={disabled}
                           fieldPaths={fieldPaths}

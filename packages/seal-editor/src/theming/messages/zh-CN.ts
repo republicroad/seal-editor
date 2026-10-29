@@ -402,6 +402,8 @@ export const zhCN: Record<string, string> = {
   'cf.modeTable': '表格',
   'cf.modeCode': '代码',
   'cf.codeInvalidJson': 'JSON 格式错误',
+  'cf.paramOptionsSearch': '搜索…',
+  'cf.paramOptionsEmpty': '无匹配选项',
   'cf.modeLiteral': '值',
   'cf.modeExpression': '表达式',
   'cf.modeReference': '引用',

@@ -73,6 +73,11 @@ export type DecisionGraphEmptyType = {
   /** P0-2 diagnostics 面：宿主喂入校验条目（与内置校验器合并展示；面板与徽标内核自挂载） */
   diagnostics?: ValidationEntry[];
 
+  /** verdict 提案方案 A：动态参数选项（如 value_list 名单目录）——键=定位
+   * （`${nodeId}/${param}` 节点级或 `${tool}/${param}` 工具级，如
+   * `value_list.value_list/list`）；命中参数的字面量输入渲染为可搜索下拉 */
+  parameterOptions?: Record<string, string[]>;
+
   /** ADR-013 批次三：输入节点契约漂移事件流（数据装配归 kernel，宿主消费——如变更日志面板） */
   onContractEvent?: DecisionGraphStoreType['listeners']['onContractEvent'];
 
@@ -109,6 +114,7 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
   fixturesRunner,
   onContractEvent,
   diagnostics,
+  parameterOptions,
 }) => {
   const mountedRef = useRef(false);
   const graphActions = useDecisionGraphActions();
@@ -193,6 +199,10 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
   useEffect(() => {
     stateStore.setState({ hostDiagnostics: diagnostics ?? [] });
   }, [diagnostics]);
+
+  useEffect(() => {
+    stateStore.setState({ parameterOptions: parameterOptions ?? {} });
+  }, [parameterOptions]);
 
   useEffect(() => {
     listenerStore.setState({

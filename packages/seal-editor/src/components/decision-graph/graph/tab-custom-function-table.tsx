@@ -31,9 +31,10 @@ export type TabCustomFunctionProps = {
 
 export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user, customFunctions }) => {
   const graphActions = useDecisionGraphActions();
-  const { disabled, content, inputContent, instanceOutputs } = useDecisionGraphState(
-    ({ simulate, disabled, decisionGraph }) => ({
+  const { disabled, content, inputContent, instanceOutputs, parameterOptions } = useDecisionGraphState(
+    ({ simulate, disabled, decisionGraph, parameterOptions }) => ({
       disabled,
+      parameterOptions,
       content: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content,
       // 引用模式数据源：首个输入节点的 InputContract/Schema 字段树（typed-input 规格 §2.4）
       inputContent: (decisionGraph?.nodes ?? []).find((node) => node?.type === 'inputNode')?.content,
@@ -342,6 +343,8 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
           )}
           <div className='flex min-h-0 flex-1 flex-col' style={{ paddingTop: driftRowCount > 0 ? 8 : 0 }}>
             <InstanceEditor
+              nodeId={id}
+              parameterOptions={parameterOptions}
               instances={instances}
               functionScope={functionScope}
               disabled={disabled}

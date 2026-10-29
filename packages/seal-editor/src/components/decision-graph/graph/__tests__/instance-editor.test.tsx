@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -89,6 +89,27 @@ const pickOption = async (user: ReturnType<typeof userEvent.setup>, label: strin
 };
 
 describe('InstanceEditor（主从编辑器深化）', () => {
+  it('verdict 提案方案 A：parameterOptions 命中参数渲染选项下拉，未命中保持自由文本', () => {
+    render(
+      <InstanceEditor
+        instances={INSTANCES}
+        functionScope={SCOPE}
+        nodeId='n1'
+        parameterOptions={{ 'n1/tier': ['roster_gold', 'roster_silver'] }}
+        onChange={vi.fn()}
+      />,
+    );
+
+    // 命中（节点级键 n1/tier）：tier 行渲染选项触发钮
+    const rows = screen.getAllByTestId('param-row-tier');
+    expect(rows).toHaveLength(1);
+    expect(within(rows[0]).getByTestId('param-options-trigger')).toBeInTheDocument();
+
+    // 未命中（amount）：保持自由文本输入（TypedInput 值框），无触发钮
+    const amountRows = screen.getAllByTestId('param-row-amount');
+    expect(within(amountRows[0]).queryByTestId('param-options-trigger')).toBeNull();
+  });
+
   it('左栏渲染实例列表（函数名 + 输出键），选中项进右栏', async () => {
     const user = userEvent.setup();
     render(<InstanceEditor instances={INSTANCES} functionScope={SCOPE} onChange={vi.fn()} />);

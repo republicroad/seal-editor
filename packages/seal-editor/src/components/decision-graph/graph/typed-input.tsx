@@ -1,10 +1,11 @@
 import type { CascaderNode } from '#reui/cascader/cascader-types';
-import { ChevronDownIcon } from 'lucide-react';
+import { CheckIcon, ChevronDownIcon } from 'lucide-react';
 import React, { Suspense, lazy, useCallback, useMemo, useRef, useState } from 'react';
 
 import { useT } from '../../../theming/i18n';
 import { CodeEditorBase } from '../../code-editor/ce-base';
 import { Input, InputNumber, Select, Switch } from '../../primitives';
+import { Popover, PopoverContent, PopoverTrigger } from '../../ui/popover';
 
 // 弹层 chunk 懒加载：cascader 组合件只在首开字段弹层时下载（index.js 预算隔离）
 const FieldPickerPopup = lazy(() => import('#reui/cascader/field-picker-popup'));
@@ -29,6 +30,9 @@ type TypedInputProps = {
   placeholder?: string;
   /** 输入节点字段树投影：表达式模式供给字段选择器；为空时选择器隐藏 */
   fieldPaths?: string[];
+  /** 动态参数选项（verdict 提案方案 A）：非空时字面量模式渲染为可搜索下拉；
+   * 未命中选项的现值原样显示（自由文本语义保留），无选项时完全回退现行为 */
+  options?: string[];
 };
 
 /** 裸值 → TypedValue 推断（旧数据读取兼容；信封原样通过） */
@@ -57,6 +61,7 @@ export const TypedInput: React.FC<TypedInputProps> = ({
   disabled,
   placeholder,
   fieldPaths,
+  options,
 }) => {
   const t = useT();
   const typed = value ?? { mode: 'literal' as const, value: undefined };
@@ -120,15 +125,23 @@ export const TypedInput: React.FC<TypedInputProps> = ({
     [t],
   );
 
-  const literalEditor = (
-    <LiteralEditor
-      parameterType={parameterType}
-      value={uiMode === 'literal' ? raw : undefined}
-      onChange={setLiteral}
-      disabled={disabled}
-      placeholder={placeholder}
-    />
-  );
+  const literalEditor =
+    options && options.length > 0 ? (
+      <OptionsSelect
+        value={uiMode === 'literal' ? raw : undefined}
+        options={options}
+        disabled={disabled}
+        onChange={setLiteral}
+      />
+    ) : (
+      <LiteralEditor
+        parameterType={parameterType}
+        value={uiMode === 'literal' ? raw : undefined}
+        onChange={setLiteral}
+        disabled={disabled}
+        placeholder={placeholder}
+      />
+    );
 
   const expressionEditor = (
     <div className='flex w-full items-start gap-1'>
@@ -243,6 +256,70 @@ const FieldPicker: React.FC<{
         <PickerTriggerShell label={t('cf.field')} disabled={disabled} onClick={() => setOpen(true)} />
       )}
     </div>
+  );
+};
+
+/** 动态参数选项下拉（可搜索；选中即设字面量）：触发钮显示现值（含不在选项内的
+ * 自由文本现值——诚实语义），弹层搜索+列表，Esc/点外关闭。 */
+const OptionsSelect: React.FC<{
+  value?: unknown;
+  options: string[];
+  disabled?: boolean;
+  onChange: (value: unknown) => void;
+}> = ({ value, options, disabled, onChange }) => {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const current = typeof value === 'string' ? value : value !== undefined && value !== null ? String(value) : '';
+  const filtered = useMemo(
+    () => (query ? options.filter((opt) => opt.toLowerCase().includes(query.toLowerCase())) : options),
+    [options, query],
+  );
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        disabled={disabled}
+        data-testid='param-options-trigger'
+        className='flex h-8 w-full items-center gap-1 rounded-md border border-input bg-transparent px-2.5 text-xs outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50'
+      >
+        <span className='min-w-0 flex-1 truncate text-left'>
+          {current || <span className='opacity-50'>{t('cf.paramOptionsSearch')}</span>}
+        </span>
+        <ChevronDownIcon className='size-3.5 shrink-0 opacity-60' />
+      </PopoverTrigger>
+      <PopoverContent align='start' className='w-[320px] p-1' data-testid='param-options-popup'>
+        <div className='border-b border-b-[var(--border)] p-1.5'>
+          <Input
+            value={query}
+            placeholder={t('cf.paramOptionsSearch')}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
+            className='h-7 text-xs'
+          />
+        </div>
+        <div className='flex max-h-56 flex-col overflow-y-auto p-1'>
+          {filtered.map((opt) => (
+            <button
+              key={opt}
+              type='button'
+              data-testid='param-option'
+              className='flex items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-left text-xs hover:bg-accent'
+              onClick={() => {
+                onChange(opt);
+                setOpen(false);
+                setQuery('');
+              }}
+            >
+              <span className='min-w-0 truncate'>{opt}</span>
+              {current === opt && <CheckIcon className='size-3.5 shrink-0 text-primary' />}
+            </button>
+          ))}
+          {filtered.length === 0 && (
+            <div className='px-2 py-3 text-center text-xs opacity-50'>{t('cf.paramOptionsEmpty')}</div>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 };
 
