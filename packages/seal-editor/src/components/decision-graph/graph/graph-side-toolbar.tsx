@@ -1,16 +1,4 @@
-import { AutoLayoutOutlined, CloudDownloadOutlined, CloudUploadOutlined } from '#icons';
-import {
-  Command as CommandIcon,
-  FocusIcon,
-  GitCompareIcon,
-  Grid2x2Icon,
-  ListChecksIcon,
-  LockIcon,
-  LockOpenIcon,
-  MagnetIcon,
-  Redo2Icon,
-  Undo2Icon,
-} from 'lucide-react';
+import { Command as CommandIcon, EllipsisIcon, FocusIcon, ListChecksIcon, Redo2Icon, Undo2Icon } from 'lucide-react';
 import React, { Fragment, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -330,6 +318,48 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
     },
   ].filter((item) => !!item);
 
+  // ⋯ 溢出菜单（P1-4 diff 开关入列——基线在场才出现；布局/锁/吸附带 ✓ 态）
+  const moreToolItems: MenuProps['items'] = [
+    {
+      key: 'auto-layout',
+      label: t('dg.toolbar.autoLayout'),
+      disabled,
+      onClick: () => {
+        autoLayout().catch((e: unknown) => toast.error(e instanceof Error ? e.message : String(e)));
+      },
+    },
+    {
+      key: 'align-grid',
+      label: t('dg.toolbar.alignToGrid'),
+      disabled,
+      onClick: () => {
+        alignNodesToGrid();
+        toast.success(t('dg.toolbar.alignedToGrid'));
+      },
+    },
+    {
+      key: 'lock-canvas',
+      label: (canvasLocked ? '✓ ' : '') + t('dg.toolbar.lockCanvas'),
+      onClick: () => setCanvasLocked(!canvasLocked),
+    },
+    {
+      key: 'snap-grid',
+      label: (snapToGrid ? '✓ ' : '') + t('dg.toolbar.snapToGrid'),
+      onClick: () => setSnapToGrid(!snapToGrid),
+    },
+    ...(hasDiffBaseline
+      ? [
+          {
+            key: 'diff-view',
+            label: (diffMode ? '✓ ' : '') + t('dg.toolbar.diffMode'),
+            onClick: () => setDiffMode(!diffMode),
+          },
+        ]
+      : []),
+    ...uploadItems.map((item) => ({ ...item, disabled })),
+    ...downloadItems,
+  ];
+
   return (
     <Fragment>
       <div className={'[grid-area:sidebar] flex h-full min-h-0 bg-[var(--seal-color-bg-container)]'}>
@@ -378,65 +408,17 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
                     onClick={redo}
                   />
                 </Tooltip>
-                <Tooltip title={t('dg.toolbar.autoLayout')} placement={'right'}>
-                  <Button
-                    type={'text'}
-                    aria-label={t('dg.toolbar.autoLayout')}
-                    disabled={disabled}
-                    icon={<AutoLayoutOutlined />}
-                    onClick={() => {
-                      autoLayout().catch((e: unknown) => toast.error(e instanceof Error ? e.message : String(e)));
-                    }}
-                  />
-                </Tooltip>
-                {/* B2 对齐网格：全量节点位置取整到 snapGrid（整理 = 局部对齐，与 auto-layout 全图重排互补） */}
-                <Tooltip title={t('dg.toolbar.alignToGrid')} placement={'right'}>
-                  <Button
-                    type={'text'}
-                    aria-label={t('dg.toolbar.alignToGrid')}
-                    disabled={disabled}
-                    icon={<MagnetIcon className='size-4' />}
-                    onClick={() => {
-                      alignNodesToGrid();
-                      toast.success(t('dg.toolbar.alignedToGrid'));
-                    }}
-                  />
-                </Tooltip>
-                {/* B1 画布锁：锁定拖拽/连线/重连，保留平移缩放（评审与演示防误拖） */}
-                <Tooltip
-                  title={canvasLocked ? t('dg.toolbar.unlockCanvas') : t('dg.toolbar.lockCanvas')}
-                  placement={'right'}
-                >
-                  <Button
-                    type={'text'}
-                    aria-label={canvasLocked ? t('dg.toolbar.unlockCanvas') : t('dg.toolbar.lockCanvas')}
-                    aria-pressed={canvasLocked}
-                    data-testid='canvas-lock-toggle'
-                    icon={canvasLocked ? <LockIcon className='size-4' /> : <LockOpenIcon className='size-4' />}
-                    className={canvasLocked ? 'bg-primary/10 text-primary' : undefined}
-                    onClick={() => setCanvasLocked(!canvasLocked)}
-                  />
-                </Tooltip>
-                <Tooltip title={t('dg.toolbar.snapToGrid')} placement={'right'}>
-                  <Button
-                    type={'text'}
-                    aria-label={t('dg.toolbar.snapToGrid')}
-                    aria-pressed={snapToGrid}
-                    data-testid='snap-to-grid-toggle'
-                    icon={<Grid2x2Icon className='size-4' />}
-                    className={snapToGrid ? 'bg-primary/10 text-primary' : undefined}
-                    onClick={() => setSnapToGrid(!snapToGrid)}
-                  />
-                </Tooltip>
               </>
             )}
-            {!disabled && (
-              <Dropdown menu={{ items: uploadItems }} placement='bottomRight' trigger={['click']}>
-                <Button type={'text'} disabled={disabled} icon={<CloudUploadOutlined />} />
-              </Dropdown>
-            )}
-            <Dropdown menu={{ items: downloadItems }} placement='bottomRight' trigger={['click']}>
-              <Button type={'text'} icon={<CloudDownloadOutlined />} />
+            {/* 低频画布工具收纳 ⋯ 溢出菜单——侧栏常驻只留高频（undo/redo/面板/诊断/
+                聚焦/⌘K），面板不再被挤出一屏（Linear/Slack 侧栏溢出惯例） */}
+            <Dropdown menu={{ items: moreToolItems }} placement='bottomRight' trigger={['click']}>
+              <Button
+                type={'text'}
+                aria-label={t('dg.toolbar.moreTools')}
+                data-testid='more-tools'
+                icon={<EllipsisIcon className='size-4' />}
+              />
             </Dropdown>
           </div>
           <div className={'flex flex-col items-center gap-2'}>
@@ -462,21 +444,6 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
                 )}
               </div>
             </Tooltip>
-            {/* P1-4 diff 独立入口：基线在场（宿主供给）时画布内直接切换对比投影，
-                与版本历史恢复流解耦 */}
-            {hasDiffBaseline && (
-              <Tooltip title={t('dg.toolbar.diffMode')} placement={'right'}>
-                <Button
-                  type={'text'}
-                  aria-label={t('dg.toolbar.diffMode')}
-                  aria-pressed={diffMode}
-                  data-testid='diff-mode-toggle'
-                  icon={<GitCompareIcon className='size-4' />}
-                  className={diffMode ? 'bg-primary/10 text-primary' : undefined}
-                  onClick={() => setDiffMode(!diffMode)}
-                />
-              </Tooltip>
-            )}
             {/* P1-5 聚焦模式入口：画布独占（快捷键同通道） */}
             <Tooltip title={t('dg.focus.enter')} placement={'right'}>
               <Button
