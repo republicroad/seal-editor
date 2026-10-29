@@ -443,6 +443,19 @@ describe('undo/redo（P0-1 快照栈接线）', () => {
     act(() => context.actions.undo());
     expect(context.stateStore.getState().decisionGraph.nodes).toHaveLength(2);
   });
+
+  it('P0-2 diagnostics 槽位：宿主条目写入与面板开合', () => {
+    expect(context.stateStore.getState().hostDiagnostics).toEqual([]);
+    expect(context.stateStore.getState().diagnosticsOpen).toBe(false);
+
+    act(() => context.actions.setHostDiagnostics([{ severity: 'error', message: 'velocity 边界越界', nodeId: 'dt' }]));
+    const state = context.stateStore.getState();
+    expect(state.hostDiagnostics).toHaveLength(1);
+    expect(state.builtinDiagnostics).toEqual([]);
+
+    act(() => context.actions.setDiagnosticsOpen(true));
+    expect(context.stateStore.getState().diagnosticsOpen).toBe(true);
+  });
 });
 
 describe('allowedNamespaces 治理谓词（批 23）', () => {

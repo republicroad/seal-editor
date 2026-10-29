@@ -14,6 +14,7 @@ import {
 } from './context/dg-store.context';
 import { type DecisionGraphType } from './dg-types';
 import { calculateDiffGraph } from './diff/utility';
+import type { ValidationEntry } from './graph-diagnostics';
 
 export type DecisionGraphEmptyType = {
   id?: string;
@@ -69,6 +70,9 @@ export type DecisionGraphEmptyType = {
   /** ADR-013 批次三：Run all 执行槽位——宿主注入（appshell = simulateHandler 适配）；未注入时 Run all 不渲染 */
   fixturesRunner?: DecisionGraphStoreType['state']['fixturesRunner'];
 
+  /** P0-2 diagnostics 面：宿主喂入校验条目（与内置校验器合并展示；面板与徽标内核自挂载） */
+  diagnostics?: ValidationEntry[];
+
   /** ADR-013 批次三：输入节点契约漂移事件流（数据装配归 kernel，宿主消费——如变更日志面板） */
   onContractEvent?: DecisionGraphStoreType['listeners']['onContractEvent'];
 
@@ -104,6 +108,7 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
   onFunctionReady,
   fixturesRunner,
   onContractEvent,
+  diagnostics,
 }) => {
   const mountedRef = useRef(false);
   const graphActions = useDecisionGraphActions();
@@ -182,6 +187,10 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
   useEffect(() => {
     stateStore.setState({ fixturesRunner: fixturesRunner ?? null });
   }, [fixturesRunner]);
+
+  useEffect(() => {
+    stateStore.setState({ hostDiagnostics: diagnostics ?? [] });
+  }, [diagnostics]);
 
   useEffect(() => {
     listenerStore.setState({

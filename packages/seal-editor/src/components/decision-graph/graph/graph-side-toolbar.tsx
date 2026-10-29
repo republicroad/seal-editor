@@ -2,6 +2,7 @@ import { AutoLayoutOutlined, CloudDownloadOutlined, CloudUploadOutlined } from '
 import {
   Command as CommandIcon,
   Grid2x2Icon,
+  ListChecksIcon,
   LockIcon,
   LockOpenIcon,
   MagnetIcon,
@@ -18,7 +19,12 @@ import { useT } from '../../../theming/i18n';
 import { parseDecisionTable } from '../../decision-table/context/dt-store.context';
 import type { MenuProps } from '../../primitives';
 import { Button, Dropdown, Tooltip } from '../../primitives';
-import { useDecisionGraphActions, useDecisionGraphRaw, useDecisionGraphState } from '../context/dg-store.context';
+import {
+  selectDiagnostics,
+  useDecisionGraphActions,
+  useDecisionGraphRaw,
+  useDecisionGraphState,
+} from '../context/dg-store.context';
 import { type DecisionEdge, type DecisionNode } from '../dg-types';
 import { NodeKind } from '../nodes/specifications/specification-types';
 import type { MergedDataItem } from './graph-excel-dialog';
@@ -47,6 +53,7 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
     setSnapToGrid,
     undo,
     redo,
+    setDiagnosticsOpen,
   } = useDecisionGraphActions();
   const { disabled, panels, activePanel, viewConfig, commandMenuOpen, canvasLocked, snapToGrid, canUndo, canRedo } =
     useDecisionGraphState(
@@ -62,6 +69,10 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
         canRedo,
       }),
     );
+  const diagnosticsOpen = useDecisionGraphState(({ diagnosticsOpen: open }) => open);
+  const diagnosticErrorCount = useDecisionGraphState((state) =>
+    selectDiagnostics(state).reduce((n, entry) => (entry.severity === 'error' ? n + 1 : n), 0),
+  );
 
   const handleUploadInput = async (event: any) => {
     const fileList = event?.target?.files as FileList;
@@ -422,6 +433,28 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
             </Dropdown>
           </div>
           <div className={'flex flex-col items-center gap-2'}>
+            {/* P0-2 诊断面板开关：错误计数徽标（只读图也可查看诊断） */}
+            <Tooltip title={t('dg.diagnostics.title')} placement={'right'}>
+              <div className='relative'>
+                <Button
+                  type={'text'}
+                  aria-label={t('dg.diagnostics.title')}
+                  aria-pressed={diagnosticsOpen}
+                  data-testid='diagnostics-toggle'
+                  icon={<ListChecksIcon className='size-4' />}
+                  className={diagnosticsOpen ? 'bg-primary/10 text-primary' : undefined}
+                  onClick={() => setDiagnosticsOpen(!diagnosticsOpen)}
+                />
+                {diagnosticErrorCount > 0 && (
+                  <span
+                    className='pointer-events-none absolute -right-1 -top-1 min-w-3.5 rounded-full bg-[var(--seal-color-error)] px-1 text-center text-[9px] leading-3.5 text-white'
+                    data-testid='diagnostics-badge'
+                  >
+                    {diagnosticErrorCount > 99 ? '99+' : diagnosticErrorCount}
+                  </span>
+                )}
+              </div>
+            </Tooltip>
             <Tooltip title={t('dg.command.open')} placement='right'>
               <Button
                 type='text'

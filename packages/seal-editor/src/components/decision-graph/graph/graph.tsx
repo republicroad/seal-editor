@@ -43,6 +43,7 @@ import { resolveCustomNode } from '../nodes/resolve-custom-node';
 import type { MinimalNodeProps } from '../nodes/specifications/specification-types';
 import { NodeKind } from '../nodes/specifications/specification-types';
 import { nodeSpecification } from '../nodes/specifications/specifications';
+import { DiagnosticsController, DiagnosticsPanel } from './diagnostics-panel';
 import { GraphCommandMenu } from './graph-command-menu';
 import { GraphComponents } from './graph-components';
 import { NodeInspector } from './node-inspector';
@@ -563,6 +564,8 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               <MiniMap pannable zoomable position='bottom-left' />
               <Background id={id} color='var(--border)' gap={20} />
               <NodeInspector />
+              <DiagnosticsController />
+              <DiagnosticsPanel />
             </ReactFlow>
             {/* B2 拖线悬空释放 → 节点搜索菜单（fixed 定位在释放点；backdrop 点击/Esc 关闭） */}
             {connectMenu && (

@@ -20,6 +20,7 @@ import type { FunctionLibrary } from '../../function/helpers/libs';
 import type { DecisionEdge, DecisionGraphAnnotation, DecisionGraphType, DecisionNode } from '../dg-types';
 import { privateSymbol } from '../dg-types';
 import { mapToGraphEdge, mapToGraphEdges, mapToGraphNode, mapToGraphNodes } from '../dg-util';
+import type { ValidationEntry } from '../graph-diagnostics';
 import { buildContractFixtures, graphFingerprint, listInputNodes, runFixturesForNode } from '../graph/fixtures-run';
 import type { ContractDriftEvent, ExampleRunReport, FixturesRunner } from '../graph/fixtures-runner';
 import type { useGraphClipboard } from '../hooks/use-graph-clipboard';
@@ -105,6 +106,13 @@ export type DecisionGraphStoreType = {
     canUndo: boolean;
     canRedo: boolean;
 
+    /** P0-2 diagnostics 面：宿主喂入条目（verdict 配方域校验等） */
+    hostDiagnostics: ValidationEntry[];
+    /** P0-2 内置缺省校验器产出（图变更 250ms 防抖重算，DiagnosticsController 维护） */
+    builtinDiagnostics: ValidationEntry[];
+    /** 诊断面板开合 */
+    diagnosticsOpen: boolean;
+
     customNodes: CustomNodeSpecification<object, any>[];
 
     /** ADR-024 D2：函数参考面板目录（Libraries 页签；缺省内置表，宿主可注入） */
@@ -184,6 +192,11 @@ export type DecisionGraphStoreType = {
     commitUndo: () => void;
     /** 历史边界重置（切换模型/恢复历史版本后由宿主调用——快照栈跨文档无意义） */
     resetHistory: () => void;
+
+    /** P0-2：宿主诊断条目写入（prop 通道经 dg-empty 接线） */
+    setHostDiagnostics: (entries: ValidationEntry[]) => void;
+    /** P0-2：诊断面板开合 */
+    setDiagnosticsOpen: (open: boolean) => void;
 
     handleNodesChange: (nodesChange: NodeChange[]) => void;
     handleEdgesChange: (edgesChange: EdgeChange[]) => void;
@@ -337,6 +350,9 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         globalType: {},
         canUndo: false,
         canRedo: false,
+        hostDiagnostics: [],
+        builtinDiagnostics: [],
+        diagnosticsOpen: false,
       })),
     [],
   );
@@ -432,6 +448,12 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       resetHistory: () => {
         undoRedoStack.clear();
         stateStore.setState({ canUndo: false, canRedo: false });
+      },
+      setHostDiagnostics: (entries) => {
+        stateStore.setState({ hostDiagnostics: entries });
+      },
+      setDiagnosticsOpen: (open) => {
+        stateStore.setState({ diagnosticsOpen: open });
       },
       handleNodesChange: (changes = []) => {
         const { nodesState } = referenceStore.getState();
@@ -1190,6 +1212,12 @@ export function useDecisionGraphActions(): DecisionGraphStoreType['actions'] {
 export function useDecisionGraphRaw() {
   return React.useContext(DecisionGraphStoreContext);
 }
+
+/** P0-2：合并诊断视图——内置校验器条目在前（结构性问题优先），宿主条目在后 */
+export const selectDiagnostics = (state: DecisionGraphStoreType['state']): ValidationEntry[] => [
+  ...state.builtinDiagnostics,
+  ...state.hostDiagnostics,
+];
 
 export const useNodeDiff = (id: string) => {
   const { diff, contentDiff } = useDecisionGraphState((s) => {
