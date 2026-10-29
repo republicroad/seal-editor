@@ -13,7 +13,7 @@ import { Spin } from '../primitives';
 import { SafeBoundary } from '../safe-boundary';
 import { FunctionDebugger } from './function-debugger';
 import { variableTypeToTypescript } from './helpers/determine-type';
-import { type FunctionLibrary, functionDefinitions, functionLibraries } from './helpers/libs';
+import { type FunctionLibrary, functionDefinitions } from './helpers/libs';
 
 // monaco 的 MarkerSeverity 是固定数值枚举（editor.api.d.ts）；以本地字面量
 // 引用使 monaco 在内核内保持纯类型依赖——消费方打包器即使错误地把 tsconfig
@@ -55,7 +55,7 @@ export const Function: React.FC<FunctionProps> = ({
   inputData,
   previousValue,
   permission = 'edit:full',
-  libraries = functionLibraries,
+  libraries,
 }) => {
   const monaco = useMonaco();
   const mountedRef = useRef(false);
@@ -104,7 +104,7 @@ export const Function: React.FC<FunctionProps> = ({
     });
 
     monaco.languages.typescript.javascriptDefaults.setExtraLibs(
-      functionLibraries.map((lib) => ({
+      (libraries ?? []).map((lib) => ({
         content: `declare module '${lib.name}' { ${lib.typeDef} }`,
         filePath: lib.name,
       })),

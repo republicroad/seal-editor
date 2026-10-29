@@ -86,7 +86,7 @@ export const TabFunction: React.FC<TabFunctionProps> = ({ id }) => {
   return (
     <Suspense fallback={<Spin />}>
       <Function
-        libraries={functionLibraries?.length ? functionLibraries : undefined}
+        libraries={functionLibraries}
         onMonacoReady={(monaco) => setMonaco(monaco)}
         onEditorMount={(editor) => {
           editorRef.current = editor;

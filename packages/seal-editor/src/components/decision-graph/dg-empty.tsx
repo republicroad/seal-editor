@@ -5,7 +5,7 @@ import { useDebouncedCallback } from 'use-debounce';
 
 import type { DictionaryMap } from '../../theme';
 import type { JdmUiMode } from '../decision-table/context/dt-store.context';
-import { type FunctionLibrary, functionLibraries as builtinFunctionLibraries } from '../function/helpers/libs';
+import { type FunctionLibrary } from '../function/helpers/libs';
 import {
   type DecisionGraphStoreType,
   useDecisionGraphActions,
@@ -32,7 +32,7 @@ export type DecisionGraphEmptyType = {
 
   components?: DecisionGraphStoreType['state']['components'];
   customNodes?: DecisionGraphStoreType['state']['customNodes'];
-  /** ADR-024 D2：函数参考面板目录（Libraries 页签）；缺省内置表（big.js/dayjs/http/zen…） */
+  /** ADR-024 D2 + 2.0 裁断 A：函数参考面板目录（Libraries 页签）——无注入=不显示（内置缺省目录已随 2.0 撤销，诚实语义） */
   functionLibraries?: FunctionLibrary[];
 
   /** 治理谓词（批 23）：按 namespace/kind 过滤 customNodes——缺省不过滤（全量可用） */
@@ -150,8 +150,7 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
       disabled,
       components: Array.isArray(components) ? components : [],
       customNodes: Array.isArray(filteredCustomNodes) ? filteredCustomNodes : [],
-      functionLibraries:
-        functionLibraries && functionLibraries.length > 0 ? functionLibraries : builtinFunctionLibraries,
+      functionLibraries,
       extraCommands: Array.isArray(extraCommands) ? extraCommands : [],
       panels,
       viewConfig,

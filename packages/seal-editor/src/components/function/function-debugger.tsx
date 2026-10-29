@@ -20,7 +20,7 @@ export type FunctionDebuggerProps = {
   trace?: SimulationTrace<SimulationTraceDataFunction>;
   editor?: editor.IStandaloneCodeEditor;
   editorValue?: string;
-  libraries: FunctionLibrary[];
+  libraries?: FunctionLibrary[];
   disabled?: boolean;
 };
 
