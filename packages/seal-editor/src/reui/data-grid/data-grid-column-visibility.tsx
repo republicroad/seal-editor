@@ -38,7 +38,7 @@ function DataGridColumnVisibility({
                   key={column.id}
                   className='capitalize'
                   checked={column.getIsVisible()}
-                  onSelect={(event) => event.preventDefault()}
+                  closeOnClick={false}
                   onCheckedChange={(value) => {
                     const next: Record<string, boolean> = {};
                     table.getAllLeafColumns().forEach((col) => {

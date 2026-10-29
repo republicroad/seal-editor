@@ -370,7 +370,7 @@ function DataGridColumnHeaderInner<TData extends object, TValue>({
                 <DropdownMenuCheckboxItem
                   key={col.id}
                   checked={col.getIsVisible()}
-                  onSelect={(event) => event.preventDefault()}
+                  closeOnClick={false}
                   onCheckedChange={(value) => col.toggleVisibility(!!value)}
                   className='capitalize'
                 >
