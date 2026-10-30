@@ -44,6 +44,26 @@ import '@republicroad/seal-editor/dist/style.css';
 - **治理**：`allowedNamespaces` 谓词过滤、契约 fixtures（zen-udf conformance）、报告过期检查
 - **宿主壳层（appshell）**：版本历史、`restoreVersion`、pattern-D 自动保存（防抖+CONFLICT 三选）、simulate handler 适配
 
+## 宿主集成要点（2.0）
+
+```tsx
+<DecisionGraph
+  value={graph}
+  onChange={setGraph}
+  // 诊断面板：宿主校验条目（与内置校验器合并，错误行点击画布定位）
+  diagnostics={hostEntries}
+  // 动态参数选项：命中参数的字面量输入渲染可搜索下拉（键=定位，节点级优先）
+  parameterOptions={{ 'value_list.value_list/list': rosterNames }}
+  // diff 投影基线：传入即对比（画布内对比开关随之出现）
+  diffBaseline={baselineGraph}
+/>
+```
+
+- **undo/redo**：内核全操作栈开箱即用；宿主在切换模型/恢复历史版本时调用
+  `graphActions.resetHistory()` 清栈（受控回声不清栈）。
+- **确认弹窗**：`App.useApp().modal.confirm` 的宿主（ConfirmHost）由
+  JdmConfigProvider 单源挂载；裸 `AppProvider` 消费者须自挂 `<ConfirmHost />`。
+
 ## 本地开发
 
 ```bash
