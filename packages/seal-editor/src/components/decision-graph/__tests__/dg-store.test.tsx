@@ -444,6 +444,32 @@ describe('undo/redo（P0-1 快照栈接线）', () => {
     expect(context.stateStore.getState().decisionGraph.nodes).toHaveLength(2);
   });
 
+  it('注释框文本编辑进栈：首个变更捕获编辑前态，会话窗内合并（P0-1 规格补口）', () => {
+    act(() => {
+      context.actions.setDecisionGraph(
+        {
+          nodes: [],
+          edges: [],
+          annotations: [{ id: 'a1', text: '', position: { x: 0, y: 0 }, width: 220, height: 140 }],
+        } as never,
+        { skipOnChangeEvent: true },
+      );
+    });
+
+    act(() => {
+      context.actions.updateAnnotation('a1', { text: '第' });
+      context.actions.updateAnnotation('a1', { text: '第一' });
+      context.actions.updateAnnotation('a1', { text: '第一行' });
+    });
+    act(() => context.actions.undo());
+    expect((context.stateStore.getState().decisionGraph.annotations ?? []).find((a) => a.id === 'a1')?.text).toBe('');
+    expect(context.stateStore.getState().canRedo).toBe(true);
+    act(() => context.actions.redo());
+    expect((context.stateStore.getState().decisionGraph.annotations ?? []).find((a) => a.id === 'a1')?.text).toBe(
+      '第一行',
+    );
+  });
+
   it('P0-2 diagnostics 槽位：宿主条目写入与面板开合', () => {
     expect(context.stateStore.getState().hostDiagnostics).toEqual([]);
     expect(context.stateStore.getState().diagnosticsOpen).toBe(false);

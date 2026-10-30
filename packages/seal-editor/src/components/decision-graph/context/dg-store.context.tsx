@@ -394,6 +394,12 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
   // 节点拖拽会话追踪：首次 position 变更时 pushUndo（捕获拖拽前位置）
   const dragSessionRef = useRef(false);
 
+  // 注释框编辑会话追踪：首个变更 pushUndo（捕获编辑前文本），会话窗内合并（P0-1 规格「增删改」补口）
+  const annotationEditDebounceRef = useRef<{ id: string | null; timer: ReturnType<typeof setTimeout> | null }>({
+    id: null,
+    timer: null,
+  });
+
   const listenerStore = useMemo(
     () =>
       create<DecisionGraphStoreType['listeners']>(() => ({
@@ -941,8 +947,21 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         stateStore.setState({ decisionGraph: next });
         listenerStore.getState().onChange?.(next);
       },
-      // 文本/几何直接更新（不 pushUndo——文本逐键不刷 undo 栈）
+      // P0-1 规格补口：注释框「改」进栈——首个变更捕获编辑前态，500ms 会话窗
+      // 内连续变更合并为一步（与 updateNode 同语义）；拖拽/缩放几何走
+      // applyAnnotationChanges 的拖拽会话，不经此路径
       updateAnnotation: (id, patch) => {
+        const isAnnotationContinuation =
+          annotationEditDebounceRef.current.id === id && annotationEditDebounceRef.current.timer !== null;
+        if (!isAnnotationContinuation) {
+          pushUndo();
+        }
+        if (annotationEditDebounceRef.current.timer) clearTimeout(annotationEditDebounceRef.current.timer);
+        annotationEditDebounceRef.current.id = id;
+        annotationEditDebounceRef.current.timer = setTimeout(() => {
+          annotationEditDebounceRef.current.id = null;
+          annotationEditDebounceRef.current.timer = null;
+        }, 500);
         const { decisionGraph } = stateStore.getState();
         if (!(decisionGraph.annotations || []).some((a) => a.id === id)) {
           return;
