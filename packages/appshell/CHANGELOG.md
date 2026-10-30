@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.39.0...@republicroad/seal-appshell@2.0.0) (2026-10-30)
+
+### Breaking Changes
+
+- **peerDependencies:** `@republicroad/seal-editor` 升至 `^2.0.0`——kernel 2.0 破坏性窗口（LEGACY 退役 / functionLibraries 语义裁断 A / primitives 归档 prop 清退），迁移指引见 kernel CHANGELOG 与 `docs/design/two-point-oh-inventory.md`
+
+### Notes
+
+- appshell 代码面零破坏：SkinnedDecisionGraph 对 kernel 2.0 新 API（diagnostics/parameterOptions/diffBaseline/resetHistory）全部透传兼容，typecheck 与 231 项测试全绿
+
 # [1.39.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.31.0...@republicroad/seal-appshell@1.39.0) (2026-10-24)
 
 ### Bug Fixes

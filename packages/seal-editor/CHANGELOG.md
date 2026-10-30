@@ -3,6 +3,37 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.45.0...@republicroad/seal-editor@2.0.0) (2026-10-30)
+
+2.0 破坏性窗口收官：LEGACY 退役 / functionLibraries 语义裁断 A / props 终清 / UI 前沿对齐（verdict 宿主提案全项）/ 验收三轮修复。
+
+### Breaking Changes
+
+- **theme:** LEGACY token 退役——tokens 仅存 `.seal-root` 岛作用域，未挂岛页面无样式且 provider 输出迁移告警；kernel 入口迁移告警移除；guard strict 禁令启用（`:root:not(:has(` 接管选择器回归即红）
+- **graph:** functionLibraries 语义收束——无注入=不显示 Libraries 页签，Dg 内置缺省目录撤销（verdict 裁断 A：表达不了的状态不伪装成缺省）
+- **primitives:** 归档 prop 桶类型签名删除——popover defaultOpen/title/destroyTooltipOnHide/arrow、date-picker variant/format、tabs type、dropdown arrow/destroyPopupOnHide/transitionName、modal maskClosable/getContainer、switch checkedChildren 族（此前均为静默 no-op）
+- **dt:** DecisionTableProps 移除 mountDialogsOnBody——dt 对话框容器恒走 ISLAND portal（`.seal-root`）
+- **graph:** DecisionGraphStoreType actions 新增 resetHistory 必选成员——宿主切换模型/恢复历史版本时调用清 undo 栈（受控回声不清栈）
+
+### Features
+
+- **graph:** diff 独立入口（P1-4）——`diffBaseline` 投影门（缺省传基线即对比，1.x 兼容）+ 画布浮动条对比开关，与版本历史恢复流解耦
+- **graph:** 聚焦模式（P1-5，Figma ⌘\ 形态）——侧栏/页签条/面板卸载画布独占，⌘\ 切换、Esc 退出（对话框/调色板在场让路），画布右上退出浮标
+- **graph:** parameterOptions 动态参数选项——命中参数的字面量输入渲染可搜索下拉（键=定位两级解析 `${nodeId}/${param}` → `${tool}/${param}`；verdict value_list 名单场景），无选项回退自由文本零破坏
+- **graph:** 注释框文本编辑进 undo 栈——首个变更捕获编辑前态，500ms 会话窗合并（P0-1 规格「增删改」补口）
+- **graph:** 画布左上浮动工具条终态——历史｜整理｜模式开关三组分隔（undo/redo/auto-layout/对齐网格/画布锁/吸附 + ⋯ 对比开关）；侧栏单列=⇅ 导入导出首格 + 面板导航
+- **primitives:** DiffRadio 切分段控件形态 + 选中段主色着染（Figma/Linear 检查器惯例，未选项对比度修复）
+
+### Bug Fixes
+
+- **primitives:** 删除确认弹窗双渲染——AppProvider 内嵌 ConfirmHost 与 theme.tsx 宿主对同一 confirmState 双订阅恒出两窗；宿主单源化回岛内子树
+- **ui:** Dialog portal container 被 props 展开覆盖回 body（岛部署下弹窗透明）——`container ?? sealContainer`，全体 dialog 消费者受益
+- **graph:** EMPTY_EXPRESSION 误报——按表达式节点真实内容形状校验（`expressions` 多行数组，行字段=`value`；无行/全空行=空），兼容 legacy 单字符串
+- **graph:** inputNode 工具条 Add data 无响应——examples 分支漏传 onAddSource；SchemaToolbarActionsProps 改 tab 判别联合防复发
+- **graph:** 对齐网格三写补齐——RF 视图同步/宿主 onChange/undo 进栈（原实现只写模型态=画布不动且宿主失聩）
+- **graph:** simulator 抽屉左偏移随侧栏可见性自适应（hideLeftToolbar 形态回收 48px 死空白）
+- **graph:** 聚焦模式 Esc 双守卫（defaultPrevented 早退 + 对话框/调色板在场让路）
+
 # [1.45.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.44.0...@republicroad/seal-editor@1.45.0) (2026-10-29)
 
 ### Features
