@@ -7,7 +7,56 @@
 > 本文档为 seal-editor 主线计划；文末保留 v1.0 分叉前的历史工作流记录（WS1–WS6，
 > 其中 velocity/ip2region 已按裁决转移 verdict 仓）。
 
-## 0. 起点状态（v1.1.0 基线）
+## 当前规划 v2（2.0.0 之后：前沿探索期，2026-10-30）
+
+> 2.0.0 已发版（破坏性窗口收官）。开发节奏转入慢速探索期——**双通道驱动**：
+> 反馈通道（verdict 实际使用的第一手信号）+ 灵感通道（业界前沿对标）。
+> 每批 ≤1 天、故事先行（9009 demo）+ 契约测试；不再攒大窗口——
+> semver 常规化：feat→minor、fix→patch 随批即发，BREAKING 攒 3.0 窗口。
+
+### 通道一 · 反馈驱动（信号池，等触发不主动）
+
+1. **verdict 2.0.0 随版接入陪跑**（最高优先级信号源）——迁移摩擦与新 API 顺手度
+   （diagnostics / parameterOptions / diffBaseline / resetHistory）的收集与快速修复
+2. 类型阻断连线（铁律 5 最后缺口）——等真实案例，形态按频率定
+3. presence 展示位——宿主 overlay 方案若不敷再评估原生位
+4. 多标签并发（Web Locks / BroadcastChannel）——auto-persist 二阶段
+5. IndexedDB 本地草稿——离线草稿恢复（auto-persist 二阶段候选）
+6. AI copilot / subflow / shadow——触发制原表
+
+### 通道二 · 灵感驱动（前沿探索池，每主题三步：对标 survey → 9009 demo → 裁断后实施）
+
+1. **dt/expression 行级 diff 预览**（唯一已勘定设计的特性批，~1 天）——节点卡内容
+   预览 + `_diff` 行标记；数据层已备（规格 getDiffContent 已出行级），缺节点卡渲染
+2. **AI 协同编辑**——规则/测试用例生成的编辑器内嵌形态（ai-chat Docked Assistant
+   基座已勘）；业界 DSL 编辑器 copilot 模式 survey 先行
+3. **workflow 双模式**（north star 长期线）——decision flow 之外的编排形态编辑模型
+   （n8n / Temporal / Inngest 对标 survey 先行）
+4. **画布交互前沿**——smart guides 对齐参考线、套索选择、minimap 交互深化、
+   触控/手写笔（tldraw / excalidraw 对标）
+5. **schema 驱动检查器深化**——完全 schema-driven settings（条件显隐/联动校验）
+6. **画布轻协作语义**——评论钉（Figma comment pins 形态）与注释框的关系重塑
+
+### 常备小批菜单（随手批，均 ≤0.5 天）
+
+- dt Description 列 auto-size（已 survey 待裁断）
+- parameterOptions 方案 B（异步回调 + `x-dynamic-options` schema 约定）
+- 诊断面板条目导出（markdown / JSON）
+- parameterOptions 9009 演示故事（验收可视化）
+
+### 治理
+
+- kb 时间线按月续写（`kb/tech/git/seal-editor-dev-timeline-847960106.md`）
+- 不可撤回决策继续走 ADR；触发制清单维持「等外部信号，不主动」
+
+### 建议下次会话首批
+
+1. verdict 随版接入陪跑（信号收集）
+2. 行级 diff 预览（唯一有完整设计的特性批）
+
+---
+
+## 0. 起点状态（v1.1.0 基线）〔历史——0.5 节及以下为 1.8~2.0 期规划，已收官〕
 
 - 品牌：`grl-` → `seal-` 全前缀清扫完成（93 文件 ~574 处，含驼峰标识符）；npm 旧包 deprecated 已执行
 - 结构：monorepo 三包 —— `packages/seal-editor`（内核，包名 @republicroad/seal-editor，1.1.0 随下次发版）、
