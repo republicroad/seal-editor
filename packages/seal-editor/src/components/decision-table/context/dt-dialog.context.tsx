@@ -13,7 +13,6 @@ export type TableDialogContextState = {
   setDialog: React.Dispatch<React.SetStateAction<TableDialogState | undefined>>;
   dialog: TableDialogState | undefined;
   isDialogActive: (type: TableDialogType) => boolean;
-  getContainer?: () => HTMLElement;
 };
 
 // Empty-object default is safe: consumers only render inside
@@ -24,11 +23,7 @@ export const TableDialogContext = React.createContext<TableDialogContextState>({
   isDialogActive: () => false,
 });
 
-export const DecisionTableDialogProvider: React.FC<
-  React.PropsWithChildren<{
-    getContainer?: () => HTMLElement;
-  }>
-> = ({ children, getContainer }) => {
+export const DecisionTableDialogProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [dialog, setDialog] = useState<TableDialogState | undefined>(undefined);
   const isDialogActive = (type: TableDialogType) => {
     return dialog?.type === type;
@@ -40,7 +35,6 @@ export const DecisionTableDialogProvider: React.FC<
         dialog,
         setDialog,
         isDialogActive,
-        getContainer,
       }}
     >
       {children}

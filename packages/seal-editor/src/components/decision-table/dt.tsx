@@ -22,7 +22,6 @@ export type DecisionTableRunHitStat = { name: string; count: number };
 export type DecisionTableProps = {
   id?: string;
   tableHeight: string | number;
-  mountDialogsOnBody?: boolean;
   scrollContainerRef?: React.MutableRefObject<HTMLDivElement | null>;
   scrollApiRef?: React.MutableRefObject<TableScrollApi | null>;
   /** D2：Run all 后的条件列命中统计（图级 Run all 注入；standalone 传入亦可） */
@@ -37,7 +36,6 @@ export type DecisionTableProps = {
 export const DecisionTable: React.FC<DecisionTableProps> = ({
   id,
   tableHeight,
-  mountDialogsOnBody = false,
   scrollContainerRef,
   scrollApiRef,
   runHitStats,
@@ -52,8 +50,6 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
     setMounted(true);
   }, []);
 
-  const getContainer = () => ref.current as HTMLElement;
-
   return (
     <SafeBoundary>
       <div
@@ -63,7 +59,7 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
       >
         {ref.current && (
           <DecisionTableProvider>
-            <DecisionTableDialogProvider getContainer={mountDialogsOnBody ? undefined : getContainer}>
+            <DecisionTableDialogProvider>
               <DecisionTableCommandBar />
               <RunHitStatsStrip runHitStats={runHitStats} deadRowIds={deadRowIds} />
               <InstantEvalStrip status={instantEvalStatus} />
