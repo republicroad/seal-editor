@@ -14,9 +14,13 @@ export type GraphCanvasToolbarProps = {
   //
 };
 
+/** 组分隔细线：历史 | 整理 | 模式开关 三组视觉切分 */
+const ToolbarDivider: React.FC = () => <div className='mx-0.5 h-5 w-px shrink-0 bg-[var(--border)]' />;
+
 /**
- * 画布左上浮动工具条（用户裁定终态）——undo/redo/auto-layout + 对齐网格/
- * 画布锁/吸附 + ⋯（仅对比开关，基线在场才出现；导入导出在侧栏首格 ⇅）。
+ * 画布左上浮动工具条（用户裁定终态）——三组分隔：历史（undo/redo）｜
+ * 整理（auto-layout/对齐网格）｜模式开关（画布锁/吸附，业界惯例成组靠右）
+ * ｜⋯（仅对比开关，基线在场才出现；导入导出在侧栏首格 ⇅）。
  * 聚焦模式下随 chrome 整体隐藏（graph.tsx 门控），键盘 ⌘Z 恒可用。
  */
 export const GraphCanvasToolbar: React.FC<GraphCanvasToolbarProps> = () => {
@@ -73,6 +77,7 @@ export const GraphCanvasToolbar: React.FC<GraphCanvasToolbarProps> = () => {
             onClick={redo}
           />
         </Tooltip>
+        <ToolbarDivider />
         <Tooltip title={t('dg.toolbar.autoLayout')} placement={'bottom'}>
           <Button
             type='text'
@@ -102,6 +107,7 @@ export const GraphCanvasToolbar: React.FC<GraphCanvasToolbarProps> = () => {
             }}
           />
         </Tooltip>
+        <ToolbarDivider />
         <Tooltip title={canvasLocked ? t('dg.toolbar.unlockCanvas') : t('dg.toolbar.lockCanvas')} placement={'bottom'}>
           <Button
             type='text'
@@ -128,6 +134,7 @@ export const GraphCanvasToolbar: React.FC<GraphCanvasToolbarProps> = () => {
             onClick={() => setSnapToGrid(!snapToGrid)}
           />
         </Tooltip>
+        <ToolbarDivider />
         {moreToolItems.length > 0 && (
           <Dropdown menu={{ items: moreToolItems }} placement='bottomLeft' trigger={['click']}>
             <Button
