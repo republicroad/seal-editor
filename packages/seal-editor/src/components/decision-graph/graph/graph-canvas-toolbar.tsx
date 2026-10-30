@@ -2,429 +2,133 @@ import { AutoLayoutOutlined } from '#icons';
 import { cn } from '#lib/utils';
 import { Panel } from '@xyflow/react';
 import { EllipsisIcon, Grid2x2Icon, LockIcon, LockOpenIcon, MagnetIcon, Redo2Icon, Undo2Icon } from 'lucide-react';
-import React, { Fragment, useRef, useState } from 'react';
+import React from 'react';
 import { toast } from 'sonner';
 
-import type { ParsedExcelData } from '../../../helpers/excel';
-import { exportDecisionTable, getExcelData } from '../../../helpers/excel';
-import { decisionModelSchema } from '../../../helpers/schema';
 import { useT } from '../../../theming/i18n';
-import { parseDecisionTable } from '../../decision-table/context/dt-store.context';
 import type { MenuProps } from '../../primitives';
 import { Button, Dropdown, Tooltip } from '../../primitives';
-import { useDecisionGraphActions, useDecisionGraphRaw, useDecisionGraphState } from '../context/dg-store.context';
-import { type DecisionEdge, type DecisionNode } from '../dg-types';
-import { NodeKind } from '../nodes/specifications/specification-types';
-import type { MergedDataItem } from './graph-excel-dialog';
-import { GraphExcelDialog } from './graph-excel-dialog';
-
-const DecisionContentType = 'application/vnd.gorules.decision';
+import { useDecisionGraphActions, useDecisionGraphState } from '../context/dg-store.context';
 
 export type GraphCanvasToolbarProps = {
   //
 };
 
 /**
- * 画布左上浮动工具条（用户裁定：高频贴画布）——undo/redo/auto-layout 三钮 +
- * ⋯ 收纳菜单（导入导出/对齐网格/画布锁/吸附/对比）。侧栏自此单列仅面板导航。
+ * 画布左上浮动工具条（用户裁定终态）——undo/redo/auto-layout + 对齐网格/
+ * 画布锁/吸附 + ⋯（仅对比开关，基线在场才出现；导入导出在侧栏首格 ⇅）。
  * 聚焦模式下随 chrome 整体隐藏（graph.tsx 门控），键盘 ⌘Z 恒可用。
  */
 export const GraphCanvasToolbar: React.FC<GraphCanvasToolbarProps> = () => {
   const t = useT();
-  const decisionGraphRaw = useDecisionGraphRaw();
-  const fileInput = useRef<HTMLInputElement>(null);
-  const excelFileInput = useRef<HTMLInputElement>(null);
-  const [excelGraphData, setExcelGraphData] = useState<ParsedExcelData[] | null>();
-
-  const { setDecisionGraph, undo, redo, autoLayout, alignNodesToGrid, setCanvasLocked, setSnapToGrid, setDiffMode } =
+  const { undo, redo, autoLayout, alignNodesToGrid, setCanvasLocked, setSnapToGrid, setDiffMode } =
     useDecisionGraphActions();
-  const { disabled, viewConfig, canvasLocked, snapToGrid, canUndo, canRedo, diffMode, hasDiffBaseline } =
-    useDecisionGraphState(
-      ({ disabled, viewConfig, canvasLocked, snapToGrid, canUndo, canRedo, diffMode, hasDiffBaseline }) => ({
-        disabled,
-        viewConfig,
-        canvasLocked,
-        snapToGrid,
-        canUndo,
-        canRedo,
-        diffMode,
-        hasDiffBaseline,
-      }),
-    );
+  const { disabled, canvasLocked, snapToGrid, canUndo, canRedo, diffMode, hasDiffBaseline } = useDecisionGraphState(
+    ({ disabled, canvasLocked, snapToGrid, canUndo, canRedo, diffMode, hasDiffBaseline }) => ({
+      disabled,
+      canvasLocked,
+      snapToGrid,
+      canUndo,
+      canRedo,
+      diffMode,
+      hasDiffBaseline,
+    }),
+  );
 
-  const handleUploadInput = async (event: any) => {
-    const fileList = event?.target?.files as FileList;
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      try {
-        const parsed: any = JSON.parse(e?.target?.result as string);
-        if (parsed?.contentType !== DecisionContentType) {
-          throw new Error('Invalid content type');
-        }
-
-        const nodes: DecisionNode[] = Array.isArray(parsed?.nodes) ? parsed.nodes : [];
-        const nodeIds = nodes.map((node) => node.id);
-
-        const edges: DecisionEdge[] = (parsed.edges as DecisionEdge[]).filter(
-          (edge) => nodeIds.includes(edge?.targetId) && nodeIds.includes(edge?.sourceId),
-        );
-
-        const modelParsed = decisionModelSchema.safeParse({
-          nodes,
-          edges,
-          settings: parsed?.settings,
-        });
-
-        if (!modelParsed.success) {
-          toast.error(modelParsed.error?.message);
-          return;
-        }
-
-        setDecisionGraph(modelParsed.data);
-      } catch (e: any) {
-        toast.error(e.message);
-      }
-    };
-
-    reader.readAsText(Array.from(fileList)?.[0], 'UTF-8');
-  };
-
-  const uploadJDMExcel = (event: any) => {
-    const file = event?.target?.files[0];
-    const fileReader = new FileReader();
-
-    try {
-      fileReader.readAsArrayBuffer(file);
-      fileReader.onload = async () => {
-        const buffer = fileReader.result as ArrayBuffer;
-
-        if (!buffer) return;
-        const { decisionGraph } = decisionGraphRaw.stateStore.getState();
-
-        const excelData = await getExcelData(buffer, decisionGraph);
-
-        setExcelGraphData(excelData);
-
-        toast.success('Excel file has been uploaded successfully!');
-      };
-    } catch {
-      toast.error('Failed to upload Excel!');
-    }
-  };
-
-  const handleDataMapping = (mappedExcelData: MergedDataItem[]) => {
-    const nodesFromExcel: DecisionNode[] = mappedExcelData.map((excelData) => {
-      const inputs = excelData.items
-        .filter((item) => item.type === 'input')
-        .map((item) => ({
-          id: item.id,
-          name: item.label,
-          field: item.value
-            ?.replace(/[^a-zA-Z0-9\s._]/g, '')
-            .trim()
-            .replace(/\s+/g, '.')
-            .toLowerCase(),
-        }));
-
-      const outputs = excelData.items
-        .filter((item) => item.type === 'output')
-        .map((item) => ({
-          id: item.id,
-          name: item.label,
-          field: item.value
-            ?.replace(/[^a-zA-Z0-9\s._]/g, '')
-            .trim()
-            .split(/\s+/)
-            .map((word, index) =>
-              index === 0 ? word.toLowerCase() : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
-            )
-            .join(''),
-        }));
-
-      const reducedRules = excelData.rules.map((rule) =>
-        rule.reduce(
-          (acc: Record<string, any> & { _id: string }, item) => {
-            acc[item.headerId] = item.value;
-            return acc;
-          },
-          {
-            _id: crypto.randomUUID(),
-          },
-        ),
-      );
-
-      return {
-        id: excelData.id,
-        name: excelData.name,
-        type: NodeKind.DecisionTable,
-        content: {
-          ...parseDecisionTable({
-            inputs,
-            outputs,
-            rules: reducedRules,
-            executionMode: excelData.executionMode || 'single',
-            hitPolicy: excelData.hitPolicy || 'first',
-            passThrough: excelData.passThrough,
-          }),
-          inputField: excelData.inputField,
-          outputPath: excelData.outputPath,
-        },
-        position: excelData.position,
-      };
-    });
-
-    const { decisionGraph } = decisionGraphRaw.stateStore.getState();
-
-    const updatedNodes = decisionGraph.nodes.map((node) => {
-      let _node = node;
-      // updating existing nodes
-      nodesFromExcel.forEach((excelNode) => {
-        if (excelNode.id === node.id) _node = { ...node, content: excelNode.content };
-      });
-
-      return _node;
-    });
-
-    // filtering new nodes and setting them proper position
-    const newNodes = nodesFromExcel
-      .filter((node) => !updatedNodes.some((existingNode) => existingNode.id === node.id))
-      .map((newNode, index) => ({
-        ...newNode,
-        type: NodeKind.DecisionTable,
-        position: (() => {
-          const findAvailablePosition = (x: number, y: number) => {
-            const position = { x, y };
-
-            if (decisionGraph.nodes.some((node) => node.position.x === position.x && node.position.y === position.y)) {
-              return findAvailablePosition(x + 250, y);
-            }
-
-            return position;
-          };
-
-          const availablePosition = findAvailablePosition(0, 0);
-
-          return { x: availablePosition.x + index * 250, y: 0 };
-        })(),
-      }));
-
-    const modelParsed = decisionModelSchema.safeParse({
-      nodes: [...updatedNodes, ...newNodes],
-      edges: decisionGraph.edges,
-    });
-
-    if (!modelParsed.success) {
-      toast.error(modelParsed.error?.message);
-      return;
-    }
-
-    setDecisionGraph(modelParsed.data);
-    setExcelGraphData(null);
-  };
-
-  const downloadJDM = async () => {
-    try {
-      const { name, decisionGraph } = decisionGraphRaw.stateStore.getState();
-      // create file in browser
-      const fileName = `${name.replaceAll('.json', '')}.json`;
-      const json = JSON.stringify(
+  // ⋯ 菜单：仅剩对比（基线在场）；导入导出组已迁侧栏首格 ⇅ 钮（用户裁定）
+  const moreToolItems: MenuProps['items'] = hasDiffBaseline
+    ? [
         {
-          contentType: DecisionContentType,
-          nodes: decisionGraph.nodes,
-          edges: decisionGraph.edges,
+          key: 'diff-view',
+          label: (diffMode ? '✓ ' : '') + t('dg.toolbar.diffMode'),
+          onClick: () => setDiffMode(!diffMode),
         },
-        null,
-        2,
-      );
-      const blob = new Blob([json], { type: 'application/json' });
-      const href = URL.createObjectURL(blob);
-
-      // create "a" HTLM element with href to file
-      const link = window.document.createElement('a');
-      link.href = href;
-      link.download = fileName;
-      window.document.body.appendChild(link);
-      link.click();
-
-      // clean up "a" element & remove ObjectURL
-      window.document.body.removeChild(link);
-      URL.revokeObjectURL(href);
-    } catch (e: any) {
-      toast.error(e.message);
-    }
-  };
-
-  const downloadJDMExcel = async () => {
-    try {
-      const { name, decisionGraph, viewConfig: viewConfigState } = decisionGraphRaw.stateStore.getState();
-      const fileName = name.replaceAll('.json', '');
-
-      const decisionTableNodes = decisionGraph.nodes
-        .filter((node) => node.type === NodeKind.DecisionTable)
-        .filter((node) => (viewConfigState?.enabled ? !!viewConfigState?.permissions?.[node.id] : true))
-        .map((decisionTable) => ({
-          ...decisionTable.content,
-          id: decisionTable.id,
-          name: decisionTable.name,
-        }));
-
-      await exportDecisionTable(fileName, decisionTableNodes);
-      toast.success('Excel file has been downloaded successfully!');
-    } catch {
-      toast.error('Failed to download Excel file!');
-    }
-  };
-
-  const uploadItems: MenuProps['items'] = [
-    !viewConfig?.enabled && {
-      key: 'upload-json',
-      label: t('dg.toolbar.uploadJson'),
-      disabled,
-      onClick: () => fileInput?.current?.click?.(),
-    },
-    {
-      key: 'upload-excel',
-      label: t('dg.toolbar.uploadExcel'),
-      disabled,
-      onClick: () => excelFileInput?.current?.click?.(),
-    },
-  ].filter((item) => !!item);
-
-  const downloadItems: MenuProps['items'] = [
-    !viewConfig?.enabled && {
-      key: 'download-json',
-      label: t('dg.toolbar.downloadJson'),
-      onClick: () => downloadJDM(),
-    },
-    {
-      key: 'download-excel',
-      label: t('dg.toolbar.downloadExcel'),
-      onClick: () => downloadJDMExcel(),
-    },
-  ].filter((item) => !!item);
-
-  // ⋯ 收纳菜单：导入导出组 | 整理组（锁/吸附带 ✓ 态）| 对比（基线在场才出现）
-  const moreToolItems: MenuProps['items'] = [
-    ...uploadItems,
-    ...downloadItems,
-    { key: 'divider-io', type: 'divider' },
-    ...(hasDiffBaseline
-      ? [
-          {
-            key: 'diff-view',
-            label: (diffMode ? '✓ ' : '') + t('dg.toolbar.diffMode'),
-            onClick: () => setDiffMode(!diffMode),
-          },
-        ]
-      : []),
-  ];
+      ]
+    : [];
 
   return (
-    <Fragment>
-      <input
-        hidden
-        accept='application/json'
-        type='file'
-        ref={fileInput}
-        onChange={handleUploadInput}
-        onClick={(event) => {
-          (event.target as HTMLInputElement).value = '';
-        }}
-      />
-      <input
-        hidden
-        accept='.xlsx'
-        type='file'
-        ref={excelFileInput}
-        onChange={uploadJDMExcel}
-        onClick={(event) => {
-          (event.target as HTMLInputElement).value = '';
-        }}
-      />
-      <Panel position='top-left' style={{ margin: 10 }}>
-        <div className='nodrag nopan flex items-center gap-0.5 rounded-lg border border-[var(--border)] bg-[var(--seal-color-bg-container)] p-0.5 shadow-md'>
-          <Tooltip title={t('dg.toolbar.undo')} placement={'bottom'}>
-            <Button
-              type='text'
-              size='small'
-              className='h-7 w-7 p-0'
-              aria-label={t('dg.toolbar.undo')}
-              disabled={!canUndo}
-              data-testid='undo-button'
-              icon={<Undo2Icon className='size-4' />}
-              onClick={undo}
-            />
-          </Tooltip>
-          <Tooltip title={t('dg.toolbar.redo')} placement={'bottom'}>
-            <Button
-              type='text'
-              size='small'
-              className='h-7 w-7 p-0'
-              aria-label={t('dg.toolbar.redo')}
-              disabled={!canRedo}
-              data-testid='redo-button'
-              icon={<Redo2Icon className='size-4' />}
-              onClick={redo}
-            />
-          </Tooltip>
-          <Tooltip title={t('dg.toolbar.autoLayout')} placement={'bottom'}>
-            <Button
-              type='text'
-              size='small'
-              className='h-7 w-7 p-0'
-              aria-label={t('dg.toolbar.autoLayout')}
-              disabled={disabled}
-              data-testid='auto-layout'
-              icon={<AutoLayoutOutlined />}
-              onClick={() => {
-                autoLayout().catch((e: unknown) => toast.error(e instanceof Error ? e.message : String(e)));
-              }}
-            />
-          </Tooltip>
-          <Tooltip title={t('dg.toolbar.alignToGrid')} placement={'bottom'}>
-            <Button
-              type='text'
-              size='small'
-              className='h-7 w-7 p-0'
-              aria-label={t('dg.toolbar.alignToGrid')}
-              disabled={disabled}
-              data-testid='align-to-grid'
-              icon={<MagnetIcon className='size-4' />}
-              onClick={() => {
-                alignNodesToGrid();
-                toast.success(t('dg.toolbar.alignedToGrid'));
-              }}
-            />
-          </Tooltip>
-          <Tooltip
-            title={canvasLocked ? t('dg.toolbar.unlockCanvas') : t('dg.toolbar.lockCanvas')}
-            placement={'bottom'}
-          >
-            <Button
-              type='text'
-              size='small'
-              aria-label={canvasLocked ? t('dg.toolbar.unlockCanvas') : t('dg.toolbar.lockCanvas')}
-              aria-pressed={canvasLocked}
-              disabled={disabled}
-              data-testid='canvas-lock-toggle'
-              icon={canvasLocked ? <LockIcon className='size-4' /> : <LockOpenIcon className='size-4' />}
-              className={cn('h-7 w-7 p-0', canvasLocked && 'bg-primary/10 text-primary')}
-              onClick={() => setCanvasLocked(!canvasLocked)}
-            />
-          </Tooltip>
-          <Tooltip title={t('dg.toolbar.snapToGrid')} placement={'bottom'}>
-            <Button
-              type='text'
-              size='small'
-              aria-label={t('dg.toolbar.snapToGrid')}
-              aria-pressed={snapToGrid}
-              disabled={disabled}
-              data-testid='snap-to-grid-toggle'
-              icon={<Grid2x2Icon className='size-4' />}
-              className={cn('h-7 w-7 p-0', snapToGrid && 'bg-primary/10 text-primary')}
-              onClick={() => setSnapToGrid(!snapToGrid)}
-            />
-          </Tooltip>
+    <Panel position='top-left' style={{ margin: 10 }}>
+      <div className='nodrag nopan flex items-center gap-0.5 rounded-lg border border-[var(--border)] bg-[var(--seal-color-bg-container)] p-0.5 shadow-md'>
+        <Tooltip title={t('dg.toolbar.undo')} placement={'bottom'}>
+          <Button
+            type='text'
+            size='small'
+            className='h-7 w-7 p-0'
+            aria-label={t('dg.toolbar.undo')}
+            disabled={!canUndo}
+            data-testid='undo-button'
+            icon={<Undo2Icon className='size-4' />}
+            onClick={undo}
+          />
+        </Tooltip>
+        <Tooltip title={t('dg.toolbar.redo')} placement={'bottom'}>
+          <Button
+            type='text'
+            size='small'
+            className='h-7 w-7 p-0'
+            aria-label={t('dg.toolbar.redo')}
+            disabled={!canRedo}
+            data-testid='redo-button'
+            icon={<Redo2Icon className='size-4' />}
+            onClick={redo}
+          />
+        </Tooltip>
+        <Tooltip title={t('dg.toolbar.autoLayout')} placement={'bottom'}>
+          <Button
+            type='text'
+            size='small'
+            className='h-7 w-7 p-0'
+            aria-label={t('dg.toolbar.autoLayout')}
+            disabled={disabled}
+            data-testid='auto-layout'
+            icon={<AutoLayoutOutlined />}
+            onClick={() => {
+              autoLayout().catch((e: unknown) => toast.error(e instanceof Error ? e.message : String(e)));
+            }}
+          />
+        </Tooltip>
+        <Tooltip title={t('dg.toolbar.alignToGrid')} placement={'bottom'}>
+          <Button
+            type='text'
+            size='small'
+            className='h-7 w-7 p-0'
+            aria-label={t('dg.toolbar.alignToGrid')}
+            disabled={disabled}
+            data-testid='align-to-grid'
+            icon={<MagnetIcon className='size-4' />}
+            onClick={() => {
+              alignNodesToGrid();
+              toast.success(t('dg.toolbar.alignedToGrid'));
+            }}
+          />
+        </Tooltip>
+        <Tooltip title={canvasLocked ? t('dg.toolbar.unlockCanvas') : t('dg.toolbar.lockCanvas')} placement={'bottom'}>
+          <Button
+            type='text'
+            size='small'
+            aria-label={canvasLocked ? t('dg.toolbar.unlockCanvas') : t('dg.toolbar.lockCanvas')}
+            aria-pressed={canvasLocked}
+            disabled={disabled}
+            data-testid='canvas-lock-toggle'
+            icon={canvasLocked ? <LockIcon className='size-4' /> : <LockOpenIcon className='size-4' />}
+            className={cn('h-7 w-7 p-0', canvasLocked && 'bg-primary/10 text-primary')}
+            onClick={() => setCanvasLocked(!canvasLocked)}
+          />
+        </Tooltip>
+        <Tooltip title={t('dg.toolbar.snapToGrid')} placement={'bottom'}>
+          <Button
+            type='text'
+            size='small'
+            aria-label={t('dg.toolbar.snapToGrid')}
+            aria-pressed={snapToGrid}
+            disabled={disabled}
+            data-testid='snap-to-grid-toggle'
+            icon={<Grid2x2Icon className='size-4' />}
+            className={cn('h-7 w-7 p-0', snapToGrid && 'bg-primary/10 text-primary')}
+            onClick={() => setSnapToGrid(!snapToGrid)}
+          />
+        </Tooltip>
+        {moreToolItems.length > 0 && (
           <Dropdown menu={{ items: moreToolItems }} placement='bottomLeft' trigger={['click']}>
             <Button
               type='text'
@@ -435,15 +139,8 @@ export const GraphCanvasToolbar: React.FC<GraphCanvasToolbarProps> = () => {
               icon={<EllipsisIcon className='size-4' />}
             />
           </Dropdown>
-        </div>
-      </Panel>
-      <GraphExcelDialog
-        excelData={excelGraphData}
-        handleSuccess={handleDataMapping}
-        handleCancel={() => {
-          setExcelGraphData(null);
-        }}
-      />
-    </Fragment>
+        )}
+      </div>
+    </Panel>
   );
 };

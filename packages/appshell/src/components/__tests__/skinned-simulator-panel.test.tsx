@@ -106,7 +106,7 @@ describe('SkinnedDecisionGraph simulator panel', () => {
     );
   }, 30000);
 
-  it('未传 simulateHandler：侧栏单列为面板导航 诊断/聚焦/⌘K = 3（画布工具全部迁画布浮动层）', async () => {
+  it('未传 simulateHandler：侧栏为 ⇅导入导出/诊断/聚焦/⌘K = 4（画布空间工具全在浮动层）', async () => {
     const { container } = render(
       <ThemeContextProvider>
         <SkinnedDecisionGraph value={graph as never} onChange={vi.fn()} />
@@ -114,11 +114,11 @@ describe('SkinnedDecisionGraph simulator panel', () => {
     );
     await waitFor(
       () => {
-        // 侧栏组合（与 simulateHandler 无关）：诊断面板开关（P0-2）/ 聚焦模式
-        // （P1-5）/ ⌘K = 3；undo/redo/auto-layout/导入导出/整理/对比 全部迁画布
-        // 左上浮动层（.react-flow 内，不计入侧栏；对比开关仅 diffBaseline 在场）
+        // 侧栏组合（与 simulateHandler 无关）：⇅导入导出合并钮（首格，用户裁定）/
+        // 诊断面板开关（P0-2）/ 聚焦模式（P1-5）/ ⌘K = 4；undo/redo/auto-layout/
+        // 对齐/锁/吸附在画布左上浮动层（.react-flow 内，不计入侧栏；⋯ 仅剩对比）
         const count = container.querySelectorAll('[class*="grid-area:sidebar"] button').length;
-        if (count !== 3) {
+        if (count !== 4) {
           throw new Error(`sidebar not settled (count=${count})`);
         }
       },
