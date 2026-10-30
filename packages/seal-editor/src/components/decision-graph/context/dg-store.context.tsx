@@ -905,19 +905,22 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       setSnapToGrid: (on) => {
         stateStore.setState({ snapToGrid: on });
       },
-      // B2 整理动作：全量节点位置取整到 snapGrid（[5,5]，与拖拽吸附同栅格）
+      // B2 整理动作：全量节点位置取整到 snapGrid（[5,5]，与拖拽吸附同栅格）。
+      // 三写补齐（P0-1 审计教训）：pushUndo（可撤销）+ RF 视图（画布节点真移动）
+      // + onChange（宿主 autosave 感知）——原实现只写模型态=画布不动且宿主失聩
       alignNodesToGrid: () => {
         const { decisionGraph } = stateStore.getState();
         if (!decisionGraph) {
           return;
         }
         const aligned = snapNodesToGrid(decisionGraph.nodes as Array<{ position: { x: number; y: number } }>);
-        stateStore.setState({
-          decisionGraph: {
-            ...decisionGraph,
-            nodes: decisionGraph.nodes.map((node, i) => ({ ...node, position: aligned[i].position })),
-          } as typeof decisionGraph,
-        });
+        const positioned = decisionGraph.nodes.map((node, i) => ({ ...node, position: aligned[i].position }));
+        const { nodesState } = referenceStore.getState();
+        pushUndo();
+        nodesState?.current?.[1](mapToGraphNodes(positioned as DecisionNode[]));
+        const newDecisionGraph = { ...decisionGraph, nodes: positioned } as typeof decisionGraph;
+        stateStore.setState({ decisionGraph: newDecisionGraph });
+        listenerStore.getState().onChange?.(newDecisionGraph);
       },
       // B1 注释框：新增——pushUndo + 双写（RF 视图节点 + decisionGraph.annotations 持久化）
       addAnnotation: (position) => {

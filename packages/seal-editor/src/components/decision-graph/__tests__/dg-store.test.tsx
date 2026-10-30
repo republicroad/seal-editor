@@ -470,6 +470,30 @@ describe('undo/redo（P0-1 快照栈接线）', () => {
     );
   });
 
+  it('对齐网格：三写（视图/模型/onChange）+ 可撤销', () => {
+    const onChange = vi.fn();
+    act(() => context.listenerStore.setState({ onChange }));
+    act(() => {
+      context.actions.setDecisionGraph(
+        { nodes: [inputNode(), { ...tableNode(), position: { x: 12, y: 7 } }], edges: [] },
+        { skipOnChangeEvent: true },
+      );
+    });
+    const setNodes = context.referenceStore.getState().nodesState.current[1] as ReturnType<typeof vi.fn>;
+    setNodes.mockClear?.();
+
+    act(() => context.actions.alignNodesToGrid());
+
+    // 模型态：12,7 取整到 5 栅格 → 10,5
+    const nodes = context.stateStore.getState().decisionGraph.nodes;
+    expect(nodes[1].position).toEqual({ x: 10, y: 5 });
+    // 宿主通知
+    expect(onChange).toHaveBeenCalledTimes(1);
+    // 可撤销：回 12,7
+    act(() => context.actions.undo());
+    expect(context.stateStore.getState().decisionGraph.nodes[1].position).toEqual({ x: 12, y: 7 });
+  });
+
   it('P0-2 diagnostics 槽位：宿主条目写入与面板开合', () => {
     expect(context.stateStore.getState().hostDiagnostics).toEqual([]);
     expect(context.stateStore.getState().diagnosticsOpen).toBe(false);
