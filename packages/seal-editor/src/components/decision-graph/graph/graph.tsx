@@ -1,4 +1,4 @@
-import { AutoLayoutOutlined, CompressOutlined, LeftOutlined, RightOutlined, WarningOutlined } from '#icons';
+import { CompressOutlined, LeftOutlined, RightOutlined, WarningOutlined } from '#icons';
 import type { Connection, Edge, Node, ProOptions, ReactFlowInstance, Viewport } from '@xyflow/react';
 import {
   Background,
@@ -16,12 +16,11 @@ import {
 import '@xyflow/react/dist/style.css';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal';
-import { Minimize2Icon, Redo2Icon, StickyNoteIcon, Undo2Icon } from 'lucide-react';
+import { Minimize2Icon, StickyNoteIcon } from 'lucide-react';
 import React, { type MutableRefObject, forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { toast } from 'sonner';
 
 import { useT } from '../../../theming/i18n';
-import { App, Button, Tooltip, Typography } from '../../primitives';
+import { App, Button, Typography } from '../../primitives';
 import {
   type DecisionGraphStoreType,
   type ExposedStore,
@@ -46,6 +45,7 @@ import type { MinimalNodeProps } from '../nodes/specifications/specification-typ
 import { NodeKind } from '../nodes/specifications/specification-types';
 import { nodeSpecification } from '../nodes/specifications/specifications';
 import { DiagnosticsController, DiagnosticsPanel } from './diagnostics-panel';
+import { GraphCanvasToolbar } from './graph-canvas-toolbar';
 import { GraphCommandMenu } from './graph-command-menu';
 import { GraphComponents } from './graph-components';
 import { NodeInspector } from './node-inspector';
@@ -115,44 +115,33 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
   const graphReferences = useDecisionGraphReferences((s) => s);
   const { onReactFlowInit } = useDecisionGraphListeners(({ onReactFlowInit }) => ({ onReactFlowInit }));
   const { modal } = App.useApp();
-  const {
-    disabled,
-    hasInputNode,
-    components,
-    customNodes,
-    id,
-    canvasLocked,
-    snapToGrid,
-    annotations,
-    focusMode,
-    canUndo,
-    canRedo,
-  } = useDecisionGraphState(
-    ({
-      id,
-      disabled,
-      components,
-      customNodes,
-      decisionGraph,
-      canvasLocked,
-      snapToGrid,
-      focusMode,
-      canUndo,
-      canRedo,
-    }) => ({
-      id,
-      disabled,
-      components,
-      customNodes,
-      canvasLocked,
-      snapToGrid,
-      annotations: decisionGraph?.annotations,
-      hasInputNode: (decisionGraph?.nodes || []).some((n) => n.type === NodeKind.Input),
-      focusMode,
-      canUndo,
-      canRedo,
-    }),
-  );
+  const { disabled, hasInputNode, components, customNodes, id, canvasLocked, snapToGrid, annotations, focusMode } =
+    useDecisionGraphState(
+      ({
+        id,
+        disabled,
+        components,
+        customNodes,
+        decisionGraph,
+        canvasLocked,
+        snapToGrid,
+        focusMode,
+        canUndo,
+        canRedo,
+      }) => ({
+        id,
+        disabled,
+        components,
+        customNodes,
+        canvasLocked,
+        snapToGrid,
+        annotations: decisionGraph?.annotations,
+        hasInputNode: (decisionGraph?.nodes || []).some((n) => n.type === NodeKind.Input),
+        focusMode,
+        canUndo,
+        canRedo,
+      }),
+    );
 
   graphReferences.nodesState.current = nodesState;
   graphReferences.edgesState.current = edgesState;
@@ -593,54 +582,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               </Controls>
               <MiniMap pannable zoomable position='bottom-left' />
               <Background id={id} color='var(--border)' gap={20} />
-              {/* P0-1 高频三钮浮动层：undo/redo/auto-layout 贴画布左上（Figma 式画布
-                  浮动工具条；聚焦模式随 chrome 一并隐藏，键盘 ⌘Z 恒可用） */}
-              {!focusMode && (
-                <Panel position='top-left' style={{ margin: 10 }}>
-                  <div className='nodrag nopan flex items-center gap-0.5 rounded-lg border border-[var(--border)] bg-[var(--seal-color-bg-container)] p-0.5 shadow-md'>
-                    <Tooltip title={t('dg.toolbar.undo')} placement={'bottom'}>
-                      <Button
-                        type='text'
-                        size='small'
-                        className='h-7 w-7 p-0'
-                        aria-label={t('dg.toolbar.undo')}
-                        disabled={!canUndo}
-                        data-testid='undo-button'
-                        icon={<Undo2Icon className='size-4' />}
-                        onClick={graphActions.undo}
-                      />
-                    </Tooltip>
-                    <Tooltip title={t('dg.toolbar.redo')} placement={'bottom'}>
-                      <Button
-                        type='text'
-                        size='small'
-                        className='h-7 w-7 p-0'
-                        aria-label={t('dg.toolbar.redo')}
-                        disabled={!canRedo}
-                        data-testid='redo-button'
-                        icon={<Redo2Icon className='size-4' />}
-                        onClick={graphActions.redo}
-                      />
-                    </Tooltip>
-                    <Tooltip title={t('dg.toolbar.autoLayout')} placement={'bottom'}>
-                      <Button
-                        type='text'
-                        size='small'
-                        className='h-7 w-7 p-0'
-                        aria-label={t('dg.toolbar.autoLayout')}
-                        disabled={disabled}
-                        data-testid='auto-layout'
-                        icon={<AutoLayoutOutlined />}
-                        onClick={() => {
-                          graphActions
-                            .autoLayout()
-                            .catch((e: unknown) => toast.error(e instanceof Error ? e.message : String(e)));
-                        }}
-                      />
-                    </Tooltip>
-                  </div>
-                </Panel>
-              )}
+              {!focusMode && <GraphCanvasToolbar />}
               {!focusMode && <NodeInspector />}
               <DiagnosticsController />
               {!focusMode && <DiagnosticsPanel />}
