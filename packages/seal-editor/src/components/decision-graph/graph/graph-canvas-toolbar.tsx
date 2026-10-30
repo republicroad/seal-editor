@@ -1,6 +1,7 @@
 import { AutoLayoutOutlined } from '#icons';
+import { cn } from '#lib/utils';
 import { Panel } from '@xyflow/react';
-import { EllipsisIcon, Redo2Icon, Undo2Icon } from 'lucide-react';
+import { EllipsisIcon, Grid2x2Icon, LockIcon, LockOpenIcon, MagnetIcon, Redo2Icon, Undo2Icon } from 'lucide-react';
 import React, { Fragment, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -307,25 +308,6 @@ export const GraphCanvasToolbar: React.FC<GraphCanvasToolbarProps> = () => {
     ...uploadItems,
     ...downloadItems,
     { key: 'divider-io', type: 'divider' },
-    {
-      key: 'align-grid',
-      label: t('dg.toolbar.alignToGrid'),
-      disabled,
-      onClick: () => {
-        alignNodesToGrid();
-        toast.success(t('dg.toolbar.alignedToGrid'));
-      },
-    },
-    {
-      key: 'lock-canvas',
-      label: (canvasLocked ? '✓ ' : '') + t('dg.toolbar.lockCanvas'),
-      onClick: () => setCanvasLocked(!canvasLocked),
-    },
-    {
-      key: 'snap-grid',
-      label: (snapToGrid ? '✓ ' : '') + t('dg.toolbar.snapToGrid'),
-      onClick: () => setSnapToGrid(!snapToGrid),
-    },
     ...(hasDiffBaseline
       ? [
           {
@@ -397,6 +379,50 @@ export const GraphCanvasToolbar: React.FC<GraphCanvasToolbarProps> = () => {
               onClick={() => {
                 autoLayout().catch((e: unknown) => toast.error(e instanceof Error ? e.message : String(e)));
               }}
+            />
+          </Tooltip>
+          <Tooltip title={t('dg.toolbar.alignToGrid')} placement={'bottom'}>
+            <Button
+              type='text'
+              size='small'
+              className='h-7 w-7 p-0'
+              aria-label={t('dg.toolbar.alignToGrid')}
+              disabled={disabled}
+              data-testid='align-to-grid'
+              icon={<MagnetIcon className='size-4' />}
+              onClick={() => {
+                alignNodesToGrid();
+                toast.success(t('dg.toolbar.alignedToGrid'));
+              }}
+            />
+          </Tooltip>
+          <Tooltip
+            title={canvasLocked ? t('dg.toolbar.unlockCanvas') : t('dg.toolbar.lockCanvas')}
+            placement={'bottom'}
+          >
+            <Button
+              type='text'
+              size='small'
+              aria-label={canvasLocked ? t('dg.toolbar.unlockCanvas') : t('dg.toolbar.lockCanvas')}
+              aria-pressed={canvasLocked}
+              disabled={disabled}
+              data-testid='canvas-lock-toggle'
+              icon={canvasLocked ? <LockIcon className='size-4' /> : <LockOpenIcon className='size-4' />}
+              className={cn('h-7 w-7 p-0', canvasLocked && 'bg-primary/10 text-primary')}
+              onClick={() => setCanvasLocked(!canvasLocked)}
+            />
+          </Tooltip>
+          <Tooltip title={t('dg.toolbar.snapToGrid')} placement={'bottom'}>
+            <Button
+              type='text'
+              size='small'
+              aria-label={t('dg.toolbar.snapToGrid')}
+              aria-pressed={snapToGrid}
+              disabled={disabled}
+              data-testid='snap-to-grid-toggle'
+              icon={<Grid2x2Icon className='size-4' />}
+              className={cn('h-7 w-7 p-0', snapToGrid && 'bg-primary/10 text-primary')}
+              onClick={() => setSnapToGrid(!snapToGrid)}
             />
           </Tooltip>
           <Dropdown menu={{ items: moreToolItems }} placement='bottomLeft' trigger={['click']}>
