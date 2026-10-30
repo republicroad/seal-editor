@@ -108,19 +108,6 @@ export const GraphCanvasToolbar: React.FC<GraphCanvasToolbarProps> = () => {
           />
         </Tooltip>
         <ToolbarDivider />
-        <Tooltip title={canvasLocked ? t('dg.toolbar.unlockCanvas') : t('dg.toolbar.lockCanvas')} placement={'bottom'}>
-          <Button
-            type='text'
-            size='small'
-            aria-label={canvasLocked ? t('dg.toolbar.unlockCanvas') : t('dg.toolbar.lockCanvas')}
-            aria-pressed={canvasLocked}
-            disabled={disabled}
-            data-testid='canvas-lock-toggle'
-            icon={canvasLocked ? <LockIcon className='size-4' /> : <LockOpenIcon className='size-4' />}
-            className={cn('h-7 w-7 p-0', canvasLocked && 'bg-primary/10 text-primary')}
-            onClick={() => setCanvasLocked(!canvasLocked)}
-          />
-        </Tooltip>
         <Tooltip title={t('dg.toolbar.snapToGrid')} placement={'bottom'}>
           <Button
             type='text'
@@ -132,6 +119,19 @@ export const GraphCanvasToolbar: React.FC<GraphCanvasToolbarProps> = () => {
             icon={<Grid2x2Icon className='size-4' />}
             className={cn('h-7 w-7 p-0', snapToGrid && 'bg-primary/10 text-primary')}
             onClick={() => setSnapToGrid(!snapToGrid)}
+          />
+        </Tooltip>
+        <Tooltip title={canvasLocked ? t('dg.toolbar.unlockCanvas') : t('dg.toolbar.lockCanvas')} placement={'bottom'}>
+          <Button
+            type='text'
+            size='small'
+            aria-label={canvasLocked ? t('dg.toolbar.unlockCanvas') : t('dg.toolbar.lockCanvas')}
+            aria-pressed={canvasLocked}
+            disabled={disabled}
+            data-testid='canvas-lock-toggle'
+            icon={canvasLocked ? <LockIcon className='size-4' /> : <LockOpenIcon className='size-4' />}
+            className={cn('h-7 w-7 p-0', canvasLocked && 'bg-primary/10 text-primary')}
+            onClick={() => setCanvasLocked(!canvasLocked)}
           />
         </Tooltip>
         <ToolbarDivider />
