@@ -48,60 +48,65 @@ export const useThemedSchemaEditorOptions = (): editor.IStandaloneEditorConstruc
 
 export type SchemaToolbarTab = 'examples' | 'schema';
 
-export type SchemaToolbarActionsProps = {
-  tab: SchemaToolbarTab;
-  disabled: boolean;
-  /** examples：新增数据源 */
-  onAddSource?: () => void;
-  /** examples：上传 JSON（触发宿主隐藏 file input） */
-  onUploadJson?: () => void;
-  /** examples：下载 JSON */
-  onDownloadJson?: () => void;
-  /** examples：是否有激活源（下载按钮 disabled 依据） */
-  hasActiveSource?: boolean;
-  /** examples：打开 simulator 面板 */
-  onSimulate?: () => void;
-  /** examples：simulator 已打开时按钮 disabled */
-  simulateDisabled?: boolean;
-  /** examples：导入契约信封（触发宿主隐藏 file input）——清单 #7 */
-  onImportContract?: () => void;
-  /** examples：导出契约信封——清单 #7；hasContract 为 false 时 disabled */
-  onExportContract?: () => void;
-  /** examples：契约是否非空（schema 或 examples 任一存在） */
-  hasContract?: boolean;
-  /** examples：Run all（ADR-013 批次三）——宿主注入执行槽位时才提供（优雅降级：不传则不渲染） */
-  onRunAll?: () => void;
-  runAllRunning?: boolean;
-  /** schema：格式化（monaco formatDocument） */
-  onFormat?: () => void;
-  /** schema：JSON → Schema 转换对话框 */
-  onConvertFromJson?: () => void;
-};
+/** 判别联合：examples/schema 两形态各自必填的 handler 编译期强制——
+ * examples 分支漏接 onAddSource 曾致按钮渲染但点击无响应（本次修复诱因） */
+export type SchemaToolbarActionsProps =
+  | {
+      tab: 'examples';
+      disabled: boolean;
+      /** 新增数据源（示例单源化 addExampleSource） */
+      onAddSource: () => void;
+      /** 上传 JSON（触发宿主隐藏 file input） */
+      onUploadJson?: () => void;
+      /** 下载 JSON */
+      onDownloadJson?: () => void;
+      /** 是否有激活源（下载按钮 disabled 依据） */
+      hasActiveSource?: boolean;
+      /** 打开 simulator 面板 */
+      onSimulate?: () => void;
+      /** simulator 已打开时按钮 disabled */
+      simulateDisabled?: boolean;
+      /** 导入契约信封（触发宿主隐藏 file input）——清单 #7 */
+      onImportContract?: () => void;
+      /** 导出契约信封——清单 #7；hasContract 为 false 时 disabled */
+      onExportContract?: () => void;
+      /** 契约是否非空（schema 或 examples 任一存在） */
+      hasContract?: boolean;
+      /** Run all（ADR-013 批次三）——宿主注入执行槽位时才提供（优雅降级：不传则不渲染） */
+      onRunAll?: () => void;
+      runAllRunning?: boolean;
+    }
+  | {
+      tab: 'schema';
+      disabled: boolean;
+      /** 格式化（monaco formatDocument） */
+      onFormat?: () => void;
+      /** JSON → Schema 转换对话框 */
+      onConvertFromJson?: () => void;
+    };
 
 /**
  * 提案 A Step 1：Examples/Schema 两个页签的工具栏按钮组曾逐行重复——
  * 收编为单一组件，按 tab 形态渲染对应按钮组。
  */
-export const SchemaToolbarActions: React.FC<SchemaToolbarActionsProps> = ({
-  tab,
-  disabled,
-  onAddSource,
-  onUploadJson,
-  onDownloadJson,
-  hasActiveSource,
-  onSimulate,
-  simulateDisabled,
-  onImportContract,
-  onExportContract,
-  hasContract,
-  onRunAll,
-  runAllRunning,
-  onFormat,
-  onConvertFromJson,
-}) => {
+export const SchemaToolbarActions: React.FC<SchemaToolbarActionsProps> = (props) => {
+  const { tab, disabled } = props;
   const t = useT();
 
   if (tab === 'examples') {
+    const {
+      onAddSource,
+      onUploadJson,
+      onDownloadJson,
+      hasActiveSource,
+      onSimulate,
+      simulateDisabled,
+      onImportContract,
+      onExportContract,
+      hasContract,
+      onRunAll,
+      runAllRunning,
+    } = props;
     return (
       <Space size='small' className='mr-2'>
         <Button type='text' size='small' disabled={disabled} icon={<PlusOutlined />} onClick={onAddSource}>
@@ -168,6 +173,8 @@ export const SchemaToolbarActions: React.FC<SchemaToolbarActionsProps> = ({
       </Space>
     );
   }
+
+  const { onFormat, onConvertFromJson } = props;
 
   return (
     <Space size='small' className='mr-2'>

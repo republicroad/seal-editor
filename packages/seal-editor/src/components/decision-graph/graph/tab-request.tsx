@@ -266,6 +266,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
       <SchemaToolbarActions
         tab='examples'
         disabled={disabled}
+        onAddSource={addExampleSource}
         onUploadJson={() => fileInputRef.current?.click()}
         onDownloadJson={handleDownloadJson}
         hasActiveSource={Boolean(activeSource)}
