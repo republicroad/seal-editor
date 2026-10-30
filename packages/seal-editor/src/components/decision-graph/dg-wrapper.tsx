@@ -90,6 +90,10 @@ export const DecisionGraphWrapper = React.memo(
     // div 监听；文本焦点让路同 undo 键位纪律）
     useEffect(() => {
       const onKeyDown = (event: KeyboardEvent) => {
+        // 其它处理器已消费的按键不再处理（对话框/弹层各自 preventDefault）
+        if (event.defaultPrevented) {
+          return;
+        }
         const target = event.target as HTMLElement | null;
         if (target?.closest?.('input, textarea, select, [contenteditable], .monaco-editor, .cm-editor')) {
           return;
@@ -98,6 +102,11 @@ export const DecisionGraphWrapper = React.memo(
           event.preventDefault();
           setFocusMode(!stateStore.getState().focusMode);
         } else if (event.key === 'Escape' && stateStore.getState().focusMode) {
+          // 浮层在场让路：Base UI 对话框/弹层（popup role=dialog）与 ⌘K 调色板
+          // 各自消费 Esc，聚焦退出不得连带（验收项）
+          if (document.querySelector('[role="dialog"]') || stateStore.getState().commandMenuOpen) {
+            return;
+          }
           setFocusMode(false);
         }
       };
