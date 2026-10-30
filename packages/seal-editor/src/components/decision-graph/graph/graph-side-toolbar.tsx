@@ -1,13 +1,4 @@
-import { AutoLayoutOutlined } from '#icons';
-import {
-  ArrowDownUpIcon,
-  Command as CommandIcon,
-  EllipsisIcon,
-  FocusIcon,
-  ListChecksIcon,
-  Redo2Icon,
-  Undo2Icon,
-} from 'lucide-react';
+import { ArrowDownUpIcon, Command as CommandIcon, EllipsisIcon, FocusIcon, ListChecksIcon } from 'lucide-react';
 import React, { Fragment, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -46,19 +37,16 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
     setDecisionGraph,
     setActivePanel,
     setCommandMenuOpen,
-    autoLayout,
     alignNodesToGrid,
     setCanvasLocked,
     setSnapToGrid,
-    undo,
-    redo,
     setDiagnosticsOpen,
     setFocusMode,
     setDiffMode,
   } = useDecisionGraphActions();
-  const { disabled, panels, activePanel, viewConfig, commandMenuOpen, canvasLocked, snapToGrid, canUndo, canRedo } =
+  const { disabled, panels, activePanel, viewConfig, commandMenuOpen, canvasLocked, snapToGrid } =
     useDecisionGraphState(
-      ({ disabled, panels, activePanel, viewConfig, commandMenuOpen, canvasLocked, snapToGrid, canUndo, canRedo }) => ({
+      ({ disabled, panels, activePanel, viewConfig, commandMenuOpen, canvasLocked, snapToGrid }) => ({
         disabled,
         panels,
         activePanel,
@@ -66,8 +54,6 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
         commandMenuOpen,
         canvasLocked,
         snapToGrid,
-        canUndo,
-        canRedo,
       }),
     );
   const diagnosticsOpen = useDecisionGraphState(({ diagnosticsOpen: open }) => open);
@@ -391,45 +377,8 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
         />
         <div className='flex w-12 min-w-12 flex-col items-center justify-between gap-2 border-r border-r-[var(--border)] py-2'>
           <div className={'flex flex-col items-center gap-2'}>
-            {!disabled && (
-              <>
-                {/* P0-1 撤销/重做：与 ⌘Z/⌘⇧Z 同通道（store undo/redo） */}
-                <Tooltip title={t('dg.toolbar.undo')} placement={'right'}>
-                  <Button
-                    type={'text'}
-                    aria-label={t('dg.toolbar.undo')}
-                    disabled={!canUndo}
-                    data-testid='undo-button'
-                    icon={<Undo2Icon className='size-4' />}
-                    onClick={undo}
-                  />
-                </Tooltip>
-                <Tooltip title={t('dg.toolbar.redo')} placement={'right'}>
-                  <Button
-                    type={'text'}
-                    aria-label={t('dg.toolbar.redo')}
-                    disabled={!canRedo}
-                    data-testid='redo-button'
-                    icon={<Redo2Icon className='size-4' />}
-                    onClick={redo}
-                  />
-                </Tooltip>
-              </>
-            )}
-            {/* auto-layout 高频（用户裁定）：常驻第一列 */}
-            <Tooltip title={t('dg.toolbar.autoLayout')} placement={'right'}>
-              <Button
-                type={'text'}
-                aria-label={t('dg.toolbar.autoLayout')}
-                disabled={disabled}
-                data-testid='auto-layout'
-                icon={<AutoLayoutOutlined />}
-                onClick={() => {
-                  autoLayout().catch((e: unknown) => toast.error(e instanceof Error ? e.message : String(e)));
-                }}
-              />
-            </Tooltip>
-            {/* 导入/导出四动作合并单钮（用户裁定）——json/excel 双向一菜单 */}
+            {/* 撤销/重做/auto-layout 已迁画布左上浮动层（高频贴画布，用户裁定） */}
+            {/* 导入/导出四动作合并单钮——json/excel 双向一菜单 */}
             <Dropdown menu={{ items: importExportItems }} placement='bottomRight' trigger={['click']}>
               <Button
                 type={'text'}
