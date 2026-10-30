@@ -114,11 +114,14 @@ const AppProvider: React.FC<{ children?: React.ReactNode; className?: string; st
   <AppContext.Provider value={{ modal: { confirm: openConfirm } }}>
     <div className={cn('h-full', className)} style={style}>
       {children}
-      <ConfirmHost />
     </div>
   </AppContext.Provider>
 );
 
+// ConfirmHost 单源挂载在 theme.tsx（JdmConfigProvider 的岛内子树）——此处不再
+// 自渲染：与 theme.tsx 双宿主会对同一 confirmState 双弹窗（且岛外宿主 portal
+// 落 body 位置漂移）。裸 AppProvider 宿主须自挂 ConfirmHost（2.0 起必须挂岛，
+// JdmConfigProvider 恒在）。
 export const App = Object.assign(AppProvider, {
   useApp: (): AppContextValue => React.useContext(AppContext),
 });

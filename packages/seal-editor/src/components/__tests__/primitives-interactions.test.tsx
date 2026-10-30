@@ -5,7 +5,7 @@ import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { focusBuilderRoot } from '../code-editor/business/focus-helper';
-import { App, DatePicker, Input, TimePicker } from '../primitives';
+import { App, ConfirmHost, DatePicker, Input, TimePicker } from '../primitives';
 import type { ConfirmOptions } from '../primitives/app';
 
 describe('App.confirm imperative flow', () => {
@@ -20,9 +20,12 @@ describe('App.confirm imperative flow', () => {
 
   const mount = (options: ConfirmOptions) => {
     const user = userEvent.setup();
+    // 宿主单源契约：AppProvider 只供 context，ConfirmHost 由使用方显式挂载
+    // （theme.tsx 内恒挂；裸 App 消费者自挂）
     render(
       <App>
         <ConfirmProbe options={options} />
+        <ConfirmHost />
       </App>,
     );
     return user;
