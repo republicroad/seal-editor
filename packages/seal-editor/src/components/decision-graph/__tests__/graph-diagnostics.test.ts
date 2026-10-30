@@ -25,18 +25,28 @@ describe('computeBuiltinDiagnostics（P0-2 内置缺省校验器）', () => {
     expect(entries.find((e) => e.code === 'MISSING_INPUT')).toBeUndefined();
   });
 
-  it('表达式节点空表达式 → EMPTY_EXPRESSION error', () => {
+  it('表达式节点：无行/全空行 → EMPTY_EXPRESSION error；有内容行不报', () => {
     const entries = computeBuiltinDiagnostics({
       nodes: [
-        node('e1', 'expressionNode', { expression: '   ' }),
-        node('e2', 'expressionNode', { expression: 'a > 1' }),
+        node('e0', 'expressionNode', { expressions: [] }),
+        node('e1', 'expressionNode', { expressions: [{ key: 'a', expression: '   ' }] }),
+        node('e2', 'expressionNode', { expressions: [{ key: 'a', expression: '1 + 1' }] }),
       ],
-      edges: [edge('e1'), edge('e2')],
+      edges: [edge('e0'), edge('e1'), edge('e2')],
     });
-    const empty = entries.find((e) => e.nodeId === 'e1');
-    expect(empty?.code).toBe('EMPTY_EXPRESSION');
-    expect(empty?.severity).toBe('error');
+    expect(entries.filter((e) => e.code === 'EMPTY_EXPRESSION').map((e) => e.nodeId)).toEqual(['e0', 'e1']);
+    for (const hit of entries.filter((e) => e.code === 'EMPTY_EXPRESSION')) {
+      expect(hit.severity).toBe('error');
+    }
     expect(entries.find((e) => e.nodeId === 'e2')).toBeUndefined();
+  });
+
+  it('表达式节点：legacy 单字符串 content.expression 兼容识别', () => {
+    const entries = computeBuiltinDiagnostics({
+      nodes: [node('e1', 'expressionNode', { expression: 'a > 1' })],
+      edges: [edge('e1')],
+    });
+    expect(entries.find((e) => e.nodeId === 'e1')).toBeUndefined();
   });
 
   it('决策表零规则 → EMPTY_RULES warning（草稿常态降半级）', () => {

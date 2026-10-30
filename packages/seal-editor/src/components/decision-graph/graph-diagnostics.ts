@@ -51,8 +51,17 @@ export const computeBuiltinDiagnostics = (graph: {
 
   for (const node of nodes) {
     if (node.type === NodeKind.Expression) {
-      const expression = (node.content as { expression?: string } | undefined)?.expression;
-      if (!expression || expression.trim().length === 0) {
+      // 真实内容形状：expressions 多行数组（Key/Expression 表格）——无行或全空
+      // 行 = 空；legacy 单字符串 content.expression 兼容识别
+      const content = node.content as { expression?: string; expressions?: Array<{ expression?: string }> } | undefined;
+      const isEmpty =
+        typeof content?.expression === 'string'
+          ? content.expression.trim().length === 0
+          : Array.isArray(content?.expressions)
+            ? content.expressions.length === 0 ||
+              content.expressions.every((row) => !(row?.expression ?? '').toString().trim())
+            : true;
+      if (isEmpty) {
         entries.push({
           nodeId: node.id,
           severity: 'error',
