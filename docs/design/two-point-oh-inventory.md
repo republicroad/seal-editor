@@ -78,7 +78,20 @@ verdict 宿主 2.0 提案的 UI/UX 批次（与 LEGACY 退役批/语义裁断批
 | ③ props 终清（§6 桶） | ✅ 落地：六 primitives 桶删+**11 处漏网调用面**随类型门现形清退（b2ebb87f「调用面=零」审计勘误过期）；遗留=dt-dialog getContainer 链终端消费清零但牵连 mountDialogsOnBody 公共 prop，归 DecisionTableProps/DecisionGraphProps 本体 sweep（**仍挂账**） | ccb98eaf |
 | ④ bundle 预算收紧（§6） | ✅ 落地：900→870kB | 0796f66f |
 
+**验收期演进（2026-10-29 深夜，均在库）**：UI 前沿批经三轮走查修复——确认弹窗宿主单源化（3e87c8a7，双宿主双订阅回归修复）、⇅ 回归侧栏首格+画布浮动条终态（34bacf38：六钮纯画布空间+⋯仅对比）、EMPTY_EXPRESSION 双层形状修正（59413b7d/7dcf16e6，expressions[].value）、对齐网格三写补齐（f89dc2e2）、DiffRadio 分段化（4bd86ec9）、simulator 抽屉左偏移自适应（07410b21）。
+
 **待口令**：推送 + 2.0.0 发版（verdict 随版单一批次在其后：升依赖+更名+删哨兵+插件正则收窄）。
+
+## 9 · 2.0.0 发版前清单（2026-10-30 终态）
+
+| # | 项 | 状态 |
+| --- | --- | --- |
+| 1 | 本地门全绿（verify/size/doc-links/preflight） | 发版前最后一跑 |
+| 2 | 推送 + CI 三流绿（React Compiler/交互套件/debt 预算/demo 构建仅在 CI） | 待执行 |
+| 3 | kernel 2.0.0 bump + CHANGELOG（BREAKING 七条汇总） | 随 chore(release) |
+| 4 | appshell 2.0.0 + peerDeps ^2.0.0（当前 ^1.17.0 不覆盖 major） | 同一发版提交 |
+| 5 | tag + npm/smoke/tarball canary | CI Publish 后验证 |
+| 6 | verdict 随版知会（升依赖+更名+删哨兵+正则收窄）+ 催修 verdict 仓 CI 连红 | 发版后 |
 
 ## 触发与协调
 
