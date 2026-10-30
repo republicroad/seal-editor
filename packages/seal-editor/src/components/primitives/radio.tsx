@@ -61,7 +61,9 @@ const RadioButton: React.FC<{
       onClick={() => setValue(value!)}
       className={cn(
         'flex-1 whitespace-nowrap rounded-[4px] px-3 py-1 text-xs transition-colors',
-        active ? 'bg-background font-medium shadow-xs' : 'text-muted-foreground hover:text-foreground',
+        active
+          ? 'bg-primary/10 font-medium text-primary ring-1 ring-inset ring-primary/25 shadow-xs'
+          : 'text-muted-foreground hover:text-foreground',
         className,
       )}
       style={style}
