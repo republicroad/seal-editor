@@ -38,6 +38,7 @@ const steps = [
       ]),
   ['style-debt budget', 'pnpm', ['run', 'lint:debt']],
   ['doc links', 'node', ['scripts/check-doc-links.mjs']],
+  ['pkg consistency', 'node', ['scripts/check-pkg-consistency.mjs']],
 ];
 
 let failed = 0;

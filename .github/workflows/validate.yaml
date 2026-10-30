@@ -38,6 +38,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # 双包一致性守卫：appshell 对 kernel 的 dep/peer 主版本必须与 kernel 当前主版本一致
+      # （appshell 2.0.0 曾漏 bump dependencies=嵌套 1.45 双实例，本步使其回归即红）
+      - name: Package consistency (appshell ↔ kernel)
+        run: node scripts/check-pkg-consistency.mjs
+
       - name: Lint and prettier
         run: pnpm format
 

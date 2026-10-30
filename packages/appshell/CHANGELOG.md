@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.1](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@2.0.0...@republicroad/seal-appshell@2.0.1) (2026-10-30)
+
+### Bug Fixes
+
+- **pkg:** dependencies 漏 bump 双实例修复——`@republicroad/seal-editor` 运行时依赖仍为 `workspace:^1.36.0`（publish 剥协议成 `^1.36.0`），与 peer `^2.0.0` 并存致消费者嵌套安装 1.45 双实例、SkinnedDecisionGraph 实际跑旧版；修=dep 对齐 `workspace:^2.0.0`，并新增 `scripts/check-pkg-consistency.mjs` 守卫入 preflight 与 Validate 工作流（dep/peer 主版本回归即红）
+
 # [2.0.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@1.39.0...@republicroad/seal-appshell@2.0.0) (2026-10-30)
 
 ### Breaking Changes
