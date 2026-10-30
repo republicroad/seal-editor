@@ -11,9 +11,14 @@ const heightKey = 'jdmEditor:graphPanel:height';
 export const GraphPanel: React.FC = () => {
   const t = useT();
   const graphActions = useDecisionGraphActions();
-  const { panels, activePanel: activePanelId } = useDecisionGraphState(({ panels, activePanel }) => ({
+  const {
+    panels,
+    activePanel: activePanelId,
+    hideLeftToolbar,
+  } = useDecisionGraphState(({ panels, activePanel, hideLeftToolbar }) => ({
     panels,
     activePanel,
+    hideLeftToolbar,
   }));
 
   const activePanel = useMemo(() => {
@@ -81,8 +86,10 @@ export const GraphPanel: React.FC = () => {
       style={{
         position: 'absolute',
         // left 让开左栏工具条（w-12=48px）：抽屉 z-30 全宽会盖住工具栏底部的
-        // 面板开关钮（Simulator/Fixtures）——面板开着就找不到关它的按钮
-        left: 48,
+        // 面板开关钮（Simulator/Fixtures）——面板开着就找不到关它的按钮；
+        // 工具栏隐藏（hideLeftToolbar，如 simulator 故事/宿主隐藏形态）时
+        // 回收这 48px 死空白（验收反馈：面板贴左缘）
+        left: hideLeftToolbar ? 0 : 48,
         right: 0,
         bottom: 0,
         zIndex: 30,
