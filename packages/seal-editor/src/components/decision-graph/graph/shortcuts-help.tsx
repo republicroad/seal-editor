@@ -1,7 +1,11 @@
+import { Panel } from '@xyflow/react';
+import { CircleHelpIcon } from 'lucide-react';
 import React from 'react';
 
 import { useT } from '../../../theming/i18n';
+import { Button } from '../../primitives';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../ui/dialog';
+import { useDecisionGraphState } from '../context/dg-store.context';
 
 const isMacPlatform = () => /Mac|iPhone|iPad/.test(navigator.platform);
 
@@ -14,6 +18,7 @@ export const ShortcutsHelp: React.FC = () => {
   const [open, setOpen] = React.useState(false);
   const isMac = React.useMemo(() => isMacPlatform(), []);
   const mod = isMac ? '⌘' : 'Ctrl';
+  const focusMode = useDecisionGraphState(({ focusMode }) => focusMode);
 
   React.useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -59,38 +64,55 @@ export const ShortcutsHelp: React.FC = () => {
   ];
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className='max-w-md gap-4' data-testid='shortcuts-help'>
-        <DialogHeader>
-          <DialogTitle className='text-sm'>{t('dg.shortcuts.title')}</DialogTitle>
-        </DialogHeader>
-        <div className='flex flex-col gap-4 pb-1'>
-          {groups.map((group) => (
-            <div key={group.title}>
-              <div className='mb-1.5 text-[10px] font-medium tracking-wide text-[var(--muted-foreground)] uppercase'>
-                {group.title}
+    <>
+      {/* 画布右下 ? 浮标：快捷键帮助的可见入口（键盘 ? 恒可用；诊断抽屉开启时
+          被其覆盖=合理让位，键盘通道不受影响）；聚焦模式随 chrome 隐藏 */}
+      {!focusMode && (
+        <Panel position='bottom-right' style={{ margin: 10 }}>
+          <Button
+            type='text'
+            size='small'
+            className='h-7 w-7 rounded-full border border-[var(--border)] bg-[var(--seal-color-bg-container)] p-0 shadow-sm'
+            aria-label={t('dg.shortcuts.title')}
+            data-testid='shortcuts-help-trigger'
+            icon={<CircleHelpIcon className='size-4' />}
+            onClick={() => setOpen((value) => !value)}
+          />
+        </Panel>
+      )}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className='max-w-md gap-4' data-testid='shortcuts-help'>
+          <DialogHeader>
+            <DialogTitle className='text-sm'>{t('dg.shortcuts.title')}</DialogTitle>
+          </DialogHeader>
+          <div className='flex flex-col gap-4 pb-1'>
+            {groups.map((group) => (
+              <div key={group.title}>
+                <div className='mb-1.5 text-[10px] font-medium tracking-wide text-[var(--muted-foreground)] uppercase'>
+                  {group.title}
+                </div>
+                <div className='flex flex-col gap-1'>
+                  {group.rows.map((row) => (
+                    <div key={row.label} className='flex items-center justify-between gap-4 text-xs'>
+                      <span className='text-[var(--muted-foreground)]'>{row.label}</span>
+                      <span className='flex items-center gap-1'>
+                        {row.keys.map((key) => (
+                          <kbd
+                            key={key}
+                            className='rounded border border-[var(--border)] px-1.5 py-0.5 font-mono text-[10px]'
+                          >
+                            {key}
+                          </kbd>
+                        ))}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className='flex flex-col gap-1'>
-                {group.rows.map((row) => (
-                  <div key={row.label} className='flex items-center justify-between gap-4 text-xs'>
-                    <span className='text-[var(--muted-foreground)]'>{row.label}</span>
-                    <span className='flex items-center gap-1'>
-                      {row.keys.map((key) => (
-                        <kbd
-                          key={key}
-                          className='rounded border border-[var(--border)] px-1.5 py-0.5 font-mono text-[10px]'
-                        >
-                          {key}
-                        </kbd>
-                      ))}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </DialogContent>
-    </Dialog>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
