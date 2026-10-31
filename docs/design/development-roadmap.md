@@ -49,10 +49,26 @@
 - kb 时间线按月续写（`kb/tech/git/seal-editor-dev-timeline-847960106.md`）
 - 不可撤回决策继续走 ADR；触发制清单维持「等外部信号，不主动」
 
+### 2.1.0 批（已立案，verdict 提案采纳，P1）
+
+**主题装配缺口修复**（verdict 提案 upstream-2point0-theme-mode-passthrough.md，2026-10-31）——
+SkinnedDecisionGraph / kernel DecisionGraph 全链路均不内嵌 JdmConfigProvider，
+不外包 Provider 的宿主拿缺省（light）上下文=暗模式节点色彩缺失（verdict 实测）：
+
+1. kernel：DecisionGraph 增 `theme?: ThemeConfig` 透传口——提供时条件内嵌
+   JdmConfigProvider，未提供零改动（storybook 装饰器路径不变）
+2. appshell：SkinnedDecisionGraph 同款条件内嵌（覆盖宿主不经 ThemeContextProvider
+   的直连形态）；与外层 ThemeContextProvider 的 JdmConfigProvider 嵌套时内层
+   authoritative，props 未传则透传外层——零破坏
+3. 验收：无外部 Provider + theme={{mode:'dark'}} → 暗色节点卡+彩色 icon 芯片；
+   无 theme prop → 行为与今日一致；verdict 撤外部兜底层后回归
+4. 预计随 2.1.0 发版（与行级 diff 预览并批可选）；verdict 撞期已用外部兜底层
+   自救（可保留至本批上架后撤）
+
 ### 建议下次会话首批
 
-1. verdict 随版接入陪跑（信号收集）
-2. 行级 diff 预览（唯一有完整设计的特性批）
+1. 2.1.0 批实施：主题装配缺口 + 行级 diff 预览（两个已勘定项一批发）
+2. verdict 随版接入陪跑（信号收集）
 
 ---
 
