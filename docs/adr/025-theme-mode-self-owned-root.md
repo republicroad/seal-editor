@@ -100,3 +100,73 @@ theme prop 传给 kernel**，不再经 JdmConfigProvider 双写 data-mode；skin
 - D1 自持根与宿主贴边布局（`h-full w-full`）的兼容确认；
 - `'system'` 缺省 vs 显式缺省的取舍；
 - M2 双层嵌套岛的 CSS 幂等论证复核。
+
+---
+
+## 7 · 评审记录
+
+### verdict 宿主评审（2026-10-31，全文）
+
+**总体立场：支持 proposed → accepted。** D1-D4 与宿主提案
+（upstream-2point0-theme-mode-passthrough.md）①②同向且更彻底——自持根把「模式写入
+权」从宿主协调项升级为组件所有权，结构性消除五轮病史的复发土壤。§1 病史表与 verdict
+侧实机取证完全互洽（双写竞争 / Jdm 覆写 data-mode / 硬编码底三层叠加，本会话逐层
+取证实录在案）。
+
+#### §6 三个评审请求逐条回应
+
+**R1 · D1 自持根 × 宿主贴边布局——兼容确认 ✓（附三个条件）**
+
+verdict 贴边形态：挂载 div `seal-root h-full w-full overflow-hidden`（批次 30c，画布贴
+屏缘无圆角），高度链 = workspace main(h-svh flex-col) → div.min-h-0.flex-1 → 岛根。
+
+1. **自持根缺省零布局样式**（仅 class="seal-root" + data-mode），高度/宽度完全由宿主
+   容器链保证；若自持根不透传样式，建议 D1 规格提供 `className`/`style` 透传——
+   verdict 的 `overflow-hidden`（画布溢出裁剪）需要落在自持根或其直接父级；
+2. **全屏兼容确认**：verdict 全屏目标 = verdict 自己的 main 元素（Fullscreen API），
+   自持根在全屏元素子树内 h-full 链不断——无特殊处理需求（已实证：1.x 岛根同位置
+   全屏正常）；
+3. 迁移动作（verdict M2 时）：删外层 .seal-root div，h-full/overflow-hidden 迁至
+   自持根透传或保留外层为纯高度容器。
+
+**R2 · 'system' 缺省 vs 显式缺省——库缺省 'system' ✓，verdict 永远显式传值**
+
+- 库缺省 'system' 正确（React Flow/MUI 同款，对齐 §2 收敛结论）；
+- verdict 有自己的主题系统（next-themes 权威 + 用户切换 UI + 持久化），**编辑器跟随
+  宿主而非 OS**——verdict 永远显式传 `theme={resolvedTheme}`，'system' 档不会在
+  verdict 出现；
+- ADR 代价/风险的迁移注记（宿主应显式传值）足够；
+- 两个实现注记：①'system' 的 matchMedia 监听在宿主传显式值时应不启动；②SSR/首帧
+  matchMedia 不可用时的 token 缺省（'light'）需实现注记——verdict 纯 SPA 无影响，
+  Next 宿主有 hydration 面需注记。
+
+**R3 · M2 双层嵌套岛 CSS 幂等——复核通过（附一个时序细节）**
+
+- token 同值幂等成立：迁移期外层（宿主 data-mode）与内层（自持根 resolved）同源
+  （同一 resolvedTheme 经 AppshellThemeBridge 桥同步），双层 token 恒等；
+- `:not(:has(.seal-root[data-mode=dark]))` 浅色回退守卫：双层同值无歧义 ✓；
+- **时序细节**：React commit 写外层属性与内层自持根写属性同 commit 内完成，无中间
+  帧；JdmConfigProvider 的 dataset 写（缺省 light）与宿主 dataMode 的竞争——M2 后
+  宿主停止写外层 data-mode（M4 deprecated），唯一写者 = 内层自持根，竞争结构性消失
+  （即 D1 的价值本身）。
+
+#### 补充评审点（§6 之外，verdict 实测）
+
+1. **M1 并存语义需写明**：M1 theme prop 落地后，宿主现存的外包 JdmConfigProvider
+   与 theme prop **并存**——迁移注记应明确「theme prop 优先，外层 Provider 降级为
+   context 兜底」，避免 data-mode 双写复活（verdict 会随 M1 撤外包）；
+2. **syncDocumentTheme={false} 语义锁定**：verdict 硬依赖「appshell 不写
+   html.dark，next-themes 唯一写者」——D4 appshell 收缩后该 prop 语义必须保持，
+   建议 M4 注记明确（这是 verdict 的硬依赖，2.0 双写竞争的直接教训）；
+3. **2.0.1 两项已消费确认**：bg-white 根治 + 双实例修复，verdict 已升级 2.0.1、撤
+   overrides 与防御补丁（42295c4）——§1 病史表第 5 轮的两项闭环；
+4. **D3 白名单口径建议**：代码块语义底色白名单建议按「token 变量引用」豁免而非
+   逐值枚举（宿主覆盖规则未来同款扫描时口径统一）。
+
+#### verdict 消费时点
+
+- M1（2.1.0）：verdict 撤外包 Provider → 传 theme prop（小改，随发版即做）
+- M2/M3/M4（2.2.0）：verdict 删外层 .seal-root div、撤 graph 层透明覆盖
+  （styles.css）——迁移注记出后跟
+- 上游提案 value_list 下拉（parameterOptions B 档异步回调）与本 ADR 的 M1 同
+  props 面，可同批
