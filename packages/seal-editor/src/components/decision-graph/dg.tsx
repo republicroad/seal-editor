@@ -37,7 +37,7 @@ export const DecisionGraph = forwardRef<DecisionGraphRef, DecisionGraphProps & D
     // data-mode 双写抖动等问题自此结构性消失。
     const content = (
       <SafeBoundary>
-        <div className='seal-root' data-mode={theme?.mode}>
+        <div className='seal-root h-full' data-mode={theme?.mode}>
           <div className={clsx(['seal-dg', props?.hideLeftToolbar && 'hidden-left-toolbar'])}>
             <ReactFlowProvider>
               <DecisionGraphProvider>
