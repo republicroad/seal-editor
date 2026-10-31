@@ -46,6 +46,13 @@ export type JdmConfigProviderProps = {
   prefixCls?: string;
   dictionaries?: DictionaryMap;
   children?: React.ReactNode;
+  /**
+   * chrome 门（2.1.0 主题透传口，ADR-025 M1）：嵌套内层 Provider（如 kernel
+   * DecisionGraph theme 透传）置 false——只供给 ThemeModeContext/token 注入/
+   * data-mode 写入，跳过 Toaster+ConfirmHost（confirmState 全局单源，双挂=
+   * 确认弹窗双渲染回归）。缺省 true 保持既有宿主形态。
+   */
+  chrome?: boolean;
 };
 
 export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
@@ -54,6 +61,7 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
   locale = 'en',
   messages,
   dictionaries,
+  chrome = true,
   children,
 }) => {
   useWasmReady();
@@ -129,8 +137,8 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
 
           <SealContainerProvider container={container}>
             <I18nProvider locale={locale} overrides={messages}>
-              <Toaster theme={mode} position='bottom-right' richColors />
-              <ConfirmHost />
+              {chrome && <Toaster theme={mode} position='bottom-right' richColors />}
+              {chrome && <ConfirmHost />}
               {children}
             </I18nProvider>
           </SealContainerProvider>
