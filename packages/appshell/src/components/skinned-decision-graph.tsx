@@ -104,7 +104,7 @@ export type SkinnedDecisionGraphProps = DecisionGraphProps & {
 export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
   SkinnedDecisionGraphProps & React.RefAttributes<DecisionGraphRef>
 > = React.forwardRef<DecisionGraphRef, SkinnedDecisionGraphProps>((props, ref) => {
-  const { activeSkin } = useTheme();
+  const { activeSkin, isDarkTheme } = useTheme();
   const {
     simulateHandler,
     headerSlots,
@@ -310,9 +310,13 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
   // 宿主显式 customFunctions 优先（宿主优先原则），否则取 shell schema——
   // EditorShellProvider 场景零接线；无 Provider（stories 直用）行为不变
   const effectiveCustomFunctions = resolveShellCustomFunctions(customFunctions, shell?.schema);
+  // M4 收缩（ADR-025 D4）：appshell 解析结果（模式+皮肤种子/token）经 theme/seeds
+  // 显式下传内核——内核自持根 data-mode 显式化，不再依赖外层 Provider 的 dataset 写入
   const decisionGraph = (
     <DecisionGraph
       {...restProps}
+      theme={{ mode: isDarkTheme ? 'dark' : 'light', token: activeSkin?.tokens }}
+      seeds={activeSkin?.seeds}
       allowedNamespaces={allowedNamespaces}
       extraCommands={extraCommands}
       ref={setRef}
