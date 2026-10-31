@@ -129,7 +129,7 @@ export const DecisionGraphWrapper = React.memo(
       <>
         <ResolveUserEffect userResolver={userResolver} />
         {!hideLeftToolbar && !focusMode && <GraphSideToolbar />}
-        <div className={'[grid-area:graph] flex flex-1 flex-col gap-1 overflow-hidden bg-white'}>
+        <div className={'[grid-area:graph] flex flex-1 flex-col gap-1 overflow-hidden bg-background'}>
           {!focusMode && <GraphTabs disabled={disableTabs} tabBarExtraContent={tabsExtra} />}
 
           <Graph

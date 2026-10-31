@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.1](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@2.0.0...@republicroad/seal-editor@2.0.1) (2026-10-31)
+
+### Bug Fixes
+
+- **theme:** graph 布局层背景硬编码 `bg-white` 改随 token（`bg-background`）——verdict 宿主明亮模式排查定位：该层白底不随 data-mode 翻转，暗色主题下透出白底浅字不可读（宿主 styles.css 已 host-side 防御，本笔上游根治，宿主可撤防御补丁）。另 expression 节点行内预览的 `[&_.seal-ce-preview]:bg-white` 保持不动（代码块预览语义底色，非主题面）
+
 # [2.0.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@1.45.0...@republicroad/seal-editor@2.0.0) (2026-10-30)
 
 2.0 破坏性窗口收官：LEGACY 退役 / functionLibraries 语义裁断 A / props 终清 / UI 前沿对齐（verdict 宿主提案全项）/ 验收三轮修复。
