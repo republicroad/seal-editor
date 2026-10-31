@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.1.1](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@2.2.0...@republicroad/seal-editor@2.1.1) (2026-10-31)
+
+### Bug Fixes
+
+- **theme:** 自持岛根补 `h-full`——2.2.0 的自持岛根 div 无高度声明，`.seal-dg` 的 `height: 100%` 链断在无高度父级，编辑器撑高越界、侧栏面板跌破视口（上游 e2e dock 探针 CI 逮到；verdict 宿主静态核实同缺陷并以 `.seal-root .seal-root { height: 100% }` 宿主桥过渡，本笔上游根治后宿主可撤桥）
+
 # [2.2.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@2.1.0...@republicroad/seal-editor@2.2.0) (2026-10-31)
 
 主题装配正道化收官（ADR-025 M2 自持岛根 / M4 appshell 显式下传；verdict 明暗验收后续）。
