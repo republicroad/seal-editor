@@ -49,7 +49,16 @@
 - kb 时间线按月续写（`kb/tech/git/seal-editor-dev-timeline-847960106.md`）
 - 不可撤回决策继续走 ADR；触发制清单维持「等外部信号，不主动」
 
-### 2.1.0 批（已立案，verdict 提案采纳，P1）
+### 2.1.0/2.2.0 批（已立案，verdict 提案采纳 + ADR-025 机制终案）
+
+**ADR-025 草案入档**（docs/adr/025-theme-mode-self-owned-root.md，proposed）——色彩模式
+ping-pong（两个月五轮）的机制层终案：自持岛根 + 单通道 theme prop（含 system）+ 表面
+token 单源硬约束（lint+视觉测试防复发）；业界收敛点对标（React Flow colorMode 本仓
+同栈依赖/Monaco theme prop/MUI CssVarsProvider/shadcn 单祖先 class）。批次：
+M1=theme prop 面（2.1.0，与 verdict 提案 ①②合一）→ M2=自持根迁移（2.2.0）→
+M3=硬约束 → M4=appshell 收缩。评审请求已列（verdict 宿主三处确认）。
+
+### 2.1.0 批明细（已立案，verdict 提案采纳，P1）
 
 **主题装配缺口修复**（verdict 提案 upstream-2point0-theme-mode-passthrough.md，2026-10-31）——
 SkinnedDecisionGraph / kernel DecisionGraph 全链路均不内嵌 JdmConfigProvider，
