@@ -53,7 +53,7 @@ const preview: Preview = {
         <div className='seal-root' style={{ height: '100%' }}>
           <style
             dangerouslySetInnerHTML={{
-              __html: `html { background-color: ${isDark ? '#1f1f1f' : 'white'} }
+              __html: `html { background-color: ${isDark ? '#1f1f1f' : 'white'}; color-scheme: ${isDark ? 'dark' : 'light'} }
               body {
                 height: 100vh;
               }

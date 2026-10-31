@@ -76,3 +76,36 @@
   --error-line-bg: #4e3534;
   --field-highlight-bg: #111a2c;
 }
+
+/* ── 亮色重申（近岛优先）：明岛嵌暗宿主（theme.mode='light' 显式/继承）时，
+   压回亮色 token——与暗色块同特异度、源序在后=近岛赢（ADR-025 M2 作用域矩阵） */
+.seal-root[data-mode='light'],
+[data-mode='light'] .seal-root {
+  color-scheme: light;
+
+  --background: var(--seal-color-bg-layout, #f5f5f5);
+  --foreground: var(--seal-color-text, rgba(0, 0, 0, 0.88));
+  --card: var(--seal-color-bg-elevated, #ffffff);
+  --card-foreground: var(--foreground);
+  --popover: var(--seal-color-bg-elevated, #ffffff);
+  --popover-foreground: var(--foreground);
+  --primary: var(--seal-color-primary, #1677ff);
+  --primary-foreground: #ffffff;
+  --secondary: var(--seal-color-bg-container-disabled, rgba(0, 0, 0, 0.04));
+  --secondary-foreground: var(--foreground);
+  --muted: var(--seal-color-bg-container-disabled, rgba(0, 0, 0, 0.04));
+  --muted-foreground: var(--seal-color-text-secondary, rgba(0, 0, 0, 0.65));
+  --accent: var(--seal-color-bg-text-hover, rgba(0, 0, 0, 0.06));
+  --accent-foreground: var(--foreground);
+  --destructive: var(--seal-color-error, #ff4d4f);
+  --destructive-foreground: #ffffff;
+  --border: var(--seal-color-border, #d9d9d9);
+  --input: var(--seal-color-border, #d9d9d9);
+  --ring: var(--seal-color-primary, #1677ff);
+
+  /* Editor chrome surfaces (CodeMirror/Monaco) with no legacy counterpart */
+  --tooltip-bg: #f5f5f5;
+  --diagnostic-chip-bg: #eeeeee;
+  --error-line-bg: #fff1f0;
+  --field-highlight-bg: #e6f4ff;
+}
