@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.2.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@2.0.1...@republicroad/seal-appshell@2.2.0) (2026-10-31)
+
+### Features
+
+- **appshell:** ADR-025 M4 收缩——SkinnedDecisionGraph 经 theme/seeds 显式下传内核（模式+皮肤种子/token），内核自持根 data-mode 显式化；外层 ThemeContextProvider 栈行为不变，直连宿主新增 theme/seeds 可选项
+- 版本与 kernel 2.2.0 对齐（peer `^2.0.0` 覆盖）
+
 # [2.0.1](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@2.0.0...@republicroad/seal-appshell@2.0.1) (2026-10-30)
 
 ### Bug Fixes

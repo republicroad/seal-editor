@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.2.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@2.1.0...@republicroad/seal-editor@2.2.0) (2026-10-31)
+
+主题装配正道化收官（ADR-025 M2 自持岛根 / M4 appshell 显式下传；verdict 明暗验收后续）。
+
+### Features
+
+- **theme:** 自持岛根（ADR-025 M2）——DecisionGraph 自渲染 `.seal-root` 根元素（`data-mode` 随 `theme.mode`；未传=继承最近祖先 `[data-mode]` 作用域，两者皆无回落基础亮色），宿主不再需要提供岛根 div/类名；透明表面透宿主底、data-mode 双写抖动等问题结构性消失
+- **graph:** theme 透传口增 `seeds`——皮肤种子随透传进内核作用域（verdict 提案二追加），宿主免外包 Provider 即得完整品牌派生（seeds/token）；appshell restProps 自动透传
+- **storybook:** 装饰器 html `color-scheme` 随明暗（页面滚动条暗模式适配，verdict 验收反馈）
+
 # [2.1.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@2.0.1...@republicroad/seal-editor@2.1.0) (2026-10-31)
 
 主题自适应三件套（ADR-025 M1 起步 + verdict 宿主明暗排查收官）。
