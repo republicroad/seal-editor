@@ -497,7 +497,7 @@ const ExamplePreviewStrip: React.FC<{
             applyFieldHighlight(highlightPath);
           }}
           onChange={(value) => onJsonChange(value ?? '')}
-          theme={(exampleEditorOptions as { theme?: string })?.theme ?? 'light'}
+          theme={(exampleEditorOptions as { theme?: string })?.theme}
           options={{
             ...exampleEditorOptions,
             readOnly: disabled || !activeSource,

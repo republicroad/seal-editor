@@ -2,6 +2,7 @@ import { DiffEditor as UiDiffEditor, Editor as UiEditor, useMonaco } from '@mona
 import type { DiffEditorProps, EditorProps, Monaco } from '@monaco-editor/react';
 import React, { useEffect, useState } from 'react';
 
+import { useThemeMode } from '../theme';
 import { configureMonaco } from './monaco';
 
 /**
@@ -33,20 +34,29 @@ function useMonacoConfigured(): boolean {
   return ready;
 }
 
-export const Editor: React.FC<EditorProps> = (props) => {
-  const ready = useMonacoConfigured();
-  if (!ready) {
-    return <>{props.loading ?? null}</>;
-  }
-  return <UiEditor {...props} />;
+/** 缺省 monaco 主题：未显式传 theme 的消费方按当前色彩模式自适应
+ *  （ADR-025 D2 单通道在 monaco 边界的落点——消费方无需各自接线） */
+const useMonacoTheme = (explicit?: string): string => {
+  const mode = useThemeMode();
+  return explicit ?? (mode === 'dark' ? 'vs-dark' : 'light');
 };
 
-export const DiffEditor: React.FC<DiffEditorProps> = (props) => {
+export const Editor: React.FC<EditorProps> = ({ theme, ...props }) => {
   const ready = useMonacoConfigured();
+  const resolvedTheme = useMonacoTheme(theme);
   if (!ready) {
     return <>{props.loading ?? null}</>;
   }
-  return <UiDiffEditor {...props} />;
+  return <UiEditor {...props} theme={resolvedTheme} />;
+};
+
+export const DiffEditor: React.FC<DiffEditorProps> = ({ theme, ...props }) => {
+  const ready = useMonacoConfigured();
+  const resolvedTheme = useMonacoTheme(theme);
+  if (!ready) {
+    return <>{props.loading ?? null}</>;
+  }
+  return <UiDiffEditor {...props} theme={resolvedTheme} />;
 };
 
 /** 透传：调用方在 Editor 挂载后使用（门控保证此时 loader 已就绪） */

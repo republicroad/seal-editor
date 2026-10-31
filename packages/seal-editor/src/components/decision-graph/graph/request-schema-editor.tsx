@@ -55,7 +55,7 @@ export const RequestSchemaEditor: React.FC<RequestSchemaEditorProps> = ({
             onEditorMount(instance);
           }}
           onChange={(value) => onSchemaChange(value ?? '')}
-          theme={(editorOptions as { theme?: string })?.theme ?? 'light'}
+          theme={(editorOptions as { theme?: string })?.theme}
           options={{
             ...editorOptions,
             readOnly: disabled,
