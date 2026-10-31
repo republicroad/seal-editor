@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.1.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@2.0.1...@republicroad/seal-editor@2.1.0) (2026-10-31)
+
+主题自适应三件套（ADR-025 M1 起步 + verdict 宿主明暗排查收官）。
+
+### Features
+
+- **graph:** theme 透传口（ADR-025 M1 / verdict 提案二采纳）——DecisionGraph 增 `theme?: ThemeConfig`：宿主传模式时条件内嵌 chrome=false 的 JdmConfigProvider（ThemeModeContext/token 注入/data-mode 写入；Toaster/ConfirmHost 归外层单源防双挂），未传=零改动；落地后 verdict 可撤外部兜底 Provider
+- **theme:** 岛根声明 `color-scheme`（light/dark 随 data-mode）——原生滚动条/表单控件自动跟随色彩模式（Components 面板暗模式亮白滚动条修复）
+- **theme:** monaco 包装器统一主题解析——Editor/DiffEditor 未显式传 theme 时按 ThemeModeContext 自适应（dark=vs-dark），消费方无需各自接线；显式传值保持覆盖能力
+
 # [2.0.1](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@2.0.0...@republicroad/seal-editor@2.0.1) (2026-10-31)
 
 ### Bug Fixes
