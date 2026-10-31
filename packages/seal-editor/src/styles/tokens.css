@@ -48,6 +48,8 @@
 /* ADR-023 #4：data-mode 在 html（provider 缺省注入点）而 .seal-root 可能在 body——
    祖先形态兼容该拆分；data-mode 与 .seal-root 同元素时原形态仍命中 */
 [data-mode='dark'] .seal-root {
+  color-scheme: dark;
+
   --background: var(--seal-color-bg-layout, #000000);
   --foreground: var(--seal-color-text, rgba(255, 255, 255, 0.85));
   --card: var(--seal-color-bg-elevated, #1f1f1f);
