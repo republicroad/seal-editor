@@ -32,6 +32,20 @@
 > **2026-10-24 复查**：组件 27 持平；blocks **+4 = flow 类目全新**（10-15 复查后新增，4 block 全部 @xyflow/react 栈、pro 档）——①flow-1 Automation Builder（undo/redo + canvas lock + snap-to-grid + minimap + **未保存编辑 Update 钮** + 节点工具栏/右键增删复制 + docked inspector）；②flow-2 AI Agent Builder（**dagre 树布局——与本仓 auto-layout 同栈** + 命名分支路径 + connector 加步钮 + Run test 统计 passed/failed/skipped）；③flow-3 Pipeline Run Monitor（6 运行态 + 失败任务重试/聚焦 + 审批门）；④flow-4 Growth Impact Map（KPI 驱动树，与仓无关）。另：whiteboard 类（Excalidraw ×2，历次复查未录）——自由绘图非规则编辑器形态，维持否决清单同款裁定。
 > 判定：**独立 demo 应用形态，非可嵌入组件——不安装**（同 data-grid 组裁定；决策图节点语义/契约面是 jdm 立法资产，graph.tsx 深度定制不换装）。形态参照三处入册：①flow-1 未保存 Update 钮 ↔ ADR-008 dirty 契约（host-owned）+ auto-persist SyncStatusBadge 的 UI 语义参照；②flow-3 运行态+失败重试聚焦 ↔ simulator/TrustChain trace 展示参照；③canvas lock / snap-to-grid 为图编辑器增强候选（未挂触发项，宿主需求驱动）。模板仍 MCP 不可枚举（10-15 结论维持），整页站定位对组件库不适用。
 
+> **2026-11-04 复查**：组件 27 持平（gantt 组件已在 27 内，headless-first：split tree+timeline 双栏、
+> day→year scale、拖拽调度、onEventUpdate/canDropEvent 与 event-calendar 同管线——历次复查未单列判定，
+> 本仓无甘特场景，维持 ❌ 无场景）；icons 667 持平；blocks 658→**678（+20，全部落新类目）**。
+> **flow 类目 4 持平**（flow-1/2/3/4 描述与 10-24 基线逐字一致——**react-flow 模板零更新**，
+> 不安装判定维持）。增量新类目八项：**gantt(4)** / **status-tracker(4)** / **sankey-chart(3)** /
+> slope-chart(2) / digital-twin(2) / travel(2) / files(1) / map(1)。与本仓相关三处形态参照入册：
+> ①**chart-34 Cron Run History**（逐任务一行 + **10/20 次运行胶囊条带** HoverCard 展开 + 成功率/
+> p95 汇总）↔ 运行对比/simulator 历史/深链过期检查器的「事后静态回显」列表形态——run strip 的
+> 多运行横条版，触发制候选；②**gantt-3 Agent Playbook**（强制阶段依赖 + 重试泳道 + 关键路径）↔
+> **workflow 双模式**（探索池主题三）survey 的编排形态语言参照（Temporal/Inngest 对标同族）；
+> ③**navbar-5 Workflow Editor Navbar**（back link + active Switch + run-history + Test Run 主钮
+> + Export/Duplicate more 菜单）↔ appshell skinned-header 形态对照。其余新类目与本仓无关。
+> 全部维持不安装（独立 demo 形态）。
+
 ### 新组件判定（6 项）
 
 | 组件 | 判定 | 落点/理由 |

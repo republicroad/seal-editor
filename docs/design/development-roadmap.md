@@ -7,21 +7,31 @@
 > 本文档为 seal-editor 主线计划；文末保留 v1.0 分叉前的历史工作流记录（WS1–WS6，
 > 其中 velocity/ip2region 已按裁决转移 verdict 仓）。
 
-## 当前规划 v2（2.0.0 之后：前沿探索期，2026-10-30）
+## 当前规划 v2（2.0.0 之后：前沿探索期，2026-10-30；2026-10-31 修订至 2.2.1 终态）
 
 > 2.0.0 已发版（破坏性窗口收官）。开发节奏转入慢速探索期——**双通道驱动**：
 > 反馈通道（verdict 实际使用的第一手信号）+ 灵感通道（业界前沿对标）。
 > 每批 ≤1 天、故事先行（9009 demo）+ 契约测试；不再攒大窗口——
 > semver 常规化：feat→minor、fix→patch 随批即发，BREAKING 攒 3.0 窗口。
+>
+> **主题装配线（ADR-025）已全链收官**：M1 theme 透传口（2.1.0）→ M2 自持岛根 +
+> seeds 透传（2.2.0）→ h-full 高度链补丁（2.2.1，latest）→ M3 表面 token 硬约束 +
+> M4 appshell 显式下传（appshell 2.2.0）全部在架。npm 终态：kernel 2.2.1 /
+> appshell 2.2.0。ADR-025 待 verdict 评审三处回执后流转 proposed→accepted。
+> （semver 铁律随 2.1.1 倒挂事故入档：已发 X.Y.0 后修复必走 X.Y.z。）
 
 ### 通道一 · 反馈驱动（信号池，等触发不主动）
 
-1. **verdict 2.0.0 随版接入陪跑**（最高优先级信号源）——迁移摩擦与新 API 顺手度
-   （diagnostics / parameterOptions / diffBaseline / resetHistory）的收集与快速修复
+1. **verdict 2.2.x 随版接入陪跑**（最高优先级信号源）——宿主侧动作清单：
+   升依赖 ^2.2.1 → 撤 `.seal-root .seal-root{height:100%}` 高度桥 → 撤外包
+   JdmConfigProvider（改走 theme prop）→ #app 深空底一行修；我方承接：
+   ADR-025 评审三处回执（贴边布局兼容 / system 缺省取舍 / 嵌套岛幂等）与
+   迁移摩擦收集（diagnostics / parameterOptions / diffBaseline / resetHistory 顺手度）
 2. 类型阻断连线（铁律 5 最后缺口）——等真实案例，形态按频率定
 3. presence 展示位——宿主 overlay 方案若不敷再评估原生位
 4. 多标签并发（Web Locks / BroadcastChannel）——auto-persist 二阶段
-5. IndexedDB 本地草稿——离线草稿恢复（auto-persist 二阶段候选）
+   （基建已随 appshell 1.9.0 在架：controller / useAutoPersist / SyncStatusBadge / CONFLICT 三选）
+5. IndexedDB 本地草稿——离线草稿恢复（auto-persist 二阶段候选，适配器已在架）
 6. AI copilot / subflow / shadow——触发制原表
 
 ### 通道二 · 灵感驱动（前沿探索池，每主题三步：对标 survey → 9009 demo → 裁断后实施）
@@ -46,38 +56,39 @@
 
 ### 治理
 
-- kb 时间线按月续写（`kb/tech/git/seal-editor-dev-timeline-847960106.md`）
+- kb 时间线按月续写（`kb/tech/git/seal-editor-dev-timeline-847960106.md`；10 月节待续——
+  2.0.0/2.1.x/2.2.x 密集发版月）
 - 不可撤回决策继续走 ADR；触发制清单维持「等外部信号，不主动」
+- 旧 plan 文件处置：auto-persist 基建已随 appshell 1.9.0 发版（controller/徽标/测试
+  全套在架），其 plan 会话遗留件不再执行
 
-### 2.1.0/2.2.0 批（已立案，verdict 提案采纳 + ADR-025 机制终案）
+### 已收官批次（2026-10-31，详情见各 CHANGELOG）
 
-**ADR-025 草案入档**（docs/adr/025-theme-mode-self-owned-root.md，proposed）——色彩模式
-ping-pong（两个月五轮）的机制层终案：自持岛根 + 单通道 theme prop（含 system）+ 表面
-token 单源硬约束（lint+视觉测试防复发）；业界收敛点对标（React Flow colorMode 本仓
-同栈依赖/Monaco theme prop/MUI CssVarsProvider/shadcn 单祖先 class）。批次：
-M1=theme prop 面（2.1.0，与 verdict 提案 ①②合一）→ M2=自持根迁移（2.2.0）→
-M3=硬约束 → M4=appshell 收缩。评审请求已列（verdict 宿主三处确认）。
+主题装配四连发：2.1.0（M1 theme 透传口 / color-scheme 岛根声明 / monaco 包装器
+统一解析）→ 2.2.0（M2 自持岛根 / seeds 透传 / storybook color-scheme；appshell
+2.2.0 M4 显式下传）→ 2.1.1（误发，已被 2.2.1 取代为 latest）→ **2.2.1（h-full
+高度链修复，latest）**。M3 硬约束（style-debt hardcoded-bg 预算 0）随 2.2.0 批落地。
+ADR-025 评审三处仍 open（verdict 宿主）。
 
-### 2.1.0 批明细（已立案，verdict 提案采纳，P1）
+### navbar-5 默认头部批（已实施，2026-11-04，待验收提交 → kernel/appshell 2.3.0 并批）
 
-**主题装配缺口修复**（verdict 提案 upstream-2point0-theme-mode-passthrough.md，2026-10-31）——
-SkinnedDecisionGraph / kernel DecisionGraph 全链路均不内嵌 JdmConfigProvider，
-不外包 Provider 的宿主拿缺省（light）上下文=暗模式节点色彩缺失（verdict 实测）：
-
-1. kernel：DecisionGraph 增 `theme?: ThemeConfig` 透传口——提供时条件内嵌
-   JdmConfigProvider，未提供零改动（storybook 装饰器路径不变）
-2. appshell：SkinnedDecisionGraph 同款条件内嵌（覆盖宿主不经 ThemeContextProvider
-   的直连形态）；与外层 ThemeContextProvider 的 JdmConfigProvider 嵌套时内层
-   authoritative，props 未传则透传外层——零破坏
-3. 验收：无外部 Provider + theme={{mode:'dark'}} → 暗色节点卡+彩色 icon 芯片；
-   无 theme prop → 行为与今日一致；verdict 撤外部兜底层后回归
-4. 预计随 2.1.0 发版（与行级 diff 预览并批可选）；verdict 撞期已用外部兜底层
-   自救（可保留至本批上架后撤）
+灵感通道三步法首例全流程闭环（reui 复查 → navbar-5 形态参照入册 → 用户裁断落地）：
+kernel `DecisionGraphType.enabled?: boolean` 类型面（引擎忽略，宿主解释语义）+
+appshell **DefaultShellHeader**（back link + enabled Switch + History + Test Run
+主钮 + more 菜单 Export/Duplicate/Delete），`defaultHeader` opt-in（缺省 false=
+今日零变化；槽位在场时槽位形态优先，ADR-008 L1 不动）；Test Run 无 simulateHandler
+时诚实禁用（防静默失效）；enabled 翻转走 handleGraphChange 全链（autoPersist 同轮
+保存）。门禁全绿（双包 tsc / appshell 246 / kernel 686 零回归 / style-debt /
+双包 lint），9009 验收故事在架（Appshell/DefaultShellHeader 四形态 +
+Integration/DefaultHeaderNavbar5）。reui-optimization-backlog.md 2026-11-04 复查
+（flow 零更新；+20 blocks=chart-34 运行胶囊条带 / gantt-3 Agent Playbook /
+navbar-5 三处形态参照入册）同车待提交。
 
 ### 建议下次会话首批
 
-1. 2.1.0 批实施：主题装配缺口 + 行级 diff 预览（两个已勘定项一批发）
-2. verdict 随版接入陪跑（信号收集）
+1. navbar-5 批收尾：验收 → 提交 → kernel/appshell 2.3.0 并批发版
+2. verdict 随版接入陪跑（升 2.3.0 接 defaultHeader + 撤三兜底 + ADR-025 评审回执）
+3. dt/expression 行级 diff 预览（探索池唯一已勘定项，~1 天故事先行）
 
 ---
 
