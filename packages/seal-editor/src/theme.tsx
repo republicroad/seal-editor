@@ -84,7 +84,14 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
   const exposedTokens = useMemo(() => computeTheme(mode, seeds, token), [mode, seeds, token]);
 
   useLayoutEffect(() => {
-    const root = (anchorRef.current?.closest?.('.seal-root') as HTMLElement | null) ?? undefined;
+    // 岛容器解析：宿主岛（provider 挂岛内）走 closest 向上；M2 自持岛根
+    // （provider 在岛根之外、岛根是 children——dg.tsx theme 透传形态）closest
+    // 必失败，回落向 anchor 兄弟子树找首个 .seal-root。两形态合一。
+    const anchor = anchorRef.current;
+    const root =
+      (anchor?.closest?.('.seal-root') as HTMLElement | null) ??
+      (anchor?.parentElement?.querySelector?.(':scope .seal-root') as HTMLElement | null) ??
+      undefined;
     setContainer(root);
   }, []);
 
