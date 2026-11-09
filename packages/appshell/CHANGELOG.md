@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.3.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@2.2.0...@republicroad/seal-appshell@2.3.0) (2026-11-09)
+
+navbar-5 默认头部（Workflow Editor Navbar 模式落地，ReUI 形态参照入册 reui-optimization-backlog.md）。
+
+### Features
+
+- **shell:** `DefaultShellHeader` 新组件（back link + enabled Switch + History + Test Run 主钮 + more 菜单 Export JSON/Duplicate/Delete）+ `SkinnedDecisionGraph` 增 `defaultHeader` opt-in——缺省 false = 今日行为零变化；皮肤/宿主槽位在场时槽位形态优先（ADR-008 L1 不动）；七个头部回调（onBack/headerTitle/onOpenHistory/onDuplicate/onDelete/onExportJson/onTestRun）；独立导出供宿主页面骨架直接使用
+- **shell:** Test Run 直跑链（n8n Execute Workflow 模式）——`resolveSimulatorInput`（examples[0] 预处理，无则空 `{}`）→ simulateHandler 直跑 → simulator 面板自动打开 + Request 回填本次输入；无 simulateHandler 时按钮诚实禁用（防静默失效）。三钮分层：header 快跑 / 侧栏 Simulator 详查 / 面板 Run 重跑
+
+### Bug Fixes
+
+- **ui:** 浮层透明系统性修复——dropdown-menu / alert-dialog / sheet / select / tooltip 五组件 Portal 裸挂 body = `.seal-root` 岛外无 token（`bg-popover` 透明，portal 落 body 第三度变体）；五组件 Portal 全部接 `useSealPortalContainer`（undefined 回落 body 兼容无岛宿主）；skinned 骨架包外层 `JdmConfigProvider chrome={false}` 供 header 浮层读岛容器（data-mode 双写同值幂等）
+
 # [2.2.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-appshell@2.0.1...@republicroad/seal-appshell@2.2.0) (2026-10-31)
 
 ### Features

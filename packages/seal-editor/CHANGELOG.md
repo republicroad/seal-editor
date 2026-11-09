@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.3.0](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@2.2.1...@republicroad/seal-editor@2.3.0) (2026-11-09)
+
+navbar-5 默认头部批内核配套 + 浮层透明系统性修复（appshell 侧随 seal-appshell 2.3.0）。
+
+### Features
+
+- **graph:** `DecisionGraphType` 增 `enabled?: boolean` 文档级启用开关——appshell 默认头部 Active Switch 的载体；引擎忽略、语义由宿主解释（如触发面启用/停用）；serde 容忍额外根键，缺省视为启用
+- **simulator:** `resolveSimulatorInput(graph)` 导出——单击直跑输入解析：第一个 inputNode 的契约示例集第一条（复用 Fixtures 面板同款预处理管线：默认值合并 + datetime 归一）；无 inputNode / 无 examples 回落空 `{}`（MISSING_INPUT 诊断语义，trace 仍显示结构命中）
+- **theme:** `useSealPortalContainer` 导出——宿主/appshell 浮层 portal 挂岛容器的共用出口（undefined 回落 body 兼容无岛宿主）
+
+### Bug Fixes
+
+- **theme:** 岛容器解析兼容自持岛根形态——M2 后内嵌 `JdmConfigProvider` 在岛根之外（`Provider > .seal-root` 结构），anchor `closest('.seal-root')` 向上解析永失败，`SealContainerProvider` 发布 `undefined` 致所有浮层 portal 落 body 岛外无 token（`bg-popover` 透明——portal 落 body 第三度变体）；修=closest 失败回落 anchor 兄弟子树向下找首个 `.seal-root`（宿主岛形态行为不变）
+
 # [2.2.1](https://github.com/republicroad/seal-editor/compare/@republicroad/seal-editor@2.2.0...@republicroad/seal-editor@2.2.1) (2026-10-31)
 
 ### Bug Fixes
