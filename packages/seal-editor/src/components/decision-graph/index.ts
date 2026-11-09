@@ -21,6 +21,7 @@ export {
   type DecisionNodeProps as GraphDecisionNodeProps,
 } from './nodes/decision-node';
 export { GraphSimulator, type GraphSimulatorProps } from './simulator/dg-simulator';
+export { resolveSimulatorInput } from './simulator/simulator-input';
 export { SimulatorEditor } from './simulator/simulator-editor';
 export {
   useDecisionGraphState,

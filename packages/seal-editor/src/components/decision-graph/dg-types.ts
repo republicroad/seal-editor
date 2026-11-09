@@ -63,6 +63,11 @@ export type DecisionGraphType = {
    * 本字段为编辑器视觉资产，serde 容忍额外根键）。
    */
   annotations?: DecisionGraphAnnotation[];
+  /**
+   * 文档级启用开关（appshell 默认头部 Active Switch 的载体；引擎忽略、语义由宿主
+   * 解释——如触发面启用/停用。serde 容忍额外根键，缺省视为启用）。
+   */
+  enabled?: boolean;
 };
 
 /** 注释框（Unreal/ComfyUI comment box 形态）：可拖拽/缩放的背景便签 */

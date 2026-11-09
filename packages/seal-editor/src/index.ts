@@ -8,6 +8,7 @@ import './styles/tokens.css';
 export * from './components';
 export * from './theme';
 export { I18nProvider, useT, createT, type I18nMessages } from './theming/i18n';
+export { useSealPortalContainer } from './theming/portal-context';
 
 export { codemirror } from './helpers/codemirror';
 export { useNodeType } from './helpers/node-type';
