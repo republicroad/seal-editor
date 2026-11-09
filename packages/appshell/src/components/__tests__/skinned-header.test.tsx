@@ -112,3 +112,184 @@ describe('SkinnedDecisionGraph header', () => {
     });
   });
 });
+
+describe('SkinnedDecisionGraph defaultHeader', () => {
+  it('defaultHeader=true：无槽位时渲染默认头部（Test Run 在场）', async () => {
+    const { container } = render(
+      <ThemeContextProvider>
+        <SkinnedDecisionGraph value={graph as never} onChange={vi.fn()} defaultHeader />
+      </ThemeContextProvider>,
+    );
+    const header = await waitFor(() => {
+      const header = container.querySelector('header');
+      if (!header || !header.textContent.includes('Test Run')) throw new Error('default header not mounted');
+      return header;
+    });
+    expect(header.querySelector('[aria-label="More options"]')).toBeTruthy();
+  });
+
+  it('无 simulateHandler 时 Test Run 诚实禁用（防静默失效）', async () => {
+    const { container } = render(
+      <ThemeContextProvider>
+        <SkinnedDecisionGraph value={graph as never} onChange={vi.fn()} defaultHeader />
+      </ThemeContextProvider>,
+    );
+    const header = await waitFor(() => {
+      const header = container.querySelector('header');
+      if (!header) throw new Error('default header not mounted');
+      return header;
+    });
+    const testRun = [...header.querySelectorAll('button')].find((b) => b.textContent?.includes('Test Run'))!;
+    await waitFor(() => {
+      // graphRef 挂载后缺省通道仍不注入（无 simulateHandler = simulator 面板未注册）
+      if (!(testRun as HTMLButtonElement).disabled) throw new Error('expected disabled before simulateHandler wiring');
+    });
+  });
+
+  it('simulateHandler 在场时 Test Run 可用', async () => {
+    const { container } = render(
+      <ThemeContextProvider>
+        <SkinnedDecisionGraph
+          value={graph as never}
+          onChange={vi.fn()}
+          defaultHeader
+          simulateHandler={vi.fn((_graph: unknown, _input: unknown) =>
+            Promise.resolve({ simulation: {}, errorMessage: undefined }),
+          )}
+        />
+      </ThemeContextProvider>,
+    );
+    const header = await waitFor(() => {
+      const header = container.querySelector('header');
+      if (!header) throw new Error('default header not mounted');
+      return header;
+    });
+    const testRun = [...header.querySelectorAll('button')].find((b) => b.textContent?.includes('Test Run'))!;
+    await waitFor(() => {
+      if ((testRun as HTMLButtonElement).disabled) throw new Error('expected enabled with simulateHandler');
+    });
+  });
+
+  it('header more 菜单 popup 挂岛根（浮层 token 作用域回归）', async () => {
+    const { container } = render(
+      <ThemeContextProvider>
+        <SkinnedDecisionGraph value={graph as never} onChange={vi.fn()} defaultHeader />
+      </ThemeContextProvider>,
+    );
+    const header = await waitFor(() => {
+      const header = container.querySelector('header');
+      if (!header) throw new Error('default header not mounted');
+      return header;
+    });
+    fireEvent.click(header.querySelector('[aria-label="More options"]')!);
+    await waitFor(() => {
+      const menu = document.querySelector('[role="menu"]');
+      if (!menu) throw new Error('menu popup not mounted');
+      // popup 必须在 .seal-root 岛内（bg-popover 等 token 只在岛作用域解析）
+      if (!menu.closest('.seal-root')) throw new Error('menu popup escaped the island');
+    });
+  });
+
+  it('Test Run 直跑链：examples[0] 喂 handler + 面板打开（n8n 模式）', async () => {
+    const graphWithExamples = {
+      enabled: true,
+      nodes: [
+        {
+          id: 'in-1',
+          type: 'inputNode',
+          position: { x: 0, y: 0 },
+          name: 'Request',
+          content: {
+            inputContract: {
+              contractVersion: 1,
+              schema: { type: 'object' },
+              examples: [
+                { id: 'e1', name: 'gold', data: { customer: { tier: 'GOLD' } } },
+                { id: 'e2', name: 'silver', data: { customer: { tier: 'SILVER' } } },
+              ],
+            },
+          },
+        },
+      ],
+      edges: [],
+    };
+    const simulateHandler = vi.fn((_graph: unknown, _input: unknown) =>
+      Promise.resolve({ simulation: {}, errorMessage: undefined }),
+    );
+    const { container } = render(
+      <ThemeContextProvider>
+        <SkinnedDecisionGraph
+          value={graphWithExamples as never}
+          onChange={vi.fn()}
+          defaultHeader
+          simulateHandler={simulateHandler}
+        />
+      </ThemeContextProvider>,
+    );
+    const header = await waitFor(() => {
+      const header = container.querySelector('header');
+      if (!header) throw new Error('default header not mounted');
+      return header;
+    });
+    const testRun = [...header.querySelectorAll('button')].find((b) => b.textContent?.includes('Test Run'))!;
+    await waitFor(() => {
+      if ((testRun as HTMLButtonElement).disabled) throw new Error('expected enabled');
+    });
+    fireEvent.click(testRun);
+    // 直跑：examples[0] 经预处理管线喂 handler
+    await waitFor(() => expect(simulateHandler).toHaveBeenCalledTimes(1));
+    expect(simulateHandler.mock.calls[0][1]).toEqual({ customer: { tier: 'GOLD' } });
+    // 面板自动打开（kernel simulator 面板内容挂载 = Run 钮在 DOM）
+    await waitFor(
+      () => {
+        if (!container.querySelector('[data-testid="simulator-run"]')) {
+          throw new Error('simulator panel not opened');
+        }
+      },
+      { timeout: 15000, interval: 200 },
+    );
+  });
+
+  it('Test Run 直跑链：无 examples 空对象兜底', async () => {
+    const simulateHandler = vi.fn((_graph: unknown, _input: unknown) =>
+      Promise.resolve({ simulation: {}, errorMessage: undefined }),
+    );
+    const { container } = render(
+      <ThemeContextProvider>
+        <SkinnedDecisionGraph
+          value={graph as never}
+          onChange={vi.fn()}
+          defaultHeader
+          simulateHandler={simulateHandler}
+        />
+      </ThemeContextProvider>,
+    );
+    const header = await waitFor(() => {
+      const header = container.querySelector('header');
+      if (!header) throw new Error('default header not mounted');
+      return header;
+    });
+    const testRun = [...header.querySelectorAll('button')].find((b) => b.textContent?.includes('Test Run'))!;
+    await waitFor(() => {
+      if ((testRun as HTMLButtonElement).disabled) throw new Error('expected enabled');
+    });
+    fireEvent.click(testRun);
+    await waitFor(() => expect(simulateHandler).toHaveBeenCalledTimes(1));
+    expect(simulateHandler.mock.calls[0][1]).toEqual({});
+  });
+
+  it('槽位在场时槽位形态优先（defaultHeader 不生效）', async () => {
+    const { container } = render(
+      <ThemeContextProvider options={{ skins: [skinWithHeader], defaultSkinId: 'ocean' }}>
+        <SkinnedDecisionGraph value={graph as never} onChange={vi.fn()} defaultHeader />
+      </ThemeContextProvider>,
+    );
+    const header = await waitFor(() => {
+      const header = container.querySelector('header');
+      if (!header) throw new Error('header not mounted yet');
+      return header;
+    });
+    expect(header.textContent).toContain('OCEAN · 1 nodes');
+    expect(header.textContent).not.toContain('Test Run');
+  });
+});

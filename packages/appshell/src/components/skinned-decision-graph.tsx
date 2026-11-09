@@ -5,8 +5,10 @@ import {
   type DecisionGraphType,
   FixturesPanel,
   GraphSimulator,
+  JdmConfigProvider,
   type Simulation,
   type ToolbarItem,
+  resolveSimulatorInput,
 } from '@republicroad/seal-editor';
 import { useT } from '@republicroad/seal-editor';
 import { FlaskConicalIcon, PanelRightIcon } from 'lucide-react';
@@ -32,6 +34,7 @@ import { resolveShellCustomFunctions } from '../shell/shell-custom-functions';
 import type { SimulateHandler } from '../shell/types';
 import { mapPanelSlotIds, mapToolbarSlots } from '../skin/layout';
 import type { SkinHeaderSlots, SkinSlotHostContext } from '../skin/types';
+import { DefaultShellHeader } from './default-shell-header';
 import { ShellHeader } from './shell-header';
 import { SyncStatusBadge } from './sync-status-badge';
 import { ScrollArea } from './ui/scroll-area';
@@ -91,6 +94,24 @@ export type SkinnedDecisionGraphProps = DecisionGraphProps & {
     keywords: string;
     run: () => void;
   }>;
+  /**
+   * navbar-5 默认头部（DefaultShellHeader：back + enabled Switch + History +
+   * Test Run 主钮 + more 菜单）。opt-in——缺省 false=无槽位时维持裸图（今日行为）；
+   * 皮肤/宿主槽位在场时槽位形态优先（ADR-008 L1 不动）。
+   */
+  defaultHeader?: boolean;
+  /** 默认头部：返回导航（无则不渲染 back 钮） */
+  onBack?: () => void;
+  /** 默认头部：标题（文档名属宿主） */
+  headerTitle?: React.ReactNode;
+  /** 默认头部：历史入口（version-history 数据属宿主 persistence，回调入口制） */
+  onOpenHistory?: () => void;
+  /** 默认头部 more 菜单：Duplicate */
+  onDuplicate?: () => void;
+  /** 默认头部 more 菜单：Delete（AlertDialog 确认后回调） */
+  onDelete?: () => void;
+  /** 默认头部 more 菜单：覆盖内建 Export JSON */
+  onExportJson?: () => void;
 };
 
 /**
@@ -114,6 +135,13 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
     runsPersistenceKey,
     allowedNamespaces,
     extraCommands,
+    defaultHeader,
+    onBack,
+    headerTitle,
+    onOpenHistory,
+    onDuplicate,
+    onDelete,
+    onExportJson,
     ...restProps
   } = props;
   const t = useT();
@@ -287,15 +315,7 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
           right: () => <SyncStatusBadge state={autoPersistState} onRetry={() => autoPersistController.flush()} />,
         }
       : mergedHeaderSlots;
-  const hasHeader = !!(headerSlotsFinal?.left || headerSlotsFinal?.right);
-  const headerNode = hasHeader ? (
-    <ShellHeader
-      graph={slotContext.graph}
-      disabled={slotContext.disabled}
-      graphRef={slotContext.graphRef}
-      slots={headerSlotsFinal}
-    />
-  ) : null;
+  const hasHeaderSlots = !!(headerSlotsFinal?.left || headerSlotsFinal?.right);
 
   const hasRail = !!rightSlots?.length;
   const handleGraphChange = (val: DecisionGraphType) => {
@@ -306,6 +326,60 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
     }
     restProps.onChange?.(val);
   };
+  // enabled 文档级翻转走 handleGraphChange 全链（autoPersist 接线时同轮触发保存）
+  const handleEnabledChange = (enabled: boolean) => {
+    const current = slotContext.graph;
+    if (!current) return;
+    handleGraphChange({ ...current, enabled });
+  };
+  // navbar-5 默认头部（defaultHeader opt-in）：槽位在场时槽位形态优先（ADR-008 L1 不动）
+  const headerNode = hasHeaderSlots ? (
+    <ShellHeader
+      graph={slotContext.graph}
+      disabled={slotContext.disabled}
+      graphRef={slotContext.graphRef}
+      slots={headerSlotsFinal}
+    />
+  ) : defaultHeader ? (
+    <DefaultShellHeader
+      graph={slotContext.graph}
+      disabled={slotContext.disabled}
+      graphRef={slotContext.graphRef}
+      onEnabledChange={handleEnabledChange}
+      // 无 simulateHandler = simulator 面板未注册 → 不给通道（按钮诚实禁用，防静默失效）。
+      // 直跑语义（n8n Execute Workflow 模式）：examples[0] 预处理（无则空 {}）→ 执行 →
+      // 面板自动打开 + Request 回填本次输入（用户可改后经面板 Run 重跑）
+      onTestRun={
+        simulateHandler
+          ? () => {
+              if (!mounted) return;
+              const graphRef = internalRef.current;
+              const graph = slotContext.graph;
+              if (!graphRef || !graph) return;
+              const input = resolveSimulatorInput(graph);
+              setRunning(true);
+              simulateHandler(graph, input)
+                .then((outcome) => setSimulation(outcome.simulation))
+                .finally(() => setRunning(false));
+              graphRef.setSimulatorRequest(JSON.stringify(input, null, 2));
+              graphRef.setActivePanel('simulator');
+            }
+          : undefined
+      }
+      onBack={onBack}
+      title={headerTitle}
+      onOpenHistory={onOpenHistory}
+      onDuplicate={onDuplicate}
+      onDelete={onDelete}
+      onExportJson={onExportJson}
+      syncBadge={
+        autoPersistActive && autoPersistController ? (
+          <SyncStatusBadge state={autoPersistState} onRetry={() => autoPersistController.flush()} />
+        ) : undefined
+      }
+    />
+  ) : null;
+  const hasHeader = hasHeaderSlots || !!defaultHeader;
   // 兜底 tab 函数作用域缺省接线（InstanceEditor 函数下拉/参数行数据源）：
   // 宿主显式 customFunctions 优先（宿主优先原则），否则取 shell schema——
   // EditorShellProvider 场景零接线；无 Provider（stories 直用）行为不变
@@ -386,12 +460,17 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
     <div className='h-full min-w-0 flex-1'>{decisionGraph}</div>
   );
 
+  // 外层 Provider（chrome=false）：岛容器 scope 供 header 浮层（more 菜单/确认框）
+  // 的 portal 挂进 kernel 自持岛根——header 本体在岛外，读不到 kernel 内层
+  // SealContainerProvider；data-mode 双写同值幂等（与内层同源 isDarkTheme）
   return (
-    <div className='flex h-full w-full min-h-0 flex-col'>
-      {headerNode}
-      {body}
-      {sheetNode}
-      <Toaster position='bottom-right' />
-    </div>
+    <JdmConfigProvider theme={{ mode: isDarkTheme ? 'dark' : 'light' }} chrome={false}>
+      <div className='flex h-full w-full min-h-0 flex-col'>
+        {headerNode}
+        {body}
+        {sheetNode}
+        <Toaster position='bottom-right' />
+      </div>
+    </JdmConfigProvider>
   );
 });

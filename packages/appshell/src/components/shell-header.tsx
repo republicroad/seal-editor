@@ -23,7 +23,8 @@ type GraphRefInput = NonNullable<ShellHeaderProps['graphRef']>;
 
 const isRefObject = (value: GraphRefInput): value is React.RefObject<DecisionGraphRef | null> => 'current' in value;
 
-const resolveGraphRef = (value: ShellHeaderProps['graphRef']): DecisionGraphRef | null => {
+/** ref 对象 / 句柄双形态统一解包（ShellHeader 与 DefaultShellHeader 共用） */
+export const resolveGraphRef = (value: GraphRefInput | null | undefined): DecisionGraphRef | null => {
   if (value == null) return null;
   return isRefObject(value) ? value.current : value;
 };

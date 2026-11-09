@@ -1,4 +1,5 @@
 import { Select as SelectPrimitive } from '@base-ui/react/select';
+import { useSealPortalContainer } from '@republicroad/seal-editor';
 import { Check, ChevronDown, ChevronUp } from 'lucide-react';
 import * as React from 'react';
 
@@ -65,7 +66,7 @@ const SelectContent = React.forwardRef<
     { className, children, alignItemWithTrigger = true, side = 'bottom', sideOffset = 0, align, alignOffset, ...props },
     ref,
   ) => (
-    <SelectPrimitive.Portal>
+    <SelectPrimitive.Portal container={useSealPortalContainer()}>
       <SelectPrimitive.Positioner
         alignItemWithTrigger={alignItemWithTrigger}
         side={side}

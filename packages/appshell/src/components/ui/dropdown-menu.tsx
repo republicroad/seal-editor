@@ -1,6 +1,7 @@
 'use client';
 
 import { Menu as MenuPrimitive } from '@base-ui/react/menu';
+import { useSealPortalContainer } from '@republicroad/seal-editor';
 import { Check, ChevronRight, Circle } from 'lucide-react';
 import * as React from 'react';
 
@@ -43,52 +44,58 @@ const DropdownMenuSubContent = React.forwardRef<
   React.ComponentRef<typeof MenuPrimitive.Popup>,
   React.ComponentPropsWithoutRef<typeof MenuPrimitive.Popup> &
     Pick<MenuPrimitive.Positioner.Props, 'side' | 'sideOffset' | 'align' | 'alignOffset'>
->(({ className, side = 'right', sideOffset = 0, align, alignOffset, ...props }, ref) => (
-  <MenuPrimitive.Portal>
-    <MenuPrimitive.Positioner
-      side={side}
-      sideOffset={sideOffset}
-      align={align}
-      alignOffset={alignOffset}
-      className='z-50 isolate'
-    >
-      <MenuPrimitive.Popup
-        ref={ref}
-        className={cn(
-          'z-50 min-w-[8rem] origin-(--transform-origin) overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg transition-[opacity,transform] duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0',
-          className,
-        )}
-        {...props}
-      />
-    </MenuPrimitive.Positioner>
-  </MenuPrimitive.Portal>
-));
+>(({ className, side = 'right', sideOffset = 0, align, alignOffset, ...props }, ref) => {
+  const sealContainer = useSealPortalContainer();
+  return (
+    <MenuPrimitive.Portal container={sealContainer}>
+      <MenuPrimitive.Positioner
+        side={side}
+        sideOffset={sideOffset}
+        align={align}
+        alignOffset={alignOffset}
+        className='z-50 isolate'
+      >
+        <MenuPrimitive.Popup
+          ref={ref}
+          className={cn(
+            'z-50 min-w-[8rem] origin-(--transform-origin) overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg transition-[opacity,transform] duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0',
+            className,
+          )}
+          {...props}
+        />
+      </MenuPrimitive.Positioner>
+    </MenuPrimitive.Portal>
+  );
+});
 DropdownMenuSubContent.displayName = 'DropdownMenuSubContent';
 
 const DropdownMenuContent = React.forwardRef<
   React.ComponentRef<typeof MenuPrimitive.Popup>,
   React.ComponentPropsWithoutRef<typeof MenuPrimitive.Popup> &
     Pick<MenuPrimitive.Positioner.Props, 'side' | 'sideOffset' | 'align' | 'alignOffset'>
->(({ className, sideOffset = 4, side, align, alignOffset, ...props }, ref) => (
-  <MenuPrimitive.Portal>
-    <MenuPrimitive.Positioner
-      side={side}
-      sideOffset={sideOffset}
-      align={align}
-      alignOffset={alignOffset}
-      className='z-50 isolate'
-    >
-      <MenuPrimitive.Popup
-        ref={ref}
-        className={cn(
-          'z-50 max-h-(--available-height) min-w-[8rem] origin-(--transform-origin) overflow-y-auto overflow-x-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md transition-[opacity,transform] duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0',
-          className,
-        )}
-        {...props}
-      />
-    </MenuPrimitive.Positioner>
-  </MenuPrimitive.Portal>
-));
+>(({ className, sideOffset = 4, side, align, alignOffset, ...props }, ref) => {
+  const sealContainer = useSealPortalContainer();
+  return (
+    <MenuPrimitive.Portal container={sealContainer}>
+      <MenuPrimitive.Positioner
+        side={side}
+        sideOffset={sideOffset}
+        align={align}
+        alignOffset={alignOffset}
+        className='z-50 isolate'
+      >
+        <MenuPrimitive.Popup
+          ref={ref}
+          className={cn(
+            'z-50 max-h-(--available-height) min-w-[8rem] origin-(--transform-origin) overflow-y-auto overflow-x-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md transition-[opacity,transform] duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0',
+            className,
+          )}
+          {...props}
+        />
+      </MenuPrimitive.Positioner>
+    </MenuPrimitive.Portal>
+  );
+});
 DropdownMenuContent.displayName = 'DropdownMenuContent';
 
 const DropdownMenuItem = React.forwardRef<

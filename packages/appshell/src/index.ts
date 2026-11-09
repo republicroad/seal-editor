@@ -46,6 +46,7 @@ export {
 } from './lib/migrate-graph';
 export type { AutoPersistBridgeOptions } from './components/skinned-decision-graph';
 export { ShellHeader, type ShellHeaderProps } from './components/shell-header';
+export { DefaultShellHeader, type DefaultShellHeaderProps } from './components/default-shell-header';
 export * from './lib/custom-node-plans';
 export * from './lib/custom-node-schema-source';
 export * from './lib/custom-node-types';

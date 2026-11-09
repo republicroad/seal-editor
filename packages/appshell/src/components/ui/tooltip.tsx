@@ -1,4 +1,5 @@
 import { Tooltip as TooltipPrimitive } from '@base-ui/react/tooltip';
+import { useSealPortalContainer } from '@republicroad/seal-editor';
 import * as React from 'react';
 
 import { cn } from '../../lib/utils';
@@ -14,7 +15,7 @@ const TooltipContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Popup> &
     Pick<TooltipPrimitive.Positioner.Props, 'side' | 'sideOffset' | 'align' | 'alignOffset'>
 >(({ className, sideOffset = 4, side, align, alignOffset, ...props }, ref) => (
-  <TooltipPrimitive.Portal>
+  <TooltipPrimitive.Portal container={useSealPortalContainer()}>
     <TooltipPrimitive.Positioner side={side} sideOffset={sideOffset} align={align} alignOffset={alignOffset}>
       <TooltipPrimitive.Popup
         ref={ref}

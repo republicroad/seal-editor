@@ -129,3 +129,39 @@ const SimulatorFooterGraph: React.FC = () => {
 export const SimulatorFooterHostEntry: Story = {
   render: () => <SimulatorFooterGraph />,
 };
+
+/** navbar-5 默认头部演示：defaultHeader opt-in——back + enabled Switch + History + Test Run 主钮 + more 菜单 */
+const DefaultHeaderGraph: React.FC = () => {
+  const { customNodes, ready } = useCustomNodes();
+  const [graph, setGraph] = useState<DecisionGraphType>(() => ({
+    enabled: true,
+    nodes: [
+      { id: 'in-1', type: 'inputNode', position: { x: 60, y: 220 }, name: 'Request' },
+      { id: 'out-1', type: 'outputNode', position: { x: 700, y: 220 }, name: 'Response' },
+    ],
+    edges: [],
+  }));
+
+  if (!ready) {
+    return <div style={{ padding: 24 }}>loading custom nodes…</div>;
+  }
+
+  return (
+    <SkinnedDecisionGraph
+      value={graph}
+      customNodes={customNodes}
+      onChange={(next) => setGraph(next)}
+      simulateHandler={offlineSimulate}
+      defaultHeader
+      onBack={() => window.history.back()}
+      headerTitle='navbar-5 Demo'
+      onOpenHistory={() => window.alert('宿主 version-history 入口（数据属宿主 persistence）')}
+      onDuplicate={() => window.alert('宿主 Duplicate 语义')}
+      onDelete={() => window.alert('宿主 Delete 语义（已过 AlertDialog 确认）')}
+    />
+  );
+};
+
+export const DefaultHeaderNavbar5: Story = {
+  render: () => <DefaultHeaderGraph />,
+};
