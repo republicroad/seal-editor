@@ -1,6 +1,6 @@
 # ADR-025 · 编辑器色彩模式自持根与单通道 theme prop（proposed）
 
-- 状态：**proposed**（verdict 宿主 2026-10-31 明暗验收暴露的装配缺口为其直接诱因；起草 seal-editor 会话）
+- 状态：**accepted**（2026-11-25 verdict 宿主消费回执签收，流转履历：proposed 2026-10-31 → §7 宿主评审全文 → accepted 2026-11-25；诱因与起草同前）
 - 关联：ADR-023（包 CSS 嵌入隔离——本 ADR 继承其岛作用域与层化立法，重画模式归属）、
   verdict 提案 upstream-2point0-theme-mode-passthrough.md（①②为**过渡态补丁**，被本 ADR 终态覆盖）
 
@@ -170,3 +170,27 @@ verdict 贴边形态：挂载 div `seal-root h-full w-full overflow-hidden`（�
   （styles.css）——迁移注记出后跟
 - 上游提案 value_list 下拉（parameterOptions B 档异步回调）与本 ADR 的 M1 同
   props 面，可同批
+
+## 8 · 实施回执（2026-11-25，verdict 会话）
+
+§6 三处评审随 2.3.0 真实消费完成签收，状态流转 proposed → accepted：
+
+- **R1（自持根 × 宿主贴边布局）——通过**。verdict 画布外层维持 `h-full w-full
+  overflow-hidden` 贴边形态（editor-canvas.tsx seal-root 容器），2.3.0 岛容器
+  closest 解析回落修复下实测无布局回退；批次 187 立法的滚动收编（内容槽唯一
+  滚动容器）与自持根无冲突。
+- **R2（'system' 缺省取舍）——维持宿主立场**：verdict 永远显式传值（经
+  AppshellThemeBridge 单向同步 next-themes 偏好，2.2.1 消费时已落地并延续至
+  2.3.0），不依赖 'system' 缺省路径。
+- **R3（M2 双层嵌套岛 CSS 幂等）——复核通过**。2.3.0 五组件 Portal 浮层改挂
+  岛容器（`useSealPortalContainer`）系统性落地，编辑器内部浮层（dropdown/
+  dialog/popover）明暗模式随岛根 token 正确切换，宿主自有 reui dropdown 不受
+  影响——幂等性在真实消费下成立。
+- **消费证据**：verdict `apps/web` 升 `@republicroad/seal-editor@2.3.0` +
+  `@republicroad/seal-appshell@2.3.0`；`defaultHeader` opt-in 接入（onBack /
+  onOpenHistory / headerTitle 三 props 接线，Test Run 由 simulateHandler 自动
+  注入直跑租户仿真端点）；宿主三处兜底 UI 同批撤除（返回 Link / 历史胶囊降级
+  纯状态 / ⋯菜单版本历史项）。M1-M4 消费时点项在 2.2.1 时代已全部完成（§7
+  verdict 消费时点清单闭环）。
+- **roadmap**：`docs/design/development-roadmap.md`「ADR-025 评审三处仍 open」
+  行同步闭环。
