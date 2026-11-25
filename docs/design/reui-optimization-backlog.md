@@ -46,6 +46,45 @@
 > + Export/Duplicate more 菜单）↔ appshell skinned-header 形态对照。其余新类目与本仓无关。
 > 全部维持不安装（独立 demo 形态）。
 
+> **2026-11-25 复查（全量目录对账 + 落码核验）**：以 MCP `list_components` /
+> `list_block_groups` / `search` / `get_component` 实测 + [llms.txt](https://reui.io/llms.txt)
+> + [changelog v2.9.0](https://reui.io/docs/changelog)（2026-11-19）为据，逐项对账
+> 历次「MCP 不可枚举」遗留。组件 27 持平；免费 examples 1,265 / 87 类；
+> blocks 687（v2.9.0 由 672 加 15：13 个 data-grid-advanced + chart-55/56，
+> 前数 678 与官网口径有差，不作推断）；icons 667 持平；**模板 21 补录完毕**
+> （此前「MCP 不可枚举」结论作废）——Ultimate 许可、各 reui.io 页面下载、
+> 非 registry 安装物、整页站定位，最接近规则编辑器的 Flowly App
+> （workflow canvas + agent canvas + run dashboard）为完整 Next.js 应用，无嵌入面，
+> 整类维持不适用。flow 4 / navbar-5 / chart-34 与 11-04 快照逐字一致，零更新。
+> v2.9.0 新增项与规则编辑器无直接关系；v2.8.2 存在 install 名重定向
+> （chart-36→Operating Margin 等），提醒安装前核对 docsUrl 与当前清单。
+>
+> **本次唯一实质结论修正（推翻上节「零可执行项」）**：code-block diff 能力
+> **已在本仓落地，非新增可用项**——`packages/appshell/.../version-history-panel.tsx:133-169`
+> 已用 LCS→`computeUnifiedPatch`→`parseUnifiedDiff`→`<CodeBlock lines>` 渲染双行号
+> 行级 diff（ADR-017 同批，c-18 形态）；dt `getRowStatus` 已消费 `_diff.status`
+> 三态（`packages/seal-editor/src/components/decision-table/table/table.tsx:363-373`）。
+> 因此 roadmap「dt/expression 行级 diff 预览」缺的不是渲染能力而是**消费接线**：
+> `getDiffContent` 已在 decision-table/expression 等六类 specification 出行级元数据
+> （`nodes/specifications/decision-table.specification.tsx:142-202` 出 rules 级
+> added/removed/modified + fields.previousValue），但无节点卡预览消费它。
+> 该批应改为「把既有 parseUnifiedDiff + getRowStatus 铺到节点卡预览」，零新依赖，
+> 不再是「缺数据层」的原判。
+>
+> 新增两处形态参照入册（均维持不安装）：**sheet-17/18**（Firewall rule new/edit：
+> 条件构建器 Filters + 实时命中预览 + Enabled Switch + Rule/Matches 分栏；
+> sheet-18 的 `DEFAULT_RULE_ID` 编辑态与 Save 仅变更时解锁贴近 ADR-008 dirty 契约，
+> 替代 `filters` 单组件的是「sheet 外壳 + 命中预览」整套形态）；**data-grid-editing-2/5/6**
+> 暴露本仓 dt blur-commit 语义可能缺的批量 undo（editing-5 有 undo 栈、
+> editing-6 有 range editing + footer 汇总，本仓 vendored `invertDataGridCellsChange`
+> 已在架但 dt 未接——待复审，非立即执行）。
+>
+> `filters` 判定由「❌ 无场景」改判为 **🟡 触发制候选**：唯一真正的 AND/OR 条件树组件，
+> `FilterQuery` 为可嵌套分组树，`variant="advanced" advancedMode="inline"` 可入检查器；
+> 产出纯 JSON 树不编译，编译到引擎输入属宿主语义。注意 `onQueryChange` 会出
+> 未完成规则（空 operator / undefined value），编译前须跳过。触发条件 = 决定把规则
+> 语义编译到引擎输入时，与 sheet-17/18 形态一同重启评估。
+
 ### 新组件判定（6 项）
 
 | 组件 | 判定 | 落点/理由 |
@@ -76,7 +115,7 @@
   Chain trace 展示参照。触发条件 = verdict 线激活 AI copilot。
 - **data-grid 组（42）**：整页 admin 表格区块，嵌入式编辑器无整页场景；唯一可借鉴
   形态 = editing 类的脏状态 Save/Discard 条（与 dt 单元 blur-commit 语义不同，不套用）。
-- **模板**：非 registry 安装物（reui.io 页面下载），整页站定位，不适用组件库。
+- **模板（21，2026-11-25 补录）**：非 registry 安装物（Ultimate 许可、reui.io 页面下载），整页站定位，不适用组件库；最接近规则编辑器的 Flowly App 是完整 Next.js 应用，无嵌入面。
 - **Motion Icons（667）**：维持不涉及——编辑器图标统一 lucide（#icons），混入 hover
   动效图标有风格一致性风险；除非未来节点卡 hover 专项另评。
 

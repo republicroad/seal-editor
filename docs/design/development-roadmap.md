@@ -17,7 +17,8 @@
 > **主题装配线（ADR-025）已全链收官**：M1 theme 透传口（2.1.0）→ M2 自持岛根 +
 > seeds 透传（2.2.0）→ h-full 高度链补丁（2.2.1，latest）→ M3 表面 token 硬约束 +
 > M4 appshell 显式下传（appshell 2.2.0）全部在架。npm 终态：kernel 2.2.1 /
-> appshell 2.2.0。ADR-025 待 verdict 评审三处回执后流转 proposed→accepted。
+> appshell 2.2.0。ADR-025 ✅ verdict 评审三处回执已签收（2026-11-25，随 2.3.0
+> 消费验收）流转 accepted——见 ADR §8 实施回执。
 > （semver 铁律随 2.1.1 倒挂事故入档：已发 X.Y.0 后修复必走 X.Y.z。）
 
 ### 通道一 · 反馈驱动（信号池，等触发不主动）
@@ -27,6 +28,9 @@
    JdmConfigProvider（改走 theme prop）→ #app 深空底一行修；我方承接：
    ADR-025 评审三处回执（贴边布局兼容 / system 缺省取舍 / 嵌套岛幂等）与
    迁移摩擦收集（diagnostics / parameterOptions / diffBaseline / resetHistory 顺手度）
+   **✅ 全部闭环（2026-11-25，verdict 2.3.0 消费批）**——依赖升 ^2.3.0、defaultHeader
+   接入（onBack/onOpenHistory/headerTitle）、三处兜底 UI 撤除、ADR-025 accepted；
+   迁移摩擦反馈随首批真实使用回填
 2. 类型阻断连线（铁律 5 最后缺口）——等真实案例，形态按频率定
 3. presence 展示位——宿主 overlay 方案若不敷再评估原生位
 4. 多标签并发（Web Locks / BroadcastChannel）——auto-persist 二阶段
@@ -68,9 +72,17 @@
 统一解析）→ 2.2.0（M2 自持岛根 / seeds 透传 / storybook color-scheme；appshell
 2.2.0 M4 显式下传）→ 2.1.1（误发，已被 2.2.1 取代为 latest）→ **2.2.1（h-full
 高度链修复，latest）**。M3 硬约束（style-debt hardcoded-bg 预算 0）随 2.2.0 批落地。
-ADR-025 评审三处仍 open（verdict 宿主）。
+ADR-025 评审三处 ✅ 回执签收流转 accepted（2026-11-25，verdict 2.3.0 消费批——ADR §8 实施回执）。
 
-### navbar-5 默认头部批（已实施，2026-11-04，待验收提交 → kernel/appshell 2.3.0 并批）
+### navbar-5 默认头部批（已发版 2026-11-09 → kernel/appshell 2.3.0，edac55bb+双 tag）
+
+灵感通道三步法首例全流程闭环（reui 复查 → navbar-5 形态参照入册 → 用户裁断落地）。
+发版含三件：①主批=kernel `enabled` 类型面 + DefaultShellHeader（navbar-5 五件套，
+defaultHeader opt-in）+ 七头部回调；②Test Run 直跑改造（n8n Execute Workflow 模式：
+resolveSimulatorInput examples[0] → 直跑 → 面板自动开 + Request 回填；三钮分层=
+header 快跑/侧栏详查/面板重跑）；③浮层透明系统性修复（自持岛根 anchor 解析盲区 +
+appshell ui 五组件 Portal 挂岛 + skinned 外层 Provider）。门禁 kernel 690/appshell
+249 全绿；npm 双包 latest=2.3.0（canary/smoke 全过）。（原「已实施待验收」节详情并此。）
 
 灵感通道三步法首例全流程闭环（reui 复查 → navbar-5 形态参照入册 → 用户裁断落地）：
 kernel `DecisionGraphType.enabled?: boolean` 类型面（引擎忽略，宿主解释语义）+
@@ -86,9 +98,17 @@ navbar-5 三处形态参照入册）同车待提交。
 
 ### 建议下次会话首批
 
-1. navbar-5 批收尾：验收 → 提交 → kernel/appshell 2.3.0 并批发版
-2. verdict 随版接入陪跑（升 2.3.0 接 defaultHeader + 撤三兜底 + ADR-025 评审回执）
-3. dt/expression 行级 diff 预览（探索池唯一已勘定项，~1 天故事先行）
+1. verdict 随版接入陪跑（2.3.0 刚上架=新 API 首个真实消费窗口）：宿主升版接
+   defaultHeader（onBack 路由 / onOpenHistory 接其 version-history / Test Run 走
+   其引擎）→ 撤三兜底（高度桥 / 外包 Provider / #app 深空底）→ ADR-025 评审
+   三处回执 → 状态流转 proposed→accepted
+2. dt/expression 行级 diff 预览（探索池唯一已勘定项，~1 天故事先行）——2026-11-25
+   复查修正：渲染能力与数据层均已在架（appshell version-history 的
+   `parseUnifiedDiff`→`<CodeBlock lines>` 双行号行级 diff、dt `getRowStatus`
+   已吃 `_diff.status` 三态、各 specification `getDiffContent` 已出行级元数据），
+   缺的是节点卡预览消费接线；本批零新依赖，按「把既有能力铺到节点卡」重述故事
+3. 触发制观察项：simulator 运行历史深化（chart-34 运行胶囊条带形态参照——
+   verdict 宿主有运行历史诉求时升格）
 
 ---
 
